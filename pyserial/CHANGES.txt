@@ -150,3 +150,9 @@ Version 2.1     28 Jul 2004
         
     New Features:
         - Implement write timeouts ('writeTimeout' parameter)
+
+
+Version 2.2     XXXX
+    Bugfixes (win32):
+        - keep RTS/CTS state on port setting changes [Patch 983106]
+

@@ -11,7 +11,7 @@ import win32event # We use events and the WaitFor[Single|Multiple]Objects functi
 import win32con   # constants.
 from serialutil import *
 
-VERSION = "$Revision: 1.29 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.30 $".split()[1]     #extract CVS version
 
 #from winbase.h. these should realy be in win32con
 MS_CTS_ON  = 16
@@ -58,6 +58,9 @@ class Serial(SerialBase):
 
         #Save original timeout values:
         self._orgTimeouts = win32file.GetCommTimeouts(self.hComPort)
+
+        self._rtsState = win32file.RTS_CONTROL_ENABLE
+        self._dtrState = win32file.RTS_CONTROL_ENABLE
 
         self._reconfigurePort()
         
@@ -141,8 +144,8 @@ class Serial(SerialBase):
             comDCB.fRtsControl  = win32file.RTS_CONTROL_HANDSHAKE
             comDCB.fDtrControl  = win32file.DTR_CONTROL_HANDSHAKE
         else:
-            comDCB.fRtsControl  = win32file.RTS_CONTROL_ENABLE
-            comDCB.fDtrControl  = win32file.DTR_CONTROL_ENABLE
+            comDCB.fRtsControl  = self._rtsState
+            comDCB.fDtrControl  = self._dtrState
         comDCB.fOutxCtsFlow     = self._rtscts
         comDCB.fOutxDsrFlow     = self._rtscts
         comDCB.fOutX            = self._xonxoff
@@ -245,16 +248,20 @@ class Serial(SerialBase):
         """Set terminal status line: Request To Send"""
         if not self.hComPort: raise portNotOpenError
         if level:
+            self._rtsState = win32file.RTS_CONTROL_ENABLE
             win32file.EscapeCommFunction(self.hComPort, win32file.SETRTS)
         else:
+            self._rtsState = win32file.RTS_CONTROL_DISABLE
             win32file.EscapeCommFunction(self.hComPort, win32file.CLRRTS)
 
     def setDTR(self,level=1):
         """Set terminal status line: Data Terminal Ready"""
         if not self.hComPort: raise portNotOpenError
         if level:
+            self._dtrState = win32file.DTR_CONTROL_ENABLE
             win32file.EscapeCommFunction(self.hComPort, win32file.SETDTR)
         else:
+            self._dtrState = win32file.DTR_CONTROL_DISABLE
             win32file.EscapeCommFunction(self.hComPort, win32file.CLRDTR)
 
     def getCTS(self):
