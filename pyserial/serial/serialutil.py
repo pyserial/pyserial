@@ -59,10 +59,6 @@ class FileLike:
             self.write(line)
 
     def flush(self):
-        """map flush to flushOutput, ignore  exception when that
-        method is not available"""
-        try:
-            self.flushOutput()
-        except AttributeError:
-            pass
+        """flush of file like objects"""
+        pass
 
