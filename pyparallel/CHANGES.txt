@@ -1,2 +1,5 @@
 Version 0.1     29 Jul 2002
     added to CVS
+
+Version 0.2     27 Jan 2005
+    Windows version now using ctypes
