@@ -11,7 +11,7 @@ import win32con   # constants.
 import sys, string
 import serialutil
 
-VERSION = string.split("$Revision: 1.3 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.4 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -43,13 +43,17 @@ class Serial(serialutil.FileLike):
             self.portstr = 'COM%d' % (port+1) #numbers are transformed to a string
             #self.portstr = '\\\\.\\COM%d' % (port+1) #WIN NT format??
 
-        self.hComPort = win32file.CreateFile(self.portstr,
-               win32con.GENERIC_READ | win32con.GENERIC_WRITE,
-               0, # exclusive access
-               None, # no security
-               win32con.OPEN_EXISTING,
-               win32con.FILE_ATTRIBUTE_NORMAL | win32con.FILE_FLAG_OVERLAPPED,
-               None)
+        try:
+            self.hComPort = win32file.CreateFile(self.portstr,
+                   win32con.GENERIC_READ | win32con.GENERIC_WRITE,
+                   0, # exclusive access
+                   None, # no security
+                   win32con.OPEN_EXISTING,
+                   win32con.FILE_ATTRIBUTE_NORMAL | win32con.FILE_FLAG_OVERLAPPED,
+                   None)
+        except:
+            self.hComPort = None    #'cause __del__ is called anyway
+            raise serialutil.SerialException, "could not open port"
         # Setup a 4k buffer
         win32file.SetupComm(self.hComPort, 4096, 4096)
 

@@ -1,4 +1,7 @@
 
+class SerialException(Exception):
+    pass
+
 class FileLike:
     """An abstract file like class.
     
