@@ -11,13 +11,19 @@ import win32con   # constants.
 import sys, string
 import serialutil
 
-VERSION = string.split("$Revision: 1.10 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.11 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
 FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS = (5,6,7,8)
 
 portNotOpenError = ValueError('port not open')
+
+#from winbase.h. these should realy be in win32con
+MS_CTS_ON  = 16
+MS_DSR_ON  = 32
+MS_RING_ON = 64
+MS_RLSD_ON = 128
 
 class Serial(serialutil.FileLike):
     def __init__(self,
@@ -68,7 +74,8 @@ class Serial(serialutil.FileLike):
         if timeout is None:
              timeouts = (0, 0, 0, 0, 0)
         elif timeout == 0:
-            timeouts = (win32con.MAXDWORD, 0, 0, 0, 1000)
+            #timeouts = (win32con.MAXDWORD, 0, 0, 0, 1000)
+            timeouts = (win32con.MAXDWORD, 0, 0, 0, 0)
         else:
             #timeouts = (0, 0, 0, 0, 0) #timeouts are done with WaitForSingleObject
             #timeouts = (win32con.MAXDWORD, 0, 0, 0, 1000)   #doesn't works
@@ -183,22 +190,18 @@ class Serial(serialutil.FileLike):
         if size > 0:
             if self.timeout == 0:
                 flags, comstat = win32file.ClearCommError(self.hComPort)
-                n = comstat.cbInQue
-                if len(read) + n >= size:
-                    n = size-len(read)
-                rc, buf = win32file.ReadFile(self.hComPort, win32file.AllocateReadBuffer(n), self.overlapped)
-                win32event.WaitForSingleObject(self.overlapped.hEvent, win32event.INFINITE)
-                read = read + str(buf)
+                n = min(comstat.cbInQue, size)
+                if n > 0:
+                    rc, buf = win32file.ReadFile(self.hComPort, win32file.AllocateReadBuffer(n), self.overlapped)
+                    win32event.WaitForSingleObject(self.overlapped.hEvent, win32event.INFINITE)
+                    read = str(buf)
             else:
-                while len(read) < size:
-                    flags, comstat = win32file.ClearCommError( self.hComPort )
-                    getq = size-len(read)
-                    rc, buf = win32file.ReadFile(self.hComPort, win32file.AllocateReadBuffer(getq), self.overlapped)
-                    #win32event.WaitForSingleObject(self.overlapped.hEvent, win32event.INFINITE)
-                    n = win32file.GetOverlappedResult(self.hComPort, self.overlapped, 1)
-                    read = read + str(buf[:n])
-                    if getq != n:   #there was a timeout
-                        break
+                flags, comstat = win32file.ClearCommError(self.hComPort)
+                getq = size-len(read)
+                rc, buf = win32file.ReadFile(self.hComPort, win32file.AllocateReadBuffer(getq), self.overlapped)
+                #win32event.WaitForSingleObject(self.overlapped.hEvent, win32event.INFINITE)
+                n = win32file.GetOverlappedResult(self.hComPort, self.overlapped, 1)
+                read = str(buf[:n])
         return read
 
     def write(self, s):
@@ -251,24 +254,22 @@ class Serial(serialutil.FileLike):
     def getCTS(self):
         """read terminal status line"""
         if not self.hComPort: raise portNotOpenError
-        comDCB = win32file.GetCommState(self.hComPort)
-        return comDCB.fOutxCtsFlow
+        return MS_CTS_ON & win32file.GetCommModemStatus(self.hComPort) != 0
 
     def getDSR(self):
         """read terminal status line"""
         if not self.hComPort: raise portNotOpenError
-        comDCB = win32file.GetCommState(self.hComPort)
-        return comDCB.fOutxDsrFlow
+        return MS_DSR_ON & win32file.GetCommModemStatus(self.hComPort) != 0
 
     def getRI(self):
         """read terminal status line"""
         if not self.hComPort: raise portNotOpenError
-        raise NotImplementedError
+        return MS_RING_ON & win32file.GetCommModemStatus(self.hComPort) != 0
 
     def getCD(self):
         """read terminal status line"""
         if not self.hComPort: raise portNotOpenError
-        raise NotImplementedError
+        return MS_RLSD_ON & win32file.GetCommModemStatus(self.hComPort) != 0
 
 #Nur Testfunktion!!
 if __name__ == '__main__':
