@@ -209,6 +209,17 @@ Tips & Tricks
   some platforms. Look at the tools from Roger Binns:
   http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/bitpim/comscan/
 
+- When packagin a project with py2exe, it will likely print a warning about
+  missing modules 'javax.comm'. This warning is uncritical as the module is
+  used in the Jython implementation that is not used but packaged.
+  
+  It can be avoided with:
+  setup(...
+        options = {'py2exe': {'excludes': ['javax.comm']}})
+  
+  See also setup_demo.py in the examples.
+
+
 References
 ----------
 - Python: http://www.python.org
