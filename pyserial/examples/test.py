@@ -7,19 +7,13 @@ the code.
 
 for all these tests a simple hardware is required.
 Loopback HW adapter:
-shortcut these pin pairs on a 9 pole DSUB: (2-3) (4-6) (7-8)
+shortcut these pin pairs:
+ TX  <-> RX
+ RTS <-> CTS
+ DTR <-> DSR
 
- TX  -\
- RX  -/
+on a 9 pole DSUB these are the pins (2-3) (4-6) (7-8)
 
- RTS -\
- CTS -/
-
- DTR -\
- DSR -/
-
- GND
- RI
 """
 
 import unittest, threading, time
@@ -29,7 +23,7 @@ import serial
 PORT=0
 
 
-class TestNonblocking(unittest.TestCase):
+class Test4_Nonblocking(unittest.TestCase):
     """Test with timeouts"""
     timeout=0
     def setUp(self):
@@ -37,19 +31,26 @@ class TestNonblocking(unittest.TestCase):
     def tearDown(self):
         self.s.close()
 
+    def test0_Messy(self):
+        """NonBlocking (timeout=0)"""
+        #this is only here to write out the message in verbose mode
+        #because Test3 and Test4 print the same messages
+
     def test1_ReadEmpty(self):
-        """After port open, the input buffer must be empty"""
+        """timeout: After port open, the input buffer must be empty"""
         self.failUnless(self.s.read(1)=='', "expected empty buffer")
     def test2_Loopback(self):
-        """With the Loopback HW, each sent character should return.
+        """timeout: each sent character should return (binary test).
            this is also a test for the binary capability of a port."""
         for c in map(chr,range(256)):
             self.s.write(c)
             time.sleep(0.02)    #there might be a small delay until the character is ready (especialy on win32)
+            self.failUnless(self.s.inWaiting()==1, "expected exactly one character for inWainting()")
             self.failUnless(self.s.read(1)==c, "expected an '%s' which was written before" % c)
         self.failUnless(self.s.read(1)=='', "expected empty buffer after all sent chars are read")
     def test2_LoopbackTimeout(self):
-        """test the timeout/immediate return, and that partial results are returned"""
+        """timeout: test the timeout/immediate return.
+        partial results should be returned."""
         self.s.write("HELLO")
         time.sleep(0.02)    #there might be a small delay until the character is ready (especialy on win32)
         #read more characters as are available to run in the timeout
@@ -57,9 +58,13 @@ class TestNonblocking(unittest.TestCase):
         self.failUnless(self.s.read(1)=='', "expected empty buffer after all sent chars are read")
 
 
-class TestTimeout(TestNonblocking):
+class Test3_Timeout(Test4_Nonblocking):
     """Same tests as the NonBlocking ones but this time with timeout"""
     timeout=1
+    def test0_Messy(self):
+        """Blocking (timeout=1)"""
+        #this is only here to write out the message in verbose mode
+        #because Test3 and Test4 print the same messages
 
 class SendEvent(threading.Thread):
     def __init__(self, serial, delay=1):
@@ -92,8 +97,8 @@ class Test1_Forever(unittest.TestCase):
         self.s.close()
 
     def test2_ReadEmpty(self):
-        """After port open, the input buffer must be empty. a character is
-        sent after some time to terminate the test (SendEvent)."""
+        """no timeout: after port open, the input buffer must be empty (read).
+        a character is sent after some time to terminate the test (SendEvent)."""
         c = self.s.read(1)
         if not (self.event.isSet() and c =='E'):
             self.fail("expected marker")
@@ -106,20 +111,21 @@ class Test2_Forever(unittest.TestCase):
         self.s.close()
 
     def test1_inWaitingEmpty(self):
-        """After port open, the input buffer must be empty"""
+        """no timeout: after port open, the input buffer must be empty (inWaiting)"""
         self.failUnless(self.s.inWaiting()==0, "expected empty buffer")
 
     def test2_Loopback(self):
-        """With the Loopback HW, each sent character should return.
+        """no timeout: each sent character should return (binary test).
            this is also a test for the binary capability of a port."""
         for c in map(chr,range(256)):
             self.s.write(c)
             time.sleep(0.02)    #there might be a small delay until the character is ready (especialy on win32)
+            self.failUnless(self.s.inWaiting()==1, "expected exactly one character for inWainting()")
             self.failUnless(self.s.read(1)==c, "expected an '%s' which was written before" % c)
         self.failUnless(self.s.inWaiting()==0, "expected empty buffer after all sent chars are read")
 
 
-class TestDataWires(unittest.TestCase):
+class Test0_DataWires(unittest.TestCase):
     """Test modem control lines"""
     def setUp(self):
         self.s = serial.Serial(PORT)
@@ -127,20 +133,27 @@ class TestDataWires(unittest.TestCase):
         self.s.close()
 
     def test1_RTS(self):
+        """Test RTS/CTS"""
         self.s.setRTS(0)
         self.failUnless(self.s.getCTS()==0, "CTS -> 0")
         self.s.setRTS(1)
-        self.failUnless(self.s.getCTS()==0, "CTS -> 1")
+        self.failUnless(self.s.getCTS()==1, "CTS -> 1")
 
     def test2_DTR(self):
+        """Test DTR/DSR"""
         self.s.setDTR(0)
         self.failUnless(self.s.getDSR()==0, "DSR -> 0")
         self.s.setDTR(1)
-        self.failUnless(self.s.getDSR()==0, "DSR -> 1")
+        self.failUnless(self.s.getDSR()==1, "DSR -> 1")
 
-##    def test3_RI(self):
-##        self.failUnless(self.s.getRI()==0, "RI -> 0")
+    def test3_RI(self):
+        """Test RI"""
+        self.failUnless(self.s.getRI()==0, "RI -> 0")
 
 if __name__ == '__main__':
+    import sys
+    print __doc__
+    print "testing port", PORT
+    sys.argv.append('-v')
     # When this module is executed from the command-line, run all its tests
     unittest.main()
