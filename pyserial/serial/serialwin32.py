@@ -10,7 +10,7 @@ import win32event # We use events and the WaitFor[Single|Multiple]Objects functi
 import win32con   # constants.
 import sys, string
 
-VERSION = string.split("$Revision: 1.1.1.1 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.2 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -159,52 +159,6 @@ class Serial:
         flags, comstat = win32file.ClearCommError(self.hComPort)
         return comstat.cbInQue
 
-    def _read(self, size=1):
-        flags, comstat = win32file.ClearCommError( self.hComPort )
-        #print "1:",comstat.cbInQue,
-        if comstat.cbInQue < size:
-            rc, mask = win32file.WaitCommEvent(self.hComPort, self.overlapped)
-            if rc == 0: # Character already ready!
-                win32event.SetEvent(self.overlapped.hEvent)
-
-            rc = win32event.WaitForSingleObject(self.overlapped.hEvent, win32event.INFINITE)
-            flags, comstat = win32file.ClearCommError( self.hComPort )
-            #print "2:",comstat.cbInQue,
-
-        rc, data = win32file.ReadFile(self.hComPort, size, self.overlapped)
-        win32event.WaitForSingleObject(self.overlapped.hEvent, win32event.INFINITE)
-        print "read %r" % str(data)
-        return str(data)
-
-    def work_read(self,num=1):
-        "read num bytes from serial port"
-        if not self.hComPort: raise portNotOpenError
-        flags, comstat = win32file.ClearCommError( self.hComPort )
-        #print "1:",comstat.cbInQue,
-        if comstat.cbInQue < num:
-            rc, mask = win32file.WaitCommEvent(self.hComPort, self.overlapped)
-            if rc == 0: # Character already ready!
-                win32event.SetEvent(self.overlapped.hEvent)
-
-            if self.timeout:
-                rc = win32event.WaitForSingleObject(self.overlapped.hEvent, self.timeout*1000)
-            else:
-                rc = win32event.WaitForSingleObject(self.overlapped.hEvent, win32event.INFINITE)
-            flags, comstat = win32file.ClearCommError( self.hComPort )
-            #print "2:",comstat.cbInQue,
-
-        #rc, data = win32file.ReadFile(self.hComPort, comstat.cbInQue, self.overlapped)
-        rc, data = win32file.ReadFile(self.hComPort, num, self.overlapped)
-        if self.timeout:
-            win32event.WaitForSingleObject(self.overlapped.hEvent, self.timeout*1000)
-        else:
-            win32event.WaitForSingleObject(self.overlapped.hEvent, win32event.INFINITE)
-
-        #old: hr, data = win32file.ReadFile(self.hComPort, num)
-        #print '.%s.' % str(data)
-        #print "read() soll %d ist %d" % (num, len(str(data))), repr(data)
-        return str(data)
-
     def read(self, size=1):
         "read num bytes from serial port"
         if not self.hComPort: raise portNotOpenError
@@ -213,24 +167,6 @@ class Serial:
         if size > 0:
             while len(read) < size:
                 flags, comstat = win32file.ClearCommError( self.hComPort )
-                #print "1:",comstat.cbInQue,
-                #self.overlapped = win32file.OVERLAPPED()
-                #self.overlapped.hEvent = win32event.CreateEvent(None, 0, 0, None)
-                #win32event.ResetEvent(self.overlapped.hEvent)
-##                if comstat.cbInQue < size:
-##                    #print "read <size"            ####debug
-##                    rc, mask = win32file.WaitCommEvent(self.hComPort, self.overlapped)
-##                    if rc == 0: # Character already ready!
-##                        win32event.SetEvent(self.overlapped.hEvent)
-##
-##                    if self.timeout:
-##                        rc = win32event.WaitForSingleObject(self.overlapped.hEvent, self.timeout*1000)
-##                        if rc == win32event.WAIT_TIMEOUT: break
-##                    else:
-##                        rc = win32event.WaitForSingleObject(self.overlapped.hEvent, win32event.INFINITE)
-##                    flags, comstat = win32file.ClearCommError( self.hComPort )
-##                    #print "2:",comstat.cbInQue,
-
                 rc, buf = win32file.ReadFile(self.hComPort, size-len(read), self.overlapped)
                 if self.timeout:
                     rc = win32event.WaitForSingleObject(self.overlapped.hEvent, self.timeout*1000)
@@ -239,7 +175,6 @@ class Serial:
                 else:
                     win32event.WaitForSingleObject(self.overlapped.hEvent, win32event.INFINITE)
                 read = read + str(buf)
-                #print "read() soll %d ist %d" % (num, len(str(data))), repr(data)
         #print "read %r" % str(read)
         return str(read)
 
@@ -253,7 +188,6 @@ class Serial:
         # Wait for the write to complete.
         win32event.WaitForSingleObject(overlapped.hEvent, win32event.INFINITE)
         #old: win32file.WriteFile(self.hComPort, s) #, 1,  NULL)
-        #print "ok"
 
     def flushInput(self):
         if not self.hComPort: raise portNotOpenError
@@ -265,7 +199,11 @@ class Serial:
 
     def sendBreak(self):
         if not self.hComPort: raise portNotOpenError
-        raise "not implemented"
+        import time
+        win32file.SetCommBreak(self.hComPort)
+        #TODO: how to set the correct duration??
+        time.sleep(0.020)
+        win32file.ClearCommBreak(self.hComPort)
 
     def setRTS(self,level=1):
         if not self.hComPort: raise portNotOpenError
