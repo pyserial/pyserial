@@ -2,10 +2,13 @@
 from distutils.core import setup
 from glob import glob
 
+#windows installer:
+# python setup.py bdist_wininst
+
 setup(
     name="pyserial",
     description="Python Serial Port Extension",
-    version="1.13",
+    version="1.15",
     author="Chris Liechti",
     author_email="cliechti@gmx.net",
     url="http://pyserial.sourceforge.net/",

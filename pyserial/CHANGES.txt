@@ -26,8 +26,15 @@ Version 1.13    09 Apr 2002
     Added alternate way for enabling rtscts (CNEW_RTSCTS is tried too)
     If port opening fails, a SerialException is raised on all platforms
 
-Version 1.xx
+Version 1.14    29 May 2002
     added examples to archive
     added non-blocking mode for timeout=0 (tnx Mat Martineau)
-    win32 does now return the remaining characters on timeout
-    
+
+    Bugfixes:
+        - win32 does now return the remaining characters on timeout
+
+Version 1.15    04 Jun 2002
+    Bugfixes (win32):
+        - removed debug messages
+        - compatibility to win9x improved
+
