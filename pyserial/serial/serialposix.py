@@ -13,7 +13,7 @@
 import sys, os, fcntl, termios, struct, select
 from serialutil import *
 
-VERSION = "$Revision: 1.18 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.19 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -49,7 +49,7 @@ elif plat[:3] == 'bsd' or  \
     def device(port):
         return '/dev/cuaa%d' % port
 
-elif plat[:4] == 'irix':     #IRIX® (not tested)
+elif plat[:4] == 'irix':     #IRIX (not tested)
     def device(port):
         return '/dev/ttyf%d' % port
 
@@ -57,7 +57,7 @@ elif plat[:2] == 'hp':       #HP-UX (not tested)
     def device(port):
         return '/dev/tty%dp0' % (port+1)
 
-elif plat[:5] == 'sunos':    #Solaris®/SunOS® (confirmed)
+elif plat[:5] == 'sunos':    #Solaris/SunOS (confirmed)
     def device(port):
         return '/dev/tty%c' % (ord('a')+port)
 
@@ -80,7 +80,7 @@ and with a bit luck you can get this module running...
         return '/dev/ttyS%d' % portnum
     #~ raise Exception, "this module does not run on this platform, sorry."
 
-#whats up with "aix", "beos", "sco", ....
+#whats up with "aix", "beos", ....
 #they should work, just need to know the device names.
 
 
