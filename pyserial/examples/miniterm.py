@@ -37,7 +37,8 @@ elif os.name == 'posix':
     termios.tcsetattr(fd, TERMIOS.TCSANOW, new)
     s = ''    # We'll save the characters typed and add them to the pool.
     def getkey():
-        c = os.read(fd, 1)
+        #~ c = os.read(fd, 1)
+        c = sys.stdin.read(1)
         if echo: sys.stdout.write(c)
         return c
     def clenaup_console():

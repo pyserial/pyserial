@@ -1,136 +1,134 @@
 #!jython
+#Python Serial Port Extension for Win32, Linux, BSD, Jython
 #module for serial IO for Jython and JavaComm
 #see __init__.py
 #
-#(C) 2002 Chris Liechti <cliechti@gmx.net>
+#(C) 2002-2003 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
-import sys, os, string, javax.comm
-import serialutil
+import javax.comm
+from serialutil import *
 
-VERSION = string.split("$Revision: 1.7 $")[1]     #extract CVS version
+VERSION = "$Revision: 1.8 $".split()[1]     #extract CVS version
 
-PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE = (0,1,2,3,4)
-STOPBITS_ONE, STOPBITS_TWO, STOPBITS_ONE_HALVE = (1, 2, 3)
-FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS = (5,6,7,8)
-
-
-portNotOpenError = ValueError('port not open')
 
 def device(portnumber):
+    """Turn a port number into a device name"""
     enum = javax.comm.CommPortIdentifier.getPortIdentifiers()
     ports = []
     while enum.hasMoreElements():
         el = enum.nextElement()
         if el.getPortType() == javax.comm.CommPortIdentifier.PORT_SERIAL:
             ports.append(el)
-    return ports[portnumber]
+    return ports[portnumber].getName()
 
-class Serial(serialutil.FileLike):
-    def __init__(self,
-                 port,                  #number of device, numbering starts at
-                                        #zero. if everything fails, the user
-                                        #can specify a device string, note
-                                        #that this isn't portable anymore
-                 baudrate=9600,         #baudrate
-                 bytesize=EIGHTBITS,    #number of databits
-                 parity=PARITY_NONE,    #enable parity checking
-                 stopbits=STOPBITS_ONE, #number of stopbits
-                 timeout=None,          #set a timeout value, None to wait forever
-                 xonxoff=0,             #enable software flow control
-                 rtscts=0,              #enable RTS/CTS flow control
-                 ):
-
-        if type(port) == type(''):      #strings are taken directly
-            portId = javax.comm.CommPortIdentifier.getPortIdentifier(port)
+class Serial(SerialBase):
+    """Serial port class, implemented with javax.comm and thus usable with
+       jython and the appropriate java extension."""
+    
+    def open(self):
+        """Open port with current settings. This may throw a SerialException
+           if the port cannot be opened."""
+        if self._port is None:
+            raise SerialException("Port must be configured before it can be used.")
+        if type(self._port) == type(''):      #strings are taken directly
+            portId = javax.comm.CommPortIdentifier.getPortIdentifier(self._port)
         else:
-            portId = device(port)     #numbers are transformed to a comportid obj
-        self.portstr = portId.getName()
+            portId = javax.comm.CommPortIdentifier.getPortIdentifier(device(self._port))     #numbers are transformed to a comportid obj
         try:
             self.sPort = portId.open("python serial module", 10)
         except Exception, msg:
             self.sPort = None
-            raise serialutil.SerialException, "could not open port: %s" % msg
-        self.instream = self.sPort.getInputStream()
-        self.outstream = self.sPort.getOutputStream()
-        self.sPort.enableReceiveTimeout(30)
-        if bytesize == FIVEBITS:
-            self.databits = javax.comm.SerialPort.DATABITS_5
-        elif bytesize == SIXBITS:
-            self.databits = javax.comm.SerialPort.DATABITS_6
-        elif bytesize == SEVENBITS:
-            self.databits = javax.comm.SerialPort.DATABITS_7
-        elif bytesize == EIGHTBITS:
-            self.databits = javax.comm.SerialPort.DATABITS_8
-        else:
-            raise ValueError, "unsupported bytesize"
-        
-        if stopbits == STOPBITS_ONE:
-            self.jstopbits = javax.comm.SerialPort.STOPBITS_1
-        elif stopbits == STOPBITS_ONE_HALVE:
-            self.jstopbits = javax.comm.SerialPort.STOPBITS_1_5
-        elif stopbits == STOPBITS_TWO:
-            self.jstopbits = javax.comm.SerialPort.STOPBITS_2
-        else:
-            raise ValueError, "unsupported number of stopbits"
+            raise SerialException("Could not open port: %s" % msg)
+        self._reconfigurePort()
+        self._instream = self.sPort.getInputStream()
+        self._outstream = self.sPort.getOutputStream()
+        self._isOpen = True
 
-        if parity == PARITY_NONE:
-            self.jparity = javax.comm.SerialPort.PARITY_NONE
-        elif parity == PARITY_EVEN:
-            self.jparity = javax.comm.SerialPort.PARITY_EVEN
-        elif parity == PARITY_ODD:
-            self.jparity = javax.comm.SerialPort.PARITY_ODD
-        elif parity == PARITY_MARK:
-            self.jparity = javax.comm.SerialPort.PARITY_MARK
-        elif parity == PARITY_SPACE:
-            self.jparity = javax.comm.SerialPort.PARITY_SPACE
+    def _reconfigurePort(self):
+        """Set commuication parameters on opened port."""
+        if not self.sPort:
+            raise SerialException("Can only operate on a valid port handle")
+        
+        self.sPort.enableReceiveTimeout(30)
+        if self._bytesize == FIVEBITS:
+            jdatabits = javax.comm.SerialPort.DATABITS_5
+        elif self._bytesize == SIXBITS:
+            jdatabits = javax.comm.SerialPort.DATABITS_6
+        elif self._bytesize == SEVENBITS:
+            jdatabits = javax.comm.SerialPort.DATABITS_7
+        elif self._bytesize == EIGHTBITS:
+            jdatabits = javax.comm.SerialPort.DATABITS_8
         else:
-            raise ValueError, "unsupported parity type"
+            raise ValueError("unsupported bytesize: %r" % self._bytesize)
+        
+        if self._stopbits == STOPBITS_ONE:
+            jstopbits = javax.comm.SerialPort.STOPBITS_1
+        elif stopbits == STOPBITS_ONE_HALVE:
+            self._jstopbits = javax.comm.SerialPort.STOPBITS_1_5
+        elif self._stopbits == STOPBITS_TWO:
+            jstopbits = javax.comm.SerialPort.STOPBITS_2
+        else:
+            raise ValueError("unsupported number of stopbits: %r" % self._stopbits)
+
+        if self._parity == PARITY_NONE:
+            jparity = javax.comm.SerialPort.PARITY_NONE
+        elif self._parity == PARITY_EVEN:
+            jparity = javax.comm.SerialPort.PARITY_EVEN
+        elif self._parity == PARITY_ODD:
+            jparity = javax.comm.SerialPort.PARITY_ODD
+        #~ elif self._parity == PARITY_MARK:
+            #~ jparity = javax.comm.SerialPort.PARITY_MARK
+        #~ elif self._parity == PARITY_SPACE:
+            #~ jparity = javax.comm.SerialPort.PARITY_SPACE
+        else:
+            raise ValueError("unsupported parity type: %r" % self._parity)
 
         jflowin = jflowout = 0
-        if rtscts:
-            jflowin = jflowin | javax.comm.SerialPort.FLOWCONTROL_RTSCTS_IN 
-            jflowout = jflowout | javax.comm.SerialPort.FLOWCONTROL_RTSCTS_OUT
-        if xonxoff:
-            jflowin = jflowin | javax.comm.SerialPort.FLOWCONTROL_XONXOFF_IN
-            jflowout = jflowout | javax.comm.SerialPort.FLOWCONTROL_XONXOFF_OUT
+        if self._rtscts:
+            jflowin  |=  javax.comm.SerialPort.FLOWCONTROL_RTSCTS_IN
+            jflowout |=  javax.comm.SerialPort.FLOWCONTROL_RTSCTS_OUT
+        if self._xonxoff:
+            jflowin  |=  javax.comm.SerialPort.FLOWCONTROL_XONXOFF_IN
+            jflowout |=  javax.comm.SerialPort.FLOWCONTROL_XONXOFF_OUT
         
-        self.sPort.setSerialPortParams(baudrate, self.databits, self.jstopbits, self.jparity)
+        self.sPort.setSerialPortParams(baudrate, jdatabits, jstopbits, jparity)
         self.sPort.setFlowControlMode(jflowin | jflowout)
         
-        self.timeout = timeout
-        if timeout >= 0:
-            self.sPort.enableReceiveTimeout(timeout*1000)
+        if self._timeout >= 0:
+            self.sPort.enableReceiveTimeout(self._timeout*1000)
         else:
             self.sPort.disableReceiveTimeout()
 
     def close(self):
-        if self.sPort:
-            self.instream.close()
-            self.outstream.close()
-            self.sPort.close()
-            self.sPort = None
+        """Close port"""
+        if self._isOpen:
+            if self.sPort:
+                self._instream.close()
+                self._outstream.close()
+                self.sPort.close()
+                self.sPort = None
+            self._isOpen = False
 
-    def setBaudrate(self, baudrate):
-        """change baudrate after port is open"""
-        if not self.sPort: raise portNotOpenError
-        self.sPort.setSerialPortParams(baudrate, self.databits, self.jstopbits, self.jparity)
+    def makeDeviceName(self, port):
+        return device(port)
 
+    #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
     def inWaiting(self):
+        """Return the number of characters currently in the input buffer."""
         if not self.sPort: raise portNotOpenError
-        return self.instream.available()
-
-    def write(self, data):
-        if not self.sPort: raise portNotOpenError
-        self.outstream.write(data)
+        return self._instream.available()
 
     def read(self, size=1):
+        """Read size bytes from the serial port. If a timeout is set it may
+           return less characters as requested. With no timeout it will block
+           until the requested number of bytes is read."""
         if not self.sPort: raise portNotOpenError
         read = ''
         if size > 0:
             while len(read) < size:
-                x = self.instream.read()
+                x = self._instream.read()
                 if x == -1:
                     if self.timeout >= 0:
                         break
@@ -138,41 +136,58 @@ class Serial(serialutil.FileLike):
                     read = read + chr(x)
         return read
 
-    def flushInput(self):
+    def write(self, data):
+        """Output the given string over the serial port."""
         if not self.sPort: raise portNotOpenError
-        self.instream.skip(self.instream.available())
+        self._outstream.write(data)
+
+    def flushInput(self):
+        """Clear input buffer, discarding all that is in the buffer."""
+        if not self.sPort: raise portNotOpenError
+        self._instream.skip(self._instream.available())
 
     def flushOutput(self):
+        """Clear output buffer, aborting the current output and
+        discarding all that is in the buffer."""
         if not self.sPort: raise portNotOpenError
-        self.outstream.flush()
+        self._outstream.flush()
 
     def sendBreak(self):
+        """Send break condition."""
         if not self.sPort: raise portNotOpenError
         self.sPort.sendBreak()
 
-    def getDSR(self):
+    def setRTS(self,on=1):
+        """Set terminal status line: Request To Send"""
         if not self.sPort: raise portNotOpenError
-        self.sPort.isDSR()
-
-    def getCD(self):
-        if not self.sPort: raise portNotOpenError
-        self.sPort.isCD()
-
-    def getRI(self):
-        if not self.sPort: raise portNotOpenError
-        self.sPort.isRI()
-
-    def getCTS(self):
-        if not self.sPort: raise portNotOpenError
-        self.sPort.isCTS()
-
+        self.sPort.setRTS(on)
+        
     def setDTR(self,on=1):
+        """Set terminal status line: Data Terminal Ready"""
         if not self.sPort: raise portNotOpenError
         self.sPort.setDTR(on)
 
-    def setRTS(self,on=1):
+    def getCTS(self):
+        """Read terminal status line: Clear To Send"""
         if not self.sPort: raise portNotOpenError
-        self.sPort.setRTS(on)
+        self.sPort.isCTS()
+
+    def getDSR(self):
+        """Read terminal status line: Data Set Ready"""
+        if not self.sPort: raise portNotOpenError
+        self.sPort.isDSR()
+
+    def getRI(self):
+        """Read terminal status line: Ring Indicator"""
+        if not self.sPort: raise portNotOpenError
+        self.sPort.isRI()
+
+    def getCD(self):
+        """Read terminal status line: Carrier Detect"""
+        if not self.sPort: raise portNotOpenError
+        self.sPort.isCD()
+
+
 
 if __name__ == '__main__':
     s = Serial(0,

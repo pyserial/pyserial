@@ -1,22 +1,19 @@
 #!/usr/bin/env python
+#Python Serial Port Extension for Win32, Linux, BSD, Jython
 #module for serial IO for POSIX compatible systems, like Linux
 #see __init__.py
 #
-#(C) 2001-2002 Chris Liechti <cliechti@gmx.net>
+#(C) 2001-2003 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 #
 #parts based on code from Grant B. Edwards  <grante@visi.com>:
 #  ftp://ftp.visi.com/users/grante/python/PosixSerial.py
 # references: http://www.easysw.com/~mike/serial/serial.html
 
-import sys, os, fcntl, termios, struct, string, select
-import serialutil
+import sys, os, fcntl, termios, struct, select
+from serialutil import *
 
-VERSION = string.split("$Revision: 1.16 $")[1]     #extract CVS version
-
-PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
-STOPBITS_ONE, STOPBITS_TWO = (1, 2)
-FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS = (5,6,7,8)
+VERSION = "$Revision: 1.17 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -30,7 +27,7 @@ else:
     FCNTL = fcntl
 
 #try to detect the os so that a device can be selected...
-plat = string.lower(sys.platform)
+plat = sys.platform.lower()
 
 if   plat[:5] == 'linux':    #Linux (confirmed)
     def device(port):
@@ -67,7 +64,7 @@ elif plat[:5] == 'sunos':    #Solaris®/SunOS® (confirmed)
 else:
     #platform detection has failed...
     info = "sys.platform = %r\nos.name = %r\nserialposix.py version = %s" % (sys.platform, os.name, VERSION)
-    print """send this information to the author of this module:
+    print """send this information to the author of the pyserial:
 
 %s
 
@@ -76,7 +73,12 @@ counting starts for the first serial port.
 e.g. 'first serial port: /dev/ttyS0'
 and with a bit luck you can get this module running...
 """
-    raise Exception, "this module does not run on this platform, sorry."
+    #no exception, just continue with a brave attempt to build a device name
+    #even if the device name is not correct for the platform it has chances
+    #to work using a string with the real device name as port paramter.
+    def device(portum):
+        return '/dev/ttyS%d' % portnum
+    #~ raise Exception, "this module does not run on this platform, sorry."
 
 #whats up with "aix", "beos", "sco", ....
 #they should work, just need to know the device names.
@@ -124,166 +126,144 @@ TIOCM_zero_str = struct.pack('I', 0)
 TIOCM_RTS_str = struct.pack('I', TIOCM_RTS)
 TIOCM_DTR_str = struct.pack('I', TIOCM_DTR)
 
-portNotOpenError = ValueError('port not open')
 
-class Serial(serialutil.FileLike):
-    def __init__(self,
-                 port,                  #number of device, numbering starts at
-                                        #zero. if everything fails, the user
-                                        #can specify a device string, note
-                                        #that this isn't portable anymore
-                 baudrate=9600,         #baudrate
-                 bytesize=EIGHTBITS,    #number of databits
-                 parity=PARITY_NONE,    #enable parity checking
-                 stopbits=STOPBITS_ONE, #number of stopbits
-                 timeout=None,          #set a timeout value, None to wait forever
-                 xonxoff=0,             #enable software flow control
-                 rtscts=0,              #enable RTS/CTS flow control
-                 ):
-        """init comm port"""
+class Serial(SerialBase):
+    """Serial port class POSIX implementation. Serial port configuration is 
+    done with termios and fcntl. Runs on Linux and many other Un*x like
+    systems."""
+
+    def open(self):
+        """Open port with current settings. This may throw a SerialException
+           if the port cannot be opened."""
+        if self._port is None:
+            raise SerialException("Port must be configured before it can be used.")
         self.fd = None
-        self.timeout = timeout
-        vmin = vtime = 0                #timeout is done via select
         #open
-        if type(port) == type(''):      #strings are taken directly
-            self.portstr = port
-        else:
-            self.portstr = device(port) #numbers are transformed to a os dependant string
         try:
             self.fd = os.open(self.portstr, os.O_RDWR|os.O_NOCTTY|os.O_NONBLOCK)
         except Exception, msg:
             self.fd = None
-            raise serialutil.SerialException, "could not open port: %s" % msg
+            raise SerialException("Could not open port: %s" % msg)
         fcntl.fcntl(self.fd, FCNTL.F_SETFL, 0)  #set blocking
+        
+        self._reconfigurePort()
+        self._isOpen = True
+        
+        
+    def _reconfigurePort(self):
+        """Set commuication parameters on opened port."""
+        if not self.fd:
+            raise SerialException("Can only operate on a valid port handle")
+            
+        vmin = vtime = 0                #timeout is done via select
         try:
-            self.__tcgetattr()          #read current settings
+            iflag, oflag, cflag, lflag, ispeed, ospeed, cc = termios.tcgetattr(self.fd)
         except termios.error, msg:      #if a port is nonexistent but has a /dev file, it'll fail here
-            raise serialutil.SerialException, "could not open port: %s" % msg
+            raise SerialException("Could not configure port: %s" % msg)
         #set up raw mode / no echo / binary
-        self.cflag = self.cflag |  (TERMIOS.CLOCAL|TERMIOS.CREAD)
-        self.lflag = self.lflag & ~(TERMIOS.ICANON|TERMIOS.ECHO|TERMIOS.ECHOE|TERMIOS.ECHOK|TERMIOS.ECHONL|
-                                    TERMIOS.ECHOCTL|TERMIOS.ECHOKE|TERMIOS.ISIG|TERMIOS.IEXTEN) #|TERMIOS.ECHOPRT
-        self.oflag = self.oflag & ~(TERMIOS.OPOST)
+        cflag |=  (TERMIOS.CLOCAL|TERMIOS.CREAD)
+        lflag &= ~(TERMIOS.ICANON|TERMIOS.ECHO|TERMIOS.ECHOE|TERMIOS.ECHOK|TERMIOS.ECHONL|
+                          TERMIOS.ECHOCTL|TERMIOS.ECHOKE|TERMIOS.ISIG|TERMIOS.IEXTEN) #|TERMIOS.ECHOPRT
+        oflag &= ~(TERMIOS.OPOST)
         if hasattr(TERMIOS, 'IUCLC'):
-            self.iflag = self.iflag & ~(TERMIOS.INLCR|TERMIOS.IGNCR|TERMIOS.ICRNL|TERMIOS.IUCLC|TERMIOS.IGNBRK)
+            iflag &= ~(TERMIOS.INLCR|TERMIOS.IGNCR|TERMIOS.ICRNL|TERMIOS.IUCLC|TERMIOS.IGNBRK)
         else:
-            self.iflag = self.iflag & ~(TERMIOS.INLCR|TERMIOS.IGNCR|TERMIOS.ICRNL|TERMIOS.IGNBRK)
+            iflag &= ~(TERMIOS.INLCR|TERMIOS.IGNCR|TERMIOS.ICRNL|TERMIOS.IGNBRK)
         #setup baudrate
         try:
-            self.ispeed = self.ospeed = baudIntToEnum[baudrate]
+            ispeed = ospeed = baudIntToEnum[self._baudrate]
         except:
-            raise ValueError,'invalid baud rate: %s' % baudrate
+            raise ValueError('Invalid baud rate: %r' % self._baudrate)
         #setup char len
-        self.cflag = self.cflag & ~TERMIOS.CSIZE
-        if bytesize == 8:
-            self.cflag = self.cflag | TERMIOS.CS8
-        elif bytesize == 7:
-            self.cflag = self.cflag | TERMIOS.CS7
-        elif bytesize == 6:
-            self.cflag = self.cflag | TERMIOS.CS6
-        elif bytesize == 5:
-            self.cflag = self.cflag | TERMIOS.CS5
+        cflag &= ~TERMIOS.CSIZE
+        if self._bytesize == 8:
+            cflag |= TERMIOS.CS8
+        elif self._bytesize == 7:
+            cflag |= TERMIOS.CS7
+        elif self._bytesize == 6:
+            cflag |= TERMIOS.CS6
+        elif self._bytesize == 5:
+            cflag |= TERMIOS.CS5
         else:
-            raise ValueError,'invalid char len: '+str(clen)
+            raise ValueError('Invalid char len: %r' % self._bytesize)
         #setup stopbits
-        if stopbits == STOPBITS_ONE:
-            self.cflag = self.cflag & ~(TERMIOS.CSTOPB)
-        elif stopbits == STOPBITS_TWO:
-            self.cflag = self.cflag |  (TERMIOS.CSTOPB)
+        if self._stopbits == STOPBITS_ONE:
+            cflag &= ~(TERMIOS.CSTOPB)
+        elif self._stopbits == STOPBITS_TWO:
+            cflag |=  (TERMIOS.CSTOPB)
         else:
-            raise ValueError,'invalid stopit specification:'+str(stopbits)
+            raise ValueError('Invalid stopit specification: %r' % self._stopbits)
         #setup parity
-        self.iflag = self.iflag & ~(TERMIOS.INPCK|TERMIOS.ISTRIP)
-        if parity == PARITY_NONE:
-            self.cflag = self.cflag & ~(TERMIOS.PARENB|TERMIOS.PARODD)
-        elif parity == PARITY_EVEN:
-            self.cflag = self.cflag & ~(TERMIOS.PARODD)
-            self.cflag = self.cflag |  (TERMIOS.PARENB)
-        elif parity == PARITY_ODD:
-            self.cflag = self.cflag |  (TERMIOS.PARENB|TERMIOS.PARODD)
+        iflag &= ~(TERMIOS.INPCK|TERMIOS.ISTRIP)
+        if self._parity == PARITY_NONE:
+            cflag &= ~(TERMIOS.PARENB|TERMIOS.PARODD)
+        elif self._parity == PARITY_EVEN:
+            cflag &= ~(TERMIOS.PARODD)
+            cflag |=  (TERMIOS.PARENB)
+        elif self._parity == PARITY_ODD:
+            cflag |=  (TERMIOS.PARENB|TERMIOS.PARODD)
         else:
-            raise ValueError,'invalid parity: '+str(par)
+            raise ValueError('Invalid parity: %r' % self._parity)
         #setup flow control
         #xonxoff
         if hasattr(TERMIOS, 'IXANY'):
-            if xonxoff:
-                self.iflag = self.iflag |  (TERMIOS.IXON|TERMIOS.IXOFF|TERMIOS.IXANY)
+            if self._xonxoff:
+                iflag |=  (TERMIOS.IXON|TERMIOS.IXOFF|TERMIOS.IXANY)
             else:
-                self.iflag = self.iflag & ~(TERMIOS.IXON|TERMIOS.IXOFF|TERMIOS.IXANY)
+                iflag &= ~(TERMIOS.IXON|TERMIOS.IXOFF|TERMIOS.IXANY)
         else:
-            if xonxoff:
-                self.iflag = self.iflag |  (TERMIOS.IXON|TERMIOS.IXOFF)
+            if self._xonxoff:
+                iflag |=  (TERMIOS.IXON|TERMIOS.IXOFF)
             else:
-                self.iflag = self.iflag & ~(TERMIOS.IXON|TERMIOS.IXOFF)
+                iflag &= ~(TERMIOS.IXON|TERMIOS.IXOFF)
         #rtscts
         if hasattr(TERMIOS, 'CRTSCTS'):
-            if rtscts:
-                self.cflag = self.cflag |  (TERMIOS.CRTSCTS)
+            if self._rtscts:
+                cflag |=  (TERMIOS.CRTSCTS)
             else:
-                self.cflag = self.cflag & ~(TERMIOS.CRTSCTS)
+                cflag &= ~(TERMIOS.CRTSCTS)
         elif hasattr(TERMIOS, 'CNEW_RTSCTS'):   #try it with alternate constant name
-            if rtscts:
-                self.cflag = self.cflag |  (TERMIOS.CNEW_RTSCTS)
+            if self._rtscts:
+                cflag |=  (TERMIOS.CNEW_RTSCTS)
             else:
-                self.cflag = self.cflag & ~(TERMIOS.CNEW_RTSCTS)
+                cflag &= ~(TERMIOS.CNEW_RTSCTS)
         #XXX should there be a warning if setting up rtscts (and xonxoff etc) fails??
         
         #buffer
         #vmin "minimal number of characters to be read. = for non blocking"
-        if vmin<0 or vmin>255:
-            raise ValueError,'invalid vmin: '+str(vmin)
-        self.cc[TERMIOS.VMIN] = vmin
+        if vmin < 0 or vmin > 255:
+            raise ValueError('Invalid vmin: %r ' % vmin)
+        cc[TERMIOS.VMIN] = vmin
         #vtime
-        if vtime<0 or vtime>255:
-            raise ValueError,'invalid vtime: '+str(vtime)
-        self.cc[TERMIOS.VTIME] = vtime
+        if vtime < 0 or vtime > 255:
+            raise ValueError('Invalid vtime: %r' % vtime)
+        cc[TERMIOS.VTIME] = vtime
         #activate settings
-        self.__tcsetattr()
-
-    def __tcsetattr(self):
-        """internal function to set port attributes"""
-        termios.tcsetattr(self.fd, TERMIOS.TCSANOW, [self.iflag,self.oflag,self.cflag,self.lflag,self.ispeed,self.ospeed,self.cc])
-
-    def __tcgetattr(self):
-        """internal function to get port attributes"""
-        self.iflag,self.oflag,self.cflag,self.lflag,self.ispeed,self.ospeed,self.cc = termios.tcgetattr(self.fd)
+        termios.tcsetattr(self.fd, TERMIOS.TCSANOW, [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
 
     def close(self):
-        """close port"""
-        if self.fd:
-            os.close(self.fd)
-            self.fd = None
+        """Close port"""
+        if self._isOpen:
+            if self.fd:
+                os.close(self.fd)
+                self.fd = None
+            self._isOpen = False
 
-    def setBaudrate(self, baudrate):
-        """change baudrate after port is open"""
-        if not self.fd: raise portNotOpenError
-        self.__tcgetattr()  #read current settings
-        #setup baudrate
-        try:
-            self.ispeed = self.ospeed = baudIntToEnum[baudrate]
-        except:
-            raise ValueError,'invalid baud rate: %s' % baudrate
-        self.__tcsetattr()
+    def makeDeviceName(self, port):
+        return device(port)
+
+    #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
     def inWaiting(self):
-        """how many character are in the input queue"""
+        """Return the number of characters currently in the input buffer."""
         #~ s = fcntl.ioctl(self.fd, TERMIOS.FIONREAD, TIOCM_zero_str)
         s = fcntl.ioctl(self.fd, TIOCINQ, TIOCM_zero_str)
         return struct.unpack('I',s)[0]
 
-    def write(self, data):
-        """write a string to the port"""
-        if not self.fd: raise portNotOpenError
-        t = len(data)
-        d = data
-        while t>0:
-            n = os.write(self.fd, d)
-            d = d[n:]
-            t = t - n
-
     def read(self, size=1):
-        """read a number of bytes from the port.
-        the default is one (unlike files)"""
+        """Read size bytes from the serial port. If a timeout is set it may
+           return less characters as requested. With no timeout it will block
+           until the requested number of bytes is read."""
         if not self.fd: raise portNotOpenError
         read = ''
         inp = None
@@ -299,23 +279,62 @@ class Serial(serialutil.FileLike):
                     break  #early abort on timeout
         return read
 
+    def write(self, data):
+        """Output the given string over the serial port."""
+        if not self.fd: raise portNotOpenError
+        t = len(data)
+        d = data
+        while t>0:
+            n = os.write(self.fd, d)
+            d = d[n:]
+            t = t - n
+
     def flushInput(self):
-        """clear input queue"""
+        """Clear input buffer, discarding all that is in the buffer."""
         if not self.fd:
             raise portNotOpenError
         termios.tcflush(self.fd, TERMIOS.TCIFLUSH)
 
     def flushOutput(self):
-        """flush output"""
+        """Clear output buffer, aborting the current output and
+        discarding all that is in the buffer."""
         if not self.fd:
             raise portNotOpenError
         termios.tcflush(self.fd, TERMIOS.TCOFLUSH)
 
     def sendBreak(self):
-        """send break signal"""
+        """Send break condition."""
         if not self.fd:
             raise portNotOpenError
         termios.tcsendbreak(self.fd, 0)
+
+    def setRTS(self,on=1):
+        """Set terminal status line: Request To Send"""
+        if not self.fd: raise portNotOpenError
+        if on:
+            fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_RTS_str)
+        else:
+            fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_RTS_str)
+
+    def setDTR(self,on=1):
+        """Set terminal status line: Data Terminal Ready"""
+        if not self.fd: raise portNotOpenError
+        if on:
+            fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_DTR_str)
+        else:
+            fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_DTR_str)
+
+    def getCTS(self):
+        """Read terminal status line: Clear To Send"""
+        if not self.fd: raise portNotOpenError
+        s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
+        return struct.unpack('I',s)[0] & TIOCM_CTS != 0
+
+    def getDSR(self):
+        """Read terminal status line: Data Set Ready"""
+        if not self.fd: raise portNotOpenError
+        s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
+        return struct.unpack('I',s)[0] & TIOCM_DSR != 0
 
     def drainOutput(self):
         """internal - not portable!"""
@@ -328,45 +347,18 @@ class Serial(serialutil.FileLike):
             raise portNotOpenError
         fcntl.fcntl(self.fd, FCNTL.F_SETFL, FCNTL.O_NONBLOCK)
 
-    def getDSR(self):
-        """read terminal status line"""
+    def getRI(self):
+        """Read terminal status line: Ring Indicator"""
         if not self.fd: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
-        return struct.unpack('I',s)[0] & TIOCM_DSR
+        return struct.unpack('I',s)[0] & TIOCM_RI != 0
 
     def getCD(self):
-        """read terminal status line"""
+        """Read terminal status line: Carrier Detect"""
         if not self.fd: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
-        return struct.unpack('I',s)[0] & TIOCM_CD
+        return struct.unpack('I',s)[0] & TIOCM_CD != 0
 
-    def getRI(self):
-        """read terminal status line"""
-        if not self.fd: raise portNotOpenError
-        s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
-        return struct.unpack('I',s)[0] & TIOCM_RI
-
-    def getCTS(self):
-        """read terminal status line"""
-        if not self.fd: raise portNotOpenError
-        s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
-        return struct.unpack('I',s)[0] & TIOCM_CTS
-
-    def setDTR(self,on=1):
-        """set terminal status line"""
-        if not self.fd: raise portNotOpenError
-        if on:
-            fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_DTR_str)
-        else:
-            fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_DTR_str)
-
-    def setRTS(self,on=1):
-        """set terminal status line"""
-        if not self.fd: raise portNotOpenError
-        if on:
-            fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_RTS_str)
-        else:
-            fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_RTS_str)
 
 if __name__ == '__main__':
     s = Serial(0,

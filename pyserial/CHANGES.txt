@@ -40,16 +40,17 @@ Version 1.15    04 Jun 2002
         - compatibility to win9x improved
 
 Version 1.16    02 Jul 2002
-    added implementation of RI and corrected RTS/CTS on Win32
+    Added implementation of RI and corrected RTS/CTS on Win32
 
 Version 1.17    03 Jul 2002
-    silly mix of two versions in win32 code corrected
+    Silly mix of two versions in win32 code corrected
 
 Version 1.18    06 Dec 2002
     Bugfixes (general):
-        - remove the mapping of flush to the destructive flushOutput as this
-          is not the expected behaviour
-        - readline: EOL character for lines can be chosen idea by John Florian
+        - remove the mapping of flush to the destructive flushOutput as
+          this is not the expected behaviour.
+        - readline: EOL character for lines can be chosen idea by 
+          John Florian.
     Bugfixes (posix):
         - cygwin port numbering fixed
         - test each and every constant for it's existence in termios module,
@@ -62,20 +63,64 @@ Version 1.18    06 Dec 2002
 
 Version 1.19    19 Mar 2003
     Bugfixes (posix):
-        - removed dgux entry which actualy had a wrong comment and is probably not in use anywhere
+        - removed dgux entry which actualy had a wrong comment and is
+          probably not in use anywhere.
     Bugfixes (win32):
         - added int() conversion, [Bug 702120]
-        - remove code to set control lines in close methond of win32 version. [Bug 669625]
+        - remove code to set control lines in close methond of win32
+          version. [Bug 669625]
 
 Version 1.20    28 Aug 2003
-    added serial.device() for all platforms
+    Added serial.device() for all platforms
     Bugfixes (win32):
-        - don't recreate opverlaped structures and events on each read/write
-        - don't set unneded event masks
-        - dont use DOS device names for ports > 9
-        - remove send timeout (its not used in the linux impl. anyway)
+        - don't recreate opverlaped structures and events on each
+          read/write.
+        - don't set unneded event masks.
+        - dont use DOS device names for ports > 9.
+        - remove send timeout (its not used in the linux impl. anyway).
 
 
 Version 1.21    30 sep 2003
     Bugfixes (win32):
-        - name for COM10 was not built correctly, found by Norm Davis
+        - name for COM10 was not built correctly, found by Norm Davis.
+    Bugfixes (examples):
+        - small change in miniterm.py that should mage it run on cygwin,
+          [Bug 809904] submitted by Rolf Campbell.
+
+Version 2.0b1    ...
+    Transition to the 2.0 series:
+    - New implementation only supports Python 2.2+, backwards compatibility
+      should be maintained almost everywhere.
+      The OS handles (like the hComPort or fd attribute) were prefixed with an
+      underscore. The different names stay, as anyone that uses one of these
+      has to write platform specific code anyway.
+    - Common base class serialutil.SerialBase for all implementations.
+    - PARITY_NONE, PARITY_EVEN, PARITY_ODD constants changed and all these
+      constants moved to serialutil.py (still available as serial.PARITY_NONE
+      etc. and they should be used that way)
+    - Added serial.PARITY_NAMES (implemented in serialutil.PARITY_NAMES).
+      This dictionary can be used to convert parity constants to meaningful
+      strings.
+    - Each Serial class and instance has a list of supported values:
+        BAUDRATES, BYTESIZES, PARITIES, STOPBITS
+      (i.e. serial.Serial.BAUDRATES or s = serial.Serial; s.BAUDRATES)
+      these values can be used to fill in value sin GUI dialogs etc.
+    - Creating a Serial() object without port spec returns an unconfigured,
+      closed port. Useful if a GUI dialog should take a port and configure
+      it.
+    - New methods for serial.Serial instances: open(), isOpen()
+    - A port can be opened and closed as many times as desired.
+    - Instances of serial.Serial have baudrate, bytesize, timeout etc.
+      attributes implemented as properties, all can be set while the port is
+      opened. It will then be reconfigured.
+    - Improved __doc__'s.
+    - New test_advanced.py for the property setting/getting testing.
+    - Small bugfix on posix with get* methods (return value should be true a
+      boolean).
+    - added a __repr__ that returns a meaningful string will all the serial
+      setting, easy for debugging.
+    - The serialposix module does not throw an exception on unsupported
+      platforms, the message is still printed. The idea that it may still
+      work even if the platform itself s not known, it simply tries to do
+      the posix stuff anyway (It's likely that opening ports by number
+      fails, but by name it should work).

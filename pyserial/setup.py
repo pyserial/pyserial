@@ -7,7 +7,7 @@ from distutils.core import setup
 setup(
     name="pyserial",
     description="Python Serial Port Extension",
-    version="1.21",
+    version="2.0b1",
     author="Chris Liechti",
     author_email="cliechti@gmx.net",
     url="http://pyserial.sourceforge.net/",

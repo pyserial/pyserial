@@ -10,4 +10,6 @@ serial\serialutil.py
 examples\miniterm.py
 examples\tcp_serial_redirect.py
 examples\test.py
+examples\test_advanced.py
 examples\scan.py
+examples\enhancedserial.py

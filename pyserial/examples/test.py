@@ -1,25 +1,30 @@
 #!/usr/bin/env python
-"""Some Tests for the serial module.
-part of pyserial (http://pyserial.sf.net)  (C)2002 cliechti@gmx.net
+#Python Serial Port Extension for Win32, Linux, BSD, Jython
+#see __init__.py
+#
+#(C) 2001-2003 Chris Liechti <cliechti@gmx.net>
+# this is distributed under a free software license, see license.txt
 
-intended to be run on different platforms, to ensure portability of
+"""Some tests for the serial module.
+Part of pyserial (http://pyserial.sf.net)  (C)2002-2003 cliechti@gmx.net
+
+Intended to be run on different platforms, to ensure portability of
 the code.
 
-for all these tests a simple hardware is required.
+For all these tests a simple hardware is required.
 Loopback HW adapter:
-shortcut these pin pairs:
+Shortcut these pin pairs:
  TX  <-> RX
  RTS <-> CTS
  DTR <-> DSR
 
-on a 9 pole DSUB these are the pins (2-3) (4-6) (7-8)
-
+On a 9 pole DSUB these are the pins (2-3) (4-6) (7-8)
 """
 
 import unittest, threading, time
 import serial
 
-#of which port should the tests be performed:
+#on which port should the tests be performed:
 PORT=0
 
 
@@ -153,7 +158,7 @@ class Test0_DataWires(unittest.TestCase):
 if __name__ == '__main__':
     import sys
     print __doc__
-    print "testing port", PORT
+    print "Testing port", PORT
     sys.argv.append('-v')
-    # When this module is executed from the command-line, run all its tests
+    # When this module is executed from the command-line, it runs all its tests
     unittest.main()

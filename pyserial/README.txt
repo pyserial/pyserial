@@ -33,7 +33,7 @@ Features
 
 Requirements
 ------------
-- Python 2.0 or newer (1.5.2 untested)
+- Python 2.2 or newer
 - win32all extensions on Windows
 - "Java Communications" (JavaComm) extension for Java/Jython
 
@@ -43,8 +43,7 @@ Installation
 Extract files from the archive, open a shell/console in that directory and
 let Distutils do the rest: "python setup.py install"
 
-The files get installed in the "Lib/site-packages" directory in newer
-Python versions.
+The files get installed in the "Lib/site-packages" directory.
 
 Serial to USB adapters
 ----------------------
@@ -80,7 +79,7 @@ Open named port at "19200,8,N,1", 1s timeout
 >>> ser = serial.Serial('/dev/ttyS1', 19200, timeout=1)
 >>> x = ser.read()          #read one byte
 >>> s = ser.read(10)        #read up to ten bytes (timeout)
->>> line = ser.readline()   #read a \n terminated line
+>>> line = ser.readline()   #read a '\n' terminated line
 >>> ser.close()
 
 Open second port at "38400,8,E,1", non blocking HW handshaking
@@ -88,6 +87,20 @@ Open second port at "38400,8,E,1", non blocking HW handshaking
 ...                     parity=serial.PARITY_EVEN, rtscts=1)
 >>> s = ser.read(100)       #read up to one hunded bytes
 ...                         #or as much is in the buffer
+
+Get a Serial instance and configure/open it later
+>>> ser = serial.Serial()
+>>> ser.baudrate = 19200
+>>> ser.port = 0
+>>> ser
+Serial<id=0xa81c10, open=False>(port='COM1', baudrate=19200, bytesize=8,
+parity='N', stopbits=1, timeout=None, xonxoff=0, rtscts=0)
+>>> ser.open()
+>>> ser.isOpen()
+True
+>>> ser.close()
+>>> ser.isOpen()
+False
 
 Be carefully when using "readline". Do specify a timeout when
 opening the serial port otherwise it could block forever if
@@ -100,10 +113,12 @@ if the port is not opened correctly.
 Parameters for the Serial class
 -------------------------------
 ser = serial.Serial(
-    port,                   #number of device, numbering starts at
+    port=None,              #number of device, numbering starts at
                             #zero. if everything fails, the user
                             #can specify a device string, note
                             #that this isn't portable anymore
+                            #if no port is specified an unconfigured
+                            #an closed serial port object is created
     baudrate=9600,          #baudrate
     bytesize=EIGHTBITS,     #number of databits
     parity=PARITY_NONE,     #enable parity checking
@@ -119,15 +134,16 @@ timeout=None            #wait forever
 timeout=0               #non-blocking mode (return immediately on read)
 timeout=x               #set timeout to x seconds (float allowed)
 
-Serial object Methods
----------------------
+Methods of Serial instances
+---------------------------
+open()                  #open port
 close()                 #close port immediately
 setBaudrate(baudrate)   #change baudarte on an open port
 inWaiting()             #return the number of chars in the receive buffer
 read(size=1)            #read "size" characters
-write(s)                #write the string to the port
-flushInput()            #flush input buffer
-flushOutput()           #flush output buffer
+write(s)                #write the string s to the port
+flushInput()            #flush input buffer, discarding all it's contents
+flushOutput()           #flush output buffer, abort output
 sendBreak()             #send break condition
 setRTS(level=1)         #set RTS line to specified logic level
 setDTR(level=1)         #set DTR line to specified logic level
@@ -135,6 +151,27 @@ getCTS()                #return the state of the CTS line
 getDSR()                #return the state of the DSR line
 getRI()                 #return the state of the RI line
 getCD()                 #return the state of the CD line
+
+Attributes of Serial instances
+------------------------------
+Read Only:
+portstr                 #device name
+BAUDRATES               #list of valid baudrates
+BYTESIZES               #list of valid byte sizes
+PARITIES                #list of valid parities
+STOPBITS                #list of valid stop bit widths
+
+New values can be assigned to the following attribues, the port
+will be reconfigured, even if it's opened at that time:
+port                    #port name/number as set by the user
+baudrate                #current baudrate setting
+bytesize                #bytesize in bits
+parity                  #parity setting
+stopbits                #stop bit with (1,2)
+timeout                 #timeout setting
+xonxoff                 #if XonXoff flow control is enabled
+rtscts                  #if hardware flow control is enabled
+
 
 Constants
 ---------
@@ -154,7 +191,7 @@ bytesize:
 Tips & Tricks
 -------------
 - Some protocols need CR LF ("\r\n") as line terminator, not just LF ("\n").
-  Modems are an example of this behaviour.
+  Telephone modems with the AT command set are an example of this behaviour.
 
 - Scanning for available serial ports is possible with more or less sucess on
   some platforms. Look at the tools from Roger Binns:
