@@ -11,7 +11,7 @@ import win32con   # constants.
 import sys, string
 import serialutil
 
-VERSION = string.split("$Revision: 1.11 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.12 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -72,9 +72,8 @@ class Serial(serialutil.FileLike):
         # ReadTotalTimeoutConstant,WriteTotalTimeoutMultiplier,
         # WriteTotalTimeoutConstant)
         if timeout is None:
-             timeouts = (0, 0, 0, 0, 0)
+            timeouts = (0, 0, 0, 0, 0)
         elif timeout == 0:
-            #timeouts = (win32con.MAXDWORD, 0, 0, 0, 1000)
             timeouts = (win32con.MAXDWORD, 0, 0, 0, 0)
         else:
             #timeouts = (0, 0, 0, 0, 0) #timeouts are done with WaitForSingleObject
@@ -142,8 +141,8 @@ class Serial(serialutil.FileLike):
 
         #print win32file.ClearCommError(self.hComPort) #flags, comState =
 
-        self.overlapped = win32file.OVERLAPPED()
-        self.overlapped.hEvent = win32event.CreateEvent(None, 0, 0, None)
+        #self.overlapped = win32file.OVERLAPPED()
+        #self.overlapped.hEvent = win32event.CreateEvent(None, 0, 0, None)
 
     def __del__(self):
         self.close()
@@ -188,19 +187,20 @@ class Serial(serialutil.FileLike):
         if not self.hComPort: raise portNotOpenError
         read = ''
         if size > 0:
+            overlapped = win32file.OVERLAPPED()
+            overlapped.hEvent = win32event.CreateEvent(None, 1, 0, None)
             if self.timeout == 0:
                 flags, comstat = win32file.ClearCommError(self.hComPort)
                 n = min(comstat.cbInQue, size)
                 if n > 0:
-                    rc, buf = win32file.ReadFile(self.hComPort, win32file.AllocateReadBuffer(n), self.overlapped)
-                    win32event.WaitForSingleObject(self.overlapped.hEvent, win32event.INFINITE)
+                    rc, buf = win32file.ReadFile(self.hComPort, win32file.AllocateReadBuffer(n), overlapped)
+                    win32event.WaitForSingleObject(overlapped.hEvent, win32event.INFINITE)
                     read = str(buf)
             else:
                 flags, comstat = win32file.ClearCommError(self.hComPort)
-                getq = size-len(read)
-                rc, buf = win32file.ReadFile(self.hComPort, win32file.AllocateReadBuffer(getq), self.overlapped)
-                #win32event.WaitForSingleObject(self.overlapped.hEvent, win32event.INFINITE)
-                n = win32file.GetOverlappedResult(self.hComPort, self.overlapped, 1)
+                rc, buf = win32file.ReadFile(self.hComPort, win32file.AllocateReadBuffer(size), overlapped)
+                which = win32event.WaitForSingleObject(overlapped.hEvent, win32event.INFINITE)
+                n = win32file.GetOverlappedResult(self.hComPort, overlapped, 0)
                 read = str(buf[:n])
         return read
 
@@ -209,11 +209,11 @@ class Serial(serialutil.FileLike):
         if not self.hComPort: raise portNotOpenError
         #print repr(s),
         overlapped = win32file.OVERLAPPED()
-        overlapped.hEvent = win32event.CreateEvent(None, 0, 0, None)
-        win32file.WriteFile(self.hComPort, s, overlapped)
-        # Wait for the write to complete.
-        win32event.WaitForSingleObject(overlapped.hEvent, win32event.INFINITE)
-        #old: win32file.WriteFile(self.hComPort, s) #, 1,  NULL)
+        overlapped.hEvent = win32event.CreateEvent(None, 1, 0, None)
+        err, n = win32file.WriteFile(self.hComPort, s, overlapped)
+        if err: #will be ERROR_IO_PENDING:
+            # Wait for the write to complete.
+            win32event.WaitForSingleObject(overlapped.hEvent, win32event.INFINITE)
 
     def flushInput(self):
         if not self.hComPort: raise portNotOpenError
