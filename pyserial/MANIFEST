@@ -13,3 +13,8 @@ examples\test.py
 examples\test_advanced.py
 examples\scan.py
 examples\enhancedserial.py
+examples\wxSerialConfigDialog.py
+examples\wxSerialConfigDialog.wxg
+examples\wxTerminal.py
+examples\wxTerminal.wxg
+

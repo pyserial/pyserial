@@ -125,7 +125,10 @@ Version 2.0b1    1 Oct 2003
       the posix stuff anyway (It's likely that opening ports by number
       fails, but by name it should work).
 
-Version 2.0bX   ...
+Version 2.0b2    4 Oct 2003
     - Added serial port configuration dialog for wxPython to the examples.
     - Added terminal application for wxPython with wxGlade design file
       to the examples.
+    - Jython support is currenty broken as Jython does not have a Python 2.2
+      compatible release out yet
+

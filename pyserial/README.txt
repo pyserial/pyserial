@@ -193,7 +193,7 @@ Tips & Tricks
 - Some protocols need CR LF ("\r\n") as line terminator, not just LF ("\n").
   Telephone modems with the AT command set are an example of this behaviour.
 
-- Scanning for available serial ports is possible with more or less sucess on
+- Scanning for available serial ports is possible with more or less success on
   some platforms. Look at the tools from Roger Binns:
   http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/bitpim/comscan/
 
