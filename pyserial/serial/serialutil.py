@@ -120,6 +120,7 @@ class SerialBase(FileLike):
 
         self._isOpen   = False
         self._port     = None           #correct value is assigned below trough properties
+        self._baudrate = None           #correct value is assigned below trough properties
         self._bytesize = None           #correct value is assigned below trough properties
         self._parity   = None           #correct value is assigned below trough properties
         self._stopbits = None           #correct value is assigned below trough properties
