@@ -140,7 +140,7 @@ int main(int argc, char *argv[]) {
             level = 2;
         } else {
             DWORD type = 0;
-            printf("set start type %s to %s... ", argv[2], argv[3]);
+            printf("set start type of %s to %s... ", argv[2], argv[3]);
             if (strcmp(argv[1], "boot") == 0) {
                 type = SERVICE_BOOT_START;
             } else if (strcmp(argv[3], "system") == 0) {
@@ -275,26 +275,27 @@ DWORD DriverStatus(LPSTR lpDriver) {
                                 SERVICE_ALL_ACCESS)) != NULL) 
     {
         LPQUERY_SERVICE_CONFIG lpqscBuf;
-        LPSERVICE_DESCRIPTION lpqscBuf2;
+        //~ LPSERVICE_DESCRIPTION lpqscBuf2;
         // Allocate a buffer for the configuration information. 
         if ((lpqscBuf = (LPQUERY_SERVICE_CONFIG) LocalAlloc( 
             LPTR, 4096)) != NULL)
         {
-            if ((lpqscBuf2 = (LPSERVICE_DESCRIPTION) LocalAlloc( 
-                LPTR, 4096)) != NULL)
+            //~ if ((lpqscBuf2 = (LPSERVICE_DESCRIPTION) LocalAlloc( 
+                //~ LPTR, 4096)) != NULL)
             {
                 // Get the configuration information. 
                 if (QueryServiceConfig(
                         hService,
                         lpqscBuf,
                         4096,
-                        &dwBytesNeeded) &&
-                    QueryServiceConfig2( 
-                        hService,
-                        SERVICE_CONFIG_DESCRIPTION,
-                        lpqscBuf2,
-                        4096, 
-                        &dwBytesNeeded) )
+                        &dwBytesNeeded) //&&
+                    //~ QueryServiceConfig2( 
+                        //~ hService,
+                        //~ SERVICE_CONFIG_DESCRIPTION,
+                        //~ lpqscBuf2,
+                        //~ 4096, 
+                        //~ &dwBytesNeeded
+                )
                 {
                     // Print the configuration information. 
                     printf("Type:           [0x%02lx] ", lpqscBuf->dwServiceType);
@@ -364,10 +365,10 @@ DWORD DriverStatus(LPSTR lpDriver) {
                         printf("Dependencies:   %s\n", lpqscBuf->lpDependencies); 
                     if (lpqscBuf->lpServiceStartName != NULL) 
                         printf("Start Name:     %s\n", lpqscBuf->lpServiceStartName); 
-                    if (lpqscBuf2->lpDescription != NULL) 
-                        printf("Description:    %s\n", lpqscBuf2->lpDescription); 
+                    //~ if (lpqscBuf2->lpDescription != NULL) 
+                        //~ printf("Description:    %s\n", lpqscBuf2->lpDescription); 
                 }
-                LocalFree(lpqscBuf2);
+                //~ LocalFree(lpqscBuf2);
             }
             LocalFree(lpqscBuf);
         } else {
