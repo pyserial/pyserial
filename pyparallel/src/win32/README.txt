@@ -9,9 +9,12 @@ a kernel driver is needed. The sources to GIVEIO.SYS are in
 the respective directory. The loaddrv sources come from the
 archive that is mentioned in the giveio readme.
 
-The extension tries to detect if its running on an NT based
-system and activates the giveio driver to gain access to the
-IO ports.
+If the extension detects that it is running on an NT based system
+(NT, 2k, XP) it activates the giveio driver to gain access to the
+IO ports. To make this work, the giveio driver must be installed.
+this can be done with the loaddrv tool. The batchfiles
+"install_giveio.bat" and "remove_giveio.bat" do whats needed to
+install or uninstall.
 
 Thanks go to
  Dale Roberts for the giveio driver and to 

@@ -8,10 +8,8 @@
 #include <Python.h>
 #include <windows.h>
 #include <conio.h>
-#include "loaddrv.h"
 
-#define DRIVERNAME      "giveio.sys"
-#define SERVICENAME     "giveio"
+#define DRIVERNAME      "\\\\.\\giveio"
 
 /* module-functions */
 
@@ -46,12 +44,10 @@ static PyMethodDef pypar_methods[] = {
 
 /* module entry-point (module-initialization) function */
 void init_pyparallel(void) {
-    int dwStatus;
-    //~ char buf[256];
     OSVERSIONINFO vi;
     
     /* Create the module and add the functions */
-    PyObject *m = Py_InitModule("_pyparallel", pypar_methods);
+    Py_InitModule("_pyparallel", pypar_methods);
     
     //detect OS, on NT,2k,XP the driver needs to be loaded
     vi.dwOSVersionInfoSize = sizeof(vi);
@@ -59,29 +55,11 @@ void init_pyparallel(void) {
     if (vi.dwPlatformId == VER_PLATFORM_WIN32_NT) {
         HANDLE h;
         //try to open driver
-        h = CreateFile("\\\\.\\giveio", GENERIC_READ, 0, NULL,
-                        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        h = CreateFile(DRIVERNAME, GENERIC_READ, 0, NULL,
+                       OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         if (h == INVALID_HANDLE_VALUE) {
-            //failed, try to load sys file fom disk
-            dwStatus = LoadDriverInit();        //init loaddriver module
-            //~ printf("init %d\n", dwStatus);
-            //driver not running, try to start it
-            //~ dwStatus = getcwd(buf, sizeof buf);
-            //~ snprintf(buf, sizeof buf, "%s\\%s", buf, SERVICENAME);
-            //~ printf("path %d %s %s\n", dwStatus, buf, SERVICENAME);
-            //~ dwStatus = DriverInstall(buf, SERVICENAME);
-            //install the driver. this returns an error if already installed
-            //but who cares?
-            dwStatus = DriverInstall(DRIVERNAME, SERVICENAME);
-            dwStatus = DriverStart(SERVICENAME);//now start the driver
-            LoadDriverCleanup();                //close loaddriver module
-            //retry to open the file
-            h = CreateFile("\\\\.\\giveio", GENERIC_READ, 0, NULL,
-                            OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-            if (h == INVALID_HANDLE_VALUE) {
-                //if it fails again, then we have a problem... -> exception
-                PyErr_Format(PyExc_ImportError, "Couldn't access giveio device");
-            }
+            //if it fails again, then we have a problem... -> exception
+            PyErr_Format(PyExc_ImportError, "Couldn't access giveio device");
         }
         //close again immediately.
         //the process is now tagged to have the rights it needs,
