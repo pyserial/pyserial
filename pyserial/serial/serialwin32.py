@@ -11,7 +11,7 @@ import win32con   # constants.
 import sys, string
 import serialutil
 
-VERSION = string.split("$Revision: 1.19 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.20 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -46,8 +46,13 @@ class Serial(serialutil.FileLike):
         if type(port) == type(''):       #strings are taken directly
             self.portstr = port
         else:
-            self.portstr = 'COM%d' % (port+1) #numbers are transformed to a string
-            #self.portstr = '\\\\.\\COM%d' % (port+1) #WIN NT format??
+            #the "//./COMx" format is required for devices > 9
+            #not all versions of windows seem to support this propperly
+            #so that the first few ports are used with the DOS device name
+            if port < 9:
+                self.portstr = 'COM%d' % (port+1) #numbers are transformed to a string
+            else:
+                self.portstr = r'\\.\COM%d' % (port+1)
 
         try:
             self.hComPort = win32file.CreateFile(self.portstr,
