@@ -11,7 +11,7 @@ import win32con   # constants.
 import sys, string
 import serialutil
 
-VERSION = string.split("$Revision: 1.13 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.14 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -198,8 +198,8 @@ class Serial(serialutil.FileLike):
                     read = str(buf)
             else:
                 flags, comstat = win32file.ClearCommError(self.hComPort)
-                rc, buf = win32file.ReadFile(self.hComPort, win32file.AllocateReadBuffer(size), self.overlapped)
-                n = win32file.GetOverlappedResult(self.hComPort, self.overlapped, 1)
+                rc, buf = win32file.ReadFile(self.hComPort, win32file.AllocateReadBuffer(size), overlapped)
+                n = win32file.GetOverlappedResult(self.hComPort, overlapped, 1)
                 read = str(buf[:n])
         return read
 
