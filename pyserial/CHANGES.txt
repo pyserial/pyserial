@@ -1,0 +1,18 @@
+Version 1.0     13 Feb 2002
+    First public release.
+    Split from the pybsl application (see mspgcc.sourceforge.net)
+    
+    New Features:
+        - Added Jython support
+    
+Version 1.1     14 Feb 2002
+    Bugfixes:
+        - Win32, when not specifying a timeout
+        - Typos in the Docs
+        
+    New Features:
+        - added serialutil which provides a base class for the Serial objects.
+        
+        - readline, readlines, writelines and flush are now supported
+          see README.txt for deatils.
+    
