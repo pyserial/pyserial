@@ -12,7 +12,7 @@
 import sys, os, fcntl, termios, struct, string, select
 import serialutil
 
-VERSION = string.split("$Revision: 1.14 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.15 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -63,10 +63,6 @@ elif plat[:2] == 'hp':       #HP-UX (not tested)
 elif plat[:5] == 'sunos':    #Solaris®/SunOS® (confirmed)
     def device(port):
         return '/dev/tty%c' % (ord('a')+port)
-
-elif plat[:3] == 'dgux':     #Digital UNIX® (not tested)
-    def device(port):
-        return '/dev/tty0%d' % (port+1)
 
 else:
     #platform detection has failed...
