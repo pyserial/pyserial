@@ -23,6 +23,8 @@ if os.name == 'nt':
             if z == '\0' or z == '\xe0':    #functions keys
                 msvcrt.getch()
             else:
+                if z == '\r':
+                    return '\n'
                 return z
 
 elif os.name == 'posix':
