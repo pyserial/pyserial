@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# parallel port access using the ppdev driver
 
 import struct
 import fcntl
@@ -11,9 +12,9 @@ import os
 def sizeof(type): return struct.calcsize(type)
 def _IOC(dir, type, nr, size):  return (dir << _IOC_DIRSHIFT ) | (type << _IOC_TYPESHIFT ) |\
                                        (nr << _IOC_NRSHIFT ) | (size << _IOC_SIZESHIFT)
-def _IO(type, nr):      return _IOC ( _IOC_NONE , ( type ) , ( nr ) , 0 )
-def _IOR(type,nr,size): return _IOC(_IOC_READ, type, nr, sizeof(size) )
-def _IOW(type,nr,size): return _IOC(_IOC_WRITE, type, nr, sizeof(size) )
+def _IO(type, nr):      return _IOC(_IOC_NONE,  type, nr, 0)
+def _IOR(type,nr,size): return _IOC(_IOC_READ,  type, nr, sizeof(size))
+def _IOW(type,nr,size): return _IOC(_IOC_WRITE, type, nr, sizeof(size))
 
 _IOC_SIZEBITS   = 14
 _IOC_SIZEMASK   = (1 << _IOC_SIZEBITS ) - 1
@@ -33,11 +34,11 @@ IOC_OUT         = _IOC_READ << _IOC_DIRSHIFT
 
 _IOC_NONE       = 0
 PP_IOCTL        = ord('p')
-PPCLAIM         = _IO(PP_IOCTL , 0x8b)
+PPCLAIM         = _IO(PP_IOCTL,  0x8b)
 PPCLRIRQ        = _IOR(PP_IOCTL, 0x93, 'i')
 
 PPDATADIR       = _IOW(PP_IOCTL, 0x90, 'i')
-PPEXCL          = _IO(PP_IOCTL, 0x8f)
+PPEXCL          = _IO(PP_IOCTL,  0x8f)
 PPFCONTROL      = _IOW(PP_IOCTL, 0x8e, 'BB')
 PPGETFLAGS      = _IOR(PP_IOCTL, 0x9a, 'i')
 PPGETMODE       = _IOR(PP_IOCTL, 0x98, 'i')
@@ -48,7 +49,7 @@ PPNEGOT         = _IOW(PP_IOCTL, 0x91, 'i')
 PPRCONTROL      = _IOR(PP_IOCTL, 0x83, 'B')
 PPRDATA         = _IOR(PP_IOCTL, 0x85, 'B')
 #'OBSOLETE__IOR' undefined in 'PPRECONTROL'
-PPRELEASE       = _IO(PP_IOCTL, 0x8c)
+PPRELEASE       = _IO(PP_IOCTL,  0x8c)
 #'OBSOLETE__IOR' undefined in 'PPRFIFO'
 PPRSTATUS       = _IOR(PP_IOCTL, 0x81, 'B')
 PPSETFLAGS      = _IOW(PP_IOCTL, 0x9b, 'i')
@@ -169,7 +170,7 @@ class Parallel:
         if type(port) == type(""):
             self.device = port
         else:
-            self.device = "/dev/parports/%d" % port
+            self.device = "/dev/parport%d" % port
         self._fd = os.open(self.device, os.O_RDWR)
         self.PPEXCL()
         self.PPCLAIM()
@@ -178,7 +179,8 @@ class Parallel:
 
     def __del__(self):
         self.PPRELEASE()
-        os.close(self._fd)
+        if self._fd is not None:
+            os.close(self._fd)
 
     def timevalToFloat(self, timeval):
         t=struct.unpack('ll', timeval)
@@ -198,7 +200,7 @@ class Parallel:
         and not the port, such as PPSETMODE; they can be performed
         while access to the port is not claimed.
         """
-        fcntl.ioctl(self._fd,PPCLAIM)
+        fcntl.ioctl(self._fd, PPCLAIM)
 
     def PPEXCL(self):
         """
@@ -218,7 +220,7 @@ class Parallel:
         there and then---action is deferred until the PPCLAIM ioctl is
         performed.
         """
-        fcntl.ioctl(self._fd,PPEXCL)
+        fcntl.ioctl(self._fd, PPEXCL)
 
     def PPRELEASE(self):
         """
