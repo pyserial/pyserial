@@ -21,9 +21,9 @@ void DisplayErrorText(DWORD dwLastError) {
     
     DWORD dwFormatFlags = FORMAT_MESSAGE_ALLOCATE_BUFFER |
         FORMAT_MESSAGE_IGNORE_INSERTS |
-        FORMAT_MESSAGE_FROM_SYSTEM ;
+        FORMAT_MESSAGE_FROM_SYSTEM;
     
-    if (dwBufferLength = FormatMessageA(
+    dwBufferLength = FormatMessageA(
         dwFormatFlags,
         NULL, // module to get message from (NULL == system)
         dwLastError,
@@ -31,8 +31,8 @@ void DisplayErrorText(DWORD dwLastError) {
         (LPSTR) &MessageBuffer,
         0,
         NULL
-        ))
-    {
+    );
+    if (dwBufferLength) {
         // Output message
         puts(MessageBuffer);
         // Free the buffer allocated by the system.
@@ -40,8 +40,15 @@ void DisplayErrorText(DWORD dwLastError) {
     }
 }
 
+int exists(char *filename) {
+    FILE * pFile;
+    pFile = fopen(filename, "r");
+    return pFile != NULL;
+}
+
 int main(int argc, char *argv[]) {
     DWORD status = 0;
+    int level = 0;
     if (argc < 3) {
         printf("USGAE: loaddrv start|stop|install|remove drivername [fullpathforinstall]");
         exit(1);
@@ -52,6 +59,7 @@ int main(int argc, char *argv[]) {
         status = DriverStart(argv[2]);
         if ( status != OKAY) {
             printf("start failed (status %ld):\n", status);
+            level = 1;
         } else {
             printf("ok.\n");
         }
@@ -60,6 +68,7 @@ int main(int argc, char *argv[]) {
         status = DriverStop(argv[2]);
         if ( status != OKAY) {
             printf("stop failed (status %ld):\n", status);
+            level = 1;
         } else {
             printf("ok.\n");
         }
@@ -72,27 +81,35 @@ int main(int argc, char *argv[]) {
         } else {
             strncpy(path, argv[3], MAX_PATH);
         }
-        printf("installing %s from %s... ", argv[2], path);
-        status = DriverInstall(path, argv[2]);
-        if ( status != OKAY) {
-            printf("install failed (status %ld):\n", status);
+        if (exists(path)) {
+            printf("installing %s from %s... ", argv[2], path);
+            status = DriverInstall(path, argv[2]);
+            if ( status != OKAY) {
+                printf("install failed (status %ld):\n", status);
+                level = 2;
+            } else {
+                printf("ok.\n");
+            }
         } else {
-            printf("ok.\n");
+            printf("install failed, file not found: %s\n", path);
+            level = 1;
         }
     } else if (strcmp(argv[1], "remove") == 0) {
         printf("removing %s... ", argv[2]);
         status = DriverRemove(argv[2]);
         if ( status != OKAY) {
             printf("remove failed (status %ld):\n", status);
+            level = 1;
         } else {
             printf("ok.\n");
         }
     } else {
         printf("USGAE: loaddrv start|stop|install|remove drivername [fullpathforinstall]");
-        exit(1);
+        level = 1;
     }
     if (status) DisplayErrorText(status);
     LoadDriverCleanup();
+    exit(level);
     return 0;
 }
 
