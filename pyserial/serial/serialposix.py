@@ -12,7 +12,7 @@
 import sys, os, fcntl, termios, struct, string, select
 import serialutil
 
-VERSION = string.split("$Revision: 1.4 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.5 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -231,6 +231,12 @@ class Serial(serialutil.FileLike):
                 self.cflag = self.cflag |  (TERMIOS.CRTSCTS)
             else:
                 self.cflag = self.cflag & ~(TERMIOS.CRTSCTS)
+        elif hasattr(TERMIOS, 'CNEW_RTSCTS'):   #try it with alternate constant name
+                self.cflag = self.cflag |  (TERMIOS.CNEW_RTSCTS)
+            else:
+                self.cflag = self.cflag & ~(TERMIOS.CNEW_RTSCTS)
+        #XXX should there be a warning if setting up rtscts (and xonxoff etc) fails??
+        
         #buffer
         #vmin "minimal number of characters to be read. = for non blocking"
         if vmin<0 or vmin>255:
