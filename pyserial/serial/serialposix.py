@@ -13,7 +13,7 @@
 import sys, os, fcntl, termios, struct, select
 from serialutil import *
 
-VERSION = "$Revision: 1.21 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.22 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -63,16 +63,19 @@ elif plat[:5] == 'sunos':    #Solaris/SunOS (confirmed)
 
 else:
     #platform detection has failed...
-    info = "sys.platform = %r\nos.name = %r\nserialposix.py version = %s" % (sys.platform, os.name, VERSION)
-    print """send this information to the author of the pyserial:
+    print """don't know how to number ttys on this system.
+! Use an explicit path (eg /dev/ttyS1) or send this information to
+! the author of this module:
 
-%s
+sys.platform = %r
+os.name = %r
+serialposix.py version = %s
 
 also add the device name of the serial port and where the
 counting starts for the first serial port.
 e.g. 'first serial port: /dev/ttyS0'
 and with a bit luck you can get this module running...
-"""
+""" % (sys.platform, os.name, VERSION)
     #no exception, just continue with a brave attempt to build a device name
     #even if the device name is not correct for the platform it has chances
     #to work using a string with the real device name as port paramter.
@@ -82,21 +85,6 @@ and with a bit luck you can get this module running...
 
 #whats up with "aix", "beos", ....
 #they should work, just need to know the device names.
-
-
-# construct dictionaries for baud rate lookups
-baudEnumToInt = {}
-baudIntToEnum = {}
-for rate in (0,50,75,110,134,150,200,300,600,1200,1800,2400,4800,9600,
-             19200,38400,57600,115200,230400,460800,500000,576000,921600,
-             1000000,1152000,1500000,2000000,2500000,3000000,3500000,4000000
-    ):
-    try:
-        i = eval('TERMIOS.B'+str(rate))
-        baudEnumToInt[i]=rate
-        baudIntToEnum[rate] = i
-    except:
-        pass
 
 
 #load some constants for later use.
@@ -166,14 +154,13 @@ class Serial(SerialBase):
         lflag &= ~(TERMIOS.ICANON|TERMIOS.ECHO|TERMIOS.ECHOE|TERMIOS.ECHOK|TERMIOS.ECHONL|
                           TERMIOS.ECHOCTL|TERMIOS.ECHOKE|TERMIOS.ISIG|TERMIOS.IEXTEN) #|TERMIOS.ECHOPRT
         oflag &= ~(TERMIOS.OPOST)
+        iflag &= ~(TERMIOS.INLCR|TERMIOS.IGNCR|TERMIOS.ICRNL|TERMIOS.IGNBRK)
         if hasattr(TERMIOS, 'IUCLC'):
-            iflag &= ~(TERMIOS.INLCR|TERMIOS.IGNCR|TERMIOS.ICRNL|TERMIOS.IUCLC|TERMIOS.IGNBRK)
-        else:
-            iflag &= ~(TERMIOS.INLCR|TERMIOS.IGNCR|TERMIOS.ICRNL|TERMIOS.IGNBRK)
+            iflag &= ~TERMIOS.IUCLC
         #setup baudrate
         try:
-            ispeed = ospeed = baudIntToEnum[self._baudrate]
-        except:
+            ispeed = ospeed = getattr(TERMIOS,'B%s' % (self._baudrate))
+        except AttributeError:
             raise ValueError('Invalid baud rate: %r' % self._baudrate)
         #setup char len
         cflag &= ~TERMIOS.CSIZE

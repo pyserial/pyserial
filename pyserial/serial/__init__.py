@@ -6,7 +6,7 @@
 # this is distributed under a free software license, see license.txt
 
 import sys, os, string
-VERSION = string.split("$Revision: 1.2 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.3 $")[1]     #extract CVS version
 
 #chose an implementation, depending on os
 if os.name == 'nt': #sys.platform == 'win32':
@@ -16,6 +16,5 @@ elif os.name == 'posix':
 elif os.name == 'java':
     from serialjava import *
 else:
-    raise "Sorry no implementation for your platform available."
+    raise Exception("Sorry: no implementation for your platform ('%s') available" % os.name)
 
-#no "mac" implementation. someone want's to write it? i have no access to a mac.
