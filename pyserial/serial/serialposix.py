@@ -12,7 +12,7 @@
 import sys, os, fcntl, termios, struct, string, select
 import serialutil
 
-VERSION = string.split("$Revision: 1.11 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.12 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -169,14 +169,17 @@ class Serial(serialutil.FileLike):
         if type(port) == type(''):      #strings are taken directly
             self.portstr = port
         else:
-            self.portstr = device(port)     #numbers are transformed to a os dependant string
+            self.portstr = device(port) #numbers are transformed to a os dependant string
         try:
             self.fd = os.open(self.portstr, os.O_RDWR|os.O_NOCTTY|os.O_NONBLOCK)
         except Exception, msg:
             self.fd = None
             raise serialutil.SerialException, "could not open port: %s" % msg
         fcntl.fcntl(self.fd, FCNTL.F_SETFL, 0)  #set blocking
-        self.__tcgetattr()  #read current settings
+        try:
+            self.__tcgetattr()          #read current settings
+        except termios.error, msg:      #if a port is nonexistent but has a /dev file, it'll fail here
+            raise serialutil.SerialException, "could not open port: %s" % msg
         #set up raw mode / no echo / binary
         self.cflag = self.cflag |  (TERMIOS.CLOCAL|TERMIOS.CREAD)
         self.lflag = self.lflag & ~(TERMIOS.ICANON|TERMIOS.ECHO|TERMIOS.ECHOE|TERMIOS.ECHOK|TERMIOS.ECHONL|
