@@ -38,6 +38,7 @@
 import os
 import sys
 import string
+import serialutil
 
 BAUD_RATES = {
                 110: "11",
@@ -59,10 +60,10 @@ FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS = (5,6,7,8)
 RETURN_NONE) = ('E', 'B', 'P', 'R', 'N')
 portNotOpenError = ValueError('port not open')
 
-class SerialException(Exception):
-    pass
+def device(portnum):
+    return 'COM%d' % (portnum+1)
 
-class Serial:
+class Serial(serialutil.FileLike):
     """
        port: number of device; numbering starts at
             zero. if everything fails, the user can
@@ -94,7 +95,7 @@ class Serial:
             self.portstr = port
         else:
         #numbers are transformed to a string
-            self.portstr = 'COM%d' % (port+1)
+            self.portstr = device(port+1)
 
         self.baud = BAUD_RATES[baudrate]
         self.bytesize = str(bytesize)
@@ -141,7 +142,7 @@ class Serial:
         raise NotImplementedError
 
     def read(self, num = 1):
-        "Read num bytes from serial port"
+        """Read num bytes from serial port"""
         handle = os.open(self.portstr,
         os.O_RDONLY | os.O_BINARY)
         # print os.fstat(handle)
@@ -150,7 +151,7 @@ class Serial:
         return rv
 
     def write(self, s):
-        "Write string to serial port"
+        """Write string to serial port"""
         handle = os.open(self.portstr,
         os.O_WRONLY | os.O_BINARY)
         rv = os.write(handle, s)
@@ -188,21 +189,6 @@ class Serial:
 
     def getCD(self):
         """Eead terminal status line"""
-        raise NotImplementedError
-
-    def readline(self, size=None):
-        raise NotImplementedError
-
-    def readlines(self, sizehint=None):
-        raise NotImplementedError
-
-    def xreadlines(self, sizehint=None):
-        raise NotImplementedError
-
-    def writelines(self, sequence):
-        raise NotImplementedError
-
-    def flush(self):
         raise NotImplementedError
 
     def __repr__(self):

@@ -8,7 +8,7 @@
 import sys, os, string, javax.comm
 import serialutil
 
-VERSION = string.split("$Revision: 1.6 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.7 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE = (0,1,2,3,4)
 STOPBITS_ONE, STOPBITS_TWO, STOPBITS_ONE_HALVE = (1, 2, 3)
@@ -36,7 +36,7 @@ class Serial(serialutil.FileLike):
                  bytesize=EIGHTBITS,    #number of databits
                  parity=PARITY_NONE,    #enable parity checking
                  stopbits=STOPBITS_ONE, #number of stopbits
-                 timeout=None,          #set a timeout value, None for waiting forever
+                 timeout=None,          #set a timeout value, None to wait forever
                  xonxoff=0,             #enable software flow control
                  rtscts=0,              #enable RTS/CTS flow control
                  ):

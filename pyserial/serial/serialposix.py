@@ -12,7 +12,7 @@
 import sys, os, fcntl, termios, struct, string, select
 import serialutil
 
-VERSION = string.split("$Revision: 1.15 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.16 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -136,7 +136,7 @@ class Serial(serialutil.FileLike):
                  bytesize=EIGHTBITS,    #number of databits
                  parity=PARITY_NONE,    #enable parity checking
                  stopbits=STOPBITS_ONE, #number of stopbits
-                 timeout=None,          #set a timeout value, None for waiting forever
+                 timeout=None,          #set a timeout value, None to wait forever
                  xonxoff=0,             #enable software flow control
                  rtscts=0,              #enable RTS/CTS flow control
                  ):
