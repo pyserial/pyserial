@@ -67,3 +67,10 @@ Version 1.19    19 Mar 2003
         - added int() conversion, [Bug 702120]
         - remove code to set control lines in close methond of win32 version. [Bug 669625]
 
+Version 1.20    28 Aug 2003
+    added serial.device() for all platforms
+    Bugfixes (win32):
+        - don't recreate opverlaped structures and events on each read/write
+        - don't set unneded event masks
+        - dont use DOS device names for ports > 9
+        - remove send timeout (its not used in the linux impl. anyway)
