@@ -38,3 +38,6 @@ Version 1.15    04 Jun 2002
         - removed debug messages
         - compatibility to win9x improved
 
+Version 1.16    02 Jul 2002
+    added implementation of RI and corrected RTS/CTS on Win32
+    
