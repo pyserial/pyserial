@@ -11,7 +11,7 @@ import win32con   # constants.
 import sys, string
 import serialutil
 
-VERSION = string.split("$Revision: 1.15 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.16 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -234,22 +234,18 @@ class Serial(serialutil.FileLike):
     def setRTS(self,level=1):
         """set terminal status line"""
         if not self.hComPort: raise portNotOpenError
-        comDCB = win32file.GetCommState(self.hComPort)
         if level:
-            comDCB.fRtsControl = win32file.RTS_CONTROL_ENABLE;
+            win32file.EscapeCommFunction(self.hComPort, win32file.SETRTS)
         else:
-            comDCB.fRtsControl = win32file.RTS_CONTROL_DISABLE;
-        win32file.SetCommState(self.hComPort, comDCB)
+            win32file.EscapeCommFunction(self.hComPort, win32file.CLRRTS)
 
     def setDTR(self,level=1):
         """set terminal status line"""
         if not self.hComPort: raise portNotOpenError
-        comDCB = win32file.GetCommState(self.hComPort)
         if level:
-            comDCB.fDtrControl = win32file.DTR_CONTROL_ENABLE;
+            win32file.EscapeCommFunction(self.hComPort, win32file.SETDTR)
         else:
-            comDCB.fDtrControl = win32file.DTR_CONTROL_DISABLE;
-        win32file.SetCommState(self.hComPort, comDCB)
+            win32file.EscapeCommFunction(self.hComPort, win32file.CLRDTR)
 
     def getCTS(self):
         """read terminal status line"""
