@@ -1,16 +1,17 @@
 #! python
 #serial driver for win32
-#see serial.py
+#see __init__.py
 #
-#(C) 2001 Chris Liechti <cliechti@gmx.net>
+#(C) 2001-2002 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
 import win32file  # The base COM port and file IO functions.
 import win32event # We use events and the WaitFor[Single|Multiple]Objects functions.
 import win32con   # constants.
 import sys, string
+import serialutil
 
-VERSION = string.split("$Revision: 1.2 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.3 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -18,7 +19,7 @@ FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS = (5,6,7,8)
 
 portNotOpenError = ValueError('port not open')
 
-class Serial:
+class Serial(serialutil.FileLike):
     def __init__(self,
                  port,                  #number of device, numbering starts at
                                         #zero. if everything fails, the user
@@ -64,7 +65,8 @@ class Serial:
             timeouts = (timeout*1000, 0, timeout*1000, 0, 0)
         else:
             #timeouts = (win32con.MAXDWORD, 1, 0, 1, 0)
-            timeouts = (win32con.MAXDWORD, 0, 0, 0, 1000)
+            #timeouts = (win32con.MAXDWORD, 0, 0, 0, 1000)
+            timeouts = (0, 0, 0, 0, 0)
         win32file.SetCommTimeouts(self.hComPort, timeouts)
 
         #win32file.SetCommMask(self.hComPort, win32file.EV_RXCHAR | win32file.EV_TXEMPTY |
@@ -206,6 +208,7 @@ class Serial:
         win32file.ClearCommBreak(self.hComPort)
 
     def setRTS(self,level=1):
+        """set terminal status line"""
         if not self.hComPort: raise portNotOpenError
         comDCB = win32file.GetCommState(self.hComPort)
         if level:
@@ -215,6 +218,7 @@ class Serial:
         win32file.SetCommState(self.hComPort, comDCB)
 
     def setDTR(self,level=1):
+        """set terminal status line"""
         if not self.hComPort: raise portNotOpenError
         comDCB = win32file.GetCommState(self.hComPort)
         if level:
@@ -224,16 +228,26 @@ class Serial:
         win32file.SetCommState(self.hComPort, comDCB)
 
     def getCTS(self):
+        """read terminal status line"""
         if not self.hComPort: raise portNotOpenError
         comDCB = win32file.GetCommState(self.hComPort)
         return comDCB.fOutxCtsFlow
 
     def getDSR(self):
+        """read terminal status line"""
         if not self.hComPort: raise portNotOpenError
         comDCB = win32file.GetCommState(self.hComPort)
         return comDCB.fOutxDsrFlow
 
+    def getRI(self):
+        """read terminal status line"""
+        if not self.hComPort: raise portNotOpenError
+        raise NotImplementedError
 
+    def getCD(self):
+        """read terminal status line"""
+        if not self.hComPort: raise portNotOpenError
+        raise NotImplementedError
 
 #Nur Testfunktion!!
 if __name__ == '__main__':
