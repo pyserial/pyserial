@@ -26,7 +26,6 @@ if os.name == 'nt':
                 return z
 
 elif os.name == 'posix':
-    #XXX: Untested code derived from the Python FAQ....
     import termios, sys, os
     fd = sys.stdin.fileno()
     old = termios.tcgetattr(fd)
@@ -52,7 +51,11 @@ else:
 def reader():
     """loop forever and copy serial->console"""
     while 1:
-        sys.stdout.write(s.read())
+        data = s.read()
+        if repr_mode:
+            sys.stdout.write(repr(data)[1:-1])
+        else:
+            sys.stdout.write(data)
         sys.stdout.flush()
 
 def writer():
@@ -77,6 +80,7 @@ def usage():
     -x, --xonxoff:   enable software flow control (default off)
     -e, --echo:      enable local echo (default off)
     -c, --cr:        disable LF -> CR+LF translation
+    -D, --debug:     debug connection (escape nonprintable chars)
 
 """ % (sys.argv[0], ))
 
@@ -84,8 +88,8 @@ if __name__ == '__main__':
     #parse command line options
     try:
         opts, args = getopt.getopt(sys.argv[1:],
-            "hp:b:rxec",
-            ["help", "port=", "baud=", "rtscts", "xonxoff", "echo", "cr"]
+            "hp:b:rxecD",
+            ["help", "port=", "baud=", "rtscts", "xonxoff", "echo", "cr", "debug"]
         )
     except getopt.GetoptError:
         # print help information and exit:
@@ -98,6 +102,7 @@ if __name__ == '__main__':
     convert_outgoing_cr = 1
     rtscts = 0
     xonxoff = 0
+    repr_mode = 0
     for o, a in opts:
         if o in ("-h", "--help"):       #help text
             usage()
@@ -120,6 +125,8 @@ if __name__ == '__main__':
             echo = 1
         elif o in ("-c", "--cr"):
             convert_outgoing_cr = 0
+        elif o in ("-D", "--debug"):
+            repr_mode = 1
 
     try:
         s = serial.Serial(port, baudrate, rtscts=rtscts, xonxoff=xonxoff)
