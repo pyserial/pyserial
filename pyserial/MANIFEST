@@ -17,4 +17,4 @@ examples\wxSerialConfigDialog.py
 examples\wxSerialConfigDialog.wxg
 examples\wxTerminal.py
 examples\wxTerminal.wxg
-
+examples\setup_demo.py

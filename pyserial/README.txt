@@ -9,7 +9,7 @@ It is released under a free software license, see LICENSE.txt for more
 details.
 
 Project Homepage: pyserial.sourceforge.net
-(C) 2001-2003 Chris Liechti <cliechti@gmx.net>
+(C) 2001-2004 Chris Liechti <cliechti@gmx.net>
 
 
 Features
@@ -133,6 +133,7 @@ ser = serial.Serial(
     timeout=None,           #set a timeout value, None to wait forever
     xonxoff=0,              #enable software flow control
     rtscts=0,               #enable RTS/CTS flow control
+    writeTimeout=None,      #set a timeout for writes
 )
 
 The port is immediately opened on object creation, if a port is given.
@@ -142,6 +143,10 @@ Options for read timeout:
 timeout=None            #wait forever
 timeout=0               #non-blocking mode (return immediately on read)
 timeout=x               #set timeout to x seconds (float allowed)
+
+Options for write timeout:
+writeTimeout=x          #will rise a SerialTimeoutException if the data
+                        #cannot be sent in x seconds
 
 Methods of Serial instances
 ---------------------------
@@ -171,15 +176,19 @@ PARITIES                #list of valid parities
 STOPBITS                #list of valid stop bit widths
 
 New values can be assigned to the following attribues, the port
-will be reconfigured, even if it's opened at that time:
+will be reconfigured, even if it's opened at that time (port will be 
+closed and reopened to apply the changes):
 port                    #port name/number as set by the user
 baudrate                #current baudrate setting
 bytesize                #bytesize in bits
 parity                  #parity setting
 stopbits                #stop bit with (1,2)
-timeout                 #timeout setting
+timeout                 #read timeout setting
 xonxoff                 #if Xon/Xoff flow control is enabled
 rtscts                  #if hardware flow control is enabled
+writeTimeout            #write timeout setting
+
+These attribues also have corresponding getX and setXX methods.
 
 Exceptions
 ----------
@@ -200,6 +209,10 @@ bytesize:
     serial.SEVENBITS
     serial.EIGHTBITS
 
+Xon/Xoff characters:
+    serial.XON
+    serial.XOFF
+
 Tips & Tricks
 -------------
 - Some protocols need CR LF ("\r\n") as line terminator, not just LF ("\n").
@@ -209,7 +222,7 @@ Tips & Tricks
   some platforms. Look at the tools from Roger Binns:
   http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/bitpim/comscan/
 
-- When packagin a project with py2exe, it will likely print a warning about
+- When packaging a project with py2exe, it will likely print a warning about
   missing modules 'javax.comm'. This warning is uncritical as the module is
   used in the Jython implementation that is not used but packaged.
   

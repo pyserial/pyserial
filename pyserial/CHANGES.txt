@@ -135,8 +135,18 @@ Version 2.0b2    4 Oct 2003
 Version 2.0      6 Nov 2003
     - Fixes setup.py for older distutils
 
-Version 2.1     XXXXXXXXXXX
+Version 2.1     28 Jul 2004
+    Bugfixes:
+        - Fix XON/XOFF values [Bug 975250]
     Bugfixes (posix):
         - fd == 0 fix from Vsevolod Lobko
+        - netbsd fixes from Erik Lindgren
+        - Dynamicaly lookup baudrates and some cleanups
+    Bugfixes (examples):
+        - CRLF handling of miniterm.py should be more consistent on Win32
+          and others. Added LF only command line option
+        - Mutithreading fixes to wxTerminal.py (helps with wxGTK)
+        - Small change for wxPython 2.5 in wxSerialConfigDialog.py [Bug 994856]
+        
     New Features:
-        - implement write timeouts ('writeTimeout' parameter)
+        - Implement write timeouts ('writeTimeout' parameter)
