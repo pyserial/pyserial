@@ -11,7 +11,7 @@ import win32con   # constants.
 import sys, string
 import serialutil
 
-VERSION = string.split("$Revision: 1.6 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.7 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -65,12 +65,12 @@ class Serial(serialutil.FileLike):
         #(ReadIntervalTimeout,ReadTotalTimeoutMultiplier,
         # ReadTotalTimeoutConstant,WriteTotalTimeoutMultiplier,
         # WriteTotalTimeoutConstant)
-        if timeout:
-            timeouts = (timeout*1000, 0, timeout*1000, 0, 0)
+        if timeout is None:
+             timeouts = (0, 0, 0, 0, 0)
+        elif timeout == 0:
+            timeouts = (win32con.MAXDWORD, 0, 0, 0, 1000)
         else:
-            #timeouts = (win32con.MAXDWORD, 1, 0, 1, 0)
-            #timeouts = (win32con.MAXDWORD, 0, 0, 0, 1000)
-            timeouts = (0, 0, 0, 0, 0)
+            timeouts = (timeout*1000, 0, timeout*1000, 0, 0)
         win32file.SetCommTimeouts(self.hComPort, timeouts)
 
         #win32file.SetCommMask(self.hComPort, win32file.EV_RXCHAR | win32file.EV_TXEMPTY |
@@ -183,15 +183,24 @@ class Serial(serialutil.FileLike):
             while len(read) < size:
                 flags, comstat = win32file.ClearCommError( self.hComPort )
                 rc, buf = win32file.ReadFile(self.hComPort, size-len(read), self.overlapped)
-                if self.timeout:
+                print "x",  rc
+                if self.timeout > 0:
                     rc = win32event.WaitForSingleObject(self.overlapped.hEvent, self.timeout*1000)
-                    if rc == win32event.WAIT_TIMEOUT: break
-                    #TODO: if reading more than 1 byte data can be lost when a timeout occours!!!!
+                    n = win32file.GetOverlappedResult(self.hComPort, self.overlapped, 0)
+                    if rc == win32event.WAIT_TIMEOUT:
+                        print "n", n
+                        if n:
+                            togo = size-len(read)
+                            print n<togo and n or togo
+                            read = read + str(buf[:n])
+                        break
                 else:
                     win32event.WaitForSingleObject(self.overlapped.hEvent, win32event.INFINITE)
-                read = read + str(buf)
+                    n = win32file.GetOverlappedResult(self.hComPort, self.overlapped, 0)
+                read = read + str(buf[0:n])
+                if self.timeout == 0: break
         #print "read %r" % str(read)
-        return str(read)
+        return read
 
     def write(self, s):
         "write string to serial port"

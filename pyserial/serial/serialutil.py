@@ -20,7 +20,7 @@ class FileLike:
     def write(self, s): raise NotImplementedError
 
     def readline(self, size=None):
-        """read a line which is terminated with '\\n' or until timeout"""
+        """read a line which is terminated with '\n' or until timeout"""
         line = ''
         while 1:
             c = self.read(1)
@@ -35,7 +35,7 @@ class FileLike:
         return line
 
     def readlines(self, sizehint=None):
-        """read alist of lines, until timeout
+        """read a list of lines, until timeout
         sizehint is ignored"""
         if self.timeout is None:
             raise ValueError, "Serial port MUST have enabled timeout for this function!"
@@ -44,14 +44,14 @@ class FileLike:
             line = self.readline()
             if line:
                 lines.append(line)
-                if line[-1] != '\n':
+                if line[-1] != '\n':    #was the line received with a timeout?
                     break
             else:
                 break
         return lines
 
     def xreadlines(self, sizehint=None):
-        """just call readlines - just here for compatibility"""
+        """just call readlines - here for compatibility"""
         return self.readlines()
 
     def writelines(self, sequence):
@@ -63,6 +63,6 @@ class FileLike:
         method is not available"""
         try:
             self.flushOutput()
-        except NameError:
+        except AttributeError:
             pass
 

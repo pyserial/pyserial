@@ -7,3 +7,5 @@ serial\serialjava.py
 serial\serialposix.py
 serial\serialwin32.py
 serial\serialutil.py
+examples\miniterm.py
+examples\tcp_serial_redirect.py

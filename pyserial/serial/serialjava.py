@@ -8,7 +8,7 @@
 import sys, os, string, javax.comm
 import serialutil
 
-VERSION = string.split("$Revision: 1.5 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.6 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE = (0,1,2,3,4)
 STOPBITS_ONE, STOPBITS_TWO, STOPBITS_ONE_HALVE = (1, 2, 3)
@@ -99,7 +99,7 @@ class Serial(serialutil.FileLike):
         self.sPort.setFlowControlMode(jflowin | jflowout)
         
         self.timeout = timeout
-        if timeout:
+        if timeout >= 0:
             self.sPort.enableReceiveTimeout(timeout*1000)
         else:
             self.sPort.disableReceiveTimeout()
@@ -127,15 +127,16 @@ class Serial(serialutil.FileLike):
 
     def read(self, size=1):
         if not self.sPort: raise portNotOpenError
-        res = ''
-        while len(res) < size:
-            x = self.instream.read()
-            if x == -1:
-                if self.timeout:
-                    break
-            else:
-                res = res + chr(x)
-        return res
+        read = ''
+        if size > 0:
+            while len(read) < size:
+                x = self.instream.read()
+                if x == -1:
+                    if self.timeout >= 0:
+                        break
+                else:
+                    read = read + chr(x)
+        return read
 
     def flushInput(self):
         if not self.sPort: raise portNotOpenError
