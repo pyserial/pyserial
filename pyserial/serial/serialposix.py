@@ -2,7 +2,7 @@
 #module for serial IO for POSIX compatible systems, like Linux
 #see __init__.py
 #
-#(C) 2001 Chris Liechti <cliechti@gmx.net>
+#(C) 2001-2002 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 #
 #parts based on code from Grant B. Edwards  <grante@visi.com>:
@@ -12,7 +12,7 @@
 import sys, os, fcntl, termios, struct, string, select
 import serialutil
 
-VERSION = string.split("$Revision: 1.8 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.9 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -56,7 +56,7 @@ elif plat[:2] == 'hp':       #HP-UX (not tested)
     def device(port):
         return '/dev/tty%dp0' % (port+1)
 
-elif plat[:5] == 'sunos':    #Solaris®/SunOS® (not tested)
+elif plat[:5] == 'sunos':    #Solaris®/SunOS® (confirmed)
     def device(port):
         return '/dev/tty%c' % (ord('a')+port)
 
