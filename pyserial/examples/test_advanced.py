@@ -67,7 +67,7 @@ class Test_ChangeAttributes(unittest.TestCase):
             #test internals
             self.failUnlessEqual(self.s._baudrate, baudrate)
         #test illegal values
-        for illegal_value in (-300, -1, 0, 'a', None):
+        for illegal_value in (-300, -1, 'a', None):
             self.failUnlessRaises(ValueError, self.s.setBaudrate, illegal_value)
 
     def test_BaudrateSetting2(self):
@@ -154,7 +154,6 @@ class Test_ChangeAttributes(unittest.TestCase):
             self.failUnless(self.s.isOpen())
             self.s.close()
             self.failUnless(not self.s.isOpen())
-
 
 if __name__ == '__main__':
     import sys

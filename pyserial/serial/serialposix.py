@@ -13,7 +13,7 @@
 import sys, os, fcntl, termios, struct, select
 from serialutil import *
 
-VERSION = "$Revision: 1.20 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.21 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -144,10 +144,11 @@ class Serial(SerialBase):
         except Exception, msg:
             self.fd = None
             raise SerialException("Could not open port: %s" % msg)
-        fcntl.fcntl(self.fd, FCNTL.F_SETFL, 0)  #set blocking
+        #~ fcntl.fcntl(self.fd, FCNTL.F_SETFL, 0)  #set blocking
         
         self._reconfigurePort()
         self._isOpen = True
+        #~ self.flushInput()
         
         
     def _reconfigurePort(self):
@@ -208,7 +209,7 @@ class Serial(SerialBase):
         #xonxoff
         if hasattr(TERMIOS, 'IXANY'):
             if self._xonxoff:
-                iflag |=  (TERMIOS.IXON|TERMIOS.IXOFF|TERMIOS.IXANY)
+                iflag |=  (TERMIOS.IXON|TERMIOS.IXOFF) #|TERMIOS.IXANY)
             else:
                 iflag &= ~(TERMIOS.IXON|TERMIOS.IXOFF|TERMIOS.IXANY)
         else:
@@ -270,12 +271,12 @@ class Serial(SerialBase):
         if size > 0:
             while len(read) < size:
                 #print "\tread(): size",size, "have", len(read)    #debug
-                ready,_,_ = select.select([self.fd],[],[], self.timeout)
+                ready,_,_ = select.select([self.fd],[],[], self._timeout)
                 if not ready:
                     break   #timeout
                 buf = os.read(self.fd, size-len(read))
                 read = read + buf
-                if self.timeout >= 0 and not buf:
+                if self._timeout >= 0 and not buf:
                     break  #early abort on timeout
         return read
 
@@ -285,7 +286,15 @@ class Serial(SerialBase):
         t = len(data)
         d = data
         while t > 0:
+            if self._writeTimeout is not None and self._writeTimeout > 0:
+                _,ready,_ = select.select([],[self.fd],[], self._writeTimeout)
+                if not ready:
+                    raise writeTimeoutError
             n = os.write(self.fd, d)
+            if self._writeTimeout is not None and self._writeTimeout > 0:
+                _,ready,_ = select.select([],[self.fd],[], self._writeTimeout)
+                if not ready:
+                    raise writeTimeoutError
             d = d[n:]
             t = t - n
 

@@ -15,6 +15,9 @@ PARITY_NAMES = {
     PARITY_ODD:  'Odd',
 }
 
+XON  = chr(16)
+XOFF = chr(18)
+
 #Python < 2.2.3 compatibility
 try:
     True
@@ -26,6 +29,11 @@ class SerialException(Exception):
     """Base class for serial port related exceptions."""
 
 portNotOpenError = SerialException('Port not open')
+
+class SerialTimeoutException(SerialException):
+    """Write timeouts give an exception"""
+
+writeTimeoutError = SerialTimeoutException("Write timeout")
 
 class FileLike(object):
     """An abstract file like class.
@@ -113,6 +121,7 @@ class SerialBase(FileLike):
                  timeout=None,          #set a timeout value, None to wait forever
                  xonxoff=0,             #enable software flow control
                  rtscts=0,              #enable RTS/CTS flow control
+                 writeTimeout=None,     #set a timeout for writes
                  ):
         """Initialize comm port object. If a port is given, then the port will be
            opened immediately. Otherwise a Serial port object in closed state
@@ -125,16 +134,18 @@ class SerialBase(FileLike):
         self._parity   = None           #correct value is assigned below trough properties
         self._stopbits = None           #correct value is assigned below trough properties
         self._timeout  = None           #correct value is assigned below trough properties
+        self._writeTimeout  = None           #correct value is assigned below trough properties
         self._xonxoff  = None           #correct value is assigned below trough properties
         self._rtscts   = None           #correct value is assigned below trough properties
         
-        #assign values using get/set methods using the properties featrure
+        #assign values using get/set methods using the properties feature
         self.port     = port
         self.baudrate = baudrate
         self.bytesize = bytesize
         self.parity   = parity
         self.stopbits = stopbits
         self.timeout  = timeout
+        self.writeTimeout = writeTimeout
         self.xonxoff  = xonxoff
         self.rtscts   = rtscts
         
@@ -263,7 +274,26 @@ class SerialBase(FileLike):
         """Get the current timeout setting."""
         return self._timeout
     
-    timeout = property(getTimeout, setTimeout, "Timeout setting")
+    timeout = property(getTimeout, setTimeout, "Timeout setting for read()")
+
+
+    def setWriteTimeout(self, timeout):
+        """Change timeout setting."""
+        if timeout is not None:
+            if timeout < 0: raise ValueError("Not a valid timeout: %r" % timeout)
+            try:
+                timeout + 1     #test if it's a number, will throw a TypeError if not...
+            except TypeError:
+                raise ValueError("Not a valid timeout: %r" % timeout)
+        
+        self._writeTimeout = timeout
+        if self._isOpen: self._reconfigurePort()
+    
+    def getWriteTimeout(self):
+        """Get the current timeout setting."""
+        return self._writeTimeout
+    
+    writeTimeout = property(getWriteTimeout, setWriteTimeout, "Timeout setting for write()")
 
 
     def setXonXoff(self, xonxoff):

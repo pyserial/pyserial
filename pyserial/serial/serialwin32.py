@@ -11,7 +11,7 @@ import win32event # We use events and the WaitFor[Single|Multiple]Objects functi
 import win32con   # constants.
 from serialutil import *
 
-VERSION = "$Revision: 1.28 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.29 $".split()[1]     #extract CVS version
 
 #from winbase.h. these should realy be in win32con
 MS_CTS_ON  = 16
@@ -90,6 +90,12 @@ class Serial(SerialBase):
             timeouts = (win32con.MAXDWORD, 0, 0, 0, 0)
         else:
             timeouts = (0, 0, int(self._timeout*1000), 0, 0)
+        if self._writeTimeout is None:
+            pass
+        elif self._writeTimeout == 0:
+            timeouts = timeouts[:-2] + (0, win32con.MAXDWORD)
+        else:
+            timeouts = timeouts[:-2] + (0, int(self._writeTimeout*1000))
         win32file.SetCommTimeouts(self.hComPort, timeouts)
 
         win32file.SetCommMask(self.hComPort, win32file.EV_ERR)
@@ -144,6 +150,8 @@ class Serial(SerialBase):
         comDCB.fNull            = 0
         comDCB.fErrorChar       = 0
         comDCB.fAbortOnError    = 0
+        comDCB.XonChar          = XON
+        comDCB.XoffChar         = XOFF
 
         try:
             win32file.SetCommState(self.hComPort, comDCB)
@@ -207,7 +215,11 @@ class Serial(SerialBase):
             err, n = win32file.WriteFile(self.hComPort, s, self._overlappedWrite)
             if err: #will be ERROR_IO_PENDING:
                 # Wait for the write to complete.
-                win32event.WaitForSingleObject(self._overlappedWrite.hEvent, win32event.INFINITE)
+                #~ win32event.WaitForSingleObject(self._overlappedWrite.hEvent, win32event.INFINITE)
+                n = win32file.GetOverlappedResult(self.hComPort, self._overlappedWrite, 1)
+                if n != len(s):
+                    raise writeTimeoutError
+                
 
     def flushInput(self):
         """Clear input buffer, discarding all that is in the buffer."""

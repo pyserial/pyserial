@@ -28,8 +28,8 @@ Version 1.13    09 Apr 2002
     If port opening fails, a SerialException is raised on all platforms
 
 Version 1.14    29 May 2002
-    added examples to archive
-    added non-blocking mode for timeout=0 (tnx Mat Martineau)
+    Added examples to archive
+    Added non-blocking mode for timeout=0 (tnx Mat Martineau)
 
     Bugfixes:
         - win32 does now return the remaining characters on timeout
@@ -137,4 +137,6 @@ Version 2.0      6 Nov 2003
 
 Version 2.1     XXXXXXXXXXX
     Bugfixes (posix):
-    - fd == 0 fix from Vsevolod Lobko
+        - fd == 0 fix from Vsevolod Lobko
+    New Features:
+        - implement write timeouts ('writeTimeout' parameter)

@@ -95,7 +95,7 @@ class Test1_Forever(unittest.TestCase):
     character is sent after some time to stop the test, this is done
     through the SendEvent class and the Loopback HW."""
     def setUp(self):
-        self.s = serial.Serial(PORT,timeout=None)
+        self.s = serial.Serial(PORT, timeout=None)
         self.event = SendEvent(self.s)
     def tearDown(self):
         self.event.stop()
@@ -105,7 +105,7 @@ class Test1_Forever(unittest.TestCase):
         """no timeout: after port open, the input buffer must be empty (read).
         a character is sent after some time to terminate the test (SendEvent)."""
         c = self.s.read(1)
-        if not (self.event.isSet() and c =='E'):
+        if not (self.event.isSet() and c == 'E'):
             self.fail("expected marker")
 
 class Test2_Forever(unittest.TestCase):
@@ -154,6 +154,28 @@ class Test0_DataWires(unittest.TestCase):
     def test3_RI(self):
         """Test RI"""
         self.failUnless(self.s.getRI()==0, "RI -> 0")
+
+class Test_MoreTimeouts(unittest.TestCase):
+    """Test with timeouts"""
+    def setUp(self):
+        self.s = serial.Serial()        #create an closed serial port
+    
+    def tearDown(self):
+        self.s.close()
+
+    def test_WriteTimeout(self):
+        """Test write() timeout."""
+        #use xonxoff setting and the loopback adapter to switch traffic on hold
+        self.s.port = PORT
+        self.s.writeTimeout = 1
+        self.s.xonxoff = 1
+        self.s.open()
+        self.s.write(serial.XOFF)
+        time.sleep(0.1) #some systems need a little delay so that they can react on XOFF
+        t1 = time.time()
+        self.failUnlessRaises(serial.SerialTimeoutException, self.s.write, "timeout please"*100)
+        t2 = time.time()
+        self.failUnless( 1 <= (t2-t1) < 2, "Timeout not in the given intervall (%s)" % (t2-t1))
 
 if __name__ == '__main__':
     import sys
