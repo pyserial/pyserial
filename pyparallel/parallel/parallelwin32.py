@@ -40,7 +40,7 @@
 #     7 6 5 4 3 2 1 0
 #     . . . . . . . *  Strobe ....... (pin 1),  1=low, 0=high (inverted)
 #     . . . . . . * .  Auto Feed .... (pin 14), 1=low, 0=high (inverted)
-#     . . . . . * . .  Initialize ... (pin 16), 1=high, 0=low (true)
+#     . . . . . * . .  Initialize ... (pin 16), 1=high,0=low  (true)
 #     . . . . * . . .  Select ....... (pin 17), 1=low, 0=high (inverted)
 #     * * * * . . . .  Unused
 
@@ -56,7 +56,7 @@ class Parallel:
     def __init__(self, port = LPT1):
         if port == LPT1:
             self.dataRegAdr = LPT1_base
-        elif port == LPT1:
+        elif port == LPT2:
             self.dataRegAdr = LPT2_base
         else:
             raise ValueError("No such port available - expecting a number")
@@ -67,36 +67,36 @@ class Parallel:
         _pyparallel.outp(self.dataRegAdr, value)
 
     # control register output functions
-    def setDataStrobe(self, state):
+    def setDataStrobe(self, level):
         """data strobe bit"""
-        if state == 0:
-            self.ctrlReg = self.ctrlReg |  0x01
-        else:
+        if level:
             self.ctrlReg = self.ctrlReg & ~0x01
+        else:
+            self.ctrlReg = self.ctrlReg |  0x01
         _pyparallel.outp(self.ctrlRegAdr, self.ctrlReg)
 
-    def setAutoFeed(self, state):
+    def setAutoFeed(self, level):
         """auto feed bit"""
-        if state == 0:
-            self.ctrlReg = self.ctrlReg |  0x02
-        else:
+        if level:
             self.ctrlReg = self.ctrlReg & ~0x02
+        else:
+            self.ctrlReg = self.ctrlReg |  0x02
         _pyparallel.outp(self.ctrlRegAdr, self.ctrlReg)
 
-    def setInitOut(self, state):
+    def setInitOut(self, level):
         """initialize bit"""
-        if state == 0:
-            self.ctrlReg = self.ctrlReg & ~0x04
-        else:
+        if level:
             self.ctrlReg = self.ctrlReg |  0x04
+        else:
+            self.ctrlReg = self.ctrlReg & ~0x04
         _pyparallel.outp(self.ctrlRegAdr, self.ctrlReg)
     
-    def setSelect(self, state):
+    def setSelect(self, level):
         """select bit"""
-        if state == 0:
-            self.ctrlReg = self.ctrlReg |  0x08
-        else:
+        if level:
             self.ctrlReg = self.ctrlReg & ~0x08
+        else:
+            self.ctrlReg = self.ctrlReg |  0x08
         _pyparallel.outp(self.ctrlRegAdr, self.ctrlReg)
 
     def getInError(self):
@@ -117,6 +117,6 @@ class Parallel:
 
     def getInBusy(self):
         """input from busy pin"""
-        return _pyparallel.inp(self.statusRegAdr)& 0x80 and 1
+        return not (_pyparallel.inp(self.statusRegAdr) & 0x80)
 
 

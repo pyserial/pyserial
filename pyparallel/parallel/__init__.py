@@ -6,13 +6,14 @@
 # this is distributed under a free software license, see license.txt
 
 import sys, os, string
-VERSION = string.split("$Revision: 1.1 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.2 $")[1]     #extract CVS version
 
 #chose an implementation, depending on os
-if os.name == 'nt': #sys.platform == 'win32':
+if os.name == 'nt':
     from parallelwin32 import *
 elif os.name == 'posix':
-    from parallelposix import *
+    #from parallelposix import *
+    from parallelppdev import *     #only ppdev for now
 elif os.name == 'java':
     from paralleljava import *
 else:
