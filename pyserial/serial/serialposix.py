@@ -13,7 +13,7 @@
 import sys, os, fcntl, termios, struct, select
 from serialutil import *
 
-VERSION = "$Revision: 1.22 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.23 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -42,12 +42,15 @@ elif plat     == 'openbsd3': #BSD (confirmed)
         return '/dev/ttyp%d' % port
 
 elif plat[:3] == 'bsd' or  \
-     plat[:6] == 'netbsd' or \
      plat[:7] == 'freebsd' or \
      plat[:7] == 'openbsd' or \
      plat[:6] == 'darwin':   #BSD (confirmed for freebsd4: cuaa%d)
     def device(port):
         return '/dev/cuaa%d' % port
+
+elif plat[:6] == 'netbsd':   #NetBSD 1.6 testing by Erk
+    def device(port):
+        return '/dev/dty%02d' % port
 
 elif plat[:4] == 'irix':     #IRIX (not tested)
     def device(port):
@@ -152,11 +155,16 @@ class Serial(SerialBase):
         #set up raw mode / no echo / binary
         cflag |=  (TERMIOS.CLOCAL|TERMIOS.CREAD)
         lflag &= ~(TERMIOS.ICANON|TERMIOS.ECHO|TERMIOS.ECHOE|TERMIOS.ECHOK|TERMIOS.ECHONL|
-                          TERMIOS.ECHOCTL|TERMIOS.ECHOKE|TERMIOS.ISIG|TERMIOS.IEXTEN) #|TERMIOS.ECHOPRT
+                     TERMIOS.ISIG|TERMIOS.IEXTEN) #|TERMIOS.ECHOPRT
+        for flag in ('ECHOCTL', 'ECHOKE'): #netbsd workaround for Erk
+            if hasattr(TERMIOS, flag):
+                lflag &= ~getattr(TERMIOS, flag)
+        
         oflag &= ~(TERMIOS.OPOST)
         iflag &= ~(TERMIOS.INLCR|TERMIOS.IGNCR|TERMIOS.ICRNL|TERMIOS.IGNBRK)
         if hasattr(TERMIOS, 'IUCLC'):
             iflag &= ~TERMIOS.IUCLC
+        
         #setup baudrate
         try:
             ispeed = ospeed = getattr(TERMIOS,'B%s' % (self._baudrate))
