@@ -12,7 +12,7 @@
 import sys, os, fcntl, termios, struct, string, select
 import serialutil
 
-VERSION = string.split("$Revision: 1.12 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.13 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -101,45 +101,27 @@ for rate in (0,50,75,110,134,150,200,300,600,1200,1800,2400,4800,9600,
     except:
         pass
 
+
 #load some constants for late use
-if hasattr(TERMIOS, 'TIOCMGET'):    #if this const is here the others will be to (hopefully)
-    TIOCMGET = TERMIOS.TIOCMGET
-    TIOCMBIS = TERMIOS.TIOCMBIS
-    TIOCMBIC = TERMIOS.TIOCMBIC
-    TIOCMSET = TERMIOS.TIOCMSET
+TIOCMGET  = hasattr(TERMIOS, 'TIOCMGET') and TERMIOS.TIOCMGET or 0x5415
+TIOCMBIS  = hasattr(TERMIOS, 'TIOCMBIS') and TERMIOS.TIOCMBIS or 0x5416
+TIOCMBIC  = hasattr(TERMIOS, 'TIOCMBIC') and TERMIOS.TIOCMBIC or 0x5417
+TIOCMSET  = hasattr(TERMIOS, 'TIOCMSET') and TERMIOS.TIOCMSET or 0x5418
 
-#    TIOCM_LE   = TERMIOS.TIOCM_LE
-    TIOCM_DTR  = TERMIOS.TIOCM_DTR
-    TIOCM_RTS  = TERMIOS.TIOCM_RTS
-#    TIOCM_ST   = TERMIOS.TIOCM_ST
-#    TIOCM_SR   = TERMIOS.TIOCM_SR
-    TIOCM_CTS  = TERMIOS.TIOCM_CTS
-    TIOCM_CAR  = TERMIOS.TIOCM_CAR
-    TIOCM_RNG  = TERMIOS.TIOCM_RNG
-    TIOCM_DSR  = TERMIOS.TIOCM_DSR
-    TIOCM_CD   = TERMIOS.TIOCM_CD
-    TIOCM_RI   = TERMIOS.TIOCM_RI
-#    TIOCM_OUT1 = TERMIOS.TIOCM_OUT1
-#    TIOCM_OUT2 = TERMIOS.TIOCM_OUT2
-else:   #workaround for older python versions
-    TIOCMGET   = 0x5415
-    TIOCMBIS   = 0x5416
-    TIOCMBIC   = 0x5417
-    TIOCMSET   = 0x5418
+#TIOCM_LE = hasattr(TERMIOS, 'TIOCM_LE') and TERMIOS.TIOCM_LE or 0x001
+TIOCM_DTR = hasattr(TERMIOS, 'TIOCM_DTR') and TERMIOS.TIOCM_DTR or 0x002
+TIOCM_RTS = hasattr(TERMIOS, 'TIOCM_RTS') and TERMIOS.TIOCM_RTS or 0x004
+#TIOCM_ST = hasattr(TERMIOS, 'TIOCM_ST') and TERMIOS.TIOCM_ST or 0x008
+#TIOCM_SR = hasattr(TERMIOS, 'TIOCM_SR') and TERMIOS.TIOCM_SR or 0x010
 
-#    TIOCM_LE   =  0x001
-    TIOCM_DTR  =  0x002
-    TIOCM_RTS  =  0x004
-#    TIOCM_ST   =  0x008
-#    TIOCM_SR   =  0x010
-    TIOCM_CTS  =  0x020
-    TIOCM_CAR  =  0x040
-    TIOCM_RNG  =  0x080
-    TIOCM_DSR  =  0x100
-    TIOCM_CD   =  TIOCM_CAR
-    TIOCM_RI   =  TIOCM_RNG
-#    TIOCM_OUT1 =  0x2000
-#    TIOCM_OUT2 =  0x4000
+TIOCM_CTS = hasattr(TERMIOS, 'TIOCM_CTS') and TERMIOS.TIOCM_CTS or 0x020
+TIOCM_CAR = hasattr(TERMIOS, 'TIOCM_CAR') and TERMIOS.TIOCM_CAR or 0x040
+TIOCM_RNG = hasattr(TERMIOS, 'TIOCM_RNG') and TERMIOS.TIOCM_RNG or 0x080
+TIOCM_DSR = hasattr(TERMIOS, 'TIOCM_DSR') and TERMIOS.TIOCM_DSR or 0x100
+TIOCM_CD  = hasattr(TERMIOS, 'TIOCM_CD') and TERMIOS.TIOCM_CD or TIOCM_CAR
+TIOCM_RI  = hasattr(TERMIOS, 'TIOCM_RI') and TERMIOS.TIOCM_RI or TIOCM_RNG
+#TIOCM_OUT1 = hasattr(TERMIOS, 'TIOCM_OUT1') and TERMIOS.TIOCM_OUT1 or 0x2000
+#TIOCM_OUT2 = hasattr(TERMIOS, 'TIOCM_OUT2') and TERMIOS.TIOCM_OUT2 or 0x4000
 
 TIOCM_zero_str = struct.pack('I', 0)
 TIOCM_RTS_str = struct.pack('I', TIOCM_RTS)
