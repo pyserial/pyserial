@@ -19,14 +19,15 @@ class FileLike:
     def read(self, size): raise NotImplementedError
     def write(self, s): raise NotImplementedError
 
-    def readline(self, size=None):
-        """read a line which is terminated with '\n' or until timeout"""
+    def readline(self, size=None, eol='\n'):
+        """read a line which is terminated with end-of-line (eol) character
+        ('\n' by default) or until timeout"""
         line = ''
         while 1:
             c = self.read(1)
             if c:
                 line += c   #not very efficient but lines are usually not that long
-                if c == '\n':
+                if c == eol:
                     break
                 if size is not None and len(line) >= size:
                     break
@@ -34,17 +35,17 @@ class FileLike:
                 break
         return line
 
-    def readlines(self, sizehint=None):
+    def readlines(self, sizehint=None, eol='\n'):
         """read a list of lines, until timeout
         sizehint is ignored"""
         if self.timeout is None:
             raise ValueError, "Serial port MUST have enabled timeout for this function!"
         lines = []
         while 1:
-            line = self.readline()
+            line = self.readline(eol=eol)
             if line:
                 lines.append(line)
-                if line[-1] != '\n':    #was the line received with a timeout?
+                if line[-1] != eol:    #was the line received with a timeout?
                     break
             else:
                 break
