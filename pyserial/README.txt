@@ -46,24 +46,31 @@ let Disutils do the rest: "python setup.py install"
 The files get installed in the "Lib/site-packages" directory in newer
 Python versions.
 
+Serial to USB adapters
+Such adapters are reported to work under Mac OSX and Windows. They are
+mapped to a normal COM port under Windows, but on Mac OSX they have
+special device names like "/dev/cu.USA19QW11P1.1" either use these
+names for the serial ports or create a link to the common device names
+like "ln -s /dev/cu.USA19QW11P1.1 /dev/cuaa0"
+
 
 Short introduction
 ------------------
-Open port 0 at 9600,8,N,1, no timeout
+Open port 0 at "9600,8,N,1", no timeout
 >>> import serial
 >>> ser = serial.Serial(0)  #open first serial port
 >>> print ser.portstr       #check which port was realy used
 >>> ser.write("hello")      #write a string
 >>> ser.close()             #close port
 
-Open named port at 19200,8,N,1, 1s timeout
+Open named port at "19200,8,N,1", 1s timeout
 >>> ser = serial.Serial('/dev/ttyS1', 19200, timeout=1)
 >>> x = ser.read()          #read one byte
 >>> s = ser.read(10)        #read up to ten bytes (timeout)
 >>> line = ser.readline()   #read a \n terminated line
 >>> ser.close()
 
-Open second port at 38400,8,E,1, non blocking HW handshaking
+Open second port at "38400,8,E,1", non blocking HW handshaking
 >>> ser = serial.Serial(1, 38400, timeout=0,
 ...                     parity=serial.PARITY_EVEN, rtscts=1)
 >>> s = ser.read(100)       #read up to one hunded bytes
