@@ -86,7 +86,7 @@ if __name__ == '__main__':
     try:
         opts, args = getopt.getopt(sys.argv[1:],
                 "hp:b:rxP",
-                ["help", "port=", "baud=", "rtscts", "xonxoff", "localport"])
+                ["help", "port=", "baud=", "rtscts", "xonxoff", "localport="])
     except getopt.GetoptError:
         # print help information and exit:
         print >>sys.stderr, __doc__
