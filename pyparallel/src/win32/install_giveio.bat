@@ -7,8 +7,11 @@
 
 @loaddrv start %DIRVERNAME%
 @if errorlevel 1 goto error
-@goto exit
 
+@loaddrv starttype %DIRVERNAME% auto
+@if errorlevel 1 goto error
+
+@goto exit
 :error
 @echo ERROR: Installation of %DIRVERNAME% failed
 :exit

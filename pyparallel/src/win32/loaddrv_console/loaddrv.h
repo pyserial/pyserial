@@ -13,5 +13,6 @@ DWORD DriverInstall(LPSTR, LPSTR);
 DWORD DriverStart(LPSTR);
 DWORD DriverStop(LPSTR);
 DWORD DriverRemove(LPSTR);
-
+DWORD DriverStatus(LPSTR);
+DWORD DriverStartType(LPSTR, DWORD);
 #endif //LOADDRV_H
