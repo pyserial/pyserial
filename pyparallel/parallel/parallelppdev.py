@@ -13,8 +13,8 @@ import os
 
 
 def sizeof(type): return struct.calcsize(type)
-def _IOC(dir, type, nr, size):  return (dir << _IOC_DIRSHIFT ) | (type << _IOC_TYPESHIFT ) |\
-                                       (nr << _IOC_NRSHIFT ) | (size << _IOC_SIZESHIFT)
+def _IOC(dir, type, nr, size):  return int((dir << _IOC_DIRSHIFT ) | (type << _IOC_TYPESHIFT ) |\
+                                       (nr << _IOC_NRSHIFT ) | (size << _IOC_SIZESHIFT))
 def _IO(type, nr):      return _IOC(_IOC_NONE,  type, nr, 0)
 def _IOR(type,nr,size): return _IOC(_IOC_READ,  type, nr, sizeof(size))
 def _IOW(type,nr,size): return _IOC(_IOC_WRITE, type, nr, sizeof(size))
