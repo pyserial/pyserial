@@ -13,10 +13,8 @@ import threading
 # could be used too, but an event is more elegant.
 
 SERIALRX = wxNewEventType()
-
-def EVT_SERIALRX(window, function):
-    """function to subscribe to serial data receive events"""
-    window.Connect(-1, -1, SERIALRX, function)
+# bind to serial data receive events
+EVT_SERIALRX = wxPyEventBinder(SERIALRX, 0)
 
 class SerialRxEvent(wxPyCommandEvent):
     eventType = SERIALRX
@@ -97,8 +95,8 @@ class TerminalSettingsDialog(wxDialog):
         # end wxGlade
 
     def __attach_events(self):
-        EVT_BUTTON(self, self.button_ok.GetId(), self.OnOK)
-        EVT_BUTTON(self, self.button_cancel.GetId(), self.OnCancel)
+        self.Bind(EVT_BUTTON, self.OnOK, id = self.button_ok.GetId())
+        self.Bind(EVT_BUTTON, self.OnCancel, id = self.button_cancel.GetId())
     
     def OnOK(self, events):
         """Update data wil new values and close dialog."""
@@ -119,9 +117,10 @@ class TerminalFrame(wxFrame):
     
     def __init__(self, *args, **kwds):
         self.serial = serial.Serial()
-        self.serial.timeout = 0.5   #make sure that the alive flag can be checked from time to time
+        self.serial.timeout = 0.5   #make sure that the alive event can be checked from time to time
         self.settings = TerminalSetup() #placeholder for the settings
         self.thread = None
+        self.alive = threading.Event()               
         # begin wxGlade: TerminalFrame.__init__
         kwds["style"] = wxDEFAULT_FRAME_STYLE
         wxFrame.__init__(self, *args, **kwds)
@@ -146,20 +145,20 @@ class TerminalFrame(wxFrame):
         # end wxGlade
         self.__attach_events()          #register events
         self.OnPortSettings(None)       #call setup dialog on startup, opens port
-        if not self.alive:
+        if not self.alive.isSet():
             self.Close()
 
     def StartThread(self):
-        """Start the receiver thread"""
-        self.alive = True
+        """Start the receiver thread"""        
         self.thread = threading.Thread(target=self.ComPortThread)
         self.thread.setDaemon(1)
         self.thread.start()
+        self.alive.set()
 
     def StopThread(self):
         """Stop the receiver thread, wait util it's finished."""
         if self.thread is not None:
-            self.alive = False          #set termination flag for thread
+            self.alive.clear()          #clear alive event for thread
             self.thread.join()          #wait until thread has finished
             self.thread = None
         
@@ -180,15 +179,14 @@ class TerminalFrame(wxFrame):
 
     def __attach_events(self):
         #register events at the controls
-        EVT_MENU(self, ID_CLEAR, self.OnClear)
-        EVT_MENU(self, ID_SAVEAS, self.OnSaveAs)
-        EVT_MENU(self, ID_EXIT, self.OnExit)
-        EVT_MENU(self, ID_SETTINGS, self.OnPortSettings)
-        EVT_MENU(self, ID_TERM, self.OnTermSettings)
-        EVT_CHAR(self, self.OnKey)
-        EVT_CHAR(self.text_ctrl_output, self.OnKey)
-        EVT_SERIALRX(self, self.OnSerialRead)
-        EVT_CLOSE(self, self.OnClose)
+        self.Bind(EVT_MENU, self.OnClear, id = ID_CLEAR)
+        self.Bind(EVT_MENU, self.OnSaveAs, id = ID_SAVEAS)
+        self.Bind(EVT_MENU, self.OnExit, id = ID_EXIT)
+        self.Bind(EVT_MENU, self.OnPortSettings, id = ID_SETTINGS)
+        self.Bind(EVT_MENU, self.OnTermSettings, id = ID_TERM)
+        self.text_ctrl_output.Bind(EVT_CHAR, self.OnKey)        
+        self.Bind(EVT_SERIALRX, self.OnSerialRead)
+        self.Bind(EVT_CLOSE, self.OnClose)
 
     def OnExit(self, event):
         """Menu point Exit"""
@@ -223,7 +221,7 @@ class TerminalFrame(wxFrame):
     def OnPortSettings(self, event=None):
         """Show the portsettings dialog. The reader thread is stopped for the
            settings change."""
-        if event is not None:           #will be none iwhencalled on startup
+        if event is not None:           #will be none when called on startup
             self.StopThread()
             self.serial.close()
         ok = False
@@ -257,7 +255,7 @@ class TerminalFrame(wxFrame):
                     ok = True
             else:
                 #on startup, dialog aborted
-                self.alive = False
+                self.alive.clear()
                 ok = True
 
     def OnTermSettings(self, event):
@@ -266,7 +264,7 @@ class TerminalFrame(wxFrame):
         dialog = TerminalSettingsDialog(None, -1, "", settings=self.settings)
         result = dialog.ShowModal()
         dialog.Destroy()
-
+        
     def OnKey(self, event):
         """Key event handler. if the key is in the ASCII range, write it to the serial port.
            Newline handling and local echo is also done here."""
@@ -299,7 +297,7 @@ class TerminalFrame(wxFrame):
     def ComPortThread(self):
         """Thread that handles the incomming traffic. Does the basic input
            transformation (newlines) and generates an SerialRxEvent"""
-        while self.alive:                       #loop while this flag is true
+        while self.alive.isSet():               #loop while alive event is true
             text = self.serial.read(1)          #read one, with timout
             if text:                            #check if not timeout
                 n = self.serial.inWaiting()     #look if there is more to read
