@@ -11,7 +11,7 @@ import win32event # We use events and the WaitFor[Single|Multiple]Objects functi
 import win32con   # constants.
 from serialutil import *
 
-VERSION = "$Revision: 1.25 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.26 $".split()[1]     #extract CVS version
 
 #from winbase.h. these should realy be in win32con
 MS_CTS_ON  = 16
@@ -32,6 +32,9 @@ def device(portnum):
 class Serial(SerialBase):
     """Serial port implemenation for Win32. This implemenatation requires a 
        win32all installation."""
+
+    BAUDRATES = (50,75,110,134,150,200,300,600,1200,1800,2400,4800,9600,
+                 19200,38400,57600,115200)
 
     def open(self):
         """Open port with current settings. This may throw a SerialException

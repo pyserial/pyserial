@@ -87,7 +87,7 @@ Version 1.21    30 sep 2003
         - small change in miniterm.py that should mage it run on cygwin,
           [Bug 809904] submitted by Rolf Campbell.
 
-Version 2.0b1    ...
+Version 2.0b1    1 Oct 2003
     Transition to the 2.0 series:
     - New implementation only supports Python 2.2+, backwards compatibility
       should be maintained almost everywhere.
@@ -124,3 +124,8 @@ Version 2.0b1    ...
       work even if the platform itself s not known, it simply tries to do
       the posix stuff anyway (It's likely that opening ports by number
       fails, but by name it should work).
+
+Version 2.0bX   ...
+    - Added serial port configuration dialog for wxPython to the examples.
+    - Added terminal application for wxPython with wxGlade design file
+      to the examples.

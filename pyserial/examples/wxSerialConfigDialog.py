@@ -10,6 +10,12 @@ SHOW_FLOW       = 1<<2
 SHOW_TIMEOUT    = 1<<3
 SHOW_ALL = SHOW_BAUDRATE|SHOW_FORMAT|SHOW_FLOW|SHOW_TIMEOUT
 
+try:
+    enumerate
+except NameError:
+    def enumerate(sequence):
+        return zip(range(len(sequence)), sequence)
+
 class SerialConfigDialog(wxDialog):
     """Serial Port confiuration dialog, to be used with pyserial 2.0+
        When instantiating a class of this dialog, then the "serial" keyword
