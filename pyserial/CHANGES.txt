@@ -40,4 +40,7 @@ Version 1.15    04 Jun 2002
 
 Version 1.16    02 Jul 2002
     added implementation of RI and corrected RTS/CTS on Win32
-    
+
+Version 1.17    03 Jul 2002
+    silly mix of two versions in win32 code corrected
+
