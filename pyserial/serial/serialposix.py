@@ -12,7 +12,7 @@
 import sys, os, fcntl, termios, struct, string, select
 import serialutil
 
-VERSION = string.split("$Revision: 1.2 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.3 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -104,38 +104,38 @@ if hasattr(TERMIOS, 'TIOCMGET'):    #if this const is here the others will be to
     TIOCMBIC = TERMIOS.TIOCMBIC
     TIOCMSET = TERMIOS.TIOCMSET
 
-    TIOCM_LE   = TERMIOS.TIOCM_LE
+#    TIOCM_LE   = TERMIOS.TIOCM_LE
     TIOCM_DTR  = TERMIOS.TIOCM_DTR
     TIOCM_RTS  = TERMIOS.TIOCM_RTS
-    TIOCM_ST   = TERMIOS.TIOCM_ST
-    TIOCM_SR   = TERMIOS.TIOCM_SR
+#    TIOCM_ST   = TERMIOS.TIOCM_ST
+#    TIOCM_SR   = TERMIOS.TIOCM_SR
     TIOCM_CTS  = TERMIOS.TIOCM_CTS
     TIOCM_CAR  = TERMIOS.TIOCM_CAR
     TIOCM_RNG  = TERMIOS.TIOCM_RNG
     TIOCM_DSR  = TERMIOS.TIOCM_DSR
     TIOCM_CD   = TERMIOS.TIOCM_CD
     TIOCM_RI   = TERMIOS.TIOCM_RI
-    TIOCM_OUT1 = TERMIOS.TIOCM_OUT1
-    TIOCM_OUT2 = TERMIOS.TIOCM_OUT2
+#    TIOCM_OUT1 = TERMIOS.TIOCM_OUT1
+#    TIOCM_OUT2 = TERMIOS.TIOCM_OUT2
 else:   #workaround for older python versions
     TIOCMGET   = 0x5415
     TIOCMBIS   = 0x5416
     TIOCMBIC   = 0x5417
     TIOCMSET   = 0x5418
 
-    TIOCM_LE   =  0x001
+#    TIOCM_LE   =  0x001
     TIOCM_DTR  =  0x002
     TIOCM_RTS  =  0x004
-    TIOCM_ST   =  0x008
-    TIOCM_SR   =  0x010
+#    TIOCM_ST   =  0x008
+#    TIOCM_SR   =  0x010
     TIOCM_CTS  =  0x020
     TIOCM_CAR  =  0x040
     TIOCM_RNG  =  0x080
     TIOCM_DSR  =  0x100
     TIOCM_CD   =  TIOCM_CAR
     TIOCM_RI   =  TIOCM_RNG
-    TIOCM_OUT1 =  0x2000
-    TIOCM_OUT2 =  0x4000
+#    TIOCM_OUT1 =  0x2000
+#    TIOCM_OUT2 =  0x4000
 
 TIOCM_zero_str = struct.pack('I', 0)
 TIOCM_RTS_str = struct.pack('I', TIOCM_RTS)
