@@ -1,17 +1,19 @@
 #!/usr/bin/env python
 
-#very simple serial terminal
-#(C)2002-2004 Chris Liechti <cliecht@gmx.net>
+# Very simple serial terminal
+# (C)2002-2004 Chris Liechti <cliecht@gmx.net>
 
-#input characters are sent directly, received characters are displays as is
-#baudrate and echo configuartion is done through globals
+# Input characters are sent directly (only LF -> CR/LF/CRLF translation is
+# done), received characters are displayed as is (or as trough pythons
+# repr, useful for debug purposes)
+# Baudrate and echo configuartion is done through globals
 
 
 import sys, os, serial, threading, getopt
-#EXITCHARCTER = '\x1b'   #ESC
-EXITCHARCTER = '\x04'   #ctrl+d
 
-#first choosea platform dependant way to read single characters from the console
+EXITCHARCTER = '\x04'   #ctrl+D
+
+#first choose a platform dependant way to read single characters from the console
 if os.name == 'nt':
     import msvcrt
     def getkey():
@@ -49,6 +51,9 @@ elif os.name == 'posix':
 else:
     raise "Sorry no implementation for your platform (%s) available." % sys.platform
 
+CONVERT_CRLF = 2
+CONVERT_CR   = 1
+CONVERT_LF   = 0
 
 def reader():
     """loop forever and copy serial->console"""
@@ -64,16 +69,23 @@ def writer():
     """loop and copy console->serial until EOF character is found"""
     while 1:
         c = getkey()
-        if c == EXITCHARCTER: break     #exit on esc
-        if convert_outgoing_cr and c == '\n':
-            s.write('\r')               #make it a CR+LF (LF below)
-        s.write(c)                      #send character
+        if c == EXITCHARCTER: 
+            break                       #exit app
+        elif c == '\n':
+            if convert_outgoing == CONVERT_CRLF:
+                s.write('\r\n')         #make it a CR+LF
+            elif convert_outgoing == CONVERT_CR:
+                s.write('\r')           #make it a CR
+            elif convert_outgoing == CONVERT_LF:
+                s.write('\n')           #make it a LF
+        else:
+            s.write(c)                  #send character
 
 
 #print a short help message
 def usage():
     sys.stderr.write("""USAGE: %s [options]
-    Simple Terminal Programm for the serial port.
+    Miniterm - A simple terminal program for the serial port.
 
     options:
     -p, --port=PORT: port, a number, default = 0 or a device name
@@ -81,30 +93,34 @@ def usage():
     -r, --rtscts:    enable RTS/CTS flow control (default off)
     -x, --xonxoff:   enable software flow control (default off)
     -e, --echo:      enable local echo (default off)
-    -c, --cr:        disable LF -> CR+LF translation
-    -D, --debug:     debug connection (escape nonprintable chars)
+    -c, --cr:        do not send CR+LF, send CR only
+    -n, --newline:   do not send CR+LF, send LF only
+    -D, --debug:     debug received data (escape nonprintable chars)
 
 """ % (sys.argv[0], ))
 
 if __name__ == '__main__':
+    #initialize with defaults
+    port  = 0
+    baudrate = 9600
+    echo = 0
+    convert_outgoing = CONVERT_CRLF
+    rtscts = 0
+    xonxoff = 0
+    repr_mode = 0
+    
     #parse command line options
     try:
         opts, args = getopt.getopt(sys.argv[1:],
-            "hp:b:rxecD",
-            ["help", "port=", "baud=", "rtscts", "xonxoff", "echo", "cr", "debug"]
+            "hp:b:rxecnD",
+            ["help", "port=", "baud=", "rtscts", "xonxoff", "echo",
+            "cr", "newline", "debug"]
         )
     except getopt.GetoptError:
         # print help information and exit:
         usage()
         sys.exit(2)
     
-    port  = 0
-    baudrate = 9600
-    echo = 0
-    convert_outgoing_cr = 1
-    rtscts = 0
-    xonxoff = 0
-    repr_mode = 0
     for o, a in opts:
         if o in ("-h", "--help"):       #help text
             usage()
@@ -126,21 +142,24 @@ if __name__ == '__main__':
         elif o in ("-e", "--echo"):
             echo = 1
         elif o in ("-c", "--cr"):
-            convert_outgoing_cr = 0
+            convert_outgoing = CONVERT_CR
+        elif o in ("-n", "--newline"):
+            convert_outgoing = CONVERT_LF
         elif o in ("-D", "--debug"):
             repr_mode = 1
 
+    #open the port
     try:
         s = serial.Serial(port, baudrate, rtscts=rtscts, xonxoff=xonxoff)
     except:
-        print "could not open port"
+        sys.stderr.write("Could not open port\n")
         sys.exit(1)
-    print "--- Miniterm --- type Ctrl-D to quit"
+    sys.stderr.write("--- Miniterm --- type Ctrl-D to quit\n")
     #start serial->console thread
     r = threading.Thread(target=reader)
     r.setDaemon(1)
     r.start()
-    #enter console->serial loop
+    #and enter console->serial loop
     writer()
 
-    print "\n--- exit ---"
+    sys.stderr.write("\n--- exit ---\n")
