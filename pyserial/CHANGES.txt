@@ -134,3 +134,7 @@ Version 2.0b2    4 Oct 2003
 
 Version 2.0      6 Nov 2003
     - Fixes setup.py for older distutils
+
+Version 2.1     XXXXXXXXXXX
+    Bugfixes (posix):
+    - fd == 0 fix from Vsevolod Lobko

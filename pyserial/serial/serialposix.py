@@ -13,7 +13,7 @@
 import sys, os, fcntl, termios, struct, select
 from serialutil import *
 
-VERSION = "$Revision: 1.19 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.20 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -152,7 +152,7 @@ class Serial(SerialBase):
         
     def _reconfigurePort(self):
         """Set commuication parameters on opened port."""
-        if not self.fd:
+        if self.fd is None:
             raise SerialException("Can only operate on a valid port handle")
             
         vmin = vtime = 0                #timeout is done via select
@@ -244,7 +244,7 @@ class Serial(SerialBase):
     def close(self):
         """Close port"""
         if self._isOpen:
-            if self.fd:
+            if self.fd is not None:
                 os.close(self.fd)
                 self.fd = None
             self._isOpen = False
@@ -264,7 +264,7 @@ class Serial(SerialBase):
         """Read size bytes from the serial port. If a timeout is set it may
            return less characters as requested. With no timeout it will block
            until the requested number of bytes is read."""
-        if not self.fd: raise portNotOpenError
+        if self.fd is None: raise portNotOpenError
         read = ''
         inp = None
         if size > 0:
@@ -281,10 +281,10 @@ class Serial(SerialBase):
 
     def write(self, data):
         """Output the given string over the serial port."""
-        if not self.fd: raise portNotOpenError
+        if self.fd is None: raise portNotOpenError
         t = len(data)
         d = data
-        while t>0:
+        while t > 0:
             n = os.write(self.fd, d)
             d = d[n:]
             t = t - n
@@ -296,26 +296,26 @@ class Serial(SerialBase):
 
     def flushInput(self):
         """Clear input buffer, discarding all that is in the buffer."""
-        if not self.fd:
+        if self.fd is None:
             raise portNotOpenError
         termios.tcflush(self.fd, TERMIOS.TCIFLUSH)
 
     def flushOutput(self):
         """Clear output buffer, aborting the current output and
         discarding all that is in the buffer."""
-        if not self.fd:
+        if self.fd is None:
             raise portNotOpenError
         termios.tcflush(self.fd, TERMIOS.TCOFLUSH)
 
     def sendBreak(self):
         """Send break condition."""
-        if not self.fd:
+        if self.fd is None:
             raise portNotOpenError
         termios.tcsendbreak(self.fd, 0)
 
     def setRTS(self,on=1):
         """Set terminal status line: Request To Send"""
-        if not self.fd: raise portNotOpenError
+        if self.fd is None: raise portNotOpenError
         if on:
             fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_RTS_str)
         else:
@@ -323,7 +323,7 @@ class Serial(SerialBase):
 
     def setDTR(self,on=1):
         """Set terminal status line: Data Terminal Ready"""
-        if not self.fd: raise portNotOpenError
+        if self.fd is None: raise portNotOpenError
         if on:
             fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_DTR_str)
         else:
@@ -331,25 +331,25 @@ class Serial(SerialBase):
 
     def getCTS(self):
         """Read terminal status line: Clear To Send"""
-        if not self.fd: raise portNotOpenError
+        if self.fd is None: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_CTS != 0
 
     def getDSR(self):
         """Read terminal status line: Data Set Ready"""
-        if not self.fd: raise portNotOpenError
+        if self.fd is None: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_DSR != 0
 
     def getRI(self):
         """Read terminal status line: Ring Indicator"""
-        if not self.fd: raise portNotOpenError
+        if self.fd is None: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_RI != 0
 
     def getCD(self):
         """Read terminal status line: Carrier Detect"""
-        if not self.fd: raise portNotOpenError
+        if self.fd is None: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_CD != 0
 
@@ -357,12 +357,12 @@ class Serial(SerialBase):
 
     def drainOutput(self):
         """internal - not portable!"""
-        if not self.fd: raise portNotOpenError
+        if self.fd is None: raise portNotOpenError
         termios.tcdrain(self.fd)
 
     def nonblocking(self):
         """internal - not portable!"""
-        if not self.fd:
+        if self.fd is None:
             raise portNotOpenError
         fcntl.fcntl(self.fd, FCNTL.F_SETFL, FCNTL.O_NONBLOCK)
 
