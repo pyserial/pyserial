@@ -13,7 +13,7 @@
 import sys, os, fcntl, termios, struct, select
 from serialutil import *
 
-VERSION = "$Revision: 1.17 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.18 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -289,6 +289,11 @@ class Serial(SerialBase):
             d = d[n:]
             t = t - n
 
+    def flush(self):
+        """Flush of file like objects. In this case, wait until all data
+           is written."""
+        self.drainOutput()
+
     def flushInput(self):
         """Clear input buffer, discarding all that is in the buffer."""
         if not self.fd:
@@ -336,17 +341,6 @@ class Serial(SerialBase):
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_DSR != 0
 
-    def drainOutput(self):
-        """internal - not portable!"""
-        if not self.fd: raise portNotOpenError
-        termios.tcdrain(self.fd)
-
-    def nonblocking(self):
-        """internal - not portable!"""
-        if not self.fd:
-            raise portNotOpenError
-        fcntl.fcntl(self.fd, FCNTL.F_SETFL, FCNTL.O_NONBLOCK)
-
     def getRI(self):
         """Read terminal status line: Ring Indicator"""
         if not self.fd: raise portNotOpenError
@@ -358,6 +352,19 @@ class Serial(SerialBase):
         if not self.fd: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_CD != 0
+
+    # - - platform specific - - - -
+
+    def drainOutput(self):
+        """internal - not portable!"""
+        if not self.fd: raise portNotOpenError
+        termios.tcdrain(self.fd)
+
+    def nonblocking(self):
+        """internal - not portable!"""
+        if not self.fd:
+            raise portNotOpenError
+        fcntl.fcntl(self.fd, FCNTL.F_SETFL, FCNTL.O_NONBLOCK)
 
 
 if __name__ == '__main__':

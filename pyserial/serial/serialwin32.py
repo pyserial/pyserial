@@ -11,7 +11,7 @@ import win32event # We use events and the WaitFor[Single|Multiple]Objects functi
 import win32con   # constants.
 from serialutil import *
 
-VERSION = "$Revision: 1.26 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.27 $".split()[1]     #extract CVS version
 
 #from winbase.h. these should realy be in win32con
 MS_CTS_ON  = 16
@@ -259,6 +259,16 @@ class Serial(SerialBase):
         """Read terminal status line: Carrier Detect"""
         if not self.hComPort: raise portNotOpenError
         return MS_RLSD_ON & win32file.GetCommModemStatus(self.hComPort) != 0
+
+    # - - platform specific - - - -
+
+    def setXON(self, level=True):
+        """Platform specific - set flow state."""
+        if not self.hComPort: raise portNotOpenError
+        if level:
+            win32file.EscapeCommFunction(self.hComPort, win32file.SETXON)
+        else:
+            win32file.EscapeCommFunction(self.hComPort, win32file.SETXOFF)
 
 #Nur Testfunktion!!
 if __name__ == '__main__':
