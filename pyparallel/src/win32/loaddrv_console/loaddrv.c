@@ -66,7 +66,9 @@ int main(int argc, char *argv[]) {
     } else if (strcmp(argv[1], "install") == 0) {
         char path[MAX_PATH*2];
         if (argc<4) {
-            sprintf(path, "%s.sys", argv[2]);
+            char cwd[MAX_PATH];
+            getcwd(cwd, sizeof cwd);
+            sprintf(path, "%s\\%s.sys", cwd, argv[2]);
         } else {
             strncpy(path, argv[3], MAX_PATH);
         }
