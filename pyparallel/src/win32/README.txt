@@ -1,3 +1,12 @@
+New:
+simpleio.c provides inp(), outp(), init() these functions are accessed trough
+ctypes.
+
+Build (cygwin/mingw): run "make" the makfile should care of everything.
+
+- - - - - - - - - - - - -
+Old python extension:
+
 This extension is needed on Windows as there is no API to
 manipulate the parallel port. This Python extension exposes
 "inp()" and "outp()" that can be used to manipulate the printer

@@ -10,13 +10,12 @@ possible too but not yet integrated.
 This module is still under developement. But it may be useful for
 developers.
 The windows version needs a compiled extension and the giveio.sys driver
-for Windows NT/2k/XP. The extension module can be compiled with distutils
-with either MSVC or GCC/mingw32.
+for Windows NT/2k/XP. It uses ctypes to access functions in a prebuilt DLL.
 
 It is released under a free software license, see LICENSE.txt for more
 details.
 
-(C) 2001-2003 Chris Liechti cliechti@gmx.net
+(C) 2001-2005 Chris Liechti cliechti@gmx.net
 
 Homepage: http://pyserial.sf.net
 

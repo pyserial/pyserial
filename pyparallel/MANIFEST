@@ -7,6 +7,9 @@ parallel/parallelwin32.py
 parallel/parallelppdev.py
 examples/test.py
 src/win32/_pyparallel.c
+src/win32/simpleio.c
+src/win32/simpleio.dll
+src/win32/makefile
 src/win32/README.txt
 src/win32/install_giveio.bat
 src/win32/remove_giveio.bat

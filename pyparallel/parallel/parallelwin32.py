@@ -50,7 +50,16 @@ LPT2 = 1
 LPT1_base = 0x0378
 LPT2_base = 0x0278
 
-import _pyparallel
+import ctypes
+import os
+#need to patch PATH so that the DLL can be found and loaded
+os.environ['PATH'] = os.environ['PATH'] + ';' + os.path.abspath(os.path.dirname(__file__))
+#fake module, names of the functions are the same as in the old _pyparallel
+#python extension in earlier versions of this modules
+_pyparallel = ctypes.windll.simpleio
+#need to initialize giveio on WinNT based systems
+_pyparallel.init()
+
 
 class Parallel:
     def __init__(self, port = LPT1):
