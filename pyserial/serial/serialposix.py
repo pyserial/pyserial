@@ -12,7 +12,7 @@
 import sys, os, fcntl, termios, struct, string, select
 import serialutil
 
-VERSION = string.split("$Revision: 1.3 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.4 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -256,6 +256,17 @@ class Serial(serialutil.FileLike):
         if self.fd:
             os.close(self.fd)
             self.fd = None
+
+    def setBaudrate(self, baudrate):
+        """change baudrate after port is open"""
+        if not self.fd: raise portNotOpenError
+        self.__tcgetattr()  #read current settings
+        #setup baudrate
+        try:
+            self.ispeed = self.ospeed = baudIntToEnum[baudrate]
+        except:
+            raise ValueError,'invalid baud rate: %s' % baudrate
+        self.__tcsetattr()
 
     def inWaiting(self):
         """how many character are in the input queue"""

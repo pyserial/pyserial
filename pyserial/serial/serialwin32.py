@@ -11,7 +11,7 @@ import win32con   # constants.
 import sys, string
 import serialutil
 
-VERSION = string.split("$Revision: 1.4 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.5 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -159,6 +159,15 @@ class Serial(serialutil.FileLike):
             #Close COM-Port:
             win32file.CloseHandle(self.hComPort)
             self.hComPort = None
+
+    def setBaudrate(self, baudrate):
+        """change baudrate after port is open"""
+        if not self.hComPort: raise portNotOpenError
+        # Setup the connection info.
+        # Get state and modify it:
+        comDCB = win32file.GetCommState(self.hComPort)
+        comDCB.BaudRate = baudrate
+        win32file.SetCommState(self.hComPort, comDCB)
 
     def inWaiting(self):
         """returns the number of bytes waiting to be read"""

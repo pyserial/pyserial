@@ -8,7 +8,7 @@
 import sys, os, string, javax.comm
 import serialutil
 
-VERSION = string.split("$Revision: 1.2 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.3 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE = (0,1,2,3,4)
 STOPBITS_ONE, STOPBITS_TWO, STOPBITS_ONE_HALVE = (1, 2, 3)
@@ -52,35 +52,35 @@ class Serial(serialutil.FileLike):
         self.outstream = self.sPort.getOutputStream()
         self.sPort.enableReceiveTimeout(30)
         if bytesize == FIVEBITS:
-            databits = javax.comm.SerialPort.DATABITS_5
+            self.databits = javax.comm.SerialPort.DATABITS_5
         elif bytesize == SIXBITS:
-            databits = javax.comm.SerialPort.DATABITS_6
+            self.databits = javax.comm.SerialPort.DATABITS_6
         elif bytesize == SEVENBITS:
-            databits = javax.comm.SerialPort.DATABITS_7
+            self.databits = javax.comm.SerialPort.DATABITS_7
         elif bytesize == EIGHTBITS:
-            databits = javax.comm.SerialPort.DATABITS_8
+            self.databits = javax.comm.SerialPort.DATABITS_8
         else:
             raise ValueError, "unsupported bytesize"
         
         if stopbits == STOPBITS_ONE:
-            jstopbits = javax.comm.SerialPort.STOPBITS_1
+            self.jstopbits = javax.comm.SerialPort.STOPBITS_1
         elif stopbits == STOPBITS_ONE_HALVE:
-            jstopbits = javax.comm.SerialPort.STOPBITS_1_5
+            self.jstopbits = javax.comm.SerialPort.STOPBITS_1_5
         elif stopbits == STOPBITS_TWO:
-            jstopbits = javax.comm.SerialPort.STOPBITS_2
+            self.jstopbits = javax.comm.SerialPort.STOPBITS_2
         else:
             raise ValueError, "unsupported number of stopbits"
 
         if parity == PARITY_NONE:
-            jparity = javax.comm.SerialPort.PARITY_NONE
+            self.jparity = javax.comm.SerialPort.PARITY_NONE
         elif parity == PARITY_EVEN:
-            jparity = javax.comm.SerialPort.PARITY_EVEN
+            self.jparity = javax.comm.SerialPort.PARITY_EVEN
         elif parity == PARITY_ODD:
-            jparity = javax.comm.SerialPort.PARITY_ODD
+            self.jparity = javax.comm.SerialPort.PARITY_ODD
         elif parity == PARITY_MARK:
-            jparity = javax.comm.SerialPort.PARITY_MARK
+            self.jparity = javax.comm.SerialPort.PARITY_MARK
         elif parity == PARITY_SPACE:
-            jparity = javax.comm.SerialPort.PARITY_SPACE
+            self.jparity = javax.comm.SerialPort.PARITY_SPACE
         else:
             raise ValueError, "unsupported parity type"
 
@@ -92,7 +92,7 @@ class Serial(serialutil.FileLike):
             jflowin = jflowin | javax.comm.SerialPort.FLOWCONTROL_XONXOFF_IN
             jflowout = jflowout | javax.comm.SerialPort.FLOWCONTROL_XONXOFF_OUT
         
-        self.sPort.setSerialPortParams(baudrate, databits, jstopbits, jparity)
+        self.sPort.setSerialPortParams(baudrate, databits, self.jstopbits, self.jparity)
         self.sPort.setFlowControlMode(jflowin | jflowout)
         
         self.timeout = timeout
@@ -101,13 +101,18 @@ class Serial(serialutil.FileLike):
         else:
             self.sPort.disableReceiveTimeout()
 
-
     def close(self):
         if self.sPort:
             self.instream.close()
             self.outstream.close()
             self.sPort.close()
             self.sPort = None
+
+    def setBaudrate(self, baudrate):
+        """change baudrate after port is open"""
+        if not self.sPort: raise portNotOpenError
+        self.sPort.setSerialPortParams(baudrate, self.databits, self.jstopbits, self.jparity)
+
 
     def inWaiting(self):
         if not self.sPort: raise portNotOpenError
