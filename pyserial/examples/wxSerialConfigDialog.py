@@ -169,7 +169,6 @@ class SerialConfigDialog(wxDialog):
             sizer_flow = wxStaticBoxSizer(wxStaticBox(self, -1, "Flow Control"), wxHORIZONTAL)
             sizer_flow.Add(self.checkbox_rtscts, 0, wxALL|wxALIGN_CENTER_VERTICAL, 4)
             sizer_flow.Add(self.checkbox_xonxoff, 0, wxALL|wxALIGN_CENTER_VERTICAL, 4)
-            sizer_flow.Add(10, 10, 1, wxEXPAND, 0)
             sizer_2.Add(sizer_flow, 0, wxEXPAND, 0)
         sizer_3.Add(self.button_ok, 0, 0, 0)
         sizer_3.Add(self.button_cancel, 0, 0, 0)
