@@ -58,7 +58,8 @@ os.environ['PATH'] = os.environ['PATH'] + ';' + os.path.abspath(os.path.dirname(
 #python extension in earlier versions of this modules
 _pyparallel = ctypes.windll.simpleio
 #need to initialize giveio on WinNT based systems
-_pyparallel.init()
+if _pyparallel.init():
+    raise IOError('Could not access the giveio driver which is required on NT based systems.')
 
 
 class Parallel:
