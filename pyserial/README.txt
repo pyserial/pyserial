@@ -41,7 +41,7 @@ Requirements
 Installation
 ------------
 Extract files from the archive, open a shell/console in that directory and
-let Disutils do the rest: "python setup.py install"
+let Distutils do the rest: "python setup.py install"
 
 The files get installed in the "Lib/site-packages" directory in newer
 Python versions.
@@ -49,9 +49,14 @@ Python versions.
 Serial to USB adapters
 Such adapters are reported to work under Mac OSX and Windows. They are
 mapped to a normal COM port under Windows, but on Mac OSX they have
-special device names like "/dev/cu.USA19QW11P1.1" either use these
+special device names like "/dev/cu.USA19QW11P1.1" (built after this scheme:
+/dev/[cu|tty].USA<adaptername><USB-part>P<serial-port>.1) either use these
 names for the serial ports or create a link to the common device names
-like "ln -s /dev/cu.USA19QW11P1.1 /dev/cuaa0"
+like "ln -s /dev/cu.USA19QW11P1.1 /dev/cuaa0" "ln -s /dev/cu.USA19QW21P1.1
+/dev/cuaa1" etc.
+But be aware that the device file disappears as soon as you unplug the USB
+adapter.
+
 
 
 Short introduction
