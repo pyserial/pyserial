@@ -47,16 +47,24 @@ The files get installed in the "Lib/site-packages" directory in newer
 Python versions.
 
 Serial to USB adapters
+----------------------
 Such adapters are reported to work under Mac OSX and Windows. They are
-mapped to a normal COM port under Windows, but on Mac OSX they have
-special device names like "/dev/cu.USA19QW11P1.1" (built after this scheme:
-/dev/[cu|tty].USA<adaptername><USB-part>P<serial-port>.1) either use these
-names for the serial ports or create a link to the common device names
-like "ln -s /dev/cu.USA19QW11P1.1 /dev/cuaa0" "ln -s /dev/cu.USA19QW21P1.1
-/dev/cuaa1" etc.
-But be aware that the device file disappears as soon as you unplug the USB
-adapter.
+mapped to a normal COM port under Windows, but on Mac OSX and other platforms
+they have special device names.
 
+Mac OSX: "/dev/[cu|tty].USA<adaptername><USB-part>P<serial-port>.1"
+    e.g. "/dev/cu.USA19QW11P1.1"
+
+Linux: "/dev/usb/ttyUSB[n]" or "/dev/ttyUSB[n]"
+    first for for RedHat, second form for Debian.
+    e.g. "/dev/usb/ttyUSB0"
+
+Either use these names for the serial ports or create a link to the common device
+names like "ln -s /dev/cu.USA19QW11P1.1 /dev/cuaa0" or "ln -s /dev/usb/ttyUSB0
+/dev/ttyS4" etc.
+
+But be aware that the (USB) device file disappears as soon as you unplug the USB
+adapter.
 
 
 Short introduction
@@ -100,7 +108,7 @@ ser = serial.Serial(
     bytesize=EIGHTBITS,     #number of databits
     parity=PARITY_NONE,     #enable parity checking
     stopbits=STOPBITS_ONE,  #number of stopbits
-    timeout=None,           #set a timeout value, None for waiting forever
+    timeout=None,           #set a timeout value, None to wait forever
     xonxoff=0,              #enable software flow control
     rtscts=0,               #enable RTS/CTS flow control
 )
@@ -143,6 +151,14 @@ bytesize:
     serial.SEVENBITS
     serial.EIGHTBITS
 
+Tips & Tricks
+-------------
+- Some protocols need CR LF ("\r\n") as line terminator, not just LF ("\n").
+  Modems are an example of this behaviour.
+
+- Scanning for available serial ports is possible with more or less sucess on
+  some platforms. Look at the tools from Roger Binns:
+  http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/bitpim/comscan/
 
 References
 ----------
