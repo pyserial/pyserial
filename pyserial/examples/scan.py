@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+"""Scan for serial ports
+part of pyserial (http://pyserial.sf.net)  (C)2002 cliechti@gmx.net
+
+the scan function of this module tries to open each port number
+from 0 to 255 and it builds a list of those ports where this was
+successful.
+"""
+
 from serial import Serial
 from serial.serialutil import SerialException
 
