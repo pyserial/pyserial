@@ -6,6 +6,29 @@ import wxSerialConfigDialog
 import serial
 import threading
 
+#----------------------------------------------------------------------
+# Create an own event type, so that GUI updates can be delegated
+# this is required as on some platforms only the main thread can
+# access the GUI without crashing. wxMutexGuiEnter/wxMutexGuiLeave
+# could be used too, but an event is more elegant.
+
+SERIALRX = wxNewEventType()
+
+def EVT_SERIALRX(window, function):
+    """function to subscribe to serial data receive events"""
+    window.Connect(-1, -1, SERIALRX, function)
+
+class SerialRxEvent(wxPyCommandEvent):
+    eventType = SERIALRX
+    def __init__(self, windowID, data):
+        wxPyCommandEvent.__init__(self, self.eventType, windowID)
+        self.data = data
+
+    def Clone(self):
+        self.__class__(self.GetId(), self.data)
+
+#----------------------------------------------------------------------
+
 ID_CLEAR        = wxNewId()
 ID_SAVEAS       = wxNewId()
 ID_SETTINGS     = wxNewId()
@@ -164,6 +187,7 @@ class TerminalFrame(wxFrame):
         EVT_MENU(self, ID_TERM, self.OnTermSettings)
         EVT_CHAR(self, self.OnKey)
         EVT_CHAR(self.text_ctrl_output, self.OnKey)
+        EVT_SERIALRX(self, self.OnSerialRead)
         EVT_CLOSE(self, self.OnClose)
 
     def OnExit(self, event):
@@ -265,15 +289,16 @@ class TerminalFrame(wxFrame):
         else:
             print "Extra Key:", code
 
-    def OnSerialRead(self, text):
+    def OnSerialRead(self, event):
         """Handle input from the serial port."""
+        text = event.data
         if self.settings.unprintable:
             text = ''.join([(c >= ' ') and c or '<%d>' % ord(c)  for c in text])
         self.text_ctrl_output.AppendText(text)
 
     def ComPortThread(self):
         """Thread that handles the incomming traffic. Does the basic input
-           transformation (newlines) and passes the data to OnSerialRead."""
+           transformation (newlines) and generates an SerialRxEvent"""
         while self.alive:                       #loop while this flag is true
             text = self.serial.read(1)          #read one, with timout
             if text:                            #check if not timeout
@@ -287,7 +312,9 @@ class TerminalFrame(wxFrame):
                     pass
                 elif self.settings.newline == NEWLINE_CRLF:
                     text = text.replace('\r\n', '\n')
-                self.OnSerialRead(text)         #output text in window
+                event = SerialRxEvent(self.GetId(), text)
+                self.GetEventHandler().AddPendingEvent(event)
+                #~ self.OnSerialRead(text)         #output text in window
             
 # end of class TerminalFrame
 
