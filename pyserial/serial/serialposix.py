@@ -12,7 +12,7 @@
 import sys, os, fcntl, termios, struct, string, select
 import serialutil
 
-VERSION = string.split("$Revision: 1.10 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.11 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -35,6 +35,10 @@ plat = string.lower(sys.platform)
 if   plat[:5] == 'linux':    #Linux (confirmed)
     def device(port):
         return '/dev/ttyS%d' % port
+
+elif plat == 'cygwin':       #cywin/win32 (confirmed)
+    def device(port):
+        return '/dev/com%d' % port
 
 elif plat     == 'openbsd3': #BSD (confirmed)
     def device(port):
@@ -176,7 +180,7 @@ class Serial(serialutil.FileLike):
         #set up raw mode / no echo / binary
         self.cflag = self.cflag |  (TERMIOS.CLOCAL|TERMIOS.CREAD)
         self.lflag = self.lflag & ~(TERMIOS.ICANON|TERMIOS.ECHO|TERMIOS.ECHOE|TERMIOS.ECHOK|TERMIOS.ECHONL|
-                                    TERMIOS.ECHOCTL|TERMIOS.ECHOPRT|TERMIOS.ECHOKE|TERMIOS.ISIG|TERMIOS.IEXTEN)
+                                    TERMIOS.ECHOCTL|TERMIOS.ECHOKE|TERMIOS.ISIG|TERMIOS.IEXTEN) #|TERMIOS.ECHOPRT
         self.oflag = self.oflag & ~(TERMIOS.OPOST)
         if hasattr(TERMIOS, 'IUCLC'):
             self.iflag = self.iflag & ~(TERMIOS.INLCR|TERMIOS.IGNCR|TERMIOS.ICRNL|TERMIOS.IUCLC|TERMIOS.IGNBRK)
@@ -399,5 +403,3 @@ if __name__ == '__main__':
     print repr(s.read(5))
     print s.inWaiting()
     del s
-
-
