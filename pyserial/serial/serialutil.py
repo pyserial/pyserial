@@ -197,7 +197,7 @@ class SerialBase(FileLike):
            the name of the port as a string."""
         return self._port
 
-    port = property(getPort, setPort, "Port setting")
+    port = property(getPort, setPort, doc="Port setting")
 
 
     def setBaudrate(self, baudrate):
@@ -216,7 +216,7 @@ class SerialBase(FileLike):
         """Get the current baudrate setting."""
         return self._baudrate
         
-    baudrate = property(getBaudrate, setBaudrate, "Baudrate setting")
+    baudrate = property(getBaudrate, setBaudrate, doc="Baudrate setting")
 
 
     def setByteSize(self, bytesize):
@@ -229,7 +229,7 @@ class SerialBase(FileLike):
         """Get the current byte size setting."""
         return self._bytesize
     
-    bytesize = property(getByteSize, setByteSize, "Byte size setting")
+    bytesize = property(getByteSize, setByteSize, doc="Byte size setting")
 
 
     def setParity(self, parity):
@@ -242,7 +242,7 @@ class SerialBase(FileLike):
         """Get the current parity setting."""
         return self._parity
     
-    parity = property(getParity, setParity, "Parity setting")
+    parity = property(getParity, setParity, doc="Parity setting")
 
 
     def setStopbits(self, stopbits):
@@ -255,7 +255,7 @@ class SerialBase(FileLike):
         """Get the current stopbits setting."""
         return self._stopbits
     
-    stopbits = property(getStopbits, setStopbits, "Stopbits setting")
+    stopbits = property(getStopbits, setStopbits, doc="Stopbits setting")
 
 
     def setTimeout(self, timeout):
@@ -274,7 +274,7 @@ class SerialBase(FileLike):
         """Get the current timeout setting."""
         return self._timeout
     
-    timeout = property(getTimeout, setTimeout, "Timeout setting for read()")
+    timeout = property(getTimeout, setTimeout, doc="Timeout setting for read()")
 
 
     def setWriteTimeout(self, timeout):
@@ -293,7 +293,7 @@ class SerialBase(FileLike):
         """Get the current timeout setting."""
         return self._writeTimeout
     
-    writeTimeout = property(getWriteTimeout, setWriteTimeout, "Timeout setting for write()")
+    writeTimeout = property(getWriteTimeout, setWriteTimeout, doc="Timeout setting for write()")
 
 
     def setXonXoff(self, xonxoff):
@@ -305,7 +305,7 @@ class SerialBase(FileLike):
         """Get the current XonXoff setting."""
         return self._xonxoff
     
-    xonxoff = property(getXonXoff, setXonXoff, "Xon/Xoff setting")
+    xonxoff = property(getXonXoff, setXonXoff, doc="Xon/Xoff setting")
 
     def setRtsCts(self, rtscts):
         """Change RtsCts setting."""
@@ -316,7 +316,7 @@ class SerialBase(FileLike):
         """Get the current RtsCts setting."""
         return self._rtscts
     
-    rtscts = property(getRtsCts, setRtsCts, "RTS/CTS setting")
+    rtscts = property(getRtsCts, setRtsCts, doc="RTS/CTS setting")
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
