@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 #very simple serial terminal
+#(C)2002 Chris Liechti >cliecht@gmx.net>
+
 #input characters are sent directly, received characters are displays as is
-#baudrate and echo configuartion is done through globals:
+#baudrate and echo configuartion is done through globals
 
 
 import sys, os, serial, threading, getopt
@@ -10,7 +12,7 @@ import sys, os, serial, threading, getopt
 EXITCHARCTER = '\x04'   #ctrl+d
 
 #first choosea platform dependant way to read single characters from the console
-if os.name == 'nt': #sys.platform == 'win32':
+if os.name == 'nt':
     import msvcrt
     def getkey():
         while 1:
@@ -52,7 +54,7 @@ def reader():
         sys.stdout.write(s.read())
 
 def writer():
-    """loop forever and copy console->serial"""
+    """loop and copy console->serial until EOF character is found"""
     while 1:
         c = getkey()
         if c == EXITCHARCTER: break   #exit on esc
