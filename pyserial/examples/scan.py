@@ -1,24 +1,23 @@
 #!/usr/bin/env python
-"""Scan for serial ports
-part of pyserial (http://pyserial.sf.net)  (C)2002 cliechti@gmx.net
+"""Scan for serial ports.
+Part of pySerial (http://pyserial.sf.net)  (C)2002-2003 <cliechti@gmx.net>
 
-the scan function of this module tries to open each port number
+The scan function of this module tries to open each port number
 from 0 to 255 and it builds a list of those ports where this was
 successful.
 """
 
-from serial import Serial
-from serial.serialutil import SerialException
+import serial
 
 def scan():
     """scan for available ports. return a list of tuples (num, name)"""
     available = []
     for i in range(256):
         try:
-            s = Serial(i)
+            s = serial.Serial(i)
             available.append( (i, s.portstr))
             s.close()   #explicit close 'cause of delayed GC in java
-        except SerialException:
+        except serial.SerialException:
             pass
     return available
 
