@@ -12,7 +12,7 @@
 import sys, os, fcntl, termios, struct, string, select
 import serialutil
 
-VERSION = string.split("$Revision: 1.7 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.8 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -299,7 +299,7 @@ class Serial(serialutil.FileLike):
         the default is one (unlike files)"""
         if not self.fd: raise portNotOpenError
         read = ''
-        imp = None
+        inp = None
         if size > 0:
             while len(read) < size:
                 if self.timeout:
@@ -307,9 +307,7 @@ class Serial(serialutil.FileLike):
                     ready,_,_ = select.select([self.fd],[],[], self.timeout)
                     if not ready:
                         break   #timeout
-                    for fd in ready:
-                        if fd is self.fd:
-                            inp = os.read(self.fd, size-len(read))
+                    inp = os.read(self.fd, size-len(read))
                 else:
                     inp = os.read(self.fd, size-len(read))
                 if not inp and self.timeout: break  #early abort on timeout
