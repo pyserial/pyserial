@@ -1,0 +1,7 @@
+TARGETNAME=giveio
+TARGETPATH=.
+TARGETTYPE=DRIVER
+
+INCLUDES=c:\ddk\inc
+
+SOURCES=giveio.c
