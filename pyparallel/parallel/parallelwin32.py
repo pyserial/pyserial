@@ -62,6 +62,7 @@ class Parallel:
             raise ValueError("No such port available - expecting a number")
         self.statusRegAdr = self.dataRegAdr + 1
         self.ctrlRegAdr   = self.dataRegAdr + 2
+        self.ctrlReg = _pyparallel.inp(self.ctrlRegAdr)
 
     def setData(self, value):
         _pyparallel.outp(self.dataRegAdr, value)
@@ -103,7 +104,7 @@ class Parallel:
         """Error pin"""
         return _pyparallel.inp(self.statusRegAdr) & 0x08 and 1
 
-    def gettInSelected(self):
+    def getInSelected(self):
         """select pin"""
         return _pyparallel.inp(self.statusRegAdr) & 0x10 and 1
 
@@ -118,5 +119,3 @@ class Parallel:
     def getInBusy(self):
         """input from busy pin"""
         return not (_pyparallel.inp(self.statusRegAdr) & 0x80)
-
-

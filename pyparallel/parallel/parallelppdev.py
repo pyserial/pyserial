@@ -555,7 +555,7 @@ class Parallel:
         """Returns the level on the nFault pin (15)"""
         return (self.PPRSTATUS() & PARPORT_STATUS_ERROR) != 0
 
-    def gettInSelected(self):
+    def getInSelected(self):
         """Returns the level on the Select pin (13)"""
         return (self.PPRSTATUS() & PARPORT_STATUS_SELECT) != 0
 
