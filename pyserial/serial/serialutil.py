@@ -182,7 +182,7 @@ class SerialBase(FileLike):
         was_open = self._isOpen
         if was_open: self.close()
         if port is not None:
-            if type(port) == type(''):       #strings are taken directly
+            if type(port) in [type(''), type(u'')]:       #strings are taken directly
                 self.portstr = port
             else:
                 self.portstr = self.makeDeviceName(port)
@@ -338,6 +338,7 @@ class SerialBase(FileLike):
 
 if __name__ == '__main__':
     s = SerialBase()
+    print s.portstr
     print s.getSupportedBaudrates()
     print s.getSupportedByteSizes()
     print s.getSupportedParities()
