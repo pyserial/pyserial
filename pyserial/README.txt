@@ -25,7 +25,7 @@ Features
 - The files in this package are 100% pure Python.
   They depend on non standard but common packages on Windows (win32all) and
   Jython (JavaComm). POSIX (Linux, BSD) uses only modules from the standard
-  python distribution)
+  Python distribution)
 - The port is set up for binary transmission. No NULL byte stripping, CR-LF
   translation etc. (which are many times enabled for POSIX.) This makes this
   module universally useful.
@@ -93,8 +93,9 @@ ser = serial.Serial(
     rtscts=0,               #enable RTS/CTS flow control
 )
 
-The port is immediatley opened on object creation. Options:
-timeout=None            # wait forever
+The port is immediately opened on object creation.
+Options for read timeout:
+timeout=None            #wait forever
 timeout=0               #non-blocking mode (return immediately on read)
 timeout=x               #set timeout to x seconds (float allowed)
 

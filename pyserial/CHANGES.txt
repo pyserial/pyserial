@@ -11,7 +11,8 @@ Version 1.1     14 Feb 2002
         - Typos in the Docs
         
     New Features:
-        - added serialutil which provides a base class for the Serial objects.
+        - added serialutil which provides a base class for the Serial
+          objects.
         
         - readline, readlines, writelines and flush are now supported
           see README.txt for deatils.
@@ -44,3 +45,17 @@ Version 1.16    02 Jul 2002
 Version 1.17    03 Jul 2002
     silly mix of two versions in win32 code corrected
 
+Version 1.18    06 Dec 2002
+    Bugfixes (general):
+        - remove the mapping of flush to the destructive flushOutput as this
+          is not the expected behaviour
+        - readline: EOL character for lines can be chosen idea by John Florian
+    Bugfixes (posix):
+        - cygwin port numbering fixed
+        - test each and every constant for it's existence in termios module,
+          use default if not existent (fix for Bug item #640214)
+        - wrong exception on nonexitstent ports with /dev file. bug report
+          by Louis Cordier
+    Bugfixes (win32):
+        - RTS/CTS handling as sugested in Bug #635072
+        - bugfix of timeouts brought up by Markus Hoffrogge
