@@ -15,4 +15,6 @@ Version 1.1     14 Feb 2002
         
         - readline, readlines, writelines and flush are now supported
           see README.txt for deatils.
-    
+
+Version 1.11    14 Feb 2002
+    Same as 1.1 but added missing files.
