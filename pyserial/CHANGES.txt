@@ -74,3 +74,8 @@ Version 1.20    28 Aug 2003
         - don't set unneded event masks
         - dont use DOS device names for ports > 9
         - remove send timeout (its not used in the linux impl. anyway)
+
+
+Version 1.21    30 sep 2003
+    Bugfixes (win32):
+        - name for COM10 was not built correctly, found by Norm Davis

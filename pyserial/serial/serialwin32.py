@@ -11,7 +11,7 @@ import win32con   # constants.
 import sys, string
 import serialutil
 
-VERSION = string.split("$Revision: 1.23 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.24 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -26,7 +26,7 @@ MS_RING_ON = 64
 MS_RLSD_ON = 128
 
 def device(portnum):
-    #the "//./COMx" format is required for devices > 9
+    #the "//./COMx" format is required for devices >= 9
     #not all versions of windows seem to support this propperly
     #so that the first few ports are used with the DOS device name
     if portnum < 9:
