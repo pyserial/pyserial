@@ -11,7 +11,7 @@ import win32con   # constants.
 import sys, string
 import serialutil
 
-VERSION = string.split("$Revision: 1.21 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.22 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -25,6 +25,15 @@ MS_DSR_ON  = 32
 MS_RING_ON = 64
 MS_RLSD_ON = 128
 
+def device(portnum):
+    #the "//./COMx" format is required for devices > 9
+    #not all versions of windows seem to support this propperly
+    #so that the first few ports are used with the DOS device name
+    if portnum < 10:
+        return 'COM%d' % (portnum+1) #numbers are transformed to a string
+    else:
+        return r'\\.\COM%d' % (portnum+1)
+
 class Serial(serialutil.FileLike):
     def __init__(self,
                  port,                  #number of device, numbering starts at
@@ -35,7 +44,7 @@ class Serial(serialutil.FileLike):
                  bytesize=EIGHTBITS,    #number of databits
                  parity=PARITY_NONE,    #enable parity checking
                  stopbits=STOPBITS_ONE, #number of stopbits
-                 timeout=None,          #set a timeout value, None for waiting forever
+                 timeout=None,          #set a timeout value, None to wait forever
                  xonxoff=0,             #enable software flow control
                  rtscts=0,              #enable RTS/CTS flow control
                  ):
@@ -46,13 +55,7 @@ class Serial(serialutil.FileLike):
         if type(port) == type(''):       #strings are taken directly
             self.portstr = port
         else:
-            #the "//./COMx" format is required for devices > 9
-            #not all versions of windows seem to support this propperly
-            #so that the first few ports are used with the DOS device name
-            if port < 9:
-                self.portstr = 'COM%d' % (port+1) #numbers are transformed to a string
-            else:
-                self.portstr = r'\\.\COM%d' % (port+1)
+            self.portstr = device(port)
 
         try:
             self.hComPort = win32file.CreateFile(self.portstr,
