@@ -13,7 +13,7 @@
 import sys, os, fcntl, termios, struct, select
 from serialutil import *
 
-VERSION = "$Revision: 1.24 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.25 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -374,6 +374,11 @@ class Serial(SerialBase):
             raise portNotOpenError
         fcntl.fcntl(self.fd, FCNTL.F_SETFL, FCNTL.O_NONBLOCK)
 
+    def fileno(self):
+        """For easier of the serial port instance with select.
+           WARNING: this function is not portable to different platforms!"""
+        if self.fd is None: raise portNotOpenError
+        return self.fd
 
 if __name__ == '__main__':
     s = Serial(0,
