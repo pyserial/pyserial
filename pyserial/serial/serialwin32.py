@@ -11,7 +11,7 @@ import win32con   # constants.
 import sys, string
 import serialutil
 
-VERSION = string.split("$Revision: 1.16 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.17 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -157,8 +157,8 @@ class Serial(serialutil.FileLike):
             #    if comState.cbOutQue <= 0 or calcTimeout(startTime) > timeout:
             #        break
 
-            self.setRTS(0)
-            self.setDTR(0)
+            #~ self.setRTS(0)   #causes problem if HW handshake is enabled
+            #~ self.setDTR(0)
             #Clear buffers:
             win32file.PurgeComm(self.hComPort,
                                 win32file.PURGE_TXCLEAR | win32file.PURGE_TXABORT |
