@@ -12,7 +12,7 @@
 import sys, os, fcntl, termios, struct, string, select
 import serialutil
 
-VERSION = string.split("$Revision: 1.6 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.7 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -236,6 +236,7 @@ class Serial(serialutil.FileLike):
             else:
                 self.cflag = self.cflag & ~(TERMIOS.CRTSCTS)
         elif hasattr(TERMIOS, 'CNEW_RTSCTS'):   #try it with alternate constant name
+            if rtscts:
                 self.cflag = self.cflag |  (TERMIOS.CNEW_RTSCTS)
             else:
                 self.cflag = self.cflag & ~(TERMIOS.CNEW_RTSCTS)
