@@ -13,7 +13,7 @@
 import sys, os, fcntl, termios, struct, select
 from serialutil import *
 
-VERSION = "$Revision: 1.23 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.24 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -281,17 +281,21 @@ class Serial(SerialBase):
         t = len(data)
         d = data
         while t > 0:
-            if self._writeTimeout is not None and self._writeTimeout > 0:
-                _,ready,_ = select.select([],[self.fd],[], self._writeTimeout)
-                if not ready:
-                    raise writeTimeoutError
-            n = os.write(self.fd, d)
-            if self._writeTimeout is not None and self._writeTimeout > 0:
-                _,ready,_ = select.select([],[self.fd],[], self._writeTimeout)
-                if not ready:
-                    raise writeTimeoutError
-            d = d[n:]
-            t = t - n
+            try:
+                if self._writeTimeout is not None and self._writeTimeout > 0:
+                    _,ready,_ = select.select([],[self.fd],[], self._writeTimeout)
+                    if not ready:
+                        raise writeTimeoutError
+                n = os.write(self.fd, d)
+                if self._writeTimeout is not None and self._writeTimeout > 0:
+                    _,ready,_ = select.select([],[self.fd],[], self._writeTimeout)
+                    if not ready:
+                        raise writeTimeoutError
+                d = d[n:]
+                t = t - n
+            except OSError,v:
+                if v.errno != errno.EAGAIN:
+                    raise
 
     def flush(self):
         """Flush of file like objects. In this case, wait until all data
