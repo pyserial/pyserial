@@ -1,0 +1,8 @@
+README.txt
+LICENSE.txt
+CHANGES.txt
+setup.py
+parallel\__init__.py
+parallel\_pyparallel.py
+examples\test.py
+
