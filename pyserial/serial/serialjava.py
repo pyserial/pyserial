@@ -8,7 +8,7 @@
 import sys, os, string, javax.comm
 import serialutil
 
-VERSION = string.split("$Revision: 1.4 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.5 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE = (0,1,2,3,4)
 STOPBITS_ONE, STOPBITS_TWO, STOPBITS_ONE_HALVE = (1, 2, 3)
@@ -46,8 +46,11 @@ class Serial(serialutil.FileLike):
         else:
             portId = device(port)     #numbers are transformed to a comportid obj
         self.portstr = portId.getName()
-        
-        self.sPort = portId.open("python serial module", 10)
+        try:
+            self.sPort = portId.open("python serial module", 10)
+        except Exception, msg:
+            self.sPort = None
+            raise serialutil.SerialException, "could not open port: %s" % msg
         self.instream = self.sPort.getInputStream()
         self.outstream = self.sPort.getOutputStream()
         self.sPort.enableReceiveTimeout(30)
