@@ -59,3 +59,11 @@ Version 1.18    06 Dec 2002
     Bugfixes (win32):
         - RTS/CTS handling as sugested in Bug #635072
         - bugfix of timeouts brought up by Markus Hoffrogge
+
+Version 1.19    19 Mar 2003
+    Bugfixes (posix):
+        - removed dgux entry which actualy had a wrong comment and is probably not in use anywhere
+    Bugfixes (win32):
+        - added int() conversion, [Bug 702120]
+        - remove code to set control lines in close methond of win32 version. [Bug 669625]
+

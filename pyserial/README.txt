@@ -9,7 +9,7 @@ It is released under a free software license, see LICENSE.txt for more
 details.
 
 Project Homepage: pyserial.sourceforge.net
-(C) 2001-2002 Chris Liechti <cliechti@gmx.net>
+(C) 2001-2003 Chris Liechti <cliechti@gmx.net>
 
 
 Features
