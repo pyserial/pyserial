@@ -15,8 +15,8 @@ PARITY_NAMES = {
     PARITY_ODD:  'Odd',
 }
 
-XON  = chr(16)
-XOFF = chr(18)
+XON  = chr(17)
+XOFF = chr(19)
 
 #Python < 2.2.3 compatibility
 try:
