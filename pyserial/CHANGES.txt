@@ -132,3 +132,5 @@ Version 2.0b2    4 Oct 2003
     - Jython support is currenty broken as Jython does not have a Python 2.2
       compatible release out yet
 
+Version 2.0      6 Nov 2003
+    - Fixes setup.py for older distutils

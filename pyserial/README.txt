@@ -15,11 +15,12 @@ Project Homepage: pyserial.sourceforge.net
 Features
 --------
 - same class based interface on all supported platforms
+- access to the port settings trough Python 2.2 properties 
 - port numbering starts at zero, no need to know the platform dependant port
   name in the user program
 - port name can be specified if access through numbering is inappropriate
 - support for different bytesizes, stopbits, parity and flow control
-  with RTS/CTS and/or xon/xoff
+  with RTS/CTS and/or Xon/Xoff
 - working with or without receive timeout, blocking or non-blocking
 - file like API with "read" and "write" ("readline" etc. also supported)
 - The files in this package are 100% pure Python.
@@ -44,6 +45,12 @@ Extract files from the archive, open a shell/console in that directory and
 let Distutils do the rest: "python setup.py install"
 
 The files get installed in the "Lib/site-packages" directory.
+
+There is also a Windows installer, but for developers it may be interesting
+to get the source archive anyway, because it contains examples and the readme.
+
+Do also have a look at the example files in the examples directory in the
+source distribution or online in CVS repository.
 
 Serial to USB adapters
 ----------------------
@@ -128,7 +135,9 @@ ser = serial.Serial(
     rtscts=0,               #enable RTS/CTS flow control
 )
 
-The port is immediately opened on object creation.
+The port is immediately opened on object creation, if a port is given.
+It is not opened if port is None.
+
 Options for read timeout:
 timeout=None            #wait forever
 timeout=0               #non-blocking mode (return immediately on read)
@@ -169,9 +178,12 @@ bytesize                #bytesize in bits
 parity                  #parity setting
 stopbits                #stop bit with (1,2)
 timeout                 #timeout setting
-xonxoff                 #if XonXoff flow control is enabled
+xonxoff                 #if Xon/Xoff flow control is enabled
 rtscts                  #if hardware flow control is enabled
 
+Exceptions
+----------
+serial.SerialException
 
 Constants
 ---------

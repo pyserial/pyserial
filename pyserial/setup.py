@@ -1,20 +1,28 @@
 # setup.py
 from distutils.core import setup
+import sys
 
 #windows installer:
 # python setup.py bdist_wininst
 
+# patch distutils if it can't cope with the "classifiers" or
+# "download_url" keywords
+if sys.version < '2.2.3':
+    from distutils.dist import DistributionMetadata
+    DistributionMetadata.classifiers = None
+    DistributionMetadata.download_url = None
+
 setup(
     name="pyserial",
     description="Python Serial Port Extension",
-    version="2.0b2",
+    version="2.0",
     author="Chris Liechti",
     author_email="cliechti@gmx.net",
     url="http://pyserial.sourceforge.net/",
     packages=['serial'],
     license="Python",
     long_description="Python Serial Port Extension for Win32, Linux, BSD, Jython",
-    classifiers=[
+    classifiers = [
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Intended Audience :: End Users/Desktop',
