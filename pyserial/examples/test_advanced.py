@@ -58,6 +58,8 @@ class Test_ChangeAttributes(unittest.TestCase):
             self.failUnlessEqual(self.s.portstr, serial.device(1))
 
     def test_BaudrateSetting(self):
+        self.s.port = PORT
+        self.s.open()
         for baudrate in (300, 9600, 19200, 115200):
             self.s.baudrate = baudrate
             #test get method
@@ -65,7 +67,14 @@ class Test_ChangeAttributes(unittest.TestCase):
             #test internals
             self.failUnlessEqual(self.s._baudrate, baudrate)
         #test illegal values
-        for illegal_value in (-300, -1, 0, 301, 9000, 12345, 'a', None):
+        for illegal_value in (-300, -1, 0, 'a', None):
+            self.failUnlessRaises(ValueError, self.s.setBaudrate, illegal_value)
+
+    def test_BaudrateSetting2(self):
+        #test illegal values, depending on machine/port some of these may be valid...
+        self.s.port = PORT
+        self.s.open()
+        for illegal_value in (500000,576000,921600,92160):
             self.failUnlessRaises(ValueError, self.s.setBaudrate, illegal_value)
 
     def test_BytesizeSetting(self):

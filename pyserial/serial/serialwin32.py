@@ -11,7 +11,7 @@ import win32event # We use events and the WaitFor[Single|Multiple]Objects functi
 import win32con   # constants.
 from serialutil import *
 
-VERSION = "$Revision: 1.27 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.28 $".split()[1]     #extract CVS version
 
 #from winbase.h. these should realy be in win32con
 MS_CTS_ON  = 16
@@ -70,6 +70,7 @@ class Serial(SerialBase):
         self._overlappedRead = win32file.OVERLAPPED()
         self._overlappedRead.hEvent = win32event.CreateEvent(None, 1, 0, None)
         self._overlappedWrite = win32file.OVERLAPPED()
+        #~ self._overlappedWrite.hEvent = win32event.CreateEvent(None, 1, 0, None)
         self._overlappedWrite.hEvent = win32event.CreateEvent(None, 0, 0, None)
         self._isOpen = True
 
@@ -144,7 +145,10 @@ class Serial(SerialBase):
         comDCB.fErrorChar       = 0
         comDCB.fAbortOnError    = 0
 
-        win32file.SetCommState(self.hComPort, comDCB)
+        try:
+            win32file.SetCommState(self.hComPort, comDCB)
+        except win32file.error, e:
+            raise ValueError("Cannot configure port, some setting was wrong. Original message: %s" % e)
 
     #~ def __del__(self):
         #~ self.close()
@@ -199,6 +203,7 @@ class Serial(SerialBase):
         if not self.hComPort: raise portNotOpenError
         #print repr(s),
         if s:
+            #~ win32event.ResetEvent(self._overlappedWrite.hEvent)
             err, n = win32file.WriteFile(self.hComPort, s, self._overlappedWrite)
             if err: #will be ERROR_IO_PENDING:
                 # Wait for the write to complete.

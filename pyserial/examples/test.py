@@ -51,7 +51,7 @@ class Test4_Nonblocking(unittest.TestCase):
             self.s.write(c)
             time.sleep(0.02)    #there might be a small delay until the character is ready (especialy on win32)
             self.failUnless(self.s.inWaiting()==1, "expected exactly one character for inWainting()")
-            self.failUnless(self.s.read(1)==c, "expected an '%s' which was written before" % c)
+            self.failUnless(self.s.read(1)==c, "expected a '%s' which was written before" % c)
         self.failUnless(self.s.read(1)=='', "expected empty buffer after all sent chars are read")
     def test2_LoopbackTimeout(self):
         """timeout: test the timeout/immediate return.

@@ -181,7 +181,7 @@ class SerialBase(FileLike):
         if was_open: self.open()
     
     def getPort(self):
-        """get the current port setting. The value that was passed on init or using
+        """Get the current port setting. The value that was passed on init or using
            setPort() is passed back. See also the attribute portstr which contains
            the name of the port as a string."""
         return self._port
@@ -190,10 +190,16 @@ class SerialBase(FileLike):
 
 
     def setBaudrate(self, baudrate):
-        """Change baudrate."""
-        if baudrate not in self.BAUDRATES: raise ValueError("Not a valid baudrate: %r" % baudrate)
-        self._baudrate = baudrate
-        if self._isOpen:  self._reconfigurePort()
+        """Change baudrate. It raises a ValueError if the port is open and the
+        baudrate is not possible. If the port is closed, then tha value is
+        accepted and the exception is raised when the port is opened."""
+        #~ if baudrate not in self.BAUDRATES: raise ValueError("Not a valid baudrate: %r" % baudrate)
+        try:
+            self._baudrate = int(baudrate)
+        except TypeError:
+            raise ValueError("Not a valid baudrate: %r" % baudrate)
+        else:
+            if self._isOpen:  self._reconfigurePort()
         
     def getBaudrate(self):
         """Get the current baudrate setting."""
