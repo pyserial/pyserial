@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #module for serial IO for POSIX compatible systems, like Linux
-#see serial.py
+#see __init__.py
 #
 #(C) 2001 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
@@ -10,13 +10,15 @@
 # references: http://www.easysw.com/~mike/serial/serial.html
 
 import sys, os, fcntl, termios, struct, string, select
+import serialutil
 
-VERSION = string.split("$Revision: 1.1.1.1 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.2 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
 FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS = (5,6,7,8)
 
+#Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
     import TERMIOS
 else:
@@ -95,7 +97,8 @@ for rate in (0,50,75,110,134,150,200,300,600,1200,1800,2400,4800,9600,
     except:
         pass
 
-if hasattr(TERMIOS, 'TIOCMGET'):
+#load some constants for late use
+if hasattr(TERMIOS, 'TIOCMGET'):    #if this const is here the others will be to (hopefully)
     TIOCMGET = TERMIOS.TIOCMGET
     TIOCMBIS = TERMIOS.TIOCMBIS
     TIOCMBIC = TERMIOS.TIOCMBIC
@@ -115,10 +118,10 @@ if hasattr(TERMIOS, 'TIOCMGET'):
     TIOCM_OUT1 = TERMIOS.TIOCM_OUT1
     TIOCM_OUT2 = TERMIOS.TIOCM_OUT2
 else:   #workaround for older python versions
-    TIOCMGET = 0x5415
-    TIOCMBIS = 0x5416
-    TIOCMBIC = 0x5417
-    TIOCMSET = 0x5418
+    TIOCMGET   = 0x5415
+    TIOCMBIS   = 0x5416
+    TIOCMBIC   = 0x5417
+    TIOCMSET   = 0x5418
 
     TIOCM_LE   =  0x001
     TIOCM_DTR  =  0x002
@@ -140,7 +143,7 @@ TIOCM_DTR_str = struct.pack('I', TIOCM_DTR)
 
 portNotOpenError = ValueError('port not open')
 
-class Serial:
+class Serial(serialutil.FileLike):
     def __init__(self,
                  port,                  #number of device, numbering starts at
                                         #zero. if everything fails, the user
@@ -154,6 +157,7 @@ class Serial:
                  xonxoff=0,             #enable software flow control
                  rtscts=0,              #enable RTS/CTS flow control
                  ):
+        """init comm port"""
         self.fd = None
         self.timeout = timeout
         vmin = vtime = 0                #timeout is done via select
@@ -240,21 +244,26 @@ class Serial:
         self.__tcsetattr()
 
     def __tcsetattr(self):
+        """internal function to set port attributes"""
         termios.tcsetattr(self.fd, TERMIOS.TCSANOW, [self.iflag,self.oflag,self.cflag,self.lflag,self.ispeed,self.ospeed,self.cc])
 
     def __tcgetattr(self):
+        """internal function to get port attributes"""
         self.iflag,self.oflag,self.cflag,self.lflag,self.ispeed,self.ospeed,self.cc = termios.tcgetattr(self.fd)
 
     def close(self):
+        """close port"""
         if self.fd:
             os.close(self.fd)
             self.fd = None
 
     def inWaiting(self):
+        """how many character are in the input queue"""
         s = fcntl.ioctl(self.fd, TERMIOS.FIONREAD, TIOCM_zero_str)
         return struct.unpack('I',s)[0]
 
     def write(self, data):
+        """write a string to the port"""
         if not self.fd: raise portNotOpenError
         t = len(data)
         d = data
@@ -264,6 +273,8 @@ class Serial:
             t = t - n
 
     def read(self, size=1):
+        """read a number of bytes from the port.
+        the default is one (unlike files)"""
         if not self.fd: raise portNotOpenError
         read = ''
         imp = None
@@ -284,50 +295,60 @@ class Serial:
         return read
 
     def flushInput(self):
+        """clear input queue"""
         if not self.fd:
             raise portNotOpenError
         termios.tcflush(self.fd, TERMIOS.TCIFLUSH)
 
     def flushOutput(self):
+        """flush output"""
         if not self.fd:
             raise portNotOpenError
         termios.tcflush(self.fd, TERMIOS.TCOFLUSH)
 
     def sendBreak(self):
+        """send break signal"""
         if not self.fd:
             raise portNotOpenError
         termios.tcsendbreak(self.fd, 0)
 
     def drainOutput(self):
+        """internal - not portable!"""
         if not self.fd: raise portNotOpenError
         termios.tcdrain(self.fd)
 
     def nonblocking(self):
+        """internal - not portable!"""
         if not self.fd:
             raise portNotOpenError
         fcntl.fcntl(self.fd, FCNTL.F_SETFL, FCNTL.O_NONBLOCK)
 
     def getDSR(self):
+        """read terminal status line"""
         if not self.fd: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_DSR
 
     def getCD(self):
+        """read terminal status line"""
         if not self.fd: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_CD
 
     def getRI(self):
+        """read terminal status line"""
         if not self.fd: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_RI
 
     def getCTS(self):
+        """read terminal status line"""
         if not self.fd: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_CTS
 
     def setDTR(self,on=1):
+        """set terminal status line"""
         if not self.fd: raise portNotOpenError
         if on:
             fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_DTR_str)
@@ -335,6 +356,7 @@ class Serial:
             fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_DTR_str)
 
     def setRTS(self,on=1):
+        """set terminal status line"""
         if not self.fd: raise portNotOpenError
         if on:
             fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_RTS_str)

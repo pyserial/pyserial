@@ -1,13 +1,14 @@
-#!/usr/bin/env python
+#!jython
 #module for serial IO for Jython and JavaComm
-#see serial.py
+#see __init__.py
 #
 #(C) 2002 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
 import sys, os, string, javax.comm
+import serialutil
 
-VERSION = string.split("$Revision: 1.1.1.1 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.2 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE = (0,1,2,3,4)
 STOPBITS_ONE, STOPBITS_TWO, STOPBITS_ONE_HALVE = (1, 2, 3)
@@ -25,7 +26,7 @@ def device(portnumber):
             ports.append(el)
     return ports[portnumber]
 
-class Serial:
+class Serial(serialutil.FileLike):
     def __init__(self,
                  port,                  #number of device, numbering starts at
                                         #zero. if everything fails, the user
