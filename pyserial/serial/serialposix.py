@@ -12,7 +12,7 @@
 import sys, os, fcntl, termios, struct, string, select
 import serialutil
 
-VERSION = string.split("$Revision: 1.13 $")[1]     #extract CVS version
+VERSION = string.split("$Revision: 1.14 $")[1]     #extract CVS version
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD = range(3)
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
@@ -38,7 +38,7 @@ if   plat[:5] == 'linux':    #Linux (confirmed)
 
 elif plat == 'cygwin':       #cywin/win32 (confirmed)
     def device(port):
-        return '/dev/com%d' % port
+        return '/dev/com%d' % (port + 1)
 
 elif plat     == 'openbsd3': #BSD (confirmed)
     def device(port):
@@ -84,7 +84,6 @@ and with a bit luck you can get this module running...
 
 #whats up with "aix", "beos", "sco", ....
 #they should work, just need to know the device names.
-#"cygwin" has a POSIX emulation but does not seem to have a /dev/ttyxx structure?
 
 
 # construct dictionaries for baud rate lookups
@@ -102,7 +101,8 @@ for rate in (0,50,75,110,134,150,200,300,600,1200,1800,2400,4800,9600,
         pass
 
 
-#load some constants for late use
+#load some constants for later use.
+#try to use values from TERMIOS, use defaults from linux otherwise
 TIOCMGET  = hasattr(TERMIOS, 'TIOCMGET') and TERMIOS.TIOCMGET or 0x5415
 TIOCMBIS  = hasattr(TERMIOS, 'TIOCMBIS') and TERMIOS.TIOCMBIS or 0x5416
 TIOCMBIC  = hasattr(TERMIOS, 'TIOCMBIC') and TERMIOS.TIOCMBIC or 0x5417
@@ -122,6 +122,7 @@ TIOCM_CD  = hasattr(TERMIOS, 'TIOCM_CD') and TERMIOS.TIOCM_CD or TIOCM_CAR
 TIOCM_RI  = hasattr(TERMIOS, 'TIOCM_RI') and TERMIOS.TIOCM_RI or TIOCM_RNG
 #TIOCM_OUT1 = hasattr(TERMIOS, 'TIOCM_OUT1') and TERMIOS.TIOCM_OUT1 or 0x2000
 #TIOCM_OUT2 = hasattr(TERMIOS, 'TIOCM_OUT2') and TERMIOS.TIOCM_OUT2 or 0x4000
+TIOCINQ   = hasattr(TERMIOS, 'FIONREAD') and TERMIOS.FIONREAD or 0x541B
 
 TIOCM_zero_str = struct.pack('I', 0)
 TIOCM_RTS_str = struct.pack('I', TIOCM_RTS)
@@ -270,7 +271,8 @@ class Serial(serialutil.FileLike):
 
     def inWaiting(self):
         """how many character are in the input queue"""
-        s = fcntl.ioctl(self.fd, TERMIOS.FIONREAD, TIOCM_zero_str)
+        #~ s = fcntl.ioctl(self.fd, TERMIOS.FIONREAD, TIOCM_zero_str)
+        s = fcntl.ioctl(self.fd, TIOCINQ, TIOCM_zero_str)
         return struct.unpack('I',s)[0]
 
     def write(self, data):
