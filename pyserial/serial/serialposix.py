@@ -13,7 +13,7 @@
 import sys, os, fcntl, termios, struct, select, errno
 from serialutil import *
 
-VERSION = "$Revision: 1.26 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.27 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -63,6 +63,10 @@ elif plat[:2] == 'hp':       #HP-UX (not tested)
 elif plat[:5] == 'sunos':    #Solaris/SunOS (confirmed)
     def device(port):
         return '/dev/tty%c' % (ord('a')+port)
+        
+elif plat[:3] == 'aix':      #aix
+    def device(port):
+        return '/dev/tty%d' % (port)
 
 else:
     #platform detection has failed...
