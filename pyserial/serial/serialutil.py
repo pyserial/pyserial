@@ -115,7 +115,7 @@ class SerialBase(FileLike):
                  rtscts=0,              #enable RTS/CTS flow control
                  ):
         """Initialize comm port object. If a port is given, then the port will be
-           opened immediately. Otherwise a Serial port object with in clsoed state
+           opened immediately. Otherwise a Serial port object in closed state
            is returned."""
 
         self._isOpen   = False
