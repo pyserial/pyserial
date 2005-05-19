@@ -11,7 +11,7 @@ import win32event # We use events and the WaitFor[Single|Multiple]Objects functi
 import win32con   # constants.
 from serialutil import *
 
-VERSION = "$Revision: 1.30 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.31 $".split()[1]     #extract CVS version
 
 #from winbase.h. these should realy be in win32con
 MS_CTS_ON  = 16
@@ -142,12 +142,14 @@ class Serial(SerialBase):
         # Char. w/ Parity-Err are replaced with 0xff (if fErrorChar is set to TRUE)
         if self._rtscts:
             comDCB.fRtsControl  = win32file.RTS_CONTROL_HANDSHAKE
-            comDCB.fDtrControl  = win32file.DTR_CONTROL_HANDSHAKE
         else:
             comDCB.fRtsControl  = self._rtsState
+        if self._dsrdtr:
+            comDCB.fDtrControl  = win32file.DTR_CONTROL_HANDSHAKE
+        else:
             comDCB.fDtrControl  = self._dtrState
         comDCB.fOutxCtsFlow     = self._rtscts
-        comDCB.fOutxDsrFlow     = self._rtscts
+        comDCB.fOutxDsrFlow     = self._dsrdtr
         comDCB.fOutX            = self._xonxoff
         comDCB.fInX             = self._xonxoff
         comDCB.fNull            = 0

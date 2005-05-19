@@ -122,6 +122,7 @@ class SerialBase(FileLike):
                  xonxoff=0,             #enable software flow control
                  rtscts=0,              #enable RTS/CTS flow control
                  writeTimeout=None,     #set a timeout for writes
+                 dsrdtr=None,           #None: use rtscts setting, dsrdtr override if true or false
                  ):
         """Initialize comm port object. If a port is given, then the port will be
            opened immediately. Otherwise a Serial port object in closed state
@@ -137,6 +138,7 @@ class SerialBase(FileLike):
         self._writeTimeout  = None           #correct value is assigned below trough properties
         self._xonxoff  = None           #correct value is assigned below trough properties
         self._rtscts   = None           #correct value is assigned below trough properties
+        self._dsrdtr   = None           #correct value is assigned below trough properties
         
         #assign values using get/set methods using the properties feature
         self.port     = port
@@ -148,6 +150,7 @@ class SerialBase(FileLike):
         self.writeTimeout = writeTimeout
         self.xonxoff  = xonxoff
         self.rtscts   = rtscts
+        self.dsrdtr   = dsrdtr
         
         if port is not None:
             self.open()
@@ -308,21 +311,37 @@ class SerialBase(FileLike):
     xonxoff = property(getXonXoff, setXonXoff, doc="Xon/Xoff setting")
 
     def setRtsCts(self, rtscts):
-        """Change RtsCts setting."""
+        """Change RtsCts flow control setting."""
         self._rtscts = rtscts
         if self._isOpen: self._reconfigurePort()
     
     def getRtsCts(self):
-        """Get the current RtsCts setting."""
+        """Get the current RtsCts flow control setting."""
         return self._rtscts
     
-    rtscts = property(getRtsCts, setRtsCts, doc="RTS/CTS setting")
+    rtscts = property(getRtsCts, setRtsCts, doc="RTS/CTS flow control setting")
 
+    def setDsrDtr(self, dsrdtr=None):
+        """Change DsrDtr flow control setting."""
+        if dsrdtr is None:
+            #if not set, keep backwards compatibility and follow rtscts setting
+            self._dsrdtr = self._rtscts
+        else:
+            #if defined independently, follow its value
+            self._dsrdtr = dsrdtr
+        if self._isOpen: self._reconfigurePort()
+    
+    def getDsrDtr(self):
+        """Get the current DsrDtr flow control setting."""
+        return self._dsrdtr
+    
+    dsrdtr = property(getDsrDtr, setDsrDtr, "DSR/DTR flow control setting")
+    
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
     def __repr__(self):
         """String representation of the current port settings and its state."""
-        return "%s<id=0x%x, open=%s>(port=%r, baudrate=%r, bytesize=%r, parity=%r, stopbits=%r, timeout=%r, xonxoff=%r, rtscts=%r)" % (
+        return "%s<id=0x%x, open=%s>(port=%r, baudrate=%r, bytesize=%r, parity=%r, stopbits=%r, timeout=%r, xonxoff=%r, rtscts=%r, dsrdtr=%r)" % (
             self.__class__.__name__,
             id(self),
             self._isOpen,
@@ -334,6 +353,7 @@ class SerialBase(FileLike):
             self.timeout,
             self.xonxoff,
             self.rtscts,
+            self.dsrdtr,
         )
 
 if __name__ == '__main__':
