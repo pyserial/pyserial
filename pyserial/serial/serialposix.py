@@ -13,7 +13,7 @@
 import sys, os, fcntl, termios, struct, select, errno
 from serialutil import *
 
-VERSION = "$Revision: 1.27 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.28 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -168,6 +168,8 @@ class Serial(SerialBase):
         iflag &= ~(TERMIOS.INLCR|TERMIOS.IGNCR|TERMIOS.ICRNL|TERMIOS.IGNBRK)
         if hasattr(TERMIOS, 'IUCLC'):
             iflag &= ~TERMIOS.IUCLC
+        if hasattr(TERMIOS, 'PARMRK'):
+            iflag &= ~TERMIOS.PARMRK
         
         #setup baudrate
         try:

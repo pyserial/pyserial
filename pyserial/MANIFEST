@@ -11,6 +11,7 @@ examples\miniterm.py
 examples\tcp_serial_redirect.py
 examples\test.py
 examples\test_advanced.py
+examples\test_high_load.py
 examples\scan.py
 examples\enhancedserial.py
 examples\wxSerialConfigDialog.py

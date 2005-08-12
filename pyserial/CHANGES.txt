@@ -152,9 +152,17 @@ Version 2.1     28 Jul 2004
         - Implement write timeouts ('writeTimeout' parameter)
 
 
-Version 2.2     XXXX
+Version 2.2     31 Jul 2005
+    Bugfixes:
+        - [Bug 1014227]: property <del> broken
+        - [Bug 1105687]: serial_tcp_example.py: --localport option
+        - [Bug 1106313]: device (port) strings cannot be unicode
+    Bugfixes (posix):
+        - [Patch 1043436] Fix for [Bug 1043420] (OSError: EAGAIN)
+        - [Patch 1102700] fileno() added
+        - ensure disbaled PARMRK
     Bugfixes (win32):
-        - keep RTS/CTS state on port setting changes [Patch 983106]
+        - [Patch 983106]: keep RTS/CTS state on port setting changes
 
     New Features:
         - dsrdtr setting to enable/disable DSR/DTR flow control independently
