@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Very simple serial terminal
-# (C)2002-2004 Chris Liechti <cliecht@gmx.net>
+# (C)2002-2004 Chris Liechti <cliechti@gmx.net>
 
 # Input characters are sent directly (only LF -> CR/LF/CRLF translation is
 # done), received characters are displayed as is (or as trough pythons
@@ -11,17 +11,14 @@
 
 import sys, os, serial, threading, getopt
 
-EXITCHARCTER = '\x04'   #ctrl+D
+EXITCHARCTER = '\x1d'   #GS/ctrl+]
 
 #first choose a platform dependant way to read single characters from the console
 if os.name == 'nt':
     import msvcrt
     def getkey():
         while 1:
-            if echo:
-                z = msvcrt.getche()
-            else:
-                z = msvcrt.getch()
+            z = msvcrt.getch()
             if z == '\0' or z == '\xe0':    #functions keys
                 msvcrt.getch()
             else:
@@ -41,8 +38,6 @@ elif os.name == 'posix':
     s = ''    # We'll save the characters typed and add them to the pool.
     def getkey():
         c = os.read(fd, 1)
-        #~ c = sys.stdin.read(1)
-        if echo: sys.stdout.write(c); sys.stdout.flush()
         return c
     def clenaup_console():
         termios.tcsetattr(fd, termios.TCSAFLUSH, old)
@@ -55,111 +50,138 @@ CONVERT_CRLF = 2
 CONVERT_CR   = 1
 CONVERT_LF   = 0
 
-def reader():
-    """loop forever and copy serial->console"""
-    while 1:
-        data = s.read()
-        if repr_mode:
-            sys.stdout.write(repr(data)[1:-1])
-        else:
-            sys.stdout.write(data)
-        sys.stdout.flush()
+class Miniterm:
+    def __init__(self, port, baudrate, parity, rtscts, xonxoff, echo=False, convert_outgoing=CONVERT_CRLF, repr_mode=False):
+        self.serial = serial.Serial(port, baudrate, parity=parity, rtscts=rtscts, xonxoff=xonxoff, timeout=1)
+        self.echo = echo
+        self.repr_mode = repr_mode
+        self.convert_outgoing = convert_outgoing
 
-def writer():
-    """loop and copy console->serial until EOF character is found"""
-    while 1:
-        c = getkey()
-        if c == EXITCHARCTER: 
-            break                       #exit app
-        elif c == '\n':
-            if convert_outgoing == CONVERT_CRLF:
-                s.write('\r\n')         #make it a CR+LF
-            elif convert_outgoing == CONVERT_CR:
-                s.write('\r')           #make it a CR
-            elif convert_outgoing == CONVERT_LF:
-                s.write('\n')           #make it a LF
-        else:
-            s.write(c)                  #send character
+    def start(self):
+        self.alive = True
+        #start serial->console thread
+        self.receiver_thread = threading.Thread(target=self.reader)
+        self.receiver_thread.setDaemon(1)
+        self.receiver_thread.start()
+        #enter console->serial loop
+        self.transmitter_thread = threading.Thread(target=self.writer)
+        self.transmitter_thread.setDaemon(1)
+        self.transmitter_thread.start()
+    
+    def stop(self):
+        self.alive = False
+        
+    def join(self):
+        self.transmitter_thread.join()
+        #~ self.receiver_thread.join()
+
+    def reader(self):
+        """loop and copy serial->console"""
+        while self.alive:
+            data = self.serial.read(1)
+            if self.repr_mode:
+                sys.stdout.write(repr(data)[1:-1])
+            else:
+                sys.stdout.write(data)
+            sys.stdout.flush()
 
 
-#print a short help message
-def usage():
-    sys.stderr.write("""USAGE: %s [options]
-    Miniterm - A simple terminal program for the serial port.
+    def writer(self):
+        """loop and copy console->serial until EXITCHARCTER character is found"""
+        while self.alive:
+            try:
+                c = getkey()
+            except KeyboardInterrupt:
+                c = '\x03'
+            if c == EXITCHARCTER: 
+                self.stop()
+                break                       #exit app
+            elif c == '\n':
+                if self.convert_outgoing == CONVERT_CRLF:
+                    self.serial.write('\r\n')         #make it a CR+LF
+                    if self.echo:
+                        sys.stdout.write('\r\n')
+                elif self.convert_outgoing == CONVERT_CR:
+                    self.serial.write('\r')           #make it a CR
+                    if self.echo:
+                        sys.stdout.write('\r')
+                elif self.convert_outgoing == CONVERT_LF:
+                    self.serial.write('\n')           #make it a LF
+                    if self.echo:
+                        sys.stdout.write('\n')
+            else:
+                self.serial.write(c)                  #send character
+                if self.echo:
+                    sys.stdout.write(c)
 
-    options:
-    -p, --port=PORT: port, a number, default = 0 or a device name
-    -b, --baud=BAUD: baudrate, default 9600
-    -r, --rtscts:    enable RTS/CTS flow control (default off)
-    -x, --xonxoff:   enable software flow control (default off)
-    -e, --echo:      enable local echo (default off)
-    -c, --cr:        do not send CR+LF, send CR only
-    -n, --newline:   do not send CR+LF, send LF only
-    -D, --debug:     debug received data (escape nonprintable chars)
 
-""" % (sys.argv[0], ))
+
+def main():
+    import optparse
+
+    parser = optparse.OptionParser(usage="""\
+%prog [options]
+
+Miniterm - A simple terminal program for the serial port.""")
+
+    parser.add_option("-p", "--port", dest="port",
+        help="port, a number, defualt = 0 or a device name", default=0)
+    
+    parser.add_option("-b", "--baud", dest="baudrate", action="store", type='int',
+        help="set baudrate, default=9600", default=9600)
+        
+    parser.add_option("", "--parity", dest="parity", action="store",
+        help="set parity, one of [N, E, O], default=N", default='N')
+        
+    parser.add_option("", "--rtscts", dest="rtscts", action="store_true",
+        help="enable RTS/CTS flow control (default off)", default=False)
+    
+    parser.add_option("", "--xonxoff", dest="xonxoff", action="store_true",
+        help="enable software flow control (default off)", default=False)
+    
+    parser.add_option("-e", "--echo", dest="echo", action="store_true",
+        help="enable local echo (default off)", default=False)
+        
+    parser.add_option("", "--cr", dest="crlf", action="store_true",
+        help="do not send CR+LF, send CR only", default=False)
+        
+    parser.add_option("", "--newline", dest="newline", action="store_true",
+        help="do not send CR+LF, send LF only", default=False)
+        
+    parser.add_option("-D", "--debug", dest="repr_mode", action="store_true",
+        help="debug received data (escape nonprintable chars)", default=False)
+
+
+    (options, args) = parser.parse_args()
+
+    if options.crlf and options.newline:
+        parser.error("ony one of --cr or --newline can be specified")
+    
+    convert_outgoing = CONVERT_CRLF
+    if options.crlf:
+        convert_outgoing = CONVERT_CR
+    elif options.newline:
+        convert_outgoing = CONVERT_LF
+
+    try:
+        miniterm = Miniterm(
+            options.port,
+            options.baudrate,
+            options.parity,
+            rtscts=options.rtscts,
+            xonxoff=options.xonxoff,
+            echo=options.echo,
+            convert_outgoing=convert_outgoing,
+            repr_mode=options.repr_mode,
+        )
+    except serial.SerialException:
+        print "could not open port %r" % options.port
+        sys.exit(1)
+
+    sys.stderr.write("--- Miniterm --- type Ctrl-] to quit\n")
+    miniterm.start()
+    miniterm.join()
+    sys.stderr.write("\n--- exit ---\n")
 
 if __name__ == '__main__':
-    #initialize with defaults
-    port  = 0
-    baudrate = 9600
-    echo = 0
-    convert_outgoing = CONVERT_CRLF
-    rtscts = 0
-    xonxoff = 0
-    repr_mode = 0
-    
-    #parse command line options
-    try:
-        opts, args = getopt.getopt(sys.argv[1:],
-            "hp:b:rxecnD",
-            ["help", "port=", "baud=", "rtscts", "xonxoff", "echo",
-            "cr", "newline", "debug"]
-        )
-    except getopt.GetoptError:
-        # print help information and exit:
-        usage()
-        sys.exit(2)
-    
-    for o, a in opts:
-        if o in ("-h", "--help"):       #help text
-            usage()
-            sys.exit()
-        elif o in ("-p", "--port"):     #specified port
-            try:
-                port = int(a)
-            except ValueError:
-                port = a
-        elif o in ("-b", "--baud"):     #specified baudrate
-            try:
-                baudrate = int(a)
-            except ValueError:
-                raise ValueError, "Baudrate must be a integer number, not %r" % a
-        elif o in ("-r", "--rtscts"):
-            rtscts = 1
-        elif o in ("-x", "--xonxoff"):
-            xonxoff = 1
-        elif o in ("-e", "--echo"):
-            echo = 1
-        elif o in ("-c", "--cr"):
-            convert_outgoing = CONVERT_CR
-        elif o in ("-n", "--newline"):
-            convert_outgoing = CONVERT_LF
-        elif o in ("-D", "--debug"):
-            repr_mode = 1
-
-    #open the port
-    try:
-        s = serial.Serial(port, baudrate, rtscts=rtscts, xonxoff=xonxoff)
-    except:
-        sys.stderr.write("Could not open port\n")
-        sys.exit(1)
-    sys.stderr.write("--- Miniterm --- type Ctrl-D to quit\n")
-    #start serial->console thread
-    r = threading.Thread(target=reader)
-    r.setDaemon(1)
-    r.start()
-    #and enter console->serial loop
-    writer()
-
-    sys.stderr.write("\n--- exit ---\n")
+    main()
