@@ -152,8 +152,8 @@ class TerminalFrame(wxFrame):
         """Start the receiver thread"""        
         self.thread = threading.Thread(target=self.ComPortThread)
         self.thread.setDaemon(1)
-        self.thread.start()
         self.alive.set()
+        self.thread.start()
 
     def StopThread(self):
         """Stop the receiver thread, wait util it's finished."""
