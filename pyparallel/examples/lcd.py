@@ -5,7 +5,7 @@
 # this is distributed under a free software license, see license.txt
 
 import sys, time
-sys.path.append('..')
+sys.path.insert(0, '..')
 import parallel
 
 LCDON           = 0x01 #0x00000001 Switch on  display
@@ -31,9 +31,8 @@ LCD_D6          = 1<<6
 LCD_D7          = 1<<7
 
 
-class LCD:
+class FourBitIO(object):
     def __init__(self):
-        self.p = parallel.Parallel()
         self.data = 0
         
         self.out(0)                 #reset pins
@@ -97,6 +96,69 @@ class LCD:
         self.toggleE()              #toggle LCD_E, the enable pin
         time.sleep(0.001)           #wait until instr is finished
 
+
+class EightBitIO(object):
+    def __init__(self):
+        self.data = 0
+        
+        self.setRS(0)
+        self.setRW(0)
+        self.out(0)                 #reset pins
+        time.sleep(0.050)           #wait more than 30ms
+        #send the reset sequece (3 times the same pattern)
+        self.out(LCD8BITS)          #set 8 bit interface
+        self.toggleE()              #toggle LCD_E, the enable pin
+        time.sleep(0.005)           #wait a bit
+        self.toggleE()              #toggle LCD_E, the enable pin
+        time.sleep(0.005)           #wait a bit
+        self.toggleE()              #toggle LCD_E, the enable pin
+        time.sleep(0.005)           #wait a bit
+        
+        #~ self.instr(LCD2LINES)       #set 2 lines display
+        self.instr(LCDCURSOROFF)    #hide cursor
+        self.instr(LCDCLEAR)        #clear display
+
+    def setRW(self, state):
+        self.p.setAutoFeed(state)
+    
+    def setRS(self, state):
+        self.p.setInitOut(state)
+        
+    def toggleE(self):
+        """toggle enable pin"""
+        self.p.setDataStrobe(1)     #toggle LCD_E, the enable pin
+        #~ time.sleep(0.001)
+        self.p.setDataStrobe(0)     #back to inactive position
+        #~ time.sleep(0.001)
+
+    def out(self, data):
+        """set data to LCD port"""
+        self.data = data
+        self.p.setData(self.data)
+
+    def instr(self, cmd):
+        """send instruction byte to LCD"""
+        self.setRS(0)
+        self.setRW(0)
+        self.out(cmd)
+        self.toggleE()              #toggle LCD_E, the enable pin
+        time.sleep(0.005)           #wait until instr is finished
+
+    def putc(self, c):
+        """send a data byte to the LCD"""
+        self.setRS(1)
+        self.setRW(0)
+        self.out(ord(c))
+        self.toggleE()              #toggle LCD_E, the enable pin
+        time.sleep(0.001)           #wait until instr is finished
+
+
+#~ class HD44780(FourBitIO):
+class HD44780(EightBitIO):
+    def __init__(self):
+        self.p = parallel.Parallel()
+        super(HD44780, self).__init__()
+        
     def write(self, str):
         """write a string to the LCD"""
         for c in str:
@@ -109,7 +171,7 @@ class LCD:
         self.instr(LCDLINE1)        #just in case, set cursor to a visible pos
 
 if __name__ == '__main__':
-    lcd = LCD()
+    lcd = HD44780()
     lcd.write("Hello World")
     lcd.instr(LCDLINE2)
     lcd.write("from Python")

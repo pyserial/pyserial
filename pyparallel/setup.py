@@ -5,7 +5,7 @@ import os
 if os.name == 'nt':
     data_files = {'parallel': ['simpleio.dll']}
 else:
-    data_files = None
+    data_files = {}
 
 setup (name = "pyparallel",
     description="Python Parallel Port Extension",

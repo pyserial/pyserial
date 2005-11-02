@@ -184,7 +184,7 @@ class Parallel:
         else:
             self.device = "/dev/parport%d" % port
         self._fd = os.open(self.device, os.O_RDWR)
-        self.PPEXCL()
+        #~ self.PPEXCL()
         self.PPCLAIM()
         self.setDataDir(1)
         self.setData(0)
