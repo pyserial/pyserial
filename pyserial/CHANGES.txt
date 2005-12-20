@@ -169,3 +169,8 @@ Version 2.2     31 Jul 2005
           from the rtscts setting. (Currenly Win32 only, ignored on other
           platforms)
 
+Version 2.3     xxx
+    New Features:
+        - iterator interface. "for line in Serial(...): ..." is now possible
+          Sugested by Bernhard Bender
+

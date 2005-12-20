@@ -96,6 +96,16 @@ class FileLike(object):
         """flush of file like objects"""
         pass
 
+    # iterator for e.g. "for line in Serial(0): ..." usage
+    def next(self):
+        line = self.readline()
+        if not line: raise StopIteration
+        return line
+
+    def __iter__(self):
+        return self
+
+
 class SerialBase(FileLike):
     """Serial port base class. Provides __init__ function and properties to
        get/set port settings."""
