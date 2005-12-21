@@ -1,176 +1,244 @@
+======================
+pySerial Release Notes
+======================
+
 Version 1.0     13 Feb 2002
-    First public release.
-    Split from the pybsl application (see mspgcc.sourceforge.net)
-    
-    New Features:
-        - Added Jython support
-    
+---------------------------
+- First public release.
+- Split from the pybsl application (see http://mspgcc.sourceforge.net)
+
+New Features:
+
+- Added Jython support
+
+
 Version 1.1     14 Feb 2002
-    Bugfixes:
-        - Win32, when not specifying a timeout
-        - Typos in the Docs
+---------------------------
+Bugfixes:
+
+- Win32, when not specifying a timeout
+- Typos in the Docs
         
-    New Features:
-        - added serialutil which provides a base class for the Serial
-          objects.
-        
-        - readline, readlines, writelines and flush are now supported
-          see README.txt for deatils.
+New Features:
+
+- added ``serialutil`` which provides a base class for the ``Serial``
+  objects.
+
+- ``readline``, ``readlines``, ``writelines`` and ``flush`` are now supported
+  see README.txt for deatils.
+
 
 Version 1.11    14 Feb 2002
-    Same as 1.1 but added missing files.
+---------------------------
+Same as 1.1 but added missing files.
+
 
 Version 1.12    18 Feb 2002
-    Removed unneded constants to fix RH7.x problems.
+---------------------------
+Removed unneded constants to fix RH7.x problems.
+
 
 Version 1.13    09 Apr 2002
-    Added alternate way for enabling rtscts (CNEW_RTSCTS is tried too)
-    If port opening fails, a SerialException is raised on all platforms
+---------------------------
+Added alternate way for enabling rtscts (CNEW_RTSCTS is tried too)
+If port opening fails, a ``SerialException`` is raised on all platforms
+
 
 Version 1.14    29 May 2002
-    Added examples to archive
-    Added non-blocking mode for timeout=0 (tnx Mat Martineau)
+---------------------------
+Added examples to archive
+Added non-blocking mode for ``timeout=0`` (tnx Mat Martineau)
 
-    Bugfixes:
-        - win32 does now return the remaining characters on timeout
+Bugfixes:
+
+- win32 does now return the remaining characters on timeout
+
 
 Version 1.15    04 Jun 2002
-    Bugfixes (win32):
-        - removed debug messages
-        - compatibility to win9x improved
+---------------------------
+Bugfixes (win32):
+
+- removed debug messages
+- compatibility to win9x improved
+
 
 Version 1.16    02 Jul 2002
-    Added implementation of RI and corrected RTS/CTS on Win32
+---------------------------
+Added implementation of RI and corrected RTS/CTS on Win32
+
 
 Version 1.17    03 Jul 2002
-    Silly mix of two versions in win32 code corrected
+---------------------------
+Silly mix of two versions in win32 code corrected
+
 
 Version 1.18    06 Dec 2002
-    Bugfixes (general):
-        - remove the mapping of flush to the destructive flushOutput as
-          this is not the expected behaviour.
-        - readline: EOL character for lines can be chosen idea by 
-          John Florian.
-    Bugfixes (posix):
-        - cygwin port numbering fixed
-        - test each and every constant for it's existence in termios module,
-          use default if not existent (fix for Bug item #640214)
-        - wrong exception on nonexitstent ports with /dev file. bug report
-          by Louis Cordier
-    Bugfixes (win32):
-        - RTS/CTS handling as sugested in Bug #635072
-        - bugfix of timeouts brought up by Markus Hoffrogge
+---------------------------
+Bugfixes (general):
+
+- remove the mapping of flush to the destructive flushOutput as
+  this is not the expected behaviour.
+- readline: EOL character for lines can be chosen idea by 
+  John Florian.
+
+Bugfixes (posix):
+
+- cygwin port numbering fixed
+- test each and every constant for it's existence in termios module,
+  use default if not existent (fix for Bug item #640214)
+- wrong exception on nonexitstent ports with /dev file. bug report
+  by Louis Cordier
+
+Bugfixes (win32):
+
+- RTS/CTS handling as sugested in Bug #635072
+- bugfix of timeouts brought up by Markus Hoffrogge
 
 Version 1.19    19 Mar 2003
-    Bugfixes (posix):
-        - removed dgux entry which actualy had a wrong comment and is
-          probably not in use anywhere.
-    Bugfixes (win32):
-        - added int() conversion, [Bug 702120]
-        - remove code to set control lines in close methond of win32
-          version. [Bug 669625]
+---------------------------
+Bugfixes (posix):
+
+- removed ``dgux`` entry which actualy had a wrong comment and is
+  probably not in use anywhere.
+
+Bugfixes (win32):
+
+- added ``int()`` conversion, [Bug 702120]
+- remove code to set control lines in close methond of win32
+  version. [Bug 669625]
 
 Version 1.20    28 Aug 2003
-    Added serial.device() for all platforms
-    Bugfixes (win32):
-        - don't recreate opverlaped structures and events on each
-          read/write.
-        - don't set unneded event masks.
-        - dont use DOS device names for ports > 9.
-        - remove send timeout (its not used in the linux impl. anyway).
+---------------------------
+- Added ``serial.device()`` for all platforms
+
+Bugfixes (win32):
+
+- don't recreate opverlaped structures and events on each
+  read/write.
+- don't set unneded event masks.
+- dont use DOS device names for ports > 9.
+- remove send timeout (its not used in the linux impl. anyway).
 
 
 Version 1.21    30 sep 2003
-    Bugfixes (win32):
-        - name for COM10 was not built correctly, found by Norm Davis.
-    Bugfixes (examples):
-        - small change in miniterm.py that should mage it run on cygwin,
-          [Bug 809904] submitted by Rolf Campbell.
+---------------------------
+Bugfixes (win32):
+
+- name for COM10 was not built correctly, found by Norm Davis.
+
+Bugfixes (examples):
+
+- small change in ``miniterm.py`` that should mage it run on cygwin,
+  [Bug 809904] submitted by Rolf Campbell.
 
 Version 2.0b1    1 Oct 2003
-    Transition to the 2.0 series:
-    - New implementation only supports Python 2.2+, backwards compatibility
-      should be maintained almost everywhere.
-      The OS handles (like the hComPort or fd attribute) were prefixed with an
-      underscore. The different names stay, as anyone that uses one of these
-      has to write platform specific code anyway.
-    - Common base class serialutil.SerialBase for all implementations.
-    - PARITY_NONE, PARITY_EVEN, PARITY_ODD constants changed and all these
-      constants moved to serialutil.py (still available as serial.PARITY_NONE
-      etc. and they should be used that way)
-    - Added serial.PARITY_NAMES (implemented in serialutil.PARITY_NAMES).
-      This dictionary can be used to convert parity constants to meaningful
-      strings.
-    - Each Serial class and instance has a list of supported values:
-        BAUDRATES, BYTESIZES, PARITIES, STOPBITS
-      (i.e. serial.Serial.BAUDRATES or s = serial.Serial; s.BAUDRATES)
-      these values can be used to fill in value sin GUI dialogs etc.
-    - Creating a Serial() object without port spec returns an unconfigured,
-      closed port. Useful if a GUI dialog should take a port and configure
-      it.
-    - New methods for serial.Serial instances: open(), isOpen()
-    - A port can be opened and closed as many times as desired.
-    - Instances of serial.Serial have baudrate, bytesize, timeout etc.
-      attributes implemented as properties, all can be set while the port is
-      opened. It will then be reconfigured.
-    - Improved __doc__'s.
-    - New test_advanced.py for the property setting/getting testing.
-    - Small bugfix on posix with get* methods (return value should be true a
-      boolean).
-    - added a __repr__ that returns a meaningful string will all the serial
-      setting, easy for debugging.
-    - The serialposix module does not throw an exception on unsupported
-      platforms, the message is still printed. The idea that it may still
-      work even if the platform itself s not known, it simply tries to do
-      the posix stuff anyway (It's likely that opening ports by number
-      fails, but by name it should work).
+---------------------------
+Transition to the Python 2.0 series:
+
+- New implementation only supports Python 2.2+, backwards compatibility
+  should be maintained almost everywhere.
+  The OS handles (like the ``hComPort`` or ``fd`` attribute) were prefixed
+  with an underscore. The different names stay, as anyone that uses one of
+  these has to write platform specific code anyway.
+- Common base class ``serialutil.SerialBase`` for all implementations.
+- ``PARITY_NONE``, ``PARITY_EVEN``, ``PARITY_ODD`` constants changed and all
+  these constants moved to ``serialutil.py`` (still available as
+  ``serial.PARITY_NONE`` etc. and they should be used that way)
+- Added ``serial.PARITY_NAMES`` (implemented in ``serialutil.PARITY_NAMES``).
+  This dictionary can be used to convert parity constants to meaningful
+  strings.
+- Each Serial class and instance has a list of supported values:
+  ``BAUDRATES``, ``BYTESIZES``, ``PARITIES``, ``STOPBITS``
+  (i.e. ``serial.Serial.BAUDRATES or s = serial.Serial; s.BAUDRATES``)
+  these values can be used to fill in value sin GUI dialogs etc.
+- Creating a ``Serial()`` object without port spec returns an unconfigured,
+  closed port. Useful if a GUI dialog should take a port and configure
+  it.
+- New methods for ``serial.Serial`` instances: ``open()``, ``isOpen()``
+- A port can be opened and closed as many times as desired.
+- Instances of ``serial.Serial`` have ``baudrate``, ``bytesize``, ``timeout``
+  etc. attributes implemented as properties, all can be set while the port is
+  opened. It will then be reconfigured.
+- Improved ``__doc__``'s.
+- New ``test_advanced.py`` for the property setting/getting testing.
+- Small bugfix on posix with get* methods (return value should be true a
+  boolean).
+- added a ``__repr__`` that returns a meaningful string will all the serial
+  setting, easy for debugging.
+- The serialposix module does not throw an exception on unsupported
+  platforms, the message is still printed. The idea that it may still
+  work even if the platform itself s not known, it simply tries to do
+  the posix stuff anyway (It's likely that opening ports by number
+  fails, but by name it should work).
+
 
 Version 2.0b2    4 Oct 2003
-    - Added serial port configuration dialog for wxPython to the examples.
-    - Added terminal application for wxPython with wxGlade design file
-      to the examples.
-    - Jython support is currenty broken as Jython does not have a Python 2.2
-      compatible release out yet
+---------------------------
+- Added serial port configuration dialog for wxPython to the examples.
+- Added terminal application for wxPython with wxGlade design file
+  to the examples.
+- Jython support is currenty broken as Jython does not have a Python 2.2
+  compatible release out yet
+
 
 Version 2.0      6 Nov 2003
-    - Fixes setup.py for older distutils
+---------------------------
+- Fixes ``setup.py`` for older distutils
+
 
 Version 2.1     28 Jul 2004
-    Bugfixes:
-        - Fix XON/XOFF values [Bug 975250]
-    Bugfixes (posix):
-        - fd == 0 fix from Vsevolod Lobko
-        - netbsd fixes from Erik Lindgren
-        - Dynamicaly lookup baudrates and some cleanups
-    Bugfixes (examples):
-        - CRLF handling of miniterm.py should be more consistent on Win32
-          and others. Added LF only command line option
-        - Mutithreading fixes to wxTerminal.py (helps with wxGTK)
-        - Small change for wxPython 2.5 in wxSerialConfigDialog.py [Bug 994856]
-        
-    New Features:
-        - Implement write timeouts ('writeTimeout' parameter)
+---------------------------
+Bugfixes:
+
+- Fix XON/XOFF values [Bug 975250]
+
+Bugfixes (posix):
+
+- ``fd == 0`` fix from Vsevolod Lobko
+- netbsd fixes from Erik Lindgren
+- Dynamicaly lookup baudrates and some cleanups
+
+Bugfixes (examples):
+
+- CRLF handling of ``miniterm.py`` should be more consistent on Win32
+  and others. Added LF only command line option
+- Multithreading fixes to ``wxTerminal.py`` (helps with wxGTK)
+- Small change for wxPython 2.5 in ``wxSerialConfigDialog.py`` [Bug 994856]
+
+New Features:
+
+- Implement write timeouts (``writeTimeout`` parameter)
 
 
 Version 2.2     31 Jul 2005
-    Bugfixes:
-        - [Bug 1014227]: property <del> broken
-        - [Bug 1105687]: serial_tcp_example.py: --localport option
-        - [Bug 1106313]: device (port) strings cannot be unicode
-    Bugfixes (posix):
-        - [Patch 1043436] Fix for [Bug 1043420] (OSError: EAGAIN)
-        - [Patch 1102700] fileno() added
-        - ensure disbaled PARMRK
-    Bugfixes (win32):
-        - [Patch 983106]: keep RTS/CTS state on port setting changes
+---------------------------
+Bugfixes:
 
-    New Features:
-        - dsrdtr setting to enable/disable DSR/DTR flow control independently
-          from the rtscts setting. (Currenly Win32 only, ignored on other
-          platforms)
+- [Bug 1014227]: property <del> broken
+- [Bug 1105687]: ``serial_tcp_example.py``: ``--localport`` option
+- [Bug 1106313]: device (port) strings cannot be unicode
+
+Bugfixes (posix):
+
+- [Patch 1043436] Fix for [Bug 1043420] (OSError: EAGAIN)
+- [Patch 1102700] ``fileno()`` added
+- ensure disabled PARMRK
+
+Bugfixes (win32):
+
+- [Patch 983106]: keep RTS/CTS state on port setting changes
+
+New Features:
+
+- ``dsrdtr`` setting to enable/disable DSR/DTR flow control independently
+  from the ``rtscts`` setting. (Currenly Win32 only, ignored on other
+  platforms)
+
 
 Version 2.3     xxx
-    New Features:
-        - iterator interface. "for line in Serial(...): ..." is now possible
-          Sugested by Bernhard Bender
+---------------------------
+New Features:
+
+- iterator interface. "for line in Serial(...): ..." is now possible
+  Sugested by Bernhard Bender
 

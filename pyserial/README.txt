@@ -1,3 +1,4 @@
+========
 pySerial
 ========
 This module capsulates the access for the serial port. It provides backends
