@@ -11,7 +11,7 @@ import win32event # We use events and the WaitFor[Single|Multiple]Objects functi
 import win32con   # constants.
 from serialutil import *
 
-VERSION = "$Revision: 1.31 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.32 $".split()[1]     #extract CVS version
 
 #from winbase.h. these should realy be in win32con
 MS_CTS_ON  = 16
@@ -237,13 +237,12 @@ class Serial(SerialBase):
         if not self.hComPort: raise portNotOpenError
         win32file.PurgeComm(self.hComPort, win32file.PURGE_TXCLEAR | win32file.PURGE_TXABORT)
 
-    def sendBreak(self):
+    def sendBreak(self, duration=0.25):
         """Send break condition."""
         if not self.hComPort: raise portNotOpenError
         import time
         win32file.SetCommBreak(self.hComPort)
-        #TODO: how to set the correct duration??
-        time.sleep(0.020)
+        time.sleep(duration)
         win32file.ClearCommBreak(self.hComPort)
 
     def setRTS(self,level=1):

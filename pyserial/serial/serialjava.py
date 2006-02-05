@@ -9,7 +9,7 @@
 import javax.comm
 from serialutil import *
 
-VERSION = "$Revision: 1.8 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.9 $".split()[1]     #extract CVS version
 
 
 def device(portnumber):
@@ -152,10 +152,10 @@ class Serial(SerialBase):
         if not self.sPort: raise portNotOpenError
         self._outstream.flush()
 
-    def sendBreak(self):
+    def sendBreak(self, duration=0.25):
         """Send break condition."""
         if not self.sPort: raise portNotOpenError
-        self.sPort.sendBreak()
+        self.sPort.sendBreak(duration*1000.0)
 
     def setRTS(self,on=1):
         """Set terminal status line: Request To Send"""

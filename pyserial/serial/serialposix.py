@@ -13,7 +13,7 @@
 import sys, os, fcntl, termios, struct, select, errno
 from serialutil import *
 
-VERSION = "$Revision: 1.28 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.29 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -321,11 +321,11 @@ class Serial(SerialBase):
             raise portNotOpenError
         termios.tcflush(self.fd, TERMIOS.TCOFLUSH)
 
-    def sendBreak(self):
+    def sendBreak(self, duration=0.25):
         """Send break condition."""
         if self.fd is None:
             raise portNotOpenError
-        termios.tcsendbreak(self.fd, 0)
+        termios.tcsendbreak(self.fd, int(duration/0.25))
 
     def setRTS(self,on=1):
         """Set terminal status line: Request To Send"""

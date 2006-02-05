@@ -239,6 +239,7 @@ Version 2.3     xxx
 ---------------------------
 New Features:
 
-- iterator interface. "for line in Serial(...): ..." is now possible
+- iterator interface. ``for line in Serial(...): ...`` is now possible
   Sugested by Bernhard Bender
 
+- ``sendBreak()`` accepts a ``duration`` argument. Default duration increased.
