@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
 # Very simple serial terminal
-# (C)2002-2004 Chris Liechti <cliechti@gmx.net>
+# (C)2002-2006 Chris Liechti <cliechti@gmx.net>
 
 # Input characters are sent directly (only LF -> CR/LF/CRLF translation is
 # done), received characters are displayed as is (or as trough pythons
 # repr, useful for debug purposes)
-# Baudrate and echo configuartion is done through globals
 
 
 import sys, os, serial, threading, getopt
@@ -35,7 +34,6 @@ elif os.name == 'posix':
     new[6][termios.VMIN] = 1
     new[6][termios.VTIME] = 0
     termios.tcsetattr(fd, termios.TCSANOW, new)
-    s = ''    # We'll save the characters typed and add them to the pool.
     def getkey():
         c = os.read(fd, 1)
         return c
@@ -82,7 +80,10 @@ class Miniterm:
             if self.repr_mode:
                 sys.stdout.write(repr(data)[1:-1])
             else:
-                sys.stdout.write(data)
+                if data == '\r' and self.convert_outgoing == CONVERT_CR:
+                    sys.stdout.write('\n')
+                else:
+                    sys.stdout.write(data)
             sys.stdout.flush()
 
 
@@ -95,7 +96,7 @@ class Miniterm:
                 c = '\x03'
             if c == EXITCHARCTER: 
                 self.stop()
-                break                       #exit app
+                break                                 #exit app
             elif c == '\n':
                 if self.convert_outgoing == CONVERT_CRLF:
                     self.serial.write('\r\n')         #make it a CR+LF
@@ -125,13 +126,16 @@ def main():
 Miniterm - A simple terminal program for the serial port.""")
 
     parser.add_option("-p", "--port", dest="port",
-        help="port, a number, defualt = 0 or a device name", default=0)
+        help="port, a number (default = 0) or a device name", default=0)
     
     parser.add_option("-b", "--baud", dest="baudrate", action="store", type='int',
         help="set baudrate, default=9600", default=9600)
         
     parser.add_option("", "--parity", dest="parity", action="store",
         help="set parity, one of [N, E, O], default=N", default='N')
+    
+    parser.add_option("-e", "--echo", dest="echo", action="store_true",
+        help="enable local echo (default off)", default=False)
         
     parser.add_option("", "--rtscts", dest="rtscts", action="store_true",
         help="enable RTS/CTS flow control (default off)", default=False)
@@ -139,13 +143,10 @@ Miniterm - A simple terminal program for the serial port.""")
     parser.add_option("", "--xonxoff", dest="xonxoff", action="store_true",
         help="enable software flow control (default off)", default=False)
     
-    parser.add_option("-e", "--echo", dest="echo", action="store_true",
-        help="enable local echo (default off)", default=False)
-        
-    parser.add_option("", "--cr", dest="crlf", action="store_true",
+    parser.add_option("", "--cr", dest="cr", action="store_true",
         help="do not send CR+LF, send CR only", default=False)
         
-    parser.add_option("", "--newline", dest="newline", action="store_true",
+    parser.add_option("", "--lf", dest="lf", action="store_true",
         help="do not send CR+LF, send LF only", default=False)
         
     parser.add_option("-D", "--debug", dest="repr_mode", action="store_true",
@@ -154,13 +155,16 @@ Miniterm - A simple terminal program for the serial port.""")
 
     (options, args) = parser.parse_args()
 
-    if options.crlf and options.newline:
-        parser.error("ony one of --cr or --newline can be specified")
+    if options.cr and options.lf:
+        parser.error("ony one of --cr or --lf can be specified")
+    
+    if args:
+        parser.error("no arguments are allowed, options only")
     
     convert_outgoing = CONVERT_CRLF
-    if options.crlf:
+    if options.cr:
         convert_outgoing = CONVERT_CR
-    elif options.newline:
+    elif options.lf:
         convert_outgoing = CONVERT_LF
 
     try:
@@ -178,7 +182,7 @@ Miniterm - A simple terminal program for the serial port.""")
         print "could not open port %r" % options.port
         sys.exit(1)
 
-    sys.stderr.write("--- Miniterm --- type Ctrl-] to quit\n")
+    sys.stderr.write("--- Miniterm on %s--- type Ctrl-] to quit\n" % miniterm.serial.portstr)
     miniterm.start()
     miniterm.join()
     sys.stderr.write("\n--- exit ---\n")
