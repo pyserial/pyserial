@@ -152,6 +152,12 @@ Miniterm - A simple terminal program for the serial port.""")
     parser.add_option("-D", "--debug", dest="repr_mode", action="store_true",
         help="debug received data (escape nonprintable chars)", default=False)
 
+    parser.add_option("", "--rts", dest="rts_state", action="store", type='int',
+        help="set initial RTS line state (possible values: 0, 1)", default=None)
+
+    parser.add_option("", "--dtr", dest="dtr_state", action="store", type='int',
+        help="set initial DTR line state (possible values: 0, 1)", default=None)
+
 
     (options, args) = parser.parse_args()
 
@@ -182,9 +188,17 @@ Miniterm - A simple terminal program for the serial port.""")
         print "could not open port %r" % options.port
         sys.exit(1)
 
-    sys.stderr.write("--- Miniterm on %s--- type Ctrl-] to quit\n" % miniterm.serial.portstr)
+    sys.stderr.write("--- Miniterm on %s --- type Ctrl-] to quit\n" % miniterm.serial.portstr)
+    if options.rts_state is not None:
+        sys.stderr.write("--- forcing RTS %s\n" % (options.rts_state and 'active' or 'inactive'))
+        miniterm.serial.setRTS(options.rts_state)
+    if options.dtr_state is not None:
+        sys.stderr.write("--- forcing DTR %s\n" % (options.dtr_state and 'active' or 'inactive'))
+        miniterm.serial.setDTR(options.dtr_state)
+        
     miniterm.start()
     miniterm.join()
+    
     sys.stderr.write("\n--- exit ---\n")
 
 if __name__ == '__main__':
