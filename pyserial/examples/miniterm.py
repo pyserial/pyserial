@@ -4,7 +4,7 @@
 # (C)2002-2006 Chris Liechti <cliechti@gmx.net>
 
 # Input characters are sent directly (only LF -> CR/LF/CRLF translation is
-# done), received characters are displayed as is (or as trough pythons
+# done), received characters are displayed as is (or escaped trough pythons
 # repr, useful for debug purposes)
 
 
@@ -47,13 +47,15 @@ else:
 CONVERT_CRLF = 2
 CONVERT_CR   = 1
 CONVERT_LF   = 0
+NEWLINE_CONVERISON_MAP = ('\n', '\r', '\r\n')
 
 class Miniterm:
     def __init__(self, port, baudrate, parity, rtscts, xonxoff, echo=False, convert_outgoing=CONVERT_CRLF, repr_mode=False):
-        self.serial = serial.Serial(port, baudrate, parity=parity, rtscts=rtscts, xonxoff=xonxoff, timeout=1)
+        self.serial = serial.Serial(port, baudrate, parity=parity, rtscts=rtscts, xonxoff=xonxoff, timeout=0.7)
         self.echo = echo
         self.repr_mode = repr_mode
         self.convert_outgoing = convert_outgoing
+        self.newline = NEWLINE_CONVERISON_MAP[self.convert_outgoing]
 
     def start(self):
         self.alive = True
@@ -69,9 +71,10 @@ class Miniterm:
     def stop(self):
         self.alive = False
         
-    def join(self):
+    def join(self, transmit_only=False):
         self.transmitter_thread.join()
-        #~ self.receiver_thread.join()
+        if not transmit_only:
+            self.receiver_thread.join()
 
     def reader(self):
         """loop and copy serial->console"""
@@ -96,22 +99,13 @@ class Miniterm:
                 c = '\x03'
             if c == EXITCHARCTER: 
                 self.stop()
-                break                                 #exit app
+                break                                   # exit app
             elif c == '\n':
-                if self.convert_outgoing == CONVERT_CRLF:
-                    self.serial.write('\r\n')         #make it a CR+LF
-                    if self.echo:
-                        sys.stdout.write('\r\n')
-                elif self.convert_outgoing == CONVERT_CR:
-                    self.serial.write('\r')           #make it a CR
-                    if self.echo:
-                        sys.stdout.write('\r')
-                elif self.convert_outgoing == CONVERT_LF:
-                    self.serial.write('\n')           #make it a LF
-                    if self.echo:
-                        sys.stdout.write('\n')
+                self.serial.write(self.newline)         # send newline character(s)
+                if self.echo:
+                    sys.stdout.write(c)                 #local echo is a real newline in any case
             else:
-                self.serial.write(c)                  #send character
+                self.serial.write(c)                    # send character
                 if self.echo:
                     sys.stdout.write(c)
 
@@ -158,6 +152,9 @@ Miniterm - A simple terminal program for the serial port.""")
     parser.add_option("", "--dtr", dest="dtr_state", action="store", type='int',
         help="set initial DTR line state (possible values: 0, 1)", default=None)
 
+    parser.add_option("-q", "--quiet", dest="quiet", action="store_true",
+        help="suppress non error messages", default=False)
+
 
     (options, args) = parser.parse_args()
 
@@ -185,21 +182,26 @@ Miniterm - A simple terminal program for the serial port.""")
             repr_mode=options.repr_mode,
         )
     except serial.SerialException:
-        print "could not open port %r" % options.port
+        sys.stderr.write("could not open port %r" % options.port)
         sys.exit(1)
 
-    sys.stderr.write("--- Miniterm on %s --- type Ctrl-] to quit\n" % miniterm.serial.portstr)
-    if options.rts_state is not None:
-        sys.stderr.write("--- forcing RTS %s\n" % (options.rts_state and 'active' or 'inactive'))
-        miniterm.serial.setRTS(options.rts_state)
+    if not options.quiet:
+        sys.stderr.write('--- Miniterm on "%s". Type Ctrl-] to quit. ---\n' % miniterm.serial.portstr)
     if options.dtr_state is not None:
-        sys.stderr.write("--- forcing DTR %s\n" % (options.dtr_state and 'active' or 'inactive'))
+        if not options.quiet:
+            sys.stderr.write('--- forcing DTR %s\n' % (options.dtr_state and 'active' or 'inactive'))
         miniterm.serial.setDTR(options.dtr_state)
+    if options.rts_state is not None:
+        if not options.quiet:
+            sys.stderr.write('--- forcing RTS %s\n' % (options.rts_state and 'active' or 'inactive'))
+        miniterm.serial.setRTS(options.rts_state)
         
     miniterm.start()
+    miniterm.join(True)
+    if not options.quiet:
+        sys.stderr.write("\n--- exit ---\n")
     miniterm.join()
-    
-    sys.stderr.write("\n--- exit ---\n")
+
 
 if __name__ == '__main__':
     main()
