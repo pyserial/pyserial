@@ -13,7 +13,7 @@
 import sys, os, fcntl, termios, struct, select, errno
 from serialutil import *
 
-VERSION = "$Revision: 1.29 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.30 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -52,9 +52,9 @@ elif plat[:6] == 'netbsd':   #NetBSD 1.6 testing by Erk
     def device(port):
         return '/dev/dty%02d' % port
 
-elif plat[:4] == 'irix':     #IRIX (not tested)
+elif plat[:4] == 'irix':     #IRIX (partialy tested)
     def device(port):
-        return '/dev/ttyf%d' % port
+        return '/dev/ttyf%d' % (port+1) #XXX different device names depending on flow control
 
 elif plat[:2] == 'hp':       #HP-UX (not tested)
     def device(port):
