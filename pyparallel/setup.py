@@ -16,5 +16,5 @@ setup (name = "pyparallel",
     packages=['parallel'],
     license="Python",
     long_description="Python Parallel Port Extension for Win32, Linux, BSD",
-    package_data = data_files
+    package_data = {}
 )
