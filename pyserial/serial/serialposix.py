@@ -13,7 +13,7 @@
 import sys, os, fcntl, termios, struct, select, errno
 from serialutil import *
 
-VERSION = "$Revision: 1.30 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.31 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -138,7 +138,7 @@ class Serial(SerialBase):
             self.fd = os.open(self.portstr, os.O_RDWR|os.O_NOCTTY|os.O_NONBLOCK)
         except Exception, msg:
             self.fd = None
-            raise SerialException("Could not open port: %s" % msg)
+            raise SerialException("could not open port %s: %s" % (self._port, msg))
         #~ fcntl.fcntl(self.fd, FCNTL.F_SETFL, 0)  #set blocking
         
         self._reconfigurePort()
@@ -327,7 +327,7 @@ class Serial(SerialBase):
             raise portNotOpenError
         termios.tcsendbreak(self.fd, int(duration/0.25))
 
-    def setRTS(self,on=1):
+    def setRTS(self, level=1):
         """Set terminal status line: Request To Send"""
         if self.fd is None: raise portNotOpenError
         if on:
@@ -335,7 +335,7 @@ class Serial(SerialBase):
         else:
             fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_RTS_str)
 
-    def setDTR(self,on=1):
+    def setDTR(self, level=1):
         """Set terminal status line: Data Terminal Ready"""
         if self.fd is None: raise portNotOpenError
         if on:

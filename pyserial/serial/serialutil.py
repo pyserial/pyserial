@@ -221,7 +221,7 @@ class SerialBase(FileLike):
         try:
             self._baudrate = int(baudrate)
         except TypeError:
-            raise ValueError("Not a valid baudrate: %r" % baudrate)
+            raise ValueError("Not a valid baudrate: %r" % (baudrate,))
         else:
             if self._isOpen:  self._reconfigurePort()
         
@@ -234,7 +234,7 @@ class SerialBase(FileLike):
 
     def setByteSize(self, bytesize):
         """Change byte size."""
-        if bytesize not in self.BYTESIZES: raise ValueError("Not a valid byte size: %r" % bytesize)
+        if bytesize not in self.BYTESIZES: raise ValueError("Not a valid byte size: %r" % (bytesize,))
         self._bytesize = bytesize
         if self._isOpen: self._reconfigurePort()
     
@@ -247,7 +247,7 @@ class SerialBase(FileLike):
 
     def setParity(self, parity):
         """Change parity setting."""
-        if parity not in self.PARITIES: raise ValueError("Not a valid parity: %r" % parity)
+        if parity not in self.PARITIES: raise ValueError("Not a valid parity: %r" % (parity,))
         self._parity = parity
         if self._isOpen: self._reconfigurePort()
     
@@ -260,7 +260,7 @@ class SerialBase(FileLike):
 
     def setStopbits(self, stopbits):
         """Change stopbits size."""
-        if stopbits not in self.STOPBITS: raise ValueError("Not a valid stopbit size: %r" % stopbits)
+        if stopbits not in self.STOPBITS: raise ValueError("Not a valid stopbit size: %r" % (stopbits,))
         self._stopbits = stopbits
         if self._isOpen: self._reconfigurePort()
     
@@ -274,11 +274,11 @@ class SerialBase(FileLike):
     def setTimeout(self, timeout):
         """Change timeout setting."""
         if timeout is not None:
-            if timeout < 0: raise ValueError("Not a valid timeout: %r" % timeout)
+            if timeout < 0: raise ValueError("Not a valid timeout: %r" % (timeout,))
             try:
                 timeout + 1     #test if it's a number, will throw a TypeError if not...
             except TypeError:
-                raise ValueError("Not a valid timeout: %r" % timeout)
+                raise ValueError("Not a valid timeout: %r" % (timeout,))
         
         self._timeout = timeout
         if self._isOpen: self._reconfigurePort()
@@ -293,7 +293,7 @@ class SerialBase(FileLike):
     def setWriteTimeout(self, timeout):
         """Change timeout setting."""
         if timeout is not None:
-            if timeout < 0: raise ValueError("Not a valid timeout: %r" % timeout)
+            if timeout < 0: raise ValueError("Not a valid timeout: %r" % (timeout,))
             try:
                 timeout + 1     #test if it's a number, will throw a TypeError if not...
             except TypeError:
