@@ -243,3 +243,16 @@ New Features:
   Sugested by Bernhard Bender
 
 - ``sendBreak()`` accepts a ``duration`` argument. Default duration increased.
+
+Bugfixes:
+
+- [Bug 1451535] TCP/serial redirect example "--help"
+
+Bugfixes (posix):
+
+- [Bug 1554183] setRTS/setDTR refrence to nonexisting local "on"
+- [Bug 1513653] file descriptor not closed when exception is thrown
+
+Bugfixes (win32):
+
+- [Bug 1520357] Handle leak

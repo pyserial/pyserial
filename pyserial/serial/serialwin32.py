@@ -11,7 +11,7 @@ import win32event # We use events and the WaitFor[Single|Multiple]Objects functi
 import win32con   # constants.
 from serialutil import *
 
-VERSION = "$Revision: 1.33 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.34 $".split()[1]     #extract CVS version
 
 #from winbase.h. these should realy be in win32con
 MS_CTS_ON  = 16
@@ -174,6 +174,8 @@ class Serial(SerialBase):
                 win32file.SetCommTimeouts(self.hComPort, self._orgTimeouts)
                 #Close COM-Port:
                 win32file.CloseHandle(self.hComPort)
+                win32file.CloseHandle(self._overlappedRead.hEvent)
+                win32file.CloseHandle(self._overlappedWrite.hEvent)
                 self.hComPort = None
             self._isOpen = False
 
@@ -215,7 +217,7 @@ class Serial(SerialBase):
         """Output the given string over the serial port."""
         if not self.hComPort: raise portNotOpenError
         #print repr(s),
-        if s:
+        if data:
             #~ win32event.ResetEvent(self._overlappedWrite.hEvent)
             err, n = win32file.WriteFile(self.hComPort, data, self._overlappedWrite)
             if err: #will be ERROR_IO_PENDING:

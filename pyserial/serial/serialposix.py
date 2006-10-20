@@ -13,7 +13,7 @@
 import sys, os, fcntl, termios, struct, select, errno
 from serialutil import *
 
-VERSION = "$Revision: 1.31 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.32 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -141,13 +141,18 @@ class Serial(SerialBase):
             raise SerialException("could not open port %s: %s" % (self._port, msg))
         #~ fcntl.fcntl(self.fd, FCNTL.F_SETFL, 0)  #set blocking
         
-        self._reconfigurePort()
-        self._isOpen = True
+        try:
+            self._reconfigurePort()
+        except:
+            os.close(self.fd)
+            self.fd = None
+        else:
+            self._isOpen = True
         #~ self.flushInput()
         
         
     def _reconfigurePort(self):
-        """Set commuication parameters on opened port."""
+        """Set communication parameters on opened port."""
         if self.fd is None:
             raise SerialException("Can only operate on a valid port handle")
             
@@ -330,7 +335,7 @@ class Serial(SerialBase):
     def setRTS(self, level=1):
         """Set terminal status line: Request To Send"""
         if self.fd is None: raise portNotOpenError
-        if on:
+        if level:
             fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_RTS_str)
         else:
             fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_RTS_str)
@@ -338,7 +343,7 @@ class Serial(SerialBase):
     def setDTR(self, level=1):
         """Set terminal status line: Data Terminal Ready"""
         if self.fd is None: raise portNotOpenError
-        if on:
+        if level:
             fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_DTR_str)
         else:
             fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_DTR_str)
