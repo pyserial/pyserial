@@ -1,26 +1,11 @@
 #!/usr/bin/env python
 
-#(C)2002-2003 Chris Liechti <cliechti@gmx.net>
-#redirect data from a TCP/IP connection to a serial port and vice versa
-#requires Python 2.2 'cause socket.sendall is used
+# (C) 2002-2006 Chris Liechti <cliechti@gmx.net>
+# redirect data from a TCP/IP connection to a serial port and vice versa
+# requires Python 2.2 'cause socket.sendall is used
 
-"""USAGE: tcp_serial_redirect.py [options]
-Simple Serial to Network (TCP/IP) redirector.
 
-Options:
-  -p, --port=PORT   serial port, a number, defualt = 0 or a device name
-  -b, --baud=BAUD   baudrate, default 9600
-  -r, --rtscts      enable RTS/CTS flow control (default off)
-  -x, --xonxoff     enable software flow control (default off)
-  -P, --localport   TCP/IP port on which to run the server (default 7777)
-
-Note: no security measures are implemeted. Anyone can remotely connect
-to this service over the network.
-Only one connection at once is supported. If the connection is terminaed
-it waits for the next connect.
-"""
-
-import sys, os, serial, threading, getopt, socket
+import sys, os, serial, threading, socket
 
 try:
     True
@@ -79,51 +64,86 @@ class Redirector:
             self.alive = False
             self.thread_read.join()
 
+
 if __name__ == '__main__':
+    import optparse
+
+    parser = optparse.OptionParser(usage="""\
+%prog [options] [port [baudrate]]
+Simple Serial to Network (TCP/IP) redirector.
+
+Note: no security measures are implemeted. Anyone can remotely connect
+to this service over the network.
+Only one connection at once is supported. When the connection is terminated
+it waits for the next connect.
+""")
+    parser.add_option("-p", "--port", dest="port",
+        help="port, a number (default 0) or a device name (deprecated option)",
+        default=None)
+    
+    parser.add_option("-b", "--baud", dest="baudrate", action="store", type='int',
+        help="set baudrate, default 9600", default=9600)
+        
+    parser.add_option("", "--parity", dest="parity", action="store",
+        help="set parity, one of [N, E, O], default=N", default='N')
+    
+    parser.add_option("", "--rtscts", dest="rtscts", action="store_true",
+        help="enable RTS/CTS flow control (default off)", default=False)
+    
+    parser.add_option("", "--xonxoff", dest="xonxoff", action="store_true",
+        help="enable software flow control (default off)", default=False)
+    
+    parser.add_option("", "--cr", dest="cr", action="store_true",
+        help="do not send CR+LF, send CR only", default=False)
+        
+    parser.add_option("", "--lf", dest="lf", action="store_true",
+        help="do not send CR+LF, send LF only", default=False)
+    
+    parser.add_option("", "--rts", dest="rts_state", action="store", type='int',
+        help="set initial RTS line state (possible values: 0, 1)", default=None)
+
+    parser.add_option("", "--dtr", dest="dtr_state", action="store", type='int',
+        help="set initial DTR line state (possible values: 0, 1)", default=None)
+
+    parser.add_option("-q", "--quiet", dest="quiet", action="store_true",
+        help="suppress non error messages", default=False)
+
+    parser.add_option("-P", "--localport", dest="local_port", action="store", type='int',
+        help="local TCP port", default=7777)
+
+
+    (options, args) = parser.parse_args()
+
+    port = options.port
+    baudrate = options.baudrate
+    if args:
+        if options.port is not None:
+            parser.error("no arguments are allowed, options only when --port is given")
+        port = args.pop(0)
+        if args:
+            try:
+                baudrate = int(args[0])
+            except ValueError:
+                parser.error("baudrate must be a number, not %r" % args[0])
+            args.pop(0)
+        if args:
+            parser.error("too many arguments")
+    else:
+        if port is None: port = 0
+
+    if options.cr and options.lf:
+        parser.error("ony one of --cr or --lf can be specified")
+
     ser = serial.Serial()
-    
-    #parse command line options
-    try:
-        opts, args = getopt.getopt(sys.argv[1:],
-                "hp:b:rxP",
-                ["help", "port=", "baud=", "rtscts", "xonxoff", "localport="])
-    except getopt.GetoptError:
-        # print help information and exit:
-        print >>sys.stderr, __doc__
-        sys.exit(2)
-    
-    ser.port    = 0
-    ser.baudrate = 9600
-    ser.rtscts  = False
-    ser.xonxoff = False
+    ser.port    = port
+    ser.baudrate = baudrate
+    ser.rtscts  = options.rtscts
+    ser.xonxoff = options.xonxoff
     ser.timeout = 1     #required so that the reader thread can exit
     
-    localport = 7777
-    for o, a in opts:
-        if o in ("-h", "--help"):   #help text
-            print __doc__               # XXX is optimzed away with python -o ...
-            sys.exit()
-        elif o in ("-p", "--port"):   #specified port
-            try:
-                ser.port = int(a)
-            except ValueError:
-                ser.port = a
-        elif o in ("-b", "--baud"):   #specified baudrate
-            try:
-                ser.baudrate = int(a)
-            except ValueError:
-                raise ValueError, "Baudrate must be a integer number"
-        elif o in ("-r", "--rtscts"):
-            ser.rtscts = True
-        elif o in ("-x", "--xonxoff"):
-            ser.xonxoff = True
-        elif o in ("-P", "--localport"):
-            try:
-                localport = int(a)
-            except ValueError:
-                raise ValueError, "Local port must be an integer number"
-
-    print "--- TCP/IP to Serial redirector --- type Ctrl-C / BREAK to quit"
+    if not options.quiet:
+        print "--- TCP/IP to Serial redirector --- type Ctrl-C / BREAK to quit"
+        print "--- %s %s,%s,%s,%s ---" % (ser.portstr, ser.baudrate, 8, ser.parity, 1)
 
     try:
         ser.open()
@@ -131,12 +151,18 @@ if __name__ == '__main__':
         print "Could not open serial port %s: %s" % (ser.portstr, e)
         sys.exit(1)
 
+    if options.rts_state is not None:
+        ser.setRTS(options.rts_state)
+
+    if options.dtr_state is not None:
+        ser.setDTR(options.dtr_state)
+
     srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    srv.bind( ('', localport) )
+    srv.bind( ('', options.local_port) )
     srv.listen(1)
     while 1:
         try:
-            print "Waiting for connection..."
+            print "Waiting for connection on %s..." % options.local_port
             connection, addr = srv.accept()
             print 'Connected by', addr
             #enter console->serial loop
