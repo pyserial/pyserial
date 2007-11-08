@@ -13,7 +13,7 @@
 import sys, os, fcntl, termios, struct, select, errno
 from serialutil import *
 
-VERSION = "$Revision: 1.32 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.33 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -409,3 +409,4 @@ if __name__ == '__main__':
     print repr(s.read(5))
     print s.inWaiting()
     del s
+

@@ -9,7 +9,7 @@
 import javax.comm
 from serialutil import *
 
-VERSION = "$Revision: 1.9 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.10 $".split()[1]     #extract CVS version
 
 
 def device(portnumber):
@@ -157,15 +157,15 @@ class Serial(SerialBase):
         if not self.sPort: raise portNotOpenError
         self.sPort.sendBreak(duration*1000.0)
 
-    def setRTS(self,on=1):
+    def setRTS(self, level=1):
         """Set terminal status line: Request To Send"""
         if not self.sPort: raise portNotOpenError
-        self.sPort.setRTS(on)
+        self.sPort.setRTS(level)
         
-    def setDTR(self,on=1):
+    def setDTR(self, level=1):
         """Set terminal status line: Data Terminal Ready"""
         if not self.sPort: raise portNotOpenError
-        self.sPort.setDTR(on)
+        self.sPort.setDTR(level)
 
     def getCTS(self):
         """Read terminal status line: Clear To Send"""
@@ -207,6 +207,5 @@ if __name__ == '__main__':
     print repr(s.read(5))
     print s.inWaiting()
     del s
-
 
 
