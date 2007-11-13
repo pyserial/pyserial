@@ -8,7 +8,7 @@
 # repr, useful for debug purposes)
 
 
-import sys, os, serial, threading, getopt
+import sys, os, serial, threading
 
 EXITCHARCTER = '\x1d'   #GS/ctrl+]
 
