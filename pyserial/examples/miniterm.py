@@ -222,7 +222,7 @@ Miniterm - A simple terminal program for the serial port.""")
             repr_mode=options.repr_mode,
         )
     except serial.SerialException:
-        sys.stderr.write("could not open port %r" % port)
+        sys.stderr.write("could not open port %r\n" % port)
         sys.exit(1)
 
     if not options.quiet:
