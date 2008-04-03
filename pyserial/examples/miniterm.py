@@ -30,7 +30,7 @@ elif os.name == 'posix':
     fd = sys.stdin.fileno()
     old = termios.tcgetattr(fd)
     new = termios.tcgetattr(fd)
-    new[3] = new[3] & ~termios.ICANON & ~termios.ECHO
+    new[3] = new[3] & ~termios.ICANON & ~termios.ECHO & ~termios.ISIG
     new[6][termios.VMIN] = 1
     new[6][termios.VTIME] = 0
     termios.tcsetattr(fd, termios.TCSANOW, new)
