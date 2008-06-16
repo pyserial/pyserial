@@ -11,35 +11,64 @@
 import sys, os, serial, threading
 
 EXITCHARCTER = '\x1d'   #GS/ctrl+]
+UPLOADCHARACTER = '\x15'  # Upload: ctrl+u
 
 #first choose a platform dependant way to read single characters from the console
+global console
+
 if os.name == 'nt':
     import msvcrt
-    def getkey():
-        while 1:
-            z = msvcrt.getch()
-            if z == '\0' or z == '\xe0':    #functions keys
-                msvcrt.getch()
-            else:
-                if z == '\r':
-                    return '\n'
-                return z
+    class Console:
+        def __init__(self):
+            pass
 
+        def setup(self):
+            pass    # Do nothing for 'nt'
+
+        def cleanup(self):
+            pass    # Do nothing for 'nt'
+
+        def getkey():
+            while 1:
+                z = msvcrt.getch()
+                if z == '\0' or z == '\xe0':    #functions keys
+                    msvcrt.getch()
+                else:
+                    if z == '\r':
+                        return '\n'
+                    return z
+    
+    console = Console()
+    
 elif os.name == 'posix':
     import termios, sys, os
-    fd = sys.stdin.fileno()
-    old = termios.tcgetattr(fd)
-    new = termios.tcgetattr(fd)
-    new[3] = new[3] & ~termios.ICANON & ~termios.ECHO & ~termios.ISIG
-    new[6][termios.VMIN] = 1
-    new[6][termios.VTIME] = 0
-    termios.tcsetattr(fd, termios.TCSANOW, new)
-    def getkey():
-        c = os.read(fd, 1)
-        return c
-    def clenaup_console():
-        termios.tcsetattr(fd, termios.TCSAFLUSH, old)
-    sys.exitfunc = clenaup_console      #terminal modes have to be restored on exit...
+    class Console:
+        def __init__(self):
+            self.fd = sys.stdin.fileno()
+
+        def setup(self):
+            self.old = termios.tcgetattr(self.fd)
+            new = termios.tcgetattr(self.fd)
+            new[3] = new[3] & ~termios.ICANON & ~termios.ECHO & ~termios.ISIG
+            new[6][termios.VMIN] = 1
+            new[6][termios.VTIME] = 0
+            termios.tcsetattr(self.fd, termios.TCSANOW, new)
+            #s = ''    # We'll save the characters typed and add them to the pool.
+    
+        def getkey(self):
+            c = os.read(self.fd, 1)
+            return c
+    
+        def cleanup(self):
+            termios.tcsetattr(self.fd, termios.TCSAFLUSH, self.old)
+
+    console = Console()
+
+    def cleanup_console():
+        console.cleanup()
+
+    console.setup()
+    sys.exitfunc = cleanup_console      #terminal modes have to be restored on exit...
 
 else:
     raise "Sorry no implementation for your platform (%s) available." % sys.platform
@@ -114,21 +143,51 @@ class Miniterm:
         """loop and copy console->serial until EXITCHARCTER character is found"""
         while self.alive:
             try:
-                c = getkey()
+                c = console.getkey()
             except KeyboardInterrupt:
                 c = '\x03'
             if c == EXITCHARCTER: 
                 self.stop()
                 break                                   # exit app
+            elif c == UPLOADCHARACTER:                  # upload text file
+                sys.stderr.write('\nFile to upload: ')
+                sys.stderr.flush()
+                console.cleanup()
+                filename = sys.stdin.readline().rstrip('\r\n')
+                if filename != '':
+                    try:
+                        file = open(filename, 'r')
+                        sys.stderr.write('Sending file %s ' % filename)
+                        while True:
+                            line = file.readline().rstrip('\r\n')
+                            if not line:
+                                break
+                            self.serial.write(line)
+                            self.serial.write('\r\n')
+                            # Wait for output buffer to drain.
+                            self.serial.flush()   
+                            sys.stderr.write('.')   # Progress indicator.
+                        sys.stderr.write('\nFile %s sent.\n' % filename)
+                    except IOError:
+                        print 'Error opening file %s' % filename
+                console.setup()
+
             elif c == '\n':
                 self.serial.write(self.newline)         # send newline character(s)
                 if self.echo:
-                    sys.stdout.write(c)                 #local echo is a real newline in any case
+                    sys.stdout.write(c)                 # local echo is a real newline in any case
             else:
                 self.serial.write(c)                    # send character
                 if self.echo:
                     sys.stdout.write(c)
 
+def key_description(character):
+    """generate a readable description for a key"""
+    ascii_code = ord(character)
+    if ascii_code < 32:
+        return 'Ctrl+%c' % (ord('@') + ascii_code)
+    else:
+        return repr(ascii_code)
 
 
 def main():
@@ -181,12 +240,21 @@ Miniterm - A simple terminal program for the serial port.""")
     parser.add_option("-q", "--quiet", dest="quiet", action="store_true",
         help="suppress non error messages", default=False)
 
+    parser.add_option("", "--exit-char", dest="exit_char", action="store", type='int',
+        help="ASCII code of special charcter that is used to exit the application", default=0x1d)
+
+    parser.add_option("", "--upload-char", dest="upload_char", action="store", type='int',
+        help="ASCII code of special charcter that is used to send a file", default=0x15)
 
     (options, args) = parser.parse_args()
 
     if options.cr and options.lf:
         parser.error("ony one of --cr or --lf can be specified")
     
+    global EXITCHARCTER, UPLOADCHARACTER
+    EXITCHARCTER = chr(options.exit_char)
+    UPLOADCHARACTER = chr(options.upload_char)
+
     port = options.port
     baudrate = options.baudrate
     if args:
@@ -226,12 +294,16 @@ Miniterm - A simple terminal program for the serial port.""")
         sys.exit(1)
 
     if not options.quiet:
-        sys.stderr.write('--- Miniterm on %s: %d,%s,%s,%s. Type Ctrl-] to quit. ---\n' % (
+        sys.stderr.write('--- Miniterm on %s: %d,%s,%s,%s. ---\n' % (
             miniterm.serial.portstr,
             miniterm.serial.baudrate,
             miniterm.serial.bytesize,
             miniterm.serial.parity,
             miniterm.serial.stopbits,
+        ))
+        sys.stderr.write('--- Quit: %s  |  Upload: %s ---\n' % (
+            key_description(EXITCHARCTER),
+            key_description(UPLOADCHARACTER)
         ))
     if options.dtr_state is not None:
         if not options.quiet:
