@@ -257,6 +257,9 @@ Bugfixes (posix):
 
 - [Bug 1554183] setRTS/setDTR refrence to nonexisting local "on"
 - [Bug 1513653] file descriptor not closed when exception is thrown
+- FreeBSD now uses cuadX instead of cuaaX (Patrick Phalen)
+- Check for string in write function. Using uncode causes strange errors, this
+  helps catching errors early (Tom Lynn)
 
 Bugfixes (win32):
 

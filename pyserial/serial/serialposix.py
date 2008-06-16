@@ -13,7 +13,7 @@
 import sys, os, fcntl, termios, struct, select, errno
 from serialutil import *
 
-VERSION = "$Revision: 1.34 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.35 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
@@ -46,7 +46,7 @@ elif plat[:3] == 'bsd' or  \
      plat[:7] == 'openbsd' or \
      plat[:6] == 'darwin':   #BSD (confirmed for freebsd4: cuaa%d)
     def device(port):
-        return '/dev/cuaa%d' % port
+        return '/dev/cuad%d' % port
 
 elif plat[:6] == 'netbsd':   #NetBSD 1.6 testing by Erk
     def device(port):
@@ -326,6 +326,8 @@ class Serial(SerialBase):
     def write(self, data):
         """Output the given string over the serial port."""
         if self.fd is None: raise portNotOpenError
+        if not isinstance(data, str):
+            raise TypeError('expected str, got %s' % type(data))
         t = len(data)
         d = data
         while t > 0:

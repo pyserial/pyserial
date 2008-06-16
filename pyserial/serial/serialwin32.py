@@ -11,7 +11,7 @@ import win32event # We use events and the WaitFor[Single|Multiple]Objects functi
 import win32con   # constants.
 from serialutil import *
 
-VERSION = "$Revision: 1.35 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.36 $".split()[1]     #extract CVS version
 
 #from winbase.h. these should realy be in win32con
 MS_CTS_ON  = 16
@@ -216,6 +216,8 @@ class Serial(SerialBase):
     def write(self, data):
         """Output the given string over the serial port."""
         if not self.hComPort: raise portNotOpenError
+        if not isinstance(data, str):
+            raise TypeError('expected str, got %s' % type(data))
         #print repr(s),
         if data:
             #~ win32event.ResetEvent(self._overlappedWrite.hEvent)
