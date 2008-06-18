@@ -11,7 +11,7 @@ import win32event # We use events and the WaitFor[Single|Multiple]Objects functi
 import win32con   # constants.
 from serialutil import *
 
-VERSION = "$Revision: 1.37 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.38 $".split()[1]     #extract CVS version
 
 #from winbase.h. these should realy be in win32con
 MS_CTS_ON  = 16
@@ -46,7 +46,7 @@ class Serial(SerialBase):
                    None)
         except Exception, msg:
             self.hComPort = None    #'cause __del__ is called anyway
-            raise SerialException("could not open port %s: %s" % (self._portstr, msg))
+            raise SerialException("could not open port %s: %s" % (self.portstr, msg))
         # Setup a 4k buffer
         win32file.SetupComm(self.hComPort, 4096, 4096)
 
