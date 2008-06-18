@@ -11,7 +11,7 @@ import win32event # We use events and the WaitFor[Single|Multiple]Objects functi
 import win32con   # constants.
 from serialutil import *
 
-VERSION = "$Revision: 1.36 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.37 $".split()[1]     #extract CVS version
 
 #from winbase.h. these should realy be in win32con
 MS_CTS_ON  = 16
@@ -21,13 +21,7 @@ MS_RLSD_ON = 128
 
 def device(portnum):
     """Turn a port number into a device name"""
-    #the "//./COMx" format is required for devices >= 9
-    #not all versions of windows seem to support this propperly
-    #so that the first few ports are used with the DOS device name
-    if portnum < 9:
-        return 'COM%d' % (portnum+1) #numbers are transformed to a string
-    else:
-        return r'\\.\COM%d' % (portnum+1)
+    return 'COM%d' % (portnum+1) #numbers are transformed to a string
 
 class Serial(SerialBase):
     """Serial port implemenation for Win32. This implemenatation requires a 
@@ -43,7 +37,7 @@ class Serial(SerialBase):
             raise SerialException("Port must be configured before it can be used.")
         self.hComPort = None
         try:
-            self.hComPort = win32file.CreateFile(self.portstr,
+            self.hComPort = win32file.CreateFile(self.makeDeviceName(self.portstr),
                    win32con.GENERIC_READ | win32con.GENERIC_WRITE,
                    0, # exclusive access
                    None, # no security
@@ -52,7 +46,7 @@ class Serial(SerialBase):
                    None)
         except Exception, msg:
             self.hComPort = None    #'cause __del__ is called anyway
-            raise SerialException("could not open port %s: %s" % (self._port, msg))
+            raise SerialException("could not open port %s: %s" % (self._portstr, msg))
         # Setup a 4k buffer
         win32file.SetupComm(self.hComPort, 4096, 4096)
 
@@ -180,7 +174,12 @@ class Serial(SerialBase):
             self._isOpen = False
 
     def makeDeviceName(self, port):
-        return device(port)
+        # the "\\.\COMx" format is required for devices other than COM1-COM8
+        # not all versions of windows seem to support this properly
+        # so that the first few ports are used with the DOS device name
+        if port.upper().startswith('COM') and int(port[3:]) <= 8:
+            return port
+        return '\\\\.\\' + port
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     

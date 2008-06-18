@@ -244,6 +244,9 @@ New Features:
 
 - ``sendBreak()`` accepts a ``duration`` argument. Default duration increased.
 
+- win32 handles \\.\COMx format automatically for com ports of higher number
+  (COM10 is internally translated to \\.\COM10 etc.)
+
 - update wxSerialConfigDialog.py and wxTerminal.py compatibility with
   wxPythoon 2.8 (Peleg)
 
