@@ -244,6 +244,9 @@ New Features:
 
 - ``sendBreak()`` accepts a ``duration`` argument. Default duration increased.
 
+- update wxSerialConfigDialog.py and wxTerminal.py compatibility with
+  wxPythoon 2.8 (Peleg)
+
 - miniterm.py has a new feature to send a file (upload) and configurable
   special characters for exit and upload. Refactored internals to class based
   structure (upload and class refactoring by Colin D Bennett)

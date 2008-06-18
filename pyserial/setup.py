@@ -1,5 +1,11 @@
 # setup.py
-from distutils.core import setup
+try:
+    from setuptools import setup
+except ImportError:
+    print "standart distutils"
+    from distutils.core import setup
+else:
+    print "setuptools"
 import sys
 
 #windows installer:
