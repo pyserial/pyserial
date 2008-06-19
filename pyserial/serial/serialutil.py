@@ -145,7 +145,7 @@ class SerialBase(FileLike):
         self._parity   = None           #correct value is assigned below trough properties
         self._stopbits = None           #correct value is assigned below trough properties
         self._timeout  = None           #correct value is assigned below trough properties
-        self._writeTimeout  = None           #correct value is assigned below trough properties
+        self._writeTimeout = None       #correct value is assigned below trough properties
         self._xonxoff  = None           #correct value is assigned below trough properties
         self._rtscts   = None           #correct value is assigned below trough properties
         self._dsrdtr   = None           #correct value is assigned below trough properties

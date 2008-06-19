@@ -11,7 +11,7 @@ import win32event # We use events and the WaitFor[Single|Multiple]Objects functi
 import win32con   # constants.
 from serialutil import *
 
-VERSION = "$Revision: 1.38 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.39 $".split()[1]     #extract CVS version
 
 #from winbase.h. these should realy be in win32con
 MS_CTS_ON  = 16
@@ -42,7 +42,7 @@ class Serial(SerialBase):
                    0, # exclusive access
                    None, # no security
                    win32con.OPEN_EXISTING,
-                   win32con.FILE_ATTRIBUTE_NORMAL | win32con.FILE_FLAG_OVERLAPPED,
+                   win32con.FILE_FLAG_OVERLAPPED,
                    None)
         except Exception, msg:
             self.hComPort = None    #'cause __del__ is called anyway
