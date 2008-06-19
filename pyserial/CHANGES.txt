@@ -235,7 +235,7 @@ New Features:
   platforms)
 
 
-Version 2.3     xxx
+Version 2.3     19 Jun 2008
 ---------------------------
 New Features:
 
@@ -247,9 +247,6 @@ New Features:
 - win32 handles \\.\COMx format automatically for com ports of higher number
   (COM10 is internally translated to \\.\COM10 etc.)
 
-- update wxSerialConfigDialog.py and wxTerminal.py compatibility with
-  wxPythoon 2.8 (Peleg)
-
 - miniterm.py has a new feature to send a file (upload) and configurable
   special characters for exit and upload. Refactored internals to class based
   structure (upload and class refactoring by Colin D Bennett)
@@ -258,6 +255,8 @@ Bugfixes:
 
 - [Bug 1451535] TCP/serial redirect example "--help"
 - update VERSION variable
+- update wxSerialConfigDialog.py and wxTerminal.py compatibility with
+  wxPython 2.8 (Peleg)
 
 Bugfixes (posix):
 
