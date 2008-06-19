@@ -11,7 +11,7 @@ import win32event # We use events and the WaitFor[Single|Multiple]Objects functi
 import win32con   # constants.
 from serialutil import *
 
-VERSION = "$Revision: 1.39 $".split()[1]     #extract CVS version
+VERSION = "$Revision: 1.40 $".split()[1]     #extract CVS version
 
 #from winbase.h. these should realy be in win32con
 MS_CTS_ON  = 16
@@ -164,9 +164,13 @@ class Serial(SerialBase):
         """Close port"""
         if self._isOpen:
             if self.hComPort:
-                #Restore original timeout values:
-                win32file.SetCommTimeouts(self.hComPort, self._orgTimeouts)
-                #Close COM-Port:
+                try:
+                    # Restore original timeout values:
+                    win32file.SetCommTimeouts(self.hComPort, self._orgTimeouts)
+                except win32file.error:
+                    # ignore errors. can happen for unplugged USB serial devices
+                    pass
+                # Close COM-Port:
                 win32file.CloseHandle(self.hComPort)
                 win32file.CloseHandle(self._overlappedRead.hEvent)
                 win32file.CloseHandle(self._overlappedWrite.hEvent)

@@ -270,4 +270,5 @@ Bugfixes (posix):
 Bugfixes (win32):
 
 - [Bug 1520357] Handle leak
+- [Bug 1679013] Ignore excpetion raised by SetCommTimeout() in close().
 - [Bug 1938118] process hang forever under XP
