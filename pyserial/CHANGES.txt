@@ -271,3 +271,12 @@ Bugfixes (win32):
 - [Bug 1520357] Handle leak
 - [Bug 1679013] Ignore excpetion raised by SetCommTimeout() in close().
 - [Bug 1938118] process hang forever under XP
+
+
+Version 2.4     
+---------------------------
+New Features:
+Bugfixes:
+Bugfixes (win32):
+Bugfixes (posix):
+- [Bug 1783159] Arbitrary baud rates (Linux/Posix)

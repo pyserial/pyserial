@@ -121,6 +121,9 @@ TIOCM_zero_str = struct.pack('I', 0)
 TIOCM_RTS_str = struct.pack('I', TIOCM_RTS)
 TIOCM_DTR_str = struct.pack('I', TIOCM_DTR)
 
+ASYNC_SPD_MASK = 0x1030
+ASYNC_SPD_CUST = 0x0030
+
 baudrate_constants = {
     0:       0000000,  # hang up
     50:      0000001,
@@ -189,7 +192,8 @@ class Serial(SerialBase):
         """Set communication parameters on opened port."""
         if self.fd is None:
             raise SerialException("Can only operate on a valid port handle")
-            
+        custom_baud = None
+        
         vmin = vtime = 0                #timeout is done via select
         try:
             iflag, oflag, cflag, lflag, ispeed, ospeed, cc = termios.tcgetattr(self.fd)
@@ -217,7 +221,11 @@ class Serial(SerialBase):
             try:
                 ispeed = ospeed = baudrate_constants[self._baudrate]
             except KeyError:
-                raise ValueError('Invalid baud rate: %r' % self._baudrate)
+                #~ raise ValueError('Invalid baud rate: %r' % self._baudrate)
+                # may need custom baud rate, it isnt in our list.
+                ispeed = ospeed = getattr(TERMIOS, 'B38400')
+                custom_baud = int(self._baudrate) # store for later
+        
         #setup char len
         cflag &= ~TERMIOS.CSIZE
         if self._bytesize == 8:
@@ -284,6 +292,27 @@ class Serial(SerialBase):
         cc[TERMIOS.VTIME] = vtime
         #activate settings
         termios.tcsetattr(self.fd, TERMIOS.TCSANOW, [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
+        
+        # apply custom baud rate, if any
+        if custom_baud is not None:
+            import array
+            buf = array.array('i', [0] * 32)
+
+            # get serial_struct
+            FCNTL.ioctl(self.fd, TERMIOS.TIOCGSERIAL, buf)
+
+            # set custom divisor
+            buf[6] = buf[7] / custom_baud
+
+            # update flags
+            buf[4] &= ~ASYNC_SPD_MASK
+            buf[4] |= ASYNC_SPD_CUST
+
+            # set serial_struct
+            try:
+                res = FCNTL.ioctl(self.fd, TERMIOS.TIOCSSERIAL, buf)
+            except IOError:
+                raise ValueError('Failed to set custom baud rate: %r' % self._baudrate)
 
     def close(self):
         """Close port"""
