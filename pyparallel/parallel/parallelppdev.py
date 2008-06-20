@@ -183,15 +183,21 @@ class Parallel:
             self.device = port
         else:
             self.device = "/dev/parport%d" % port
+        self._fd = None
         self._fd = os.open(self.device, os.O_RDWR)
-        #~ self.PPEXCL()
-        self.PPCLAIM()
-        self.setDataDir(1)
-        self.setData(0)
+        try:
+            self.PPEXCL()
+            self.PPCLAIM()
+            self.setDataDir(1)
+            self.setData(0)
+        except IOError:
+            os.close(self._fd)
+            self._fd = None
+            raise
 
     def __del__(self):
-        self.PPRELEASE()
         if self._fd is not None:
+            self.PPRELEASE()
             os.close(self._fd)
 
     def timevalToFloat(self, timeval):
