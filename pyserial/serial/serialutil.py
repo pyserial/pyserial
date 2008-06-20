@@ -133,6 +133,7 @@ class SerialBase(FileLike):
                  rtscts=0,              #enable RTS/CTS flow control
                  writeTimeout=None,     #set a timeout for writes
                  dsrdtr=None,           #None: use rtscts setting, dsrdtr override if true or false
+                 interCharTimeout=None  #Inter-character timeout, None to disable
                  ):
         """Initialize comm port object. If a port is given, then the port will be
            opened immediately. Otherwise a Serial port object in closed state
@@ -149,6 +150,7 @@ class SerialBase(FileLike):
         self._xonxoff  = None           #correct value is assigned below trough properties
         self._rtscts   = None           #correct value is assigned below trough properties
         self._dsrdtr   = None           #correct value is assigned below trough properties
+        self._interCharTimeout = None   #correct value is assigned below trough properties
         
         #assign values using get/set methods using the properties feature
         self.port     = port
@@ -161,6 +163,7 @@ class SerialBase(FileLike):
         self.xonxoff  = xonxoff
         self.rtscts   = rtscts
         self.dsrdtr   = dsrdtr
+        self.interCharTimeout = interCharTimeout
         
         if port is not None:
             self.open()
@@ -346,7 +349,26 @@ class SerialBase(FileLike):
         return self._dsrdtr
     
     dsrdtr = property(getDsrDtr, setDsrDtr, "DSR/DTR flow control setting")
+
+    def setInterCharTimeout(self, interCharTimeout):
+        """Change inter-character timeout setting."""
+        if interCharTimeout is not None:
+            if interCharTimeout < 0: raise ValueError("Not a valid timeout: %r" % interCharTimeout)
+            try:
+                interCharTimeout + 1     #test if it's a number, will throw a TypeError if not...
+            except TypeError:
+                raise ValueError("Not a valid timeout: %r" % interCharTimeout)
+        
+        self._interCharTimeout = interCharTimeout
+        if self._isOpen: self._reconfigurePort()
     
+    def getInterCharTimeout(self):
+        """Get the current inter-character timeout setting."""
+        return self._interCharTimeout
+    
+    interCharTimeout = property(getInterCharTimeout, setInterCharTimeout, doc="Inter-character timeout setting for read()")
+
+
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
     def __repr__(self):

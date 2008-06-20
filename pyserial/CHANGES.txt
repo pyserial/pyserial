@@ -276,7 +276,8 @@ Bugfixes (win32):
 Version 2.4     
 ---------------------------
 New Features:
+- [Patch 1616790] pyserial: Add inter-character timeout feature
 Bugfixes:
-Bugfixes (win32):
 Bugfixes (posix):
 - [Bug 1783159] Arbitrary baud rates (Linux/Posix)
+Bugfixes (win32):

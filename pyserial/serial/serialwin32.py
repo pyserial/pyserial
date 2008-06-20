@@ -87,6 +87,9 @@ class Serial(SerialBase):
             timeouts = (win32con.MAXDWORD, 0, 0, 0, 0)
         else:
             timeouts = (0, 0, int(self._timeout*1000), 0, 0)
+        if self._timeout != 0 and self._interCharTimeout is not None:
+            timeouts = (int(self._interCharTimeout * 1000),) + timeouts[1:]
+            
         if self._writeTimeout is None:
             pass
         elif self._writeTimeout == 0:

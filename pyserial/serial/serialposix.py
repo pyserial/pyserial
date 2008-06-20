@@ -195,6 +195,9 @@ class Serial(SerialBase):
         custom_baud = None
         
         vmin = vtime = 0                #timeout is done via select
+        if self._interCharTimeout is not None:
+            vmin = 1
+            vtime = int(self._interCharTimeout * 10)
         try:
             iflag, oflag, cflag, lflag, ispeed, ospeed, cc = termios.tcgetattr(self.fd)
         except termios.error, msg:      #if a port is nonexistent but has a /dev file, it'll fail here
@@ -348,7 +351,7 @@ class Serial(SerialBase):
                     break   #timeout
                 buf = os.read(self.fd, size-len(read))
                 read = read + buf
-                if self._timeout >= 0 and not buf:
+                if (self._timeout >= 0 or self._interCharTimeout > 0) and not buf:
                     break  #early abort on timeout
         return read
 
