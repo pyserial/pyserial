@@ -153,9 +153,14 @@ class Serial(SerialBase):
         self._outstream.flush()
 
     def sendBreak(self, duration=0.25):
-        """Send break condition."""
+        """Send break condition. Timed, returns to idle state after given duration."""
         if not self.sPort: raise portNotOpenError
         self.sPort.sendBreak(duration*1000.0)
+
+    def setBreak(self, level=1):
+        """Set break: Controls TXD. When active, to transmitting is possible."""
+        if self.fd is None: raise portNotOpenError
+        raise SerialException("The setBreak function is not implemented in java.")
 
     def setRTS(self, level=1):
         """Set terminal status line: Request To Send"""

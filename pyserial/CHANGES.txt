@@ -240,7 +240,7 @@ Version 2.3     19 Jun 2008
 New Features:
 
 - iterator interface. ``for line in Serial(...): ...`` is now possible
-  Sugested by Bernhard Bender
+  Suggested by Bernhard Bender
 
 - ``sendBreak()`` accepts a ``duration`` argument. Default duration increased.
 
@@ -277,7 +277,10 @@ Version 2.4
 ---------------------------
 New Features:
 - [Patch 1616790] pyserial: Add inter-character timeout feature
+- [patch 1924805] add a setBreak function (proposed files attached)
+
 Bugfixes:
 Bugfixes (posix):
 - [Bug 1783159] Arbitrary baud rates (Linux/Posix)
+
 Bugfixes (win32):

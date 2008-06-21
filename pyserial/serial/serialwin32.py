@@ -248,12 +248,20 @@ class Serial(SerialBase):
         win32file.PurgeComm(self.hComPort, win32file.PURGE_TXCLEAR | win32file.PURGE_TXABORT)
 
     def sendBreak(self, duration=0.25):
-        """Send break condition."""
+        """Send break condition. Timed, returns to idle state after given duration."""
         if not self.hComPort: raise portNotOpenError
         import time
         win32file.SetCommBreak(self.hComPort)
         time.sleep(duration)
         win32file.ClearCommBreak(self.hComPort)
+
+    def setBreak(self, level=1):
+        """Set break: Controls TXD. When active, to transmitting is possible."""
+        if not self.hComPort: raise portNotOpenError
+        if level:
+            win32file.SetCommBreak(self.hComPort)
+        else:
+            win32file.ClearCommBreak(self.hComPort)
 
     def setRTS(self, level=1):
         """Set terminal status line: Request To Send"""

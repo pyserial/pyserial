@@ -121,6 +121,9 @@ TIOCM_zero_str = struct.pack('I', 0)
 TIOCM_RTS_str = struct.pack('I', TIOCM_RTS)
 TIOCM_DTR_str = struct.pack('I', TIOCM_DTR)
 
+TIOCSBRK  = hasattr(TERMIOS, 'TIOCSBRK') and TERMIOS.TIOCSBRK or 0x5427
+TIOCCBRK  = hasattr(TERMIOS, 'TIOCCBRK') and TERMIOS.TIOCCBRK or 0x5428
+
 ASYNC_SPD_MASK = 0x1030
 ASYNC_SPD_CUST = 0x0030
 
@@ -398,10 +401,18 @@ class Serial(SerialBase):
         termios.tcflush(self.fd, TERMIOS.TCOFLUSH)
 
     def sendBreak(self, duration=0.25):
-        """Send break condition."""
+        """Send break condition. Timed, returns to idle state after given duration."""
         if self.fd is None:
             raise portNotOpenError
         termios.tcsendbreak(self.fd, int(duration/0.25))
+
+    def setBreak(self, level=1):
+        """Set break: Controls TXD. When active, to transmitting is possible."""
+        if self.fd is None: raise portNotOpenError
+        if level:
+            fcntl.ioctl(self.fd, TIOCSBRK)
+        else:
+            fcntl.ioctl(self.fd, TIOCCBRK)
 
     def setRTS(self, level=1):
         """Set terminal status line: Request To Send"""
