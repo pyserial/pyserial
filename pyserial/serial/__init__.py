@@ -9,14 +9,10 @@ VERSION = '2.4'
 
 import sys
 
-try:
-    import os
-except ImportError:
-    if sys.name == 'cli':
-        from serialcli import *
-    else:
-        raise Exception("Sorry: no implementation for your platform ('%s') available" % os.name)
+if sys.platform == 'cli':
+    from serialcli import *
 else:
+    import os
     #chose an implementation, depending on os
     if os.name == 'nt': #sys.platform == 'win32':
         from serialwin32 import *
