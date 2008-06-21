@@ -5,18 +5,25 @@
 # (C)2001-2002 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
-import sys, os, string
-VERSION = '2.3'
+VERSION = '2.4'
 
-#chose an implementation, depending on os
-if os.name == 'nt': #sys.platform == 'win32':
-    from serialwin32 import *
-elif os.name == 'posix':
-    from serialposix import *
-elif os.name == 'java':
-    from serialjava import *
-elif os.name == 'cli':
-    from serialcli import *
+import sys
+
+try:
+    import os
+except ImportError:
+    if sys.name == 'cli':
+        from serialcli import *
+    else:
+        raise Exception("Sorry: no implementation for your platform ('%s') available" % os.name)
 else:
-    raise Exception("Sorry: no implementation for your platform ('%s') available" % os.name)
+    #chose an implementation, depending on os
+    if os.name == 'nt': #sys.platform == 'win32':
+        from serialwin32 import *
+    elif os.name == 'posix':
+        from serialposix import *
+    elif os.name == 'java':
+        from serialjava import *
+    else:
+        raise Exception("Sorry: no implementation for your platform ('%s') available" % os.name)
 
