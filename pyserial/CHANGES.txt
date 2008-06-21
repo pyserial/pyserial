@@ -257,14 +257,14 @@ Bugfixes:
 - update VERSION variable
 - update wxSerialConfigDialog.py and wxTerminal.py compatibility with
   wxPython 2.8 (Peleg)
+- Check for string in write function. Using uncode causes strange errors, this
+  helps catching errors early (Tom Lynn)
 
 Bugfixes (posix):
 
 - [Bug 1554183] setRTS/setDTR refrence to nonexisting local "on"
 - [Bug 1513653] file descriptor not closed when exception is thrown
 - FreeBSD now uses cuadX instead of cuaaX (Patrick Phalen)
-- Check for string in write function. Using uncode causes strange errors, this
-  helps catching errors early (Tom Lynn)
 
 Bugfixes (win32):
 
@@ -276,11 +276,18 @@ Bugfixes (win32):
 Version 2.4     
 ---------------------------
 New Features:
+
 - [Patch 1616790] pyserial: Add inter-character timeout feature
-- [patch 1924805] add a setBreak function (proposed files attached)
+- [Patch 1924805] add a setBreak function (proposed files attached)
+- Add mark/space parity
+- Add .NET/Mono backend (IronPython). Preliminary.
 
 Bugfixes:
+
 Bugfixes (posix):
+
 - [Bug 1783159] Arbitrary baud rates (Linux/Posix)
 
 Bugfixes (win32):
+
+- [Patch 1561423] Add mark/space parity, Win32

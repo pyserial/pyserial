@@ -1,8 +1,8 @@
 #! python
-#Python Serial Port Extension for Win32, Linux, BSD, Jython
-#see __init__.py
+# Python Serial Port Extension for Win32, Linux, BSD, Jython
+# see __init__.py
 #
-#(C) 2001-2003 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2008 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE = 'N', 'E', 'O', 'M', 'S'

@@ -1,19 +1,17 @@
 #!/usr/bin/env python
-#Python Serial Port Extension for Win32, Linux, BSD, Jython
-#module for serial IO for POSIX compatible systems, like Linux
-#see __init__.py
+# Python Serial Port Extension for Win32, Linux, BSD, Jython
+# module for serial IO for POSIX compatible systems, like Linux
+# see __init__.py
 #
-#(C) 2001-2003 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2008 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 #
-#parts based on code from Grant B. Edwards  <grante@visi.com>:
+# parts based on code from Grant B. Edwards  <grante@visi.com>:
 #  ftp://ftp.visi.com/users/grante/python/PosixSerial.py
 # references: http://www.easysw.com/~mike/serial/serial.html
 
 import sys, os, fcntl, termios, struct, select, errno
 from serialutil import *
-
-VERSION = "$Revision: 1.35 $".split()[1]     #extract CVS version
 
 #Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):

@@ -1,17 +1,15 @@
 #! python
-#Python Serial Port Extension for Win32, Linux, BSD, Jython
-#serial driver for win32
-#see __init__.py
+# Python Serial Port Extension for Win32, Linux, BSD, Jython
+# serial driver for win32
+# see __init__.py
 #
-#(C) 2001-2003 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2008 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
 import win32file  # The base COM port and file IO functions.
 import win32event # We use events and the WaitFor[Single|Multiple]Objects functions.
 import win32con   # constants.
 from serialutil import *
-
-VERSION = "$Revision: 1.40 $".split()[1]     #extract CVS version
 
 #from winbase.h. these should realy be in win32con
 MS_CTS_ON  = 16
@@ -124,6 +122,12 @@ class Serial(SerialBase):
             comDCB.fParity      = 1 # Dis/Enable Parity Check
         elif self._parity == PARITY_ODD:
             comDCB.Parity       = win32file.ODDPARITY
+            comDCB.fParity      = 1 # Dis/Enable Parity Check
+        elif self._parity == PARITY_MARK:
+            comDCB.Parity       = win32file.MARKPARITY
+            comDCB.fParity      = 1 # Dis/Enable Parity Check
+        elif self._parity == PARITY_SPACE:
+            comDCB.Parity       = win32file.SPACEPARITY
             comDCB.fParity      = 1 # Dis/Enable Parity Check
         else:
             raise ValueError("Unsupported parity mode: %r" % self._parity)
