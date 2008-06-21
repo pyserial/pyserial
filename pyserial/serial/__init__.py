@@ -15,6 +15,8 @@ elif os.name == 'posix':
     from serialposix import *
 elif os.name == 'java':
     from serialjava import *
+elif os.name == 'cli':
+    from serialcli import *
 else:
     raise Exception("Sorry: no implementation for your platform ('%s') available" % os.name)
 

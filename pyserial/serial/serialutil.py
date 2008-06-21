@@ -5,7 +5,7 @@
 #(C) 2001-2003 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
-PARITY_NONE, PARITY_EVEN, PARITY_ODD = 'N', 'E', 'O'
+PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE = 'N', 'E', 'O', 'M', 'S'
 STOPBITS_ONE, STOPBITS_TWO = (1, 2)
 FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS = (5,6,7,8)
 
@@ -13,6 +13,8 @@ PARITY_NAMES = {
     PARITY_NONE: 'None',
     PARITY_EVEN: 'Even',
     PARITY_ODD:  'Odd',
+    PARITY_MARK: 'Mark',
+    PARITY_SPACE:'Space',
 }
 
 XON  = chr(17)
