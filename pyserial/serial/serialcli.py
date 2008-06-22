@@ -1,9 +1,9 @@
 #! python
-#Python Serial Port Extension for Win32, Linux, BSD, Jython and .NET/Mono
-#serial driver for .NET/Mono (IronPython), .NET >= 2
-#see __init__.py
+# Python Serial Port Extension for Win32, Linux, BSD, Jython and .NET/Mono
+# serial driver for .NET/Mono (IronPython), .NET >= 2
+# see __init__.py
 #
-#(C) 2008 Chris Liechti <cliechti@gmx.net>
+# (C) 2008 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
 import System.IO.Ports
@@ -24,18 +24,20 @@ class Serial(SerialBase):
            if the port cannot be opened."""
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
-        self._port_handle = None
         try:
             self._port_handle = System.IO.Ports.SerialPort(self.portstr)
         except Exception, msg:
+            self._port_handle = None
             raise SerialException("could not open port %s: %s" % (self.portstr, msg))
 
         self._reconfigurePort()
         self._port_handle.Open()
         self._isOpen = True
+        self.flushInput()
+        self.flushOutput()
 
     def _reconfigurePort(self):
-        """Set commuication parameters on opened port."""
+        """Set communication parameters on opened port."""
         if not self._port_handle:
             raise SerialException("Can only operate on a valid port handle")
         
@@ -50,7 +52,7 @@ class Serial(SerialBase):
             # timeouts = (int(self._interCharTimeout * 1000),) + timeouts[1:]
             
         if self._writeTimeout is None:
-            pass
+            self._port_handle.WriteTimeout = System.IO.Ports.SerialPort.InfiniteTimeout
         else:
             self._port_handle.WriteTimeout = int(self._writeTimeout*1000)
 
@@ -106,7 +108,7 @@ class Serial(SerialBase):
         if self._isOpen:
             if self._port_handle:
                 try:
-                    self.Close()
+                    self._port_handle.Close()
                 except System.IO.Ports.InvalidOperationException:
                     # ignore errors. can happen for unplugged USB serial devices
                     pass
@@ -130,8 +132,12 @@ class Serial(SerialBase):
         if not self._port_handle: raise portNotOpenError
         data = []
         while size:
-            data.append(self._port_handle.ReadByte())
-            size -= 1
+            try:
+                data.append(self._port_handle.ReadByte())
+            except System.TimeoutException, e:
+                break
+            else:
+                size -= 1
         return ''.join(data)
 
     def write(self, data):
@@ -139,7 +145,10 @@ class Serial(SerialBase):
         if not self._port_handle: raise portNotOpenError
         if not isinstance(data, str):
             raise TypeError('expected str, got %s' % type(data))
-        self._port_handle.Write(data)
+        try:
+            self._port_handle.Write(data)
+        except System.TimeoutException, e:
+            raise writeTimeoutError
 
     def flushInput(self):
         """Clear input buffer, discarding all that is in the buffer."""
@@ -160,20 +169,20 @@ class Serial(SerialBase):
         time.sleep(duration)
         self._port_handle.BreakState = False
 
-    def setBreak(self, level=1):
+    def setBreak(self, level=True):
         """Set break: Controls TXD. When active, to transmitting is possible."""
         if not self._port_handle: raise portNotOpenError
-        self._port_handle.BreakState = level
+        self._port_handle.BreakState = bool(level)
 
-    def setRTS(self, level=1):
+    def setRTS(self, level=True):
         """Set terminal status line: Request To Send"""
         if not self._port_handle: raise portNotOpenError
-        self._port_handle.RtsEnable = level
+        self._port_handle.RtsEnable = bool(level)
 
-    def setDTR(self, level=1):
+    def setDTR(self, level=True):
         """Set terminal status line: Data Terminal Ready"""
         if not self._port_handle: raise portNotOpenError
-        self._port_handle.DtrEnable = level
+        self._port_handle.DtrEnable = bool(level)
 
     def getCTS(self):
         """Read terminal status line: Clear To Send"""
@@ -185,10 +194,11 @@ class Serial(SerialBase):
         if not self._port_handle: raise portNotOpenError
         return self._port_handle.DsrHolding
 
-    #~ def getRI(self):
-        #~ """Read terminal status line: Ring Indicator"""
-        #~ if not self._port_handle: raise portNotOpenError
+    def getRI(self):
+        """Read terminal status line: Ring Indicator"""
+        if not self._port_handle: raise portNotOpenError
         #~ return self._port_handle.XXX
+        return False #XXX an error would be better
 
     def getCD(self):
         """Read terminal status line: Carrier Detect"""
