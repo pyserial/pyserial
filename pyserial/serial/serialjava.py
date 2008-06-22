@@ -1,30 +1,54 @@
 #!jython
-#Python Serial Port Extension for Win32, Linux, BSD, Jython
-#module for serial IO for Jython and JavaComm
-#see __init__.py
 #
-#(C) 2002-2003 Chris Liechti <cliechti@gmx.net>
+# Python Serial Port Extension for Win32, Linux, BSD, Jython
+# module for serial IO for Jython and JavaComm
+# see __init__.py
+#
+# (C) 2002-2008 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
-import javax.comm
 from serialutil import *
 
-VERSION = "$Revision: 1.10 $".split()[1]     #extract CVS version
+def my_import(name):
+    mod = __import__(name)
+    components = name.split('.')
+    for comp in components[1:]:
+        mod = getattr(mod, comp)
+    return mod
+
+def detect_java_comm(names):
+    """try given list of modules and return that imports"""
+    for name in names:
+        try:
+            mod = my_import(name)
+            mod.SerialPort
+            return mod
+        except (ImportError, AttributeError):
+            pass
+    raise ImportError("No Java Communications API implementation found")
+
+# Java Communications API implementations
+# http://mho.republika.pl/java/comm/
+
+comm = detect_java_comm([
+    'javax.comm', # Sun/IBM
+    'gnu.io',     # RXTX
+])
 
 
 def device(portnumber):
     """Turn a port number into a device name"""
-    enum = javax.comm.CommPortIdentifier.getPortIdentifiers()
+    enum = comm.CommPortIdentifier.getPortIdentifiers()
     ports = []
     while enum.hasMoreElements():
         el = enum.nextElement()
-        if el.getPortType() == javax.comm.CommPortIdentifier.PORT_SERIAL:
+        if el.getPortType() == comm.CommPortIdentifier.PORT_SERIAL:
             ports.append(el)
     return ports[portnumber].getName()
 
 class Serial(SerialBase):
-    """Serial port class, implemented with javax.comm and thus usable with
-       jython and the appropriate java extension."""
+    """Serial port class, implemented with Java Communications API and
+       thus usable with jython and the appropriate java extension."""
     
     def open(self):
         """Open port with current settings. This may throw a SerialException
@@ -32,9 +56,9 @@ class Serial(SerialBase):
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
         if type(self._port) == type(''):      #strings are taken directly
-            portId = javax.comm.CommPortIdentifier.getPortIdentifier(self._port)
+            portId = comm.CommPortIdentifier.getPortIdentifier(self._port)
         else:
-            portId = javax.comm.CommPortIdentifier.getPortIdentifier(device(self._port))     #numbers are transformed to a comportid obj
+            portId = comm.CommPortIdentifier.getPortIdentifier(device(self._port))     #numbers are transformed to a comportid obj
         try:
             self.sPort = portId.open("python serial module", 10)
         except Exception, msg:
@@ -52,45 +76,45 @@ class Serial(SerialBase):
         
         self.sPort.enableReceiveTimeout(30)
         if self._bytesize == FIVEBITS:
-            jdatabits = javax.comm.SerialPort.DATABITS_5
+            jdatabits = comm.SerialPort.DATABITS_5
         elif self._bytesize == SIXBITS:
-            jdatabits = javax.comm.SerialPort.DATABITS_6
+            jdatabits = comm.SerialPort.DATABITS_6
         elif self._bytesize == SEVENBITS:
-            jdatabits = javax.comm.SerialPort.DATABITS_7
+            jdatabits = comm.SerialPort.DATABITS_7
         elif self._bytesize == EIGHTBITS:
-            jdatabits = javax.comm.SerialPort.DATABITS_8
+            jdatabits = comm.SerialPort.DATABITS_8
         else:
             raise ValueError("unsupported bytesize: %r" % self._bytesize)
         
         if self._stopbits == STOPBITS_ONE:
-            jstopbits = javax.comm.SerialPort.STOPBITS_1
+            jstopbits = comm.SerialPort.STOPBITS_1
         elif stopbits == STOPBITS_ONE_HALVE:
-            self._jstopbits = javax.comm.SerialPort.STOPBITS_1_5
+            self._jstopbits = comm.SerialPort.STOPBITS_1_5
         elif self._stopbits == STOPBITS_TWO:
-            jstopbits = javax.comm.SerialPort.STOPBITS_2
+            jstopbits = comm.SerialPort.STOPBITS_2
         else:
             raise ValueError("unsupported number of stopbits: %r" % self._stopbits)
 
         if self._parity == PARITY_NONE:
-            jparity = javax.comm.SerialPort.PARITY_NONE
+            jparity = comm.SerialPort.PARITY_NONE
         elif self._parity == PARITY_EVEN:
-            jparity = javax.comm.SerialPort.PARITY_EVEN
+            jparity = comm.SerialPort.PARITY_EVEN
         elif self._parity == PARITY_ODD:
-            jparity = javax.comm.SerialPort.PARITY_ODD
-        #~ elif self._parity == PARITY_MARK:
-            #~ jparity = javax.comm.SerialPort.PARITY_MARK
-        #~ elif self._parity == PARITY_SPACE:
-            #~ jparity = javax.comm.SerialPort.PARITY_SPACE
+            jparity = comm.SerialPort.PARITY_ODD
+        elif self._parity == PARITY_MARK:
+            jparity = comm.SerialPort.PARITY_MARK
+        elif self._parity == PARITY_SPACE:
+            jparity = comm.SerialPort.PARITY_SPACE
         else:
             raise ValueError("unsupported parity type: %r" % self._parity)
 
         jflowin = jflowout = 0
         if self._rtscts:
-            jflowin  |=  javax.comm.SerialPort.FLOWCONTROL_RTSCTS_IN
-            jflowout |=  javax.comm.SerialPort.FLOWCONTROL_RTSCTS_OUT
+            jflowin  |=  comm.SerialPort.FLOWCONTROL_RTSCTS_IN
+            jflowout |=  comm.SerialPort.FLOWCONTROL_RTSCTS_OUT
         if self._xonxoff:
-            jflowin  |=  javax.comm.SerialPort.FLOWCONTROL_XONXOFF_IN
-            jflowout |=  javax.comm.SerialPort.FLOWCONTROL_XONXOFF_OUT
+            jflowin  |=  comm.SerialPort.FLOWCONTROL_XONXOFF_IN
+            jflowout |=  comm.SerialPort.FLOWCONTROL_XONXOFF_OUT
         
         self.sPort.setSerialPortParams(baudrate, jdatabits, jstopbits, jparity)
         self.sPort.setFlowControlMode(jflowin | jflowout)
