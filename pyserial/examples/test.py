@@ -1,12 +1,13 @@
-#!/usr/bin/env python
-#Python Serial Port Extension for Win32, Linux, BSD, Jython
-#see __init__.py
+#! /usr/bin/env python
+# Python Serial Port Extension for Win32, Linux, BSD, Jython
+# see __init__.py
 #
-#(C) 2001-2003 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2008 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
-"""Some tests for the serial module.
-Part of pyserial (http://pyserial.sf.net)  (C)2002-2003 cliechti@gmx.net
+"""\
+Some tests for the serial module.
+Part of pyserial (http://pyserial.sf.net)  (C)2001-2008 cliechti@gmx.net
 
 Intended to be run on different platforms, to ensure portability of
 the code.
@@ -57,9 +58,9 @@ class Test4_Nonblocking(unittest.TestCase):
         """timeout: test the timeout/immediate return.
         partial results should be returned."""
         self.s.write("HELLO")
-        time.sleep(0.02)    #there might be a small delay until the character is ready (especialy on win32)
+        time.sleep(0.1)    #there might be a small delay until the character is ready (especialy on win32)
         #read more characters as are available to run in the timeout
-        self.failUnless(self.s.read(10)=='HELLO', "expected an 'HELLO' which was written before")
+        self.failUnless(self.s.read(10)=='HELLO', "expected the 'HELLO' which was written before")
         self.failUnless(self.s.read(1)=='', "expected empty buffer after all sent chars are read")
 
 
@@ -140,20 +141,20 @@ class Test0_DataWires(unittest.TestCase):
     def test1_RTS(self):
         """Test RTS/CTS"""
         self.s.setRTS(0)
-        self.failUnless(self.s.getCTS()==0, "CTS -> 0")
+        self.failUnless(not self.s.getCTS(), "CTS -> 0")
         self.s.setRTS(1)
-        self.failUnless(self.s.getCTS()==1, "CTS -> 1")
+        self.failUnless(self.s.getCTS(), "CTS -> 1")
 
     def test2_DTR(self):
         """Test DTR/DSR"""
         self.s.setDTR(0)
-        self.failUnless(self.s.getDSR()==0, "DSR -> 0")
+        self.failUnless(not self.s.getDSR(), "DSR -> 0")
         self.s.setDTR(1)
-        self.failUnless(self.s.getDSR()==1, "DSR -> 1")
+        self.failUnless(self.s.getDSR(), "DSR -> 1")
 
     def test3_RI(self):
         """Test RI"""
-        self.failUnless(self.s.getRI()==0, "RI -> 0")
+        self.failUnless(not self.s.getRI(), "RI -> 0")
 
 class Test_MoreTimeouts(unittest.TestCase):
     """Test with timeouts"""
