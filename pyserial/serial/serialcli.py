@@ -69,7 +69,11 @@ class Serial(SerialBase):
 
 
         # Setup the connection info.
-        self._port_handle.BaudRate = self._baudrate
+        try:
+            self._port_handle.BaudRate = self._baudrate
+        except IOError, e:
+            # catch errors from illegal baudrate settings
+            raise ValueError(str(e))
 
         if self._bytesize == FIVEBITS:
             self._port_handle.DataBits     = 5
@@ -127,7 +131,10 @@ class Serial(SerialBase):
             self._isOpen = False
 
     def makeDeviceName(self, port):
-        return device(port)
+        try:
+            return device(port)
+        except TypeError, e:
+            raise SerialException(str(e))
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     
