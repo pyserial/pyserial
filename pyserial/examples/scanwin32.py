@@ -173,8 +173,6 @@ def comports(available_only=True):
             if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
                 raise ctypes.WinError()
         port_name = re.search(r"\((.*)\)", szFriendlyName.value).group(1)
-        if len(port_name) > 4:
-            port_name = '\\\\.\\'+port_name
         yield port_name, szFriendlyName.value, szHardwareID.value
     
     SetupDiDestroyDeviceInfoList(g_hdi)
