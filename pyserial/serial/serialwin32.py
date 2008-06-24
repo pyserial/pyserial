@@ -34,8 +34,14 @@ class Serial(SerialBase):
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
         self.hComPort = None
+        # the "\\.\COMx" format is required for devices other than COM1-COM8
+        # not all versions of windows seem to support this properly
+        # so that the first few ports are used with the DOS device name
+        port = self.portstr
+        if port.upper().startswith('COM') and int(port[3:]) > 8:
+            port = '\\\\.\\' + port
         try:
-            self.hComPort = win32file.CreateFile(self.makeDeviceName(self.portstr),
+            self.hComPort = win32file.CreateFile(port,
                    win32con.GENERIC_READ | win32con.GENERIC_WRITE,
                    0, # exclusive access
                    None, # no security
@@ -185,12 +191,7 @@ class Serial(SerialBase):
             self._isOpen = False
 
     def makeDeviceName(self, port):
-        # the "\\.\COMx" format is required for devices other than COM1-COM8
-        # not all versions of windows seem to support this properly
-        # so that the first few ports are used with the DOS device name
-        if port.upper().startswith('COM') and int(port[3:]) <= 8:
-            return port
-        return '\\\\.\\' + port
+        return device(port)
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     
