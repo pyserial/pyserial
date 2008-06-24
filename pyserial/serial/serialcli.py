@@ -6,12 +6,20 @@
 # (C) 2008 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
+import clr
+import System
 import System.IO.Ports
 from serialutil import *
 
 def device(portnum):
     """Turn a port number into a device name"""
     return System.IO.Ports.SerialPort.GetPortNames()[portnum]
+
+# must invoke function with byte array, make a helper to convert strings
+# to byte arrays
+sab = System.Array[System.Byte]
+def as_byte_array(string):
+    return sab([ord(x) for x in string])
 
 class Serial(SerialBase):
     """Serial port implemenation for .NET/Mono."""
@@ -33,6 +41,9 @@ class Serial(SerialBase):
         self._reconfigurePort()
         self._port_handle.Open()
         self._isOpen = True
+        if not self._rtscts:
+            self.setRTS(True)
+            self.setDTR(True)
         self.flushInput()
         self.flushOutput()
 
@@ -130,6 +141,8 @@ class Serial(SerialBase):
            return less characters as requested. With no timeout it will block
            until the requested number of bytes is read."""
         if not self._port_handle: raise portNotOpenError
+            # must use single byte reads as this is the only way to read
+            # without applying encodings
         data = []
         while size:
             try:
@@ -146,7 +159,9 @@ class Serial(SerialBase):
         if not isinstance(data, str):
             raise TypeError('expected str, got %s' % type(data))
         try:
-            self._port_handle.Write(data)
+            # must call overloaded method with byte array argument
+            # as this is the only one not applying encodings
+            self._port_handle.Write(as_byte_array(data), 0, len(data))
         except System.TimeoutException, e:
             raise writeTimeoutError
 
