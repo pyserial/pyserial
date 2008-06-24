@@ -133,7 +133,7 @@ class Serial(SerialBase):
         data = []
         while size:
             try:
-                data.append(self._port_handle.ReadByte())
+                data.append(chr(self._port_handle.ReadByte()))
             except System.TimeoutException, e:
                 break
             else:
