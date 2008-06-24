@@ -181,7 +181,9 @@ class Test_MoreTimeouts(unittest.TestCase):
 if __name__ == '__main__':
     import sys
     print __doc__
+    if len(sys.argv) > 1:
+        PORT = sys.argv[1]
     print "Testing port", PORT
-    sys.argv.append('-v')
+    sys.argv[1:] = ['-v']
     # When this module is executed from the command-line, it runs all its tests
     unittest.main()

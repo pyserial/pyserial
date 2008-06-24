@@ -38,7 +38,10 @@ class Test_ChangeAttributes(unittest.TestCase):
     def test_PortSetting(self):
         self.s.port = PORT
         #portstr has to be set
-        self.failUnlessEqual(self.s.portstr, serial.device(PORT))
+        if isinstance(PORT, str):
+            self.failUnlessEqual(self.s.portstr.lower(), PORT.lower())
+        else:
+            self.failUnlessEqual(self.s.portstr, serial.device(PORT))
         #test internals
         self.failUnlessEqual(self.s._port, PORT)
         #test on the fly change
@@ -158,7 +161,9 @@ class Test_ChangeAttributes(unittest.TestCase):
 if __name__ == '__main__':
     import sys
     print __doc__
+    if len(sys.argv) > 1:
+        PORT = sys.argv[1]
     print "Testing port", PORT
-    sys.argv.append('-v')
+    sys.argv[1:] = ['-v']
     # When this module is executed from the command-line, it runs all its tests
     unittest.main()
