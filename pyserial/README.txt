@@ -3,14 +3,14 @@ pySerial
 ========
 This module capsulates the access for the serial port. It provides backends
 for standard Python running on Windows, Linux, BSD (possibly any POSIX
-compilant system) and Jython. The module named "serial" automaticaly selects
-the appropriate backend.
+compilant system), Jython and IronPython. The module named "serial"
+automaticaly selects the appropriate backend.
 
 It is released under a free software license, see LICENSE.txt for more
 details.
 
 Project Homepage: http://pyserial.sourceforge.net
-(C) 2001-2005 Chris Liechti <cliechti@gmx.net>
+(C) 2001-2008 Chris Liechti <cliechti@gmx.net>
 
 
 Features
@@ -274,3 +274,5 @@ References
 - Java@IBM http://www-106.ibm.com/developerworks/java/jdk/
   (JavaComm links are on the download page for the respective platform jdk)
 - Java@SUN http://java.sun.com/products/
+- IronPython: http://www.codeplex.com/IronPython
+- setuptools: http://peak.telecommunity.com/DevCenter/setuptools
