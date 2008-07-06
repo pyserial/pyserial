@@ -76,7 +76,7 @@ class Serial(SerialBase):
         self._isOpen = True
 
     def _reconfigurePort(self):
-        """Set commuication parameters on opened port."""
+        """Set communication parameters on opened port."""
         if not self.hComPort:
             raise SerialException("Can only operate on a valid port handle")
         

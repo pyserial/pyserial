@@ -257,7 +257,7 @@ Bugfixes:
 - update VERSION variable
 - update wxSerialConfigDialog.py and wxTerminal.py compatibility with
   wxPython 2.8 (Peleg)
-- Check for string in write function. Using uncode causes strange errors, this
+- Check for string in write function. Using unicode causes errors, this
   helps catching errors early (Tom Lynn)
 
 Bugfixes (posix):
@@ -269,20 +269,18 @@ Bugfixes (posix):
 Bugfixes (win32):
 
 - [Bug 1520357] Handle leak
-- [Bug 1679013] Ignore excpetion raised by SetCommTimeout() in close().
+- [Bug 1679013] Ignore exception raised by SetCommTimeout() in close().
 - [Bug 1938118] process hang forever under XP
 
 
-Version 2.4     
+Version 2.4      6 Jul 2008
 ---------------------------
 New Features:
 
 - [Patch 1616790] pyserial: Add inter-character timeout feature
 - [Patch 1924805] add a setBreak function
 - Add mark/space parity
-- Add .NET/Mono backend (IronPython).
-
-Bugfixes:
+- Add .NET/Mono backend (IronPython)
 
 Bugfixes (posix):
 
@@ -291,5 +289,11 @@ Bugfixes (posix):
 Bugfixes (win32):
 
 - [Patch 1561423] Add mark/space parity, Win32
+- [Bug 2000771] serial port CANNOT be specified by number on windows
 - examples/scanwin32.py does no longer return \\.\ names
 - fix \\.\ handling for some cases
+
+Bugfixes (jython):
+
+ - The Jython backend tries javax.comm and gnu.io (Seo Sanghyeon)
+
