@@ -16,6 +16,7 @@ setup(
         {
             'dist_dir': 'bin',
             'excludes': ['javax.comm'],
+            'compressed': 1,
         }
     },
     console = [
