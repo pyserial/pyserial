@@ -28,7 +28,7 @@ if os.name == 'nt':
         def cleanup(self):
             pass    # Do nothing for 'nt'
 
-        def getkey():
+        def getkey(self):
             while 1:
                 z = msvcrt.getch()
                 if z == '\0' or z == '\xe0':    #functions keys
