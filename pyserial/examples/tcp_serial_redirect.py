@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-# (C) 2002-2006 Chris Liechti <cliechti@gmx.net>
+# (C) 2002-2009 Chris Liechti <cliechti@gmx.net>
 # redirect data from a TCP/IP connection to a serial port and vice versa
 # requires Python 2.2 'cause socket.sendall is used
 
 
-import sys, os, serial, threading, socket
+import sys, os, serial, threading, socket, codecs
 
 try:
     True
@@ -14,9 +14,12 @@ except NameError:
     False = 0
 
 class Redirector:
-    def __init__(self, serial, socket):
+    def __init__(self, serial, socket, ser_newline=None, net_newline=None, spy=False):
         self.serial = serial
         self.socket = socket
+        self.ser_newline = ser_newline
+        self.net_newline = net_newline
+        self.spy = spy
 
     def shortcut(self):
         """connect the serial port to the tcp port by copying everything
@@ -26,23 +29,31 @@ class Redirector:
         self.thread_read.setDaemon(1)
         self.thread_read.start()
         self.writer()
-    
+
     def reader(self):
         """loop forever and copy serial->socket"""
         while self.alive:
             try:
-                data = self.serial.read(1)              #read one, blocking
-                n = self.serial.inWaiting()             #look if there is more
+                data = self.serial.read(1)              # read one, blocking
+                n = self.serial.inWaiting()             # look if there is more
                 if n:
-                    data = data + self.serial.read(n)   #and get as much as possible
+                    data = data + self.serial.read(n)   # and get as much as possible
                 if data:
-                    self.socket.sendall(data)           #send it over TCP
+                    # the spy shows what's on the serial port, so log it before converting newlines
+                    if self.spy:
+                        sys.stdout.write(codecs.escape_encode(data)[0])
+                        sys.stdout.flush()
+                    if self.ser_newline and self.net_newline:
+                        # do the newline conversion
+                        # XXX fails for CR+LF in input when it is cut in half at the begin or end of the string
+                        data = net_newline.join(data.split(ser_newline))
+                    self.socket.sendall(data)           # send it over TCP
             except socket.error, msg:
-                print msg
-                #probably got disconnected
+                sys.stderr.write('ERROR: %s\n' % msg)
+                # probably got disconnected
                 break
         self.alive = False
-    
+
     def writer(self):
         """loop forever and copy socket->serial"""
         while self.alive:
@@ -50,10 +61,18 @@ class Redirector:
                 data = self.socket.recv(1024)
                 if not data:
                     break
-                self.serial.write(data)                 #get a bunch of bytes and send them
+                if self.ser_newline and self.net_newline:
+                    # do the newline conversion
+                    # XXX fails for CR+LF in input when it is cut in half at the begin or end of the string
+                    data = ser_newline.join(data.split(net_newline))
+                self.serial.write(data)                 # get a bunch of bytes and send them
+                # the spy shows what's on the serial port, so log it after converting newlines
+                if self.spy:
+                    sys.stdout.write(codecs.escape_encode(data)[0])
+                    sys.stdout.flush()
             except socket.error, msg:
-                print msg
-                #probably got disconnected
+                sys.stderr.write('ERROR: %s\n' % msg)
+                # probably got disconnected
                 break
         self.alive = False
         self.thread_read.join()
@@ -68,52 +87,132 @@ class Redirector:
 if __name__ == '__main__':
     import optparse
 
-    parser = optparse.OptionParser(usage="""\
-%prog [options] [port [baudrate]]
-Simple Serial to Network (TCP/IP) redirector.
-
-Note: no security measures are implemeted. Anyone can remotely connect
+    parser = optparse.OptionParser(
+        usage = "%prog [options] [port [baudrate]]",
+        description = "Simple Serial to Network (TCP/IP) redirector.",
+        epilog = """\
+NOTE: no security measures are implemented. Anyone can remotely connect
 to this service over the network.
+
 Only one connection at once is supported. When the connection is terminated
 it waits for the next connect.
 """)
-    parser.add_option("-p", "--port", dest="port",
-        help="port, a number (default 0) or a device name (deprecated option)",
-        default=None)
-    
-    parser.add_option("-b", "--baud", dest="baudrate", action="store", type='int',
-        help="set baudrate, default 9600", default=9600)
-        
-    parser.add_option("", "--parity", dest="parity", action="store",
-        help="set parity, one of [N, E, O], default=N", default='N')
-    
-    parser.add_option("", "--rtscts", dest="rtscts", action="store_true",
-        help="enable RTS/CTS flow control (default off)", default=False)
-    
-    parser.add_option("", "--xonxoff", dest="xonxoff", action="store_true",
-        help="enable software flow control (default off)", default=False)
-    
-    parser.add_option("", "--cr", dest="cr", action="store_true",
-        help="do not send CR+LF, send CR only", default=False)
-        
-    parser.add_option("", "--lf", dest="lf", action="store_true",
-        help="do not send CR+LF, send LF only", default=False)
-    
-    parser.add_option("", "--rts", dest="rts_state", action="store", type='int',
-        help="set initial RTS line state (possible values: 0, 1)", default=None)
 
-    parser.add_option("", "--dtr", dest="dtr_state", action="store", type='int',
-        help="set initial DTR line state (possible values: 0, 1)", default=None)
+    parser.add_option("-q", "--quiet",
+        dest = "quiet",
+        action = "store_true",
+        help = "suppress non error messages",
+        default = False
+    )
 
-    parser.add_option("-q", "--quiet", dest="quiet", action="store_true",
-        help="suppress non error messages", default=False)
+    parser.add_option("--spy",
+        dest = "spy",
+        action = "store_true",
+        help = "peek at the communication and print all data to the console",
+        default = False
+    )
 
-    parser.add_option("-P", "--localport", dest="local_port", action="store", type='int',
-        help="local TCP port", default=7777)
+    group = optparse.OptionGroup(parser,
+        "Serial Port",
+        "Serial port settings"
+    )
+    parser.add_option_group(group)
 
+    group.add_option("-p", "--port",
+        dest = "port",
+        help = "port, a number (default 0) or a device name",
+        default = None
+    )
+
+    group.add_option("-b", "--baud",
+        dest = "baudrate",
+        action = "store",
+        type = 'int',
+        help = "set baud rate, default: %default",
+        default = 9600
+    )
+
+    group.add_option("", "--parity",
+        dest = "parity",
+        action = "store",
+        help = "set parity, one of [N, E, O], default=%default",
+        default = 'N'
+    )
+
+    group.add_option("--rtscts",
+        dest = "rtscts",
+        action = "store_true",
+        help = "enable RTS/CTS flow control (default off)",
+        default = False
+    )
+
+    group.add_option("--xonxoff",
+        dest = "xonxoff",
+        action = "store_true",
+        help = "enable software flow control (default off)",
+        default = False
+    )
+
+    group.add_option("--rts",
+        dest = "rts_state",
+        action = "store",
+        type = 'int',
+        help = "set initial RTS line state (possible values: 0, 1)",
+        default = None
+    )
+
+    group.add_option("--dtr",
+        dest = "dtr_state",
+        action = "store",
+        type = 'int',
+        help = "set initial DTR line state (possible values: 0, 1)",
+        default = None
+    )
+
+    group = optparse.OptionGroup(parser,
+        "Network settings",
+        "Network configuration."
+    )
+    parser.add_option_group(group)
+
+    group.add_option("-P", "--localport",
+        dest = "local_port",
+        action = "store",
+        type = 'int',
+        help = "local TCP port",
+        default = 7777
+    )
+
+    group = optparse.OptionGroup(parser,
+        "Newline Settings",
+        "Convert newlines between network and serial port. Conversion is normally disabled and can be enabled by --convert."
+    )
+    parser.add_option_group(group)
+
+    group.add_option("-c", "--convert",
+        dest = "convert",
+        action = "store_true",
+        help = "enable newline conversion (default off)",
+        default = False
+    )
+
+    group.add_option("--net-nl",
+        dest = "net_newline",
+        action = "store",
+        help = "type of newlines that are expected on the network (default: %default)",
+        default = "LF"
+    )
+
+    group.add_option("--ser-nl",
+        dest = "ser_newline",
+        action = "store",
+        help = "type of newlines that are expected on the serial port (default: %default)",
+        default = "CR+LF"
+    )
 
     (options, args) = parser.parse_args()
 
+    # get port and baud rate from command line arguments or the option switches
     port = options.port
     baudrate = options.baudrate
     if args:
@@ -124,31 +223,52 @@ it waits for the next connect.
             try:
                 baudrate = int(args[0])
             except ValueError:
-                parser.error("baudrate must be a number, not %r" % args[0])
+                parser.error("baud rate must be a number, not %r" % args[0])
             args.pop(0)
         if args:
             parser.error("too many arguments")
     else:
         if port is None: port = 0
 
-    if options.cr and options.lf:
-        parser.error("ony one of --cr or --lf can be specified")
+    # check newline modes for network connection
+    mode = options.net_newline.upper()
+    if mode == 'CR':
+        net_newline = '\r'
+    elif mode == 'LF':
+        net_newline = '\n'
+    elif mode == 'CR+LF' or mode == 'CRLF':
+        net_newline = '\r\n'
+    else:
+        parser.error("Invalid value for --net-nl. Valid are 'CR', 'LF' and 'CR+LF'/'CRLF'.")
 
+    # check newline modes for serial connection
+    mode = options.ser_newline.upper()
+    if mode == 'CR':
+        ser_newline = '\r'
+    elif mode == 'LF':
+        ser_newline = '\n'
+    elif mode == 'CR+LF' or mode == 'CRLF':
+        ser_newline = '\r\n'
+    else:
+        parser.error("Invalid value for --ser-nl. Valid are 'CR', 'LF' and 'CR+LF'/'CRLF'.")
+
+    # connect to serial port
     ser = serial.Serial()
-    ser.port    = port
+    ser.port     = port
     ser.baudrate = baudrate
-    ser.rtscts  = options.rtscts
-    ser.xonxoff = options.xonxoff
-    ser.timeout = 1     #required so that the reader thread can exit
-    
+    ser.parity   = options.parity
+    ser.rtscts   = options.rtscts
+    ser.xonxoff  = options.xonxoff
+    ser.timeout  = 1     # required so that the reader thread can exit
+
     if not options.quiet:
-        print "--- TCP/IP to Serial redirector --- type Ctrl-C / BREAK to quit"
-        print "--- %s %s,%s,%s,%s ---" % (ser.portstr, ser.baudrate, 8, ser.parity, 1)
+        sys.stderr.write("--- TCP/IP to Serial redirector --- type Ctrl-C / BREAK to quit\n")
+        sys.stderr.write("--- %s %s,%s,%s,%s ---\n" % (ser.portstr, ser.baudrate, 8, ser.parity, 1))
 
     try:
         ser.open()
     except serial.SerialException, e:
-        print "Could not open serial port %s: %s" % (ser.portstr, e)
+        sys.stderr.write("Could not open serial port %s: %s\n" % (ser.portstr, e))
         sys.exit(1)
 
     if options.rts_state is not None:
@@ -158,19 +278,28 @@ it waits for the next connect.
         ser.setDTR(options.dtr_state)
 
     srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     srv.bind( ('', options.local_port) )
     srv.listen(1)
     while 1:
         try:
-            print "Waiting for connection on %s..." % options.local_port
+            sys.stderr.write("Waiting for connection on %s...\n" % options.local_port)
             connection, addr = srv.accept()
-            print 'Connected by', addr
-            #enter console->serial loop
-            r = Redirector(ser, connection)
+            sys.stderr.write('Connected by %s\n' % (addr,))
+            # enter console->serial loop
+            r = Redirector(
+                ser,
+                connection,
+                options.convert and ser_newline or None,
+                options.convert and net_newline or None,
+                options.spy,
+            )
             r.shortcut()
-            print 'Disconnected'
+            if options.spy: sys.stdout.write('\n')
+            sys.stderr.write('Disconnected\n')
             connection.close()
         except socket.error, msg:
-            print msg
+            sys.stderr.write('ERROR: %s\n' % msg)
 
-    print "\n--- exit ---"
+    sys.stderr.write('\n--- exit ---\n')
+
