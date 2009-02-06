@@ -37,9 +37,9 @@ if os.name == 'nt':
                     if z == '\r':
                         return '\n'
                     return z
-    
+
     console = Console()
-    
+
 elif os.name == 'posix':
     import termios, sys, os
     class Console:
@@ -54,11 +54,11 @@ elif os.name == 'posix':
             new[6][termios.VTIME] = 0
             termios.tcsetattr(self.fd, termios.TCSANOW, new)
             #s = ''    # We'll save the characters typed and add them to the pool.
-    
+
         def getkey(self):
             c = os.read(self.fd, 1)
             return c
-    
+
         def cleanup(self):
             termios.tcsetattr(self.fd, termios.TCSAFLUSH, self.old)
 
@@ -96,10 +96,10 @@ class Miniterm:
         self.transmitter_thread = threading.Thread(target=self.writer)
         self.transmitter_thread.setDaemon(1)
         self.transmitter_thread.start()
-    
+
     def stop(self):
         self.alive = False
-        
+
     def join(self, transmit_only=False):
         self.transmitter_thread.join()
         if not transmit_only:
@@ -109,7 +109,7 @@ class Miniterm:
         """loop and copy serial->console"""
         while self.alive:
             data = self.serial.read(1)
-            
+
             if self.repr_mode == 0:
                 # direct output, just have to care about newline setting
                 if data == '\r' and self.convert_outgoing == CONVERT_CR:
@@ -193,64 +193,123 @@ def key_description(character):
 def main():
     import optparse
 
-    parser = optparse.OptionParser(usage="""\
-%prog [options] [port [baudrate]]
+    parser = optparse.OptionParser(
+        usage = "%prog [options] [port [baudrate]]",
+        description = "Miniterm - A simple terminal program for the serial port."
+    )
 
-Miniterm - A simple terminal program for the serial port.""")
+    parser.add_option("-p", "--port",
+        dest = "port",
+        help = "port, a number (default 0) or a device name (deprecated option)",
+        default = None
+    )
 
-    parser.add_option("-p", "--port", dest="port",
-        help="port, a number (default 0) or a device name (deprecated option)",
-        default=None)
-    
-    parser.add_option("-b", "--baud", dest="baudrate", action="store", type='int',
-        help="set baudrate, default 9600", default=9600)
-        
-    parser.add_option("", "--parity", dest="parity", action="store",
-        help="set parity, one of [N, E, O], default=N", default='N')
-    
-    parser.add_option("-e", "--echo", dest="echo", action="store_true",
-        help="enable local echo (default off)", default=False)
-        
-    parser.add_option("", "--rtscts", dest="rtscts", action="store_true",
-        help="enable RTS/CTS flow control (default off)", default=False)
-    
-    parser.add_option("", "--xonxoff", dest="xonxoff", action="store_true",
-        help="enable software flow control (default off)", default=False)
-    
-    parser.add_option("", "--cr", dest="cr", action="store_true",
-        help="do not send CR+LF, send CR only", default=False)
-        
-    parser.add_option("", "--lf", dest="lf", action="store_true",
-        help="do not send CR+LF, send LF only", default=False)
-        
-    parser.add_option("-D", "--debug", dest="repr_mode", action="count",
-        help="""debug received data (escape non-printable chars)
+    parser.add_option("-b", "--baud",
+        dest = "baudrate",
+        action = "store",
+        type = 'int',
+        help = "set baud rate, default 9600",
+        default = 9600
+    )
+
+    parser.add_option("--parity",
+        dest = "parity",
+        action = "store",
+        help = "set parity, one of [N, E, O], default=N",
+        default = 'N'
+    )
+
+    parser.add_option("-e", "--echo",
+        dest = "echo",
+        action = "store_true",
+        help = "enable local echo (default off)",
+        default = False
+    )
+
+    parser.add_option("--rtscts",
+        dest = "rtscts",
+        action = "store_true",
+        help = "enable RTS/CTS flow control (default off)",
+        default = False
+    )
+
+    parser.add_option("--xonxoff",
+        dest = "xonxoff",
+        action = "store_true",
+        help = "enable software flow control (default off)",
+        default = False
+    )
+
+    parser.add_option("--cr",
+        dest = "cr",
+        action = "store_true",
+        help = "do not send CR+LF, send CR only",
+        default = False
+    )
+
+    parser.add_option("--lf",
+        dest = "lf",
+        action = "store_true",
+        help = "do not send CR+LF, send LF only",
+        default = False
+    )
+
+    parser.add_option("-D", "--debug",
+        dest = "repr_mode",
+        action = "count",
+        help = """debug received data (escape non-printable chars)
 --debug can be given multiple times:
 0: just print what is received
-1: escape non-printable characters, do newlines as ususal
+1: escape non-printable characters, do newlines as unusual
 2: escape non-printable characters, newlines too
-3: hex dump everything""", default=0)
+3: hex dump everything""",
+        default = 0
+    )
 
-    parser.add_option("", "--rts", dest="rts_state", action="store", type='int',
-        help="set initial RTS line state (possible values: 0, 1)", default=None)
+    parser.add_option("--rts",
+        dest = "rts_state",
+        action = "store",
+        type = 'int',
+        help = "set initial RTS line state (possible values: 0, 1)",
+        default = None
+    )
 
-    parser.add_option("", "--dtr", dest="dtr_state", action="store", type='int',
-        help="set initial DTR line state (possible values: 0, 1)", default=None)
+    parser.add_option("--dtr",
+        dest = "dtr_state",
+        action = "store",
+        type = 'int',
+        help = "set initial DTR line state (possible values: 0, 1)",
+        default = None
+    )
 
-    parser.add_option("-q", "--quiet", dest="quiet", action="store_true",
-        help="suppress non error messages", default=False)
+    parser.add_option("-q", "--quiet",
+        dest = "quiet",
+        action = "store_true",
+        help = "suppress non error messages",
+        default = False
+    )
 
-    parser.add_option("", "--exit-char", dest="exit_char", action="store", type='int',
-        help="ASCII code of special charcter that is used to exit the application", default=0x1d)
+    parser.add_option("--exit-char",
+        dest = "exit_char",
+        action = "store",
+        type = 'int',
+        help = "ASCII code of special character that is used to exit the application",
+        default = 0x1d
+    )
 
-    parser.add_option("", "--upload-char", dest="upload_char", action="store", type='int',
-        help="ASCII code of special charcter that is used to send a file", default=0x15)
+    parser.add_option("--upload-char",
+        dest = "upload_char",
+        action = "store",
+        type = 'int',
+        help = "ASCII code of special character that is used to send a file",
+        default = 0x15
+    )
 
     (options, args) = parser.parse_args()
 
     if options.cr and options.lf:
-        parser.error("ony one of --cr or --lf can be specified")
-    
+        parser.error("only one of --cr or --lf can be specified")
+
     global EXITCHARCTER, UPLOADCHARACTER
     EXITCHARCTER = chr(options.exit_char)
     UPLOADCHARACTER = chr(options.upload_char)
@@ -265,13 +324,13 @@ Miniterm - A simple terminal program for the serial port.""")
             try:
                 baudrate = int(args[0])
             except ValueError:
-                parser.error("baudrate must be a number, not %r" % args[0])
+                parser.error("baud rate must be a number, not %r" % args[0])
             args.pop(0)
         if args:
             parser.error("too many arguments")
     else:
         if port is None: port = 0
-    
+
     convert_outgoing = CONVERT_CRLF
     if options.cr:
         convert_outgoing = CONVERT_CR
@@ -313,7 +372,7 @@ Miniterm - A simple terminal program for the serial port.""")
         if not options.quiet:
             sys.stderr.write('--- forcing RTS %s\n' % (options.rts_state and 'active' or 'inactive'))
         miniterm.serial.setRTS(options.rts_state)
-        
+
     miniterm.start()
     miniterm.join(True)
     if not options.quiet:
