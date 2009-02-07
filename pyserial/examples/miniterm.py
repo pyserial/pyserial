@@ -165,7 +165,7 @@ class Miniterm:
                             self.serial.write(line)
                             self.serial.write('\r\n')
                             # Wait for output buffer to drain.
-                            self.serial.flush()   
+                            self.serial.flush()
                             sys.stderr.write('.')   # Progress indicator.
                         sys.stderr.write('\nFile %s sent.\n' % filename)
                     except IOError:
