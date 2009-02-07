@@ -52,7 +52,7 @@ class Serial(SerialBase):
         if not self._port_handle:
             raise SerialException("Can only operate on a valid port handle")
         
-        self.ReceivedBytesThreshold = 1
+        #~ self._port_handle.ReceivedBytesThreshold = 1
         
         if self._timeout is None:
             self._port_handle.ReadTimeout = System.IO.Ports.SerialPort.InfiniteTimeout

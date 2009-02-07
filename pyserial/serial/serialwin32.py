@@ -3,7 +3,7 @@
 # serial driver for win32
 # see __init__.py
 #
-# (C) 2001-2008 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2009 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
 import win32file  # The base COM port and file IO functions.
@@ -54,14 +54,14 @@ class Serial(SerialBase):
         # Setup a 4k buffer
         win32file.SetupComm(self.hComPort, 4096, 4096)
 
-        #Save original timeout values:
+        # Save original timeout values:
         self._orgTimeouts = win32file.GetCommTimeouts(self.hComPort)
 
         self._rtsState = win32file.RTS_CONTROL_ENABLE
         self._dtrState = win32file.DTR_CONTROL_ENABLE
 
         self._reconfigurePort()
-        
+
         # Clear buffers:
         # Remove anything that was there
         win32file.PurgeComm(self.hComPort,
@@ -79,12 +79,12 @@ class Serial(SerialBase):
         """Set communication parameters on opened port."""
         if not self.hComPort:
             raise SerialException("Can only operate on a valid port handle")
-        
-        #Set Windows timeout values
-        #timeouts is a tuple with the following items:
-        #(ReadIntervalTimeout,ReadTotalTimeoutMultiplier,
-        # ReadTotalTimeoutConstant,WriteTotalTimeoutMultiplier,
-        # WriteTotalTimeoutConstant)
+
+        # Set Windows timeout values
+        # timeouts is a tuple with the following items:
+        # (ReadIntervalTimeout,ReadTotalTimeoutMultiplier,
+        #  ReadTotalTimeoutConstant,WriteTotalTimeoutMultiplier,
+        #  WriteTotalTimeoutConstant)
         if self._timeout is None:
             timeouts = (0, 0, 0, 0, 0)
         elif self._timeout == 0:
@@ -93,7 +93,7 @@ class Serial(SerialBase):
             timeouts = (0, 0, int(self._timeout*1000), 0, 0)
         if self._timeout != 0 and self._interCharTimeout is not None:
             timeouts = (int(self._interCharTimeout * 1000),) + timeouts[1:]
-            
+
         if self._writeTimeout is None:
             pass
         elif self._writeTimeout == 0:
@@ -144,7 +144,7 @@ class Serial(SerialBase):
             comDCB.StopBits     = win32file.TWOSTOPBITS
         else:
             raise ValueError("Unsupported number of stop bits: %r" % self._stopbits)
-            
+
         comDCB.fBinary          = 1 # Enable Binary Transmission
         # Char. w/ Parity-Err are replaced with 0xff (if fErrorChar is set to TRUE)
         if self._rtscts:
@@ -194,7 +194,7 @@ class Serial(SerialBase):
         return device(port)
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-    
+
     def inWaiting(self):
         """Return the number of characters currently in the input buffer."""
         flags, comstat = win32file.ClearCommError(self.hComPort)
@@ -239,7 +239,7 @@ class Serial(SerialBase):
                 n = win32file.GetOverlappedResult(self.hComPort, self._overlappedWrite, 1)
                 if n != len(data):
                     raise writeTimeoutError
-                
+
 
     def flushInput(self):
         """Clear input buffer, discarding all that is in the buffer."""
@@ -318,15 +318,15 @@ class Serial(SerialBase):
         else:
             win32file.EscapeCommFunction(self.hComPort, win32file.SETXOFF)
 
-#Nur Testfunktion!!
+# Nur Testfunktion!!
 if __name__ == '__main__':
     s = Serial(0)
     print s
-    
+
     s = Serial()
     print s
-    
-    
+
+
     s.baudrate = 19200
     s.databits = 7
     s.close()
