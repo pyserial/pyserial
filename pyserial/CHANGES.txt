@@ -86,25 +86,25 @@ Bugfixes (posix):
 - cygwin port numbering fixed
 - test each and every constant for it's existence in termios module,
   use default if not existent (fix for Bug item #640214)
-- wrong exception on nonexitstent ports with /dev file. bug report
+- wrong exception on nonexistent ports with /dev file. bug report
   by Louis Cordier
 
 Bugfixes (win32):
 
-- RTS/CTS handling as sugested in Bug #635072
+- RTS/CTS handling as suggested in Bug #635072
 - bugfix of timeouts brought up by Markus Hoffrogge
 
 Version 1.19    19 Mar 2003
 ---------------------------
 Bugfixes (posix):
 
-- removed ``dgux`` entry which actualy had a wrong comment and is
+- removed ``dgux`` entry which actually had a wrong comment and is
   probably not in use anywhere.
 
 Bugfixes (win32):
 
 - added ``int()`` conversion, [Bug 702120]
-- remove code to set control lines in close methond of win32
+- remove code to set control lines in close method of win32
   version. [Bug 669625]
 
 Version 1.20    28 Aug 2003
@@ -113,9 +113,9 @@ Version 1.20    28 Aug 2003
 
 Bugfixes (win32):
 
-- don't recreate opverlaped structures and events on each
+- don't recreate overlapped structures and events on each
   read/write.
-- don't set unneded event masks.
+- don't set unneeded event masks.
 - dont use DOS device names for ports > 9.
 - remove send timeout (its not used in the linux impl. anyway).
 
@@ -177,7 +177,7 @@ Version 2.0b2    4 Oct 2003
 - Added serial port configuration dialog for wxPython to the examples.
 - Added terminal application for wxPython with wxGlade design file
   to the examples.
-- Jython support is currenty broken as Jython does not have a Python 2.2
+- Jython support is currently broken as Jython does not have a Python 2.2
   compatible release out yet
 
 
@@ -262,7 +262,7 @@ Bugfixes:
 
 Bugfixes (posix):
 
-- [Bug 1554183] setRTS/setDTR refrence to nonexisting local "on"
+- [Bug 1554183] setRTS/setDTR reference to non existing local "on"
 - [Bug 1513653] file descriptor not closed when exception is thrown
 - FreeBSD now uses cuadX instead of cuaaX (Patrick Phalen)
 
@@ -297,3 +297,14 @@ Bugfixes (jython):
 
  - The Jython backend tries javax.comm and gnu.io (Seo Sanghyeon)
 
+Version 2.5      <date>
+---------------------------
+New Features:
+
+Bugfixes:
+
+- Improve and fix tcp_serial_redirector example.
+
+Bugfixes (win32):
+
+- [Bug 2469098] parity PARITY_MARK, PARITY_SPACE does't supported in win32
