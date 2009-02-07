@@ -466,7 +466,7 @@ class Serial(SerialBase):
         fcntl.fcntl(self.fd, FCNTL.F_SETFL, FCNTL.O_NONBLOCK)
 
     def fileno(self):
-        """For easier of the serial port instance with select.
+        """For easier use of the serial port instance with select.
            WARNING: this function is not portable to different platforms!"""
         if self.fd is None: raise portNotOpenError
         return self.fd
