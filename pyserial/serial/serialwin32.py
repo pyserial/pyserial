@@ -140,6 +140,8 @@ class Serial(SerialBase):
 
         if self._stopbits == STOPBITS_ONE:
             comDCB.StopBits     = win32file.ONESTOPBIT
+        elif self._stopbits == STOPBITS_ONE_POINT_FIVE:
+            comDCB.StopBits     = win32file.ONE5STOPBITS
         elif self._stopbits == STOPBITS_TWO:
             comDCB.StopBits     = win32file.TWOSTOPBITS
         else:

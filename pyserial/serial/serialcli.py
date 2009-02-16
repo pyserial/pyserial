@@ -51,17 +51,17 @@ class Serial(SerialBase):
         """Set communication parameters on opened port."""
         if not self._port_handle:
             raise SerialException("Can only operate on a valid port handle")
-        
+
         #~ self._port_handle.ReceivedBytesThreshold = 1
-        
+
         if self._timeout is None:
             self._port_handle.ReadTimeout = System.IO.Ports.SerialPort.InfiniteTimeout
         else:
             self._port_handle.ReadTimeout = int(self._timeout*1000)
-            
+
         # if self._timeout != 0 and self._interCharTimeout is not None:
             # timeouts = (int(self._interCharTimeout * 1000),) + timeouts[1:]
-            
+
         if self._writeTimeout is None:
             self._port_handle.WriteTimeout = System.IO.Ports.SerialPort.InfiniteTimeout
         else:
@@ -101,11 +101,13 @@ class Serial(SerialBase):
 
         if self._stopbits == STOPBITS_ONE:
             self._port_handle.StopBits     = System.IO.Ports.StopBits.One
+        elif self._stopbits == STOPBITS_ONE_POINT_FIVE:
+            self._port_handle.StopBits     = System.IO.Ports.StopBits.OnePointFive
         elif self._stopbits == STOPBITS_TWO:
             self._port_handle.StopBits     = System.IO.Ports.StopBits.Two
         else:
             raise ValueError("Unsupported number of stop bits: %r" % self._stopbits)
-        
+
         if self._rtscts and self._xonxoff:
             self._port_handle.Handshake  = System.IO.Ports.Handshake.RequestToSendXOnXOff
         elif self._rtscts:
@@ -137,7 +139,7 @@ class Serial(SerialBase):
             raise SerialException(str(e))
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-    
+
     def inWaiting(self):
         """Return the number of characters currently in the input buffer."""
         if not self._port_handle: raise portNotOpenError

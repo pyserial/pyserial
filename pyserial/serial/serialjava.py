@@ -49,7 +49,7 @@ def device(portnumber):
 class Serial(SerialBase):
     """Serial port class, implemented with Java Communications API and
        thus usable with jython and the appropriate java extension."""
-    
+
     def open(self):
         """Open port with current settings. This may throw a SerialException
            if the port cannot be opened."""
@@ -73,7 +73,7 @@ class Serial(SerialBase):
         """Set commuication parameters on opened port."""
         if not self.sPort:
             raise SerialException("Can only operate on a valid port handle")
-        
+
         self.sPort.enableReceiveTimeout(30)
         if self._bytesize == FIVEBITS:
             jdatabits = comm.SerialPort.DATABITS_5
@@ -85,10 +85,10 @@ class Serial(SerialBase):
             jdatabits = comm.SerialPort.DATABITS_8
         else:
             raise ValueError("unsupported bytesize: %r" % self._bytesize)
-        
+
         if self._stopbits == STOPBITS_ONE:
             jstopbits = comm.SerialPort.STOPBITS_1
-        elif stopbits == STOPBITS_ONE_HALVE:
+        elif stopbits == STOPBITS_ONE_POINT_FIVE:
             self._jstopbits = comm.SerialPort.STOPBITS_1_5
         elif self._stopbits == STOPBITS_TWO:
             jstopbits = comm.SerialPort.STOPBITS_2
@@ -115,10 +115,10 @@ class Serial(SerialBase):
         if self._xonxoff:
             jflowin  |=  comm.SerialPort.FLOWCONTROL_XONXOFF_IN
             jflowout |=  comm.SerialPort.FLOWCONTROL_XONXOFF_OUT
-        
+
         self.sPort.setSerialPortParams(baudrate, jdatabits, jstopbits, jparity)
         self.sPort.setFlowControlMode(jflowin | jflowout)
-        
+
         if self._timeout >= 0:
             self.sPort.enableReceiveTimeout(self._timeout*1000)
         else:

@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+#
 # Python Serial Port Extension for Win32, Linux, BSD, Jython
 # module for serial IO for POSIX compatible systems, like Linux
 # see __init__.py
 #
-# (C) 2001-2008 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2009 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 #
 # parts based on code from Grant B. Edwards  <grante@visi.com>:
@@ -61,7 +62,7 @@ elif plat[:2] == 'hp':       #HP-UX (not tested)
 elif plat[:5] == 'sunos':    #Solaris/SunOS (confirmed)
     def device(port):
         return '/dev/tty%c' % (ord('a')+port)
-        
+
 elif plat[:3] == 'aix':      #aix
     def device(port):
         return '/dev/tty%d' % (port)
@@ -81,19 +82,19 @@ counting starts for the first serial port.
 e.g. 'first serial port: /dev/ttyS0'
 and with a bit luck you can get this module running...
 """ % (sys.platform, os.name, VERSION)
-    #no exception, just continue with a brave attempt to build a device name
-    #even if the device name is not correct for the platform it has chances
-    #to work using a string with the real device name as port paramter.
+    # no exception, just continue with a brave attempt to build a device name
+    # even if the device name is not correct for the platform it has chances
+    # to work using a string with the real device name as port paramter.
     def device(portum):
         return '/dev/ttyS%d' % portnum
     #~ raise Exception, "this module does not run on this platform, sorry."
 
-#whats up with "aix", "beos", ....
-#they should work, just need to know the device names.
+# whats up with "aix", "beos", ....
+# they should work, just need to know the device names.
 
 
-#load some constants for later use.
-#try to use values from TERMIOS, use defaults from linux otherwise
+# load some constants for later use.
+# try to use values from TERMIOS, use defaults from linux otherwise
 TIOCMGET  = hasattr(TERMIOS, 'TIOCMGET') and TERMIOS.TIOCMGET or 0x5415
 TIOCMBIS  = hasattr(TERMIOS, 'TIOCMBIS') and TERMIOS.TIOCMBIS or 0x5416
 TIOCMBIC  = hasattr(TERMIOS, 'TIOCMBIC') and TERMIOS.TIOCMBIC or 0x5417
@@ -158,7 +159,7 @@ baudrate_constants = {
     3500000: 0010016,
     4000000: 0010017
 }
-    
+
 
 class Serial(SerialBase):
     """Serial port class POSIX implementation. Serial port configuration is 
@@ -171,14 +172,14 @@ class Serial(SerialBase):
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
         self.fd = None
-        #open
+        # open
         try:
             self.fd = os.open(self.portstr, os.O_RDWR|os.O_NOCTTY|os.O_NONBLOCK)
         except Exception, msg:
             self.fd = None
             raise SerialException("could not open port %s: %s" % (self._port, msg))
         #~ fcntl.fcntl(self.fd, FCNTL.F_SETFL, 0)  #set blocking
-        
+
         try:
             self._reconfigurePort()
         except:
@@ -187,14 +188,14 @@ class Serial(SerialBase):
         else:
             self._isOpen = True
         #~ self.flushInput()
-        
-        
+
+
     def _reconfigurePort(self):
         """Set communication parameters on opened port."""
         if self.fd is None:
             raise SerialException("Can only operate on a valid port handle")
         custom_baud = None
-        
+
         vmin = vtime = 0                #timeout is done via select
         if self._interCharTimeout is not None:
             vmin = 1
@@ -203,22 +204,22 @@ class Serial(SerialBase):
             iflag, oflag, cflag, lflag, ispeed, ospeed, cc = termios.tcgetattr(self.fd)
         except termios.error, msg:      #if a port is nonexistent but has a /dev file, it'll fail here
             raise SerialException("Could not configure port: %s" % msg)
-        #set up raw mode / no echo / binary
+        # set up raw mode / no echo / binary
         cflag |=  (TERMIOS.CLOCAL|TERMIOS.CREAD)
         lflag &= ~(TERMIOS.ICANON|TERMIOS.ECHO|TERMIOS.ECHOE|TERMIOS.ECHOK|TERMIOS.ECHONL|
                      TERMIOS.ISIG|TERMIOS.IEXTEN) #|TERMIOS.ECHOPRT
         for flag in ('ECHOCTL', 'ECHOKE'): #netbsd workaround for Erk
             if hasattr(TERMIOS, flag):
                 lflag &= ~getattr(TERMIOS, flag)
-        
+
         oflag &= ~(TERMIOS.OPOST)
         iflag &= ~(TERMIOS.INLCR|TERMIOS.IGNCR|TERMIOS.ICRNL|TERMIOS.IGNBRK)
         if hasattr(TERMIOS, 'IUCLC'):
             iflag &= ~TERMIOS.IUCLC
         if hasattr(TERMIOS, 'PARMRK'):
             iflag &= ~TERMIOS.PARMRK
-        
-        #setup baudrate
+
+        # setup baudrate
         try:
             ispeed = ospeed = getattr(TERMIOS,'B%s' % (self._baudrate))
         except AttributeError:
@@ -229,8 +230,8 @@ class Serial(SerialBase):
                 # may need custom baud rate, it isnt in our list.
                 ispeed = ospeed = getattr(TERMIOS, 'B38400')
                 custom_baud = int(self._baudrate) # store for later
-        
-        #setup char len
+
+        # setup char len
         cflag &= ~TERMIOS.CSIZE
         if self._bytesize == 8:
             cflag |= TERMIOS.CS8
@@ -242,14 +243,16 @@ class Serial(SerialBase):
             cflag |= TERMIOS.CS5
         else:
             raise ValueError('Invalid char len: %r' % self._bytesize)
-        #setup stopbits
+        # setup stopbits
         if self._stopbits == STOPBITS_ONE:
             cflag &= ~(TERMIOS.CSTOPB)
+        elif self._stopbits == STOPBITS_ONE_POINT_FIVE:
+            cflag |=  (TERMIOS.CSTOPB)  # XXX same as TWO.. there is no POSIX support for 1.5
         elif self._stopbits == STOPBITS_TWO:
             cflag |=  (TERMIOS.CSTOPB)
         else:
             raise ValueError('Invalid stopit specification: %r' % self._stopbits)
-        #setup parity
+        # setup parity
         iflag &= ~(TERMIOS.INPCK|TERMIOS.ISTRIP)
         if self._parity == PARITY_NONE:
             cflag &= ~(TERMIOS.PARENB|TERMIOS.PARODD)
@@ -260,8 +263,8 @@ class Serial(SerialBase):
             cflag |=  (TERMIOS.PARENB|TERMIOS.PARODD)
         else:
             raise ValueError('Invalid parity: %r' % self._parity)
-        #setup flow control
-        #xonxoff
+        # setup flow control
+        # xonxoff
         if hasattr(TERMIOS, 'IXANY'):
             if self._xonxoff:
                 iflag |=  (TERMIOS.IXON|TERMIOS.IXOFF) #|TERMIOS.IXANY)
@@ -272,7 +275,7 @@ class Serial(SerialBase):
                 iflag |=  (TERMIOS.IXON|TERMIOS.IXOFF)
             else:
                 iflag &= ~(TERMIOS.IXON|TERMIOS.IXOFF)
-        #rtscts
+        # rtscts
         if hasattr(TERMIOS, 'CRTSCTS'):
             if self._rtscts:
                 cflag |=  (TERMIOS.CRTSCTS)
@@ -284,19 +287,19 @@ class Serial(SerialBase):
             else:
                 cflag &= ~(TERMIOS.CNEW_RTSCTS)
         #XXX should there be a warning if setting up rtscts (and xonxoff etc) fails??
-        
-        #buffer
-        #vmin "minimal number of characters to be read. = for non blocking"
+
+        # buffer
+        # vmin "minimal number of characters to be read. = for non blocking"
         if vmin < 0 or vmin > 255:
             raise ValueError('Invalid vmin: %r ' % vmin)
         cc[TERMIOS.VMIN] = vmin
-        #vtime
+        # vtime
         if vtime < 0 or vtime > 255:
             raise ValueError('Invalid vtime: %r' % vtime)
         cc[TERMIOS.VTIME] = vtime
-        #activate settings
+        # activate settings
         termios.tcsetattr(self.fd, TERMIOS.TCSANOW, [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
-        
+
         # apply custom baud rate, if any
         if custom_baud is not None:
             import array
@@ -346,14 +349,14 @@ class Serial(SerialBase):
         inp = None
         if size > 0:
             while len(read) < size:
-                #print "\tread(): size",size, "have", len(read)    #debug
+                # print "\tread(): size",size, "have", len(read)    #debug
                 ready,_,_ = select.select([self.fd],[],[], self._timeout)
                 if not ready:
-                    break   #timeout
+                    break   # timeout
                 buf = os.read(self.fd, size-len(read))
                 read = read + buf
                 if (self._timeout >= 0 or self._interCharTimeout > 0) and not buf:
-                    break  #early abort on timeout
+                    break   # early abort on timeout
         return read
 
     def write(self, data):

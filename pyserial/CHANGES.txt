@@ -301,10 +301,14 @@ Version 2.5      <date>
 ---------------------------
 New Features:
 
+- 1.5 stop bits (STOPBITS_ONE_POINT_FIVE, implemented on all platforms)
+
 Bugfixes:
 
 - Improve and fix tcp_serial_redirector example.
+- [Bug 2603052] 5-bit mode (needs 1.5 stop bits in some cases)
 
 Bugfixes (win32):
 
 - [Bug 2469098] parity PARITY_MARK, PARITY_SPACE does't supported in win32
+
