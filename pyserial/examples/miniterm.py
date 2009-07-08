@@ -36,12 +36,13 @@ def get_help_text():
 > %(rts)-16s Toggle RTS
 > %(dtr)-16s Toggle DTR
 > %(break)-16s Toggle BREAK condition
+> %(echo)-16s Toggle local echo
 > %(info)-16s Show info
 > %(upload)-16s Upload file (prompt will be shown)
 >
 > Port settings (%(menu)s followed by the follwoing):
 > 7 8           set data bits
-> e o m s n     change parity (Even, Odd, Mark, Space, None)
+> n e o s m     change parity (None, Even, Odd, Space, Mark)
 > 1 2 3         set stop bits (1, 2, 1.5)
 > b             change baudrate
 > x X           disable/enable software flow control
@@ -52,6 +53,7 @@ def get_help_text():
     'rts': '%s, %s' % (key_description(MENUCHARACTER), key_description('\x12')),
     'dtr': '%s, %s' % (key_description(MENUCHARACTER), key_description('\x04')),
     'break': '%s, %s' % (key_description(MENUCHARACTER), key_description('\x02')),
+    'echo': '%s, %s' % (key_description(MENUCHARACTER), key_description('\x05')),
     'info': '%s, %s' % (key_description(MENUCHARACTER), key_description('\x09')),
     'upload': '%s, %s' % (key_description(MENUCHARACTER), key_description('\x15')),
     'itself': '%s, %s' % (key_description(MENUCHARACTER), key_description(MENUCHARACTER)),
@@ -254,6 +256,9 @@ class Miniterm:
                         self.break_state = not self.break_state
                         self.serial.setBreak(self.break_state)
                         sys.stderr.write('<BREAK %s>' % (self.break_state and 'active' or 'inactive'))
+                    elif c == '\x05':                       # CTRL+E -> toggle local echo
+                        self.echo = not self.echo
+                        sys.stderr.write('<local echo %s>' % (self.echo and 'active' or 'inactive'))
                     elif c == '\x09':                       # CTRL+I -> info
                         self.dump_port_settings()
                     #~ elif c in 'pP':                         # P -> change port XXX reader thread would exit
@@ -350,7 +355,7 @@ def main():
     parser.add_option("--parity",
         dest = "parity",
         action = "store",
-        help = "set parity, one of [N, E, O], default=N",
+        help = "set parity, one of [N, E, O, S, M], default=N",
         default = 'N'
     )
 
@@ -441,6 +446,10 @@ def main():
     )
 
     (options, args) = parser.parse_args()
+
+    options.parity = options.parity.upper()
+    if options.parity not in 'NEOSM':
+        parser.error("invalid parity")
 
     if options.cr and options.lf:
         parser.error("only one of --cr or --lf can be specified")
