@@ -10,8 +10,8 @@
 
 import sys, os, serial, threading
 
-EXITCHARCTER = '\x1d'   #GS/ctrl+]
-MENUCHARACTER = '\x14'  # Menu: ctrl+t
+EXITCHARCTER = '\x1d'   # GS/CTRL+]
+MENUCHARACTER = '\x14'  # Menu: CTRL+T
 
 
 def key_description(character):
@@ -26,38 +26,40 @@ def key_description(character):
 # for the shortcut keys is used and not the value at program start
 def get_help_text():
     return """
-> pySerial - miniterm - help
->
-> %(exit)-16s Exit program
-> %(menu)-16s Menu escape key
->
-> %(itself)-16s Send the menu character itself to remote
-> %(exchar)-16s Send the exit character to remote
-> %(rts)-16s Toggle RTS
-> %(dtr)-16s Toggle DTR
-> %(break)-16s Toggle BREAK condition
-> %(echo)-16s Toggle local echo
-> %(info)-16s Show info
-> %(upload)-16s Upload file (prompt will be shown)
->
-> Port settings (%(menu)s followed by the follwoing):
-> 7 8           set data bits
-> n e o s m     change parity (None, Even, Odd, Space, Mark)
-> 1 2 3         set stop bits (1, 2, 1.5)
-> b             change baudrate
-> x X           disable/enable software flow control
-> r R           disable/enable hardware flow control
+--- pySerial - miniterm - help
+---
+--- %(exit)-8s Exit program
+--- %(menu)-8s Menu escape key, followed by:
+--- Menu keys:
+---       %(itself)-8s Send the menu character itself to remote
+---       %(exchar)-8s Send the exit character to remote
+---       %(info)-8s Show info
+---       %(upload)-8s Upload file (prompt will be shown)
+--- Toggles:
+---       %(rts)s  RTS          %(echo)s  local echo
+---       %(dtr)s  DTR          %(break)s  BREAK
+---       %(lfm)s  line feed    %(repr)s  Cycle repr mode
+---
+--- Port settings (%(menu)s followed by the following):
+--- 7 8           set data bits
+--- n e o s m     change parity (None, Even, Odd, Space, Mark)
+--- 1 2 3         set stop bits (1, 2, 1.5)
+--- b             change baud rate
+--- x X           disable/enable software flow control
+--- r R           disable/enable hardware flow control
 """ % {
     'exit': key_description(EXITCHARCTER),
     'menu': key_description(MENUCHARACTER),
-    'rts': '%s, %s' % (key_description(MENUCHARACTER), key_description('\x12')),
-    'dtr': '%s, %s' % (key_description(MENUCHARACTER), key_description('\x04')),
-    'break': '%s, %s' % (key_description(MENUCHARACTER), key_description('\x02')),
-    'echo': '%s, %s' % (key_description(MENUCHARACTER), key_description('\x05')),
-    'info': '%s, %s' % (key_description(MENUCHARACTER), key_description('\x09')),
-    'upload': '%s, %s' % (key_description(MENUCHARACTER), key_description('\x15')),
-    'itself': '%s, %s' % (key_description(MENUCHARACTER), key_description(MENUCHARACTER)),
-    'exchar': '%s, %s' % (key_description(MENUCHARACTER), key_description(EXITCHARCTER)),
+    'rts': key_description('\x12'),
+    'repr': key_description('\x01'),
+    'dtr': key_description('\x04'),
+    'lfm': key_description('\x0c'),
+    'break': key_description('\x02'),
+    'echo': key_description('\x05'),
+    'info': key_description('\x09'),
+    'upload': key_description('\x15'),
+    'itself': key_description(MENUCHARACTER),
+    'exchar': key_description(EXITCHARCTER),
 }
 
 # first choose a platform dependant way to read single characters from the console
@@ -120,10 +122,14 @@ elif os.name == 'posix':
 else:
     raise "Sorry no implementation for your platform (%s) available." % sys.platform
 
+
 CONVERT_CRLF = 2
 CONVERT_CR   = 1
 CONVERT_LF   = 0
 NEWLINE_CONVERISON_MAP = ('\n', '\r', '\r\n')
+LF_MODES = ('LF', 'CR', 'CR/LF')
+
+REPR_MODES = ('raw', 'some control', 'all control', 'hex')
 
 class Miniterm:
     def __init__(self, port, baudrate, parity, rtscts, xonxoff, echo=False, convert_outgoing=CONVERT_CRLF, repr_mode=0):
@@ -138,11 +144,11 @@ class Miniterm:
 
     def start(self):
         self.alive = True
-        #start serial->console thread
+        # start serial->console thread
         self.receiver_thread = threading.Thread(target=self.reader)
         self.receiver_thread.setDaemon(1)
         self.receiver_thread.start()
-        #enter console->serial loop
+        # enter console->serial loop
         self.transmitter_thread = threading.Thread(target=self.writer)
         self.transmitter_thread.setDaemon(1)
         self.transmitter_thread.start()
@@ -156,18 +162,20 @@ class Miniterm:
             self.receiver_thread.join()
 
     def dump_port_settings(self):
-        sys.stderr.write("\n> Settings: %s  %s,%s,%s,%s\n" % (
+        sys.stderr.write("\n--- Settings: %s  %s,%s,%s,%s\n" % (
             self.serial.portstr,
             self.serial.baudrate,
             self.serial.bytesize,
             self.serial.parity,
             self.serial.stopbits,
         ))
-        sys.stderr.write('> RTS %s\n' % (self.rts_state and 'active' or 'inactive'))
-        sys.stderr.write('> DTR %s\n' % (self.dtr_state and 'active' or 'inactive'))
-        sys.stderr.write('> BREAK %s\n' % (self.break_state and 'active' or 'inactive'))
-        sys.stderr.write('> software flow control %s\n' % (self.serial.xonxoff and 'active' or 'inactive'))
-        sys.stderr.write('> hardware flow control %s\n' % (self.serial.rtscts and 'active' or 'inactive'))
+        sys.stderr.write('--- RTS %s\n' % (self.rts_state and 'active' or 'inactive'))
+        sys.stderr.write('--- DTR %s\n' % (self.dtr_state and 'active' or 'inactive'))
+        sys.stderr.write('--- BREAK %s\n' % (self.break_state and 'active' or 'inactive'))
+        sys.stderr.write('--- software flow control %s\n' % (self.serial.xonxoff and 'active' or 'inactive'))
+        sys.stderr.write('--- hardware flow control %s\n' % (self.serial.rtscts and 'active' or 'inactive'))
+        sys.stderr.write('--- data escaping: %s\n' % (REPR_MODES[self.repr_mode],))
+        sys.stderr.write('--- linefeed: %s\n' % (LF_MODES[self.convert_outgoing],))
 
     def reader(self):
         """loop and copy serial->console"""
@@ -221,14 +229,14 @@ class Miniterm:
                         if self.echo:
                             sys.stdout.write(c)
                     elif c == '\x15':                       # CTRL+U -> upload file
-                        sys.stderr.write('\n> File to upload: ')
+                        sys.stderr.write('\n--- File to upload: ')
                         sys.stderr.flush()
                         console.cleanup()
                         filename = sys.stdin.readline().rstrip('\r\n')
                         if filename:
                             try:
                                 file = open(filename, 'r')
-                                sys.stderr.write('> Sending file %s ' % filename)
+                                sys.stderr.write('--- Sending file %s ---\n' % filename)
                                 while True:
                                     line = file.readline().rstrip('\r\n')
                                     if not line:
@@ -238,42 +246,58 @@ class Miniterm:
                                     # Wait for output buffer to drain.
                                     self.serial.flush()
                                     sys.stderr.write('.')   # Progress indicator.
-                                sys.stderr.write('\n> File %s sent.\n' % filename)
+                                sys.stderr.write('\n--- File %s sent ---\n' % filename)
                             except IOError, e:
-                                sys.stderr.write('> Error opening file %s: %s\n' % (filename, e))
+                                sys.stderr.write('--- ERROR opening file %s: %s ---\n' % (filename, e))
                         console.setup()
                     elif c in '\x08hH?':                    # CTRL+H, h, H, ? -> Show help
                         sys.stderr.write(get_help_text())
                     elif c == '\x12':                       # CTRL+R -> Toggle RTS
                         self.rts_state = not self.rts_state
                         self.serial.setRTS(self.rts_state)
-                        sys.stderr.write('<RTS %s>' % (self.rts_state and 'active' or 'inactive'))
+                        sys.stderr.write('--- RTS %s ---\n' % (self.rts_state and 'active' or 'inactive'))
                     elif c == '\x04':                       # CTRL+D -> Toggle DTR
                         self.dtr_state = not self.dtr_state
                         self.serial.setDTR(self.dtr_state)
-                        sys.stderr.write('<DTR %s>' % (self.dtr_state and 'active' or 'inactive'))
+                        sys.stderr.write('--- DTR %s ---\n' % (self.dtr_state and 'active' or 'inactive'))
                     elif c == '\x02':                       # CTRL+B -> toggle BREAK condition
                         self.break_state = not self.break_state
                         self.serial.setBreak(self.break_state)
-                        sys.stderr.write('<BREAK %s>' % (self.break_state and 'active' or 'inactive'))
+                        sys.stderr.write('--- BREAK %s ---\n' % (self.break_state and 'active' or 'inactive'))
                     elif c == '\x05':                       # CTRL+E -> toggle local echo
                         self.echo = not self.echo
-                        sys.stderr.write('<local echo %s>' % (self.echo and 'active' or 'inactive'))
+                        sys.stderr.write('--- local echo %s ---\n' % (self.echo and 'active' or 'inactive'))
                     elif c == '\x09':                       # CTRL+I -> info
                         self.dump_port_settings()
+                    elif c == '\x01':                       # CTRL+A -> cycle escape mode
+                        self.repr_mode += 1
+                        if self.repr_mode > 3:
+                            self.repr_mode = 0
+                        sys.stderr.write('--- escape data: %s ---\n' % (
+                            REPR_MODES[self.repr_mode],
+                        ))
+                    elif c == '\x0c':                       # CTRL+L -> cycle linefeed mode
+                        self.convert_outgoing += 1
+                        if self.convert_outgoing > 2:
+                            self.convert_outgoing = 0
+                        self.newline = NEWLINE_CONVERISON_MAP[self.convert_outgoing]
+                        sys.stderr.write('--- line feed %s ---\n' % (
+                            LF_MODES[self.convert_outgoing],
+                        ))
                     #~ elif c in 'pP':                         # P -> change port XXX reader thread would exit
                     elif c in 'bB':                         # B -> change baudrate
-                        sys.stderr.write('\n> Baudrate: ')
+                        sys.stderr.write('\n--- Baudrate: ')
                         sys.stderr.flush()
                         console.cleanup()
                         backup = self.serial.baudrate
                         try:
                             self.serial.baudrate = int(sys.stdin.readline().strip())
                         except ValueError, e:
-                            sys.stderr.write('\n> Error setting baudrate: %s' % (e,))
+                            sys.stderr.write('--- ERROR setting baudrate: %s ---\n' % (e,))
                             self.serial.baudrate = backup
+                        else:
+                            self.dump_port_settings()
                         console.setup()
-                        self.dump_port_settings()
                     elif c == '8':                          # 8 -> change to 8 bits
                         self.serial.bytesize = serial.EIGHTBITS
                         self.dump_port_settings()
@@ -311,7 +335,7 @@ class Miniterm:
                         self.serial.rtscts = (c == 'R')
                         self.dump_port_settings()
                     else:
-                        sys.stderr.write('<unknown menu character %s>' % key_description(c))
+                        sys.stderr.write('--- unknown menu character %s --\n' % key_description(c))
                     menu_active = False
                 elif c == MENUCHARACTER: # next char will be for menu
                     menu_active = True
@@ -322,10 +346,12 @@ class Miniterm:
                     self.serial.write(self.newline)         # send newline character(s)
                     if self.echo:
                         sys.stdout.write(c)                 # local echo is a real newline in any case
+                        sys.stdout.flush()
                 else:
                     self.serial.write(c)                    # send character
                     if self.echo:
                         sys.stdout.write(c)
+                        sys.stdout.flush()
         except:
             self.alive = False
             raise
@@ -348,7 +374,7 @@ def main():
         dest = "baudrate",
         action = "store",
         type = 'int',
-        help = "set baud rate, default 9600",
+        help = "set baud rate, default %default",
         default = 9600
     )
 
@@ -500,7 +526,7 @@ def main():
         sys.exit(1)
 
     if not options.quiet:
-        sys.stderr.write('--- Miniterm on %s: %d,%s,%s,%s. ---\n' % (
+        sys.stderr.write('--- Miniterm on %s: %d,%s,%s,%s ---\n' % (
             miniterm.serial.portstr,
             miniterm.serial.baudrate,
             miniterm.serial.bytesize,
@@ -513,6 +539,7 @@ def main():
             key_description(MENUCHARACTER),
             key_description('\x08'),
         ))
+
     if options.dtr_state is not None:
         if not options.quiet:
             sys.stderr.write('--- forcing DTR %s\n' % (options.dtr_state and 'active' or 'inactive'))
