@@ -320,3 +320,4 @@ Bugfixes (win32):
 - [Bug 2469098] parity PARITY_MARK, PARITY_SPACE isn't supported on win32
 - [SF 2446218] outWaiting implemented
 - [Bug 2392892] scanwin32.py better exception handling
+- [Bug 2505422] scanwin32.py Vista 64bit compatibility

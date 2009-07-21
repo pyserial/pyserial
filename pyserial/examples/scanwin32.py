@@ -55,9 +55,14 @@ class SP_DEVICE_INTERFACE_DATA(ctypes.Structure):
     ]
     def __str__(self):
         return "InterfaceClassGuid:%s Flags:%s" % (self.InterfaceClassGuid, self.Flags)
+
 PSP_DEVICE_INTERFACE_DATA = ctypes.POINTER(SP_DEVICE_INTERFACE_DATA)
 
 PSP_DEVICE_INTERFACE_DETAIL_DATA = ctypes.c_void_p
+
+class dummy(ctypes.Structure):
+    _fields_=[("d1",ctypes.DWORD), ("d2",ctypes.CHAR)]
+SIZEOF_SP_DEVICE_INTERFACE_DETAIL_DATA_A = ctypes.sizeof(dummy)
 
 SetupDiDestroyDeviceInfoList = ctypes.windll.setupapi.SetupDiDestroyDeviceInfoList
 SetupDiDestroyDeviceInfoList.argtypes = [HDEVINFO]
@@ -65,7 +70,7 @@ SetupDiDestroyDeviceInfoList.restype = BOOL
 
 SetupDiGetClassDevs = ctypes.windll.setupapi.SetupDiGetClassDevsA
 SetupDiGetClassDevs.argtypes = [ctypes.POINTER(GUID), PCTSTR, HWND, DWORD]
-SetupDiGetClassDevs.restype = ValidHandle #HDEVINFO
+SetupDiGetClassDevs.restype = ValidHandle # HDEVINFO
 
 SetupDiEnumDeviceInterfaces = ctypes.windll.setupapi.SetupDiEnumDeviceInterfaces
 SetupDiEnumDeviceInterfaces.argtypes = [HDEVINFO, PSP_DEVINFO_DATA, ctypes.POINTER(GUID), DWORD, PSP_DEVICE_INTERFACE_DATA]
@@ -113,7 +118,7 @@ def comports(available_only=True):
             if ctypes.GetLastError() != ERROR_NO_MORE_ITEMS:
                 raise ctypes.WinError()
             break
-        
+
         dwNeeded = DWORD()
         # get the size
         if not SetupDiGetDeviceInterfaceDetail(
@@ -134,7 +139,7 @@ def comports(available_only=True):
             def __str__(self):
                 return "DevicePath:%s" % (self.DevicePath,)
         idd = SP_DEVICE_INTERFACE_DETAIL_DATA_A()
-        idd.cbSize = 5
+        idd.cbSize = SIZEOF_SP_DEVICE_INTERFACE_DETAIL_DATA_A
         devinfo = SP_DEVINFO_DATA()
         devinfo.cbSize = ctypes.sizeof(devinfo)
         if not SetupDiGetDeviceInterfaceDetail(
@@ -177,7 +182,7 @@ def comports(available_only=True):
         except AttributeError,msg:
             port_name = "???"
         yield port_name, szFriendlyName.value, szHardwareID.value
-    
+
     SetupDiDestroyDeviceInfoList(g_hdi)
 
 
