@@ -408,7 +408,7 @@ class Serial(SerialBase):
         termios.tcsendbreak(self.fd, int(duration/0.25))
 
     def setBreak(self, level=1):
-        """Set break: Controls TXD. When active, to transmitting is possible."""
+        """Set break: Controls TXD. When active, no transmitting is possible."""
         if self.fd is None: raise portNotOpenError
         if level:
             fcntl.ioctl(self.fd, TIOCSBRK)

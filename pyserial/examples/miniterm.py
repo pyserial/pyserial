@@ -467,7 +467,7 @@ def main():
         dest = "menu_char",
         action = "store",
         type = 'int',
-        help = "ASCII code of special character that is used to send a file",
+        help = "ASCII code of special character that is used to control miniterm (menu)",
         default = 0x14
     )
 

@@ -112,7 +112,7 @@ class SerialBase(FileLike):
     """Serial port base class. Provides __init__ function and properties to
        get/set port settings."""
 
-    # default values, may be overriden in subclasses that do not support all values
+    # default values, may be overridden in subclasses that do not support all values
     BAUDRATES = (50,75,110,134,150,200,300,600,1200,1800,2400,4800,9600,
                  19200,38400,57600,115200,230400,460800,500000,576000,921600,
                  1000000,1152000,1500000,2000000,2500000,3000000,3500000,4000000)
@@ -126,10 +126,10 @@ class SerialBase(FileLike):
                                         # can specify a device string, note
                                         # that this isn't portable anymore
                                         # port will be opened if one is specified
-                 baudrate=9600,         # baudrate
-                 bytesize=EIGHTBITS,    # number of databits
+                 baudrate=9600,         # baud rate
+                 bytesize=EIGHTBITS,    # number of data bits
                  parity=PARITY_NONE,    # enable parity checking
-                 stopbits=STOPBITS_ONE, # number of stopbits
+                 stopbits=STOPBITS_ONE, # number of stop bits
                  timeout=None,          # set a timeout value, None to wait forever
                  xonxoff=0,             # enable software flow control
                  rtscts=0,              # enable RTS/CTS flow control

@@ -11,7 +11,7 @@ import win32event # We use events and the WaitFor[Single|Multiple]Objects functi
 import win32con   # constants.
 from serialutil import *
 
-#from winbase.h. these should realy be in win32con
+#from winbase.h. these should really be in win32con
 MS_CTS_ON  = 16
 MS_DSR_ON  = 32
 MS_RING_ON = 64
