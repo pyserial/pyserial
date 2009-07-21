@@ -210,6 +210,71 @@ Classes
         Set software flow control state.
 
 
+.. class:: FileLike
+
+    .. method:: readline()
+
+    An abstract file like class. It is used as base class for :class:`Serial`.
+
+    This class implements readline and readlines based on read and
+    writelines based on write.
+    This class is used to provide the above functions for to Serial
+    port objects.
+
+    Note that when the serial port was opened with _NO_ timeout that
+    readline blocks until it sees a newline (or the specified size is
+    reached) and that readlines would never return and therefore
+    refuses to work (it raises an exception in this case)!
+
+    .. method:: readline(size=None, eol='\n')
+
+        :param size: Max number of  bytes to read, ``None`` -> no limit.
+        :param eol: The end of line character.
+
+        Read a line which is terminated with end-of-line (eol) character
+        ('\n' by default) or until timeout.
+
+    .. method:: readlines(sizehint=None, eol='\n')
+
+        :param size: Ignored parameter.
+        :param eol: The end of line character.
+
+        Read a list of lines, until timeout. ``sizehint`` is ignored and only
+        present for API compatibility with built-in File objects.
+
+    .. method:: xreadlines(sizehint=None)
+
+        Just calls ``readlines`` - here for compatibility.
+
+    .. method:: writelines(sequence)
+
+        Write a list of strings to the port.
+
+    .. method:: flush()
+
+        Flush of file like objects. It's a no-op in this class, may be overridden.
+
+    .. method:: read()
+
+        Raises NotImplementedError, needs to be overridden by subclass.
+
+    .. method:: write()
+
+        Raises NotImplementedError, needs to be overridden by subclass.
+
+
+    To be able to use the file like object as iterator for e.g. 
+    ``for line in Serial(0): ...`` usage:
+
+    .. method:: next()
+
+        Return the next line by calling :meth:`readline`.
+
+    .. method:: __iter__()
+
+        Returns self.
+
+
 Exceptions
 ==========
 
@@ -245,3 +310,8 @@ Bytesize
 .. data:: SIXBITS
 .. data:: SEVENBITS
 .. data:: EIGHTBITS
+
+Others
+-------
+.. data:: XON
+.. data:: XOFF
