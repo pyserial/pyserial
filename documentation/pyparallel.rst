@@ -59,6 +59,73 @@ Please look in the SVN Repository. There is an example directory where you can
 find a simple terminal and more.
 http://pyserial.svn.sourceforge.net/viewvc/pyserial/trunk/pyparallel/examples/
 
+API
+===
+
+.. module:: parallel
+
+.. class:: Parallel
+
+    .. method:: __init__(port)
+
+        Open given parallel port.
+
+    .. method:: setData(value)
+
+        Apply the given byte to the data pins of the parallel port.
+
+    .. method:: setDataStrobe(level)
+
+        Set the "data strobe" line to the given state.
+
+    .. method:: setAutoFeed(level)
+
+        Set "auto feed" line to given state.
+
+    .. method:: setInitOut(level)
+
+        Set "initialize" line to given state.
+
+    .. method: setSelect(level)
+
+        Set "select" line to given state.
+
+    .. method:getInError()
+
+        Set "Error" line to given state.
+
+    .. method:: getInSelected()
+
+        Read level of "select" line.
+
+    .. method:: getInPaperOut()
+
+        Read level of "paper out" line.
+
+    .. method:: getInAcknowledge()
+
+        Read level of "Acknowledge" line.
+
+    .. method: getInBusy()
+
+        Read level of "busy" line.
+
+.. module:: parallel.parallelutil
+
+.. class:: BitaccessMeta
+
+    This mix-in class adds a few properties that allow easier bit access to the
+    data lines. (D0 .. D7) e.g. p.D0 refers to the first bit of the data
+    lines.
+
+.. class:: VirtualParallelPort
+
+    This class provides a virtual parallel port implementation, useful
+    for tests and simulations without real hardware.
+
+
+Misc
+====
 References
 ----------
 * Python: http://www.python.org/|http://www.python.org

@@ -12,9 +12,7 @@ Contents:
     :maxdepth: 2
 
     pyserial
-    manual
     shortintro
-    .. ~ examples
     pyserial_api
     pyparallel
     appendix
