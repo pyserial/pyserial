@@ -9,16 +9,17 @@ for Python running on Windows, Linux, BSD (possibly any POSIX compliant
 system), Jython and IronPython (.NET and Mono). The module named "serial"
 automatically selects the appropriate backend.
 
-It is released under a free software license, see LICENSE.txt_ for more
+It is released under a free software license, see LICENSE_ for more
 details.
 
-  (C) 2001-2009 Chris Liechti <cliechti@gmx.net>
+Copyright (C) 2001-2009 Chris Liechti <cliechti(at)gmx.net>
 
-The `project page on SourceForge`_ and here is the `SVN repository`_ and the `Download Page`_.
+The `project page on SourceForge`_ and here is the `SVN repository`_ and the
+`Download Page`_.
 
 The homepage is at http://pyserial.sf.net.
 
-.. _LICENSE.txt: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/LICENSE.txt
+.. _LICENSE: appendix.html#license
 .. _`project page on SourceForge`: http://sourceforge.net/projects/pyserial/
 .. _`SVN repository`: http://sourceforge.net/svn/?group_id=46487
 .. _`Download Page`: http://sourceforge.net/project/showfiles.php?group_id=46487
@@ -26,19 +27,19 @@ The homepage is at http://pyserial.sf.net.
 
 Features
 ========
-* same class based interface on all supported platforms
-* access to the port settings through Python 2.2+ properties
-* port numbering starts at zero, no need to know the port name in the user
-  program
-* port string (device name) can be specified if access through numbering is
-  inappropriate
-* support for different bytesizes, stopbits, parity and flow control with
-  RTS/CTS and/or Xon/Xoff
-* working with or without receive timeout
-* file like API with "read" and "write" ("readline" etc. also supported)
+* Same class based interface on all supported platforms.
+* Access to the port settings through Python 2.2+ properties.
+* Port numbering starts at zero, no need to know the port name in the user
+  program.
+* Port string (device name) can be specified if access through numbering is
+  inappropriate.
+* Support for different bytesizes, stopbits, parity and flow control with
+  RTS/CTS and/or Xon/Xoff.
+* Working with or without receive timeout.
+* File like API with "read" and "write" ("readline" etc. also supported).
 * The files in this package are 100% pure Python. They depend on non standard
   but common packages on Windows (pywin32) and Jython (JavaComm). POSIX (Linux,
-  BSD) uses only modules from the standard Python distribution)
+  BSD) uses only modules from the standard Python distribution).
 * The port is set up for binary transmission. No NULL byte stripping, CR-LF
   translation etc. (which are many times enabled for POSIX.) This makes this
   module universally useful.
@@ -50,14 +51,15 @@ Requirements
 * pywin32 extensions on Windows
 * "Java Communications" (JavaComm) or compatible extension for Java/Jython
 
+
 Installation
 ============
 
 pyserial
 --------
-This installs a package that can be used from python (``import serial``).
+This installs a package that can be used from Python (``import serial``).
 
-The Python pywin32 library needs to be installed on windows.
+The Python pywin32 library needs to be installed on Windows.
 
 To install the module for all users on the system, administrator rights (root)
 is required..
@@ -71,7 +73,7 @@ Unpack the archive, enter the ``pyserial-x.y`` directory and run::
 
 Setuptools/PyPI
 ~~~~~~~~~~~~~~~
-Alternatively it can be installed from PyPy, either manually downloading the
+Alternatively it can be installed from PyPI, either manually downloading the
 files and installing as described above or using::
 
     easy_install -U pyserial
@@ -81,7 +83,7 @@ Packages
 There are also packaged versions for some Linux distributions and Windows:
 
 Debian/Ubuntu
-    A package is availabe under the name "python-serial"
+    A package is available under the name "python-serial".
 
 Windows
     There is also a Windows installer for end users. It is located in the
@@ -96,9 +98,9 @@ References
 * Python: http://www.python.org/
 * pywin32: http://sourceforge.net/projects/pywin32/ (previously known as win32all)
 * Jython: http://www.jython.org/
-* Java@IBM http://www-106.ibm.com/developerworks/java/jdk/ (JavaComm links are
-  on the download page for the respective platform jdk)
-* Java@SUN http://java.sun.com/products/
+* Java@IBM: http://www-106.ibm.com/developerworks/java/jdk/ (JavaComm links are
+  on the download page for the respective platform JDK)
+* Java@SUN: http://java.sun.com/products/
 * IronPython: http://www.codeplex.com/IronPython
 * setuptools: http://peak.telecommunity.com/DevCenter/setuptools
 

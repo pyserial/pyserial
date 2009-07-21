@@ -12,12 +12,7 @@ Classes
     .. method:: __init__(port=None, baudrate=9600, bytesize=EIGHTBITS, parity=PARITY_NONE, stopbits=STOPBITS_ONE, timeout=None, xonxoff=0, rtscts=0, interCharTimeout=None)
 
         :param port:
-
             Device name or port number number or None.
-
-            Number: number of device, numbering starts at zero
-            Device name: depending on operating system. e.g. ``/dev/ttyUSB0``
-            on GNU/Linux or ``COM3`` on Windows.
 
         :param baudrate:
             Baud rate such as 9600 or 115200 etc.
@@ -43,14 +38,18 @@ Classes
         :param interCharTimeout:
             Inter-character timeout, None to disable.
 
-    The port is immediately opened on object creation, when a port is given. It
-    is not opened when port is None.
+        The port is immediately opened on object creation, when a ``port`` is
+        given. It is not opened when port is None.
 
-    Possible values for the parameter ``timeout``::
+        - Number: number of device, numbering starts at zero.
+        - Device name: depending on operating system. e.g. ``/dev/ttyUSB0``
+          on GNU/Linux or ``COM3`` on Windows.
 
-            timeout = None  # wait forever
-            timeout = 0     # non-blocking mode (return immediately on read)
-            timeout = x     # set timeout to x seconds (float allowed)
+        Possible values for the parameter ``timeout``::
+
+                timeout = None  # wait forever
+                timeout = 0     # non-blocking mode (return immediately on read)
+                timeout = x     # set timeout to x seconds (float allowed)
 
 
     .. method:: open()
@@ -79,7 +78,7 @@ Classes
 
         Write the string `s` to the port.
 
-    .. method:: flush(self):
+    .. method:: flush():
 
         Flush of file like objects. In this case, wait until all data is
         written.
@@ -130,8 +129,8 @@ Classes
 
     .. attribute:: portstr
 
-        Device name (Read Only). This is always the device name even if the
-        port was opened by a number.
+        Device name. This is always the device name even if the
+        port was opened by a number. (Read Only).
 
     .. attribute:: BAUDRATES
 
@@ -176,7 +175,7 @@ Classes
 
     .. attribute:: timeout
 
-        Timeout setting (seconds).
+        Timeout setting (seconds, float).
 
     .. attribute:: xonxoff
 
@@ -226,7 +225,7 @@ Exceptions
 Constants
 =========
 
-parity
+Parity
 ------
 .. data:: PARITY_NONE
 .. data:: PARITY_EVEN
@@ -234,13 +233,13 @@ parity
 .. data:: PARITY_MARK
 .. data:: PARITY_SPACE
 
-stopbits
+Stopbits
 --------
 .. data:: STOPBITS_ONE
 .. data:: STOPBITS_ONE_POINT_FIVE
 .. data:: STOPBITS_TWO
 
-bytesize
+Bytesize
 --------
 .. data:: FIVEBITS
 .. data:: SIXBITS

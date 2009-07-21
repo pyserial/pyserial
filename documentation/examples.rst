@@ -11,11 +11,73 @@ For example on GNU/Linux running from an xterm it will support the escape
 sequences of the xterm. On Windows the typical console window is dumb and does
 not support any escapes. When ANSI.sys is loaded it supports some escapes.
 
+miniterm::
+
+    --- Miniterm on /dev/ttyS0: 9600,8,N,1 ---
+    --- Quit: Ctrl+]  |  Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H ---
+
 Command line options can be given so that binary data including escapes for
 terminals are escaped or output as hex.
 
-miniterm supports some control functions. Typing ``CTRL+T CTRL+H`` when it is
-running shows the help text.
+Command line options ``miniterm.py -h``::
+
+    Usage: miniterm.py [options] [port [baudrate]]
+
+    Miniterm - A simple terminal program for the serial port.
+
+    Options:
+      -h, --help            show this help message and exit
+      -p PORT, --port=PORT  port, a number (default 0) or a device name
+                            (deprecated option)
+      -b BAUDRATE, --baud=BAUDRATE
+                            set baud rate, default 9600
+      --parity=PARITY       set parity, one of [N, E, O, S, M], default=N
+      -e, --echo            enable local echo (default off)
+      --rtscts              enable RTS/CTS flow control (default off)
+      --xonxoff             enable software flow control (default off)
+      --cr                  do not send CR+LF, send CR only
+      --lf                  do not send CR+LF, send LF only
+      -D, --debug           debug received data (escape non-printable chars)
+                            --debug can be given multiple times: 0: just print
+                            what is received 1: escape non-printable characters,
+                            do newlines as unusual 2: escape non-printable
+                            characters, newlines too 3: hex dump everything
+      --rts=RTS_STATE       set initial RTS line state (possible values: 0, 1)
+      --dtr=DTR_STATE       set initial DTR line state (possible values: 0, 1)
+      -q, --quiet           suppress non error messages
+      --exit-char=EXIT_CHAR
+                            ASCII code of special character that is used to exit
+                            the application
+      --menu-char=MENU_CHAR
+                            ASCII code of special character that is used to
+                            control miniterm (menu)
+
+
+miniterm supports some control functions. Typing :kbd:`Control+t Control+h` when it is
+running shows the help text::
+
+    --- pySerial - miniterm - help
+    ---
+    --- Ctrl+]   Exit program
+    --- Ctrl+T   Menu escape key, followed by:
+    --- Menu keys:
+    ---       Ctrl+T   Send the menu character itself to remote
+    ---       Ctrl+]   Send the exit character to remote
+    ---       Ctrl+I   Show info
+    ---       Ctrl+U   Upload file (prompt will be shown)
+    --- Toggles:
+    ---       Ctrl+R  RTS          Ctrl+E  local echo
+    ---       Ctrl+D  DTR          Ctrl+B  BREAK
+    ---       Ctrl+L  line feed    Ctrl+A  Cycle repr mode
+    ---
+    --- Port settings (Ctrl+T followed by the following):
+    --- 7 8           set data bits
+    --- n e o s m     change parity (None, Even, Odd, Space, Mark)
+    --- 1 2 3         set stop bits (1, 2, 1.5)
+    --- b             change baud rate
+    --- x X           disable/enable software flow control
+    --- r R           disable/enable hardware flow control
+
 
 miniterm.py_
     The miniterm program.
@@ -35,6 +97,53 @@ with telnet) it forwards all data to the serial port and vice versa.
 
 The serial port settings are set on the command line when starting the program.
 There is no possibility to change settings from remote.
+::
+
+    Usage: tcp_serial_redirect.py [options] [port [baudrate]]
+
+    Simple Serial to Network (TCP/IP) redirector.
+
+    Options:
+      -h, --help            show this help message and exit
+      -q, --quiet           suppress non error messages
+      --spy                 peek at the communication and print all data to the
+                            console
+
+      Serial Port:
+        Serial port settings
+
+        -p PORT, --port=PORT
+                            port, a number (default 0) or a device name
+        -b BAUDRATE, --baud=BAUDRATE
+                            set baud rate, default: 9600
+        --parity=PARITY     set parity, one of [N, E, O], default=N
+        --rtscts            enable RTS/CTS flow control (default off)
+        --xonxoff           enable software flow control (default off)
+        --rts=RTS_STATE     set initial RTS line state (possible values: 0, 1)
+        --dtr=DTR_STATE     set initial DTR line state (possible values: 0, 1)
+
+      Network settings:
+        Network configuration.
+
+        -P LOCAL_PORT, --localport=LOCAL_PORT
+                            local TCP port
+
+      Newline Settings:
+        Convert newlines between network and serial port. Conversion is
+        normally disabled and can be enabled by --convert.
+
+        -c, --convert       enable newline conversion (default off)
+        --net-nl=NET_NEWLINE
+                            type of newlines that are expected on the network
+                            (default: LF)
+        --ser-nl=SER_NEWLINE
+                            type of newlines that are expected on the serial port
+                            (default: CR+LF)
+
+    NOTE: no security measures are implemented. Anyone can remotely connect to
+    this service over the network.  Only one connection at once is supported. When
+    the connection is terminated it waits for the next connect.
+
 
 tcp_serial_redirect.py_
     Main program.

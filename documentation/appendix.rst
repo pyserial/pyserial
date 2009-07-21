@@ -5,19 +5,17 @@
 License
 =======
 
-Copyright (c) 2001-2008 Chris Liechti <cliechti@gmx.net>;
+Copyright (C) 2001-2009 Chris Liechti <cliechti(at)gmx.net>;
 All Rights Reserved.
 
-This is the Python license. In short, you can use this product in
-commercial and non-commercial applications, modify it, redistribute it.
-A notification to the author when you use and/or modify it is welcome.
+This is the Python license. In short, you can use this product in commercial
+and non-commercial applications, modify it, redistribute it.  A notification to
+the author when you use and/or modify it is welcome.
 
 
-TERMS AND CONDITIONS FOR ACCESSING OR OTHERWISE USING THIS SOFTWARE
--------------------------------------------------------------------
+**TERMS AND CONDITIONS FOR ACCESSING OR OTHERWISE USING THIS SOFTWARE**
 
-LICENSE AGREEMENT
-~~~~~~~~~~~~~~~~~
+*LICENSE AGREEMENT*
 
 1. This LICENSE AGREEMENT is between the copyright holder of this
    product, and the Individual or Organization ("Licensee") accessing and

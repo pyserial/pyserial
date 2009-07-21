@@ -1,10 +1,12 @@
-.. pySerial documentation master file, created by
-   sphinx-quickstart on Tue Jul 21 00:27:45 2009.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. pySerial documentation master file
 
-Welcome to pySerial's documentation!
-====================================
+Welcome to pySerial's documentation
+===================================
+
+This module encapsulates the access for the serial port. It provides backends
+for Python running on Windows, Linux, BSD (possibly any POSIX compliant
+system), Jython and IronPython (.NET and Mono). The module named "serial"
+automatically selects the appropriate backend.
 
 Contents:
 
