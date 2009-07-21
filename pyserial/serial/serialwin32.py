@@ -320,6 +320,12 @@ class Serial(SerialBase):
         else:
             win32file.EscapeCommFunction(self.hComPort, win32file.SETXOFF)
 
+    def outWaiting(self):
+        """return how many characters the in the outgoing buffer"""
+        flags, comstat = win32file.ClearCommError(self.hComPort)
+        return comstat.cbOutQue
+
+
 # Nur Testfunktion!!
 if __name__ == '__main__':
     s = Serial(0)

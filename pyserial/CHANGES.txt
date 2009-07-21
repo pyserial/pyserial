@@ -313,4 +313,4 @@ Bugfixes:
 Bugfixes (win32):
 
 - [Bug 2469098] parity PARITY_MARK, PARITY_SPACE isn't supported on win32
-
+- [SF 2446218] outWaiting implemented
