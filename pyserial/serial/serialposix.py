@@ -25,45 +25,45 @@ if (sys.hexversion < 0x020200f0):
 else:
     FCNTL = fcntl
 
-#try to detect the os so that a device can be selected...
+# try to detect the OS so that a device can be selected...
 plat = sys.platform.lower()
 
-if   plat[:5] == 'linux':    #Linux (confirmed)
+if   plat[:5] == 'linux':    # Linux (confirmed)
     def device(port):
         return '/dev/ttyS%d' % port
 
-elif plat == 'cygwin':       #cywin/win32 (confirmed)
+elif plat == 'cygwin':       # cywin/win32 (confirmed)
     def device(port):
         return '/dev/com%d' % (port + 1)
 
-elif plat     == 'openbsd3': #BSD (confirmed)
+elif plat     == 'openbsd3': # BSD (confirmed)
     def device(port):
         return '/dev/ttyp%d' % port
 
 elif plat[:3] == 'bsd' or  \
      plat[:7] == 'freebsd' or \
      plat[:7] == 'openbsd' or \
-     plat[:6] == 'darwin':   #BSD (confirmed for freebsd4: cuaa%d)
+     plat[:6] == 'darwin':   # BSD (confirmed for freebsd4: cuaa%d)
     def device(port):
         return '/dev/cuad%d' % port
 
-elif plat[:6] == 'netbsd':   #NetBSD 1.6 testing by Erk
+elif plat[:6] == 'netbsd':   # NetBSD 1.6 testing by Erk
     def device(port):
         return '/dev/dty%02d' % port
 
-elif plat[:4] == 'irix':     #IRIX (partialy tested)
+elif plat[:4] == 'irix':     # IRIX (partially tested)
     def device(port):
         return '/dev/ttyf%d' % (port+1) #XXX different device names depending on flow control
 
-elif plat[:2] == 'hp':       #HP-UX (not tested)
+elif plat[:2] == 'hp':       # HP-UX (not tested)
     def device(port):
         return '/dev/tty%dp0' % (port+1)
 
-elif plat[:5] == 'sunos':    #Solaris/SunOS (confirmed)
+elif plat[:5] == 'sunos':    # Solaris/SunOS (confirmed)
     def device(port):
         return '/dev/tty%c' % (ord('a')+port)
 
-elif plat[:3] == 'aix':      #aix
+elif plat[:3] == 'aix':      # AIX
     def device(port):
         return '/dev/tty%d' % (port)
 
@@ -84,7 +84,7 @@ and with a bit luck you can get this module running...
 """ % (sys.platform, os.name, VERSION)
     # no exception, just continue with a brave attempt to build a device name
     # even if the device name is not correct for the platform it has chances
-    # to work using a string with the real device name as port paramter.
+    # to work using a string with the real device name as port parameter.
     def device(portum):
         return '/dev/ttyS%d' % portnum
     #~ raise Exception, "this module does not run on this platform, sorry."
@@ -258,7 +258,7 @@ class Serial(SerialBase):
         elif self._stopbits == STOPBITS_TWO:
             cflag |=  (TERMIOS.CSTOPB)
         else:
-            raise ValueError('Invalid stopit specification: %r' % self._stopbits)
+            raise ValueError('Invalid stop bit specification: %r' % self._stopbits)
         # setup parity
         iflag &= ~(TERMIOS.INPCK|TERMIOS.ISTRIP)
         if self._parity == PARITY_NONE:
@@ -483,13 +483,13 @@ class Serial(SerialBase):
 
 if __name__ == '__main__':
     s = Serial(0,
-                 baudrate=19200,        #baudrate
-                 bytesize=EIGHTBITS,    #number of databits
-                 parity=PARITY_EVEN,    #enable parity checking
-                 stopbits=STOPBITS_ONE, #number of stopbits
-                 timeout=3,             #set a timeout value, None for waiting forever
-                 xonxoff=0,             #enable software flow control
-                 rtscts=0,              #enable RTS/CTS flow control
+                 baudrate=19200,        # baudrate
+                 bytesize=EIGHTBITS,    # number of databits
+                 parity=PARITY_EVEN,    # enable parity checking
+                 stopbits=STOPBITS_ONE, # number of stopbits
+                 timeout=3,             # set a timeout value, None for waiting forever
+                 xonxoff=0,             # enable software flow control
+                 rtscts=0,              # enable RTS/CTS flow control
                )
     s.setRTS(1)
     s.setDTR(1)
