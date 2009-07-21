@@ -172,7 +172,10 @@ def comports(available_only=True):
             # Ignore ERROR_INSUFFICIENT_BUFFER
             if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
                 raise ctypes.WinError()
-        port_name = re.search(r"\((.*)\)", szFriendlyName.value).group(1)
+        try:
+            port_name = re.search(r"\((.*)\)", szFriendlyName.value).group(1)
+        except AttributeError,msg:
+            port_name = "???"
         yield port_name, szFriendlyName.value, szHardwareID.value
     
     SetupDiDestroyDeviceInfoList(g_hdi)
@@ -181,9 +184,11 @@ def comports(available_only=True):
 if __name__ == '__main__':
     import serial
     for port, desc, hwid in comports():
-        print "%s: %s (%s)" % (port, desc, hwid)
-        print " "*10, serial.Serial(port) #test open
-    
+        try:
+            print "%s: %s (%s)" % (port, desc, hwid)
+            print " "*10, serial.Serial(port) #test open
+        except serial.serialutil.SerialException:
+            print "can't be openend."
     # list of all ports the system knows
     print "-"*60
     for port, desc, hwid in comports(False):
