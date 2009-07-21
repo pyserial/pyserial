@@ -310,6 +310,10 @@ Bugfixes:
 - Improve and fix tcp_serial_redirector example.
 - [Bug 2603052] 5-bit mode (needs 1.5 stop bits in some cases)
 
+Bugfixes (posix):
+
+- [Bug 2810169] Propagate exceptions raised in serialposix _reconfigure
+
 Bugfixes (win32):
 
 - [Bug 2469098] parity PARITY_MARK, PARITY_SPACE isn't supported on win32
