@@ -19,15 +19,15 @@ if sys.version < '2.2.3':
     DistributionMetadata.download_url = None
 
 setup(
-    name="pyserial",
-    description="Python Serial Port Extension",
-    version="2.4",
-    author="Chris Liechti",
-    author_email="cliechti@gmx.net",
-    url="http://pyserial.sourceforge.net/",
-    packages=['serial'],
-    license="Python",
-    long_description="Python Serial Port Extension for Win32, Linux, BSD, Jython",
+    name = "pyserial",
+    description = "Python Serial Port Extension",
+    version = "2.4",
+    author = "Chris Liechti",
+    author_email = "cliechti@gmx.net",
+    url = "http://pyserial.sourceforge.net/",
+    packages = ['serial'],
+    license = "Python",
+    long_description = "Python Serial Port Extension for Win32, Linux, BSD, Jython, IronPython",
     classifiers = [
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
@@ -41,4 +41,7 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Topic :: Terminals :: Serial',
     ],
+    platforms = 'any',
+    #~ scripts = ['scripts/python-miniterm'],
+)
 )

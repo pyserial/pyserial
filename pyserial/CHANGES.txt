@@ -297,11 +297,13 @@ Bugfixes (jython):
 
  - The Jython backend tries javax.comm and gnu.io (Seo Sanghyeon)
 
+
 Version 2.5      <date>
 ---------------------------
 New Features:
 
 - 1.5 stop bits (STOPBITS_ONE_POINT_FIVE, implemented on all platforms)
+- miniterm application extended
 
 Bugfixes:
 
@@ -310,5 +312,5 @@ Bugfixes:
 
 Bugfixes (win32):
 
-- [Bug 2469098] parity PARITY_MARK, PARITY_SPACE does't supported in win32
+- [Bug 2469098] parity PARITY_MARK, PARITY_SPACE isn't supported on win32
 
