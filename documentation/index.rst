@@ -13,6 +13,7 @@ Contents:
 
     pyserial
     shortintro
+    examples
     pyserial_api
     pyparallel
     appendix

@@ -93,10 +93,11 @@ Windows
 
 References
 ==========
-* Python: http://www.python.org/|http://www.python.org
+* Python: http://www.python.org/
 * pywin32: http://sourceforge.net/projects/pywin32/ (previously known as win32all)
-* Jython: http://www.jython.org/|http://www.jython.org
-* Java@IBM http://www-106.ibm.com/developerworks/java/jdk/ (JavaComm links are on the download page for the respective platform jdk)
+* Jython: http://www.jython.org/
+* Java@IBM http://www-106.ibm.com/developerworks/java/jdk/ (JavaComm links are
+  on the download page for the respective platform jdk)
 * Java@SUN http://java.sun.com/products/
 * IronPython: http://www.codeplex.com/IronPython
 * setuptools: http://peak.telecommunity.com/DevCenter/setuptools

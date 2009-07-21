@@ -2,6 +2,9 @@
  Short introduction
 ====================
 
+Opening serial ports
+====================
+
 Open port 0 at "9600,8,N,1", no timeout::
 
     >>> import serial
@@ -25,6 +28,9 @@ Open second port at "38400,8,E,1", non blocking HW handshaking::
     >>> s = ser.read(100)       # read up to one hundred bytes
     ...                         # or as much is in the buffer
 
+Configuring ports later
+=======================
+
 Get a Serial instance and configure/open it later::
 
     >>> ser = serial.Serial()
@@ -39,9 +45,13 @@ Get a Serial instance and configure/open it later::
     >>> ser.isOpen()
     False
 
+Readline
+========
 Be carefully when using "readline". Do specify a timeout when opening the
 serial port otherwise it could block forever if no newline character is
 received. Also note that "readlines" only works with a timeout. "readlines"
 depends on having a timeout and interprets that as EOF (end of file). It raises
-an exception if the port is not opened correctly.  Do also have a look at the
-example files in the examples directory in the source distribution or online.
+an exception if the port is not opened correctly.
+
+Do also have a look at the example files in the examples directory in the
+source distribution or online.

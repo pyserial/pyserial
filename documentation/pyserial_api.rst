@@ -35,25 +35,22 @@ Classes
             Set a read timeout value.
 
         :param xonxoff:
-
             Enable software flow control.
 
         :param rtscts:
-
             Enable hardware (RTS/CTS) flow control.
 
         :param interCharTimeout:
-
             Inter-character timeout, None to disable.
 
     The port is immediately opened on object creation, when a port is given. It
     is not opened when port is None.
 
-    Possible values for :param:`timeout`::
+    Possible values for the parameter ``timeout``::
 
-            timeout=None    # wait forever
-            timeout=0       # non-blocking mode (return immediately on read)
-            timeout=x       # set timeout to x seconds (float allowed)
+            timeout = None  # wait forever
+            timeout = 0     # non-blocking mode (return immediately on read)
+            timeout = x     # set timeout to x seconds (float allowed)
 
 
     .. method:: open()
@@ -80,7 +77,7 @@ Classes
 
     .. method:: write(s)
 
-        Write the string :param:`s` to the port.
+        Write the string `s` to the port.
 
     .. method:: flush(self):
 
@@ -134,7 +131,7 @@ Classes
     .. attribute:: portstr
 
         Device name (Read Only). This is always the device name even if the
-        port was opened by a numeber.
+        port was opened by a number.
 
     .. attribute:: BAUDRATES
 
@@ -196,18 +193,21 @@ Classes
     .. method:: nonblocking()
 
         :platform: Unix
+
         Configure the device for nonblocking operations. This can be useful if
         the port is used with ``select``.
 
     .. method:: fileno()
 
         :platform: Unix
+
         Return file descriptor number.
 
 
     .. method:: setXON(level=True)
 
         :platform: Windows
+
         Set software flow control state.
 
 
