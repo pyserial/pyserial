@@ -185,6 +185,7 @@ class Serial(SerialBase):
         except:
             os.close(self.fd)
             self.fd = None
+            raise
         else:
             self._isOpen = True
         #~ self.flushInput()
@@ -219,7 +220,7 @@ class Serial(SerialBase):
         if hasattr(TERMIOS, 'PARMRK'):
             iflag &= ~TERMIOS.PARMRK
 
-        # setup baudrate
+        # setup baud rate
         try:
             ispeed = ospeed = getattr(TERMIOS,'B%s' % (self._baudrate))
         except AttributeError:
@@ -227,9 +228,15 @@ class Serial(SerialBase):
                 ispeed = ospeed = baudrate_constants[self._baudrate]
             except KeyError:
                 #~ raise ValueError('Invalid baud rate: %r' % self._baudrate)
-                # may need custom baud rate, it isnt in our list.
+                # may need custom baud rate, it isn't in our list.
                 ispeed = ospeed = getattr(TERMIOS, 'B38400')
-                custom_baud = int(self._baudrate) # store for later
+                try:
+                    custom_baud = int(self._baudrate) # store for later
+                except ValueError:
+                    raise ValueError('Invalid baud rate: %r' % self._baudrate)
+                else:
+                    if custom_baud < 0:
+                        raise ValueError('Invalid baud rate: %r' % self._baudrate)
 
         # setup char len
         cflag &= ~TERMIOS.CSIZE
