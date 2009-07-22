@@ -275,6 +275,87 @@ Classes
         Returns self.
 
 
+.. class:: SerialBase
+
+    The following attributes are implemented as properties. They work with open
+    and closed ports.
+
+    .. attribute:: port
+
+        Read or write port. When the port is already open, it will be closed
+        and reopened with the new setting.
+
+    .. attribute:: baudrate
+
+        Read or write current baud rate setting. It is possible to change this
+        on an opened port.
+
+    .. attribute:: bytesize
+
+        Read or write current data byte size setting. It is possible to change
+        this on an opened port.
+
+    .. attribute:: parity
+
+        Read or write current parity setting. It is possible to change this on
+        an opened port.
+
+    .. attribute:: stopbits
+
+        Read or write current stop bit width setting. It is possible to change
+        this on an opened port.
+
+    .. attribute:: timeout
+
+        Read or write current read timeout setting. It is possible to change
+        this on an opened port.
+
+    .. attribute:: writeTimeout
+
+        Read or write current write timeout setting. It is possible to change
+        this on an opened port.
+
+    .. attribute:: xonxoff
+
+        Read or write current software flow control rate setting. It is
+        possible to change this on an opened port.
+
+    .. attribute:: rtscts
+
+        Read or write current hardware flow control setting. It is possible to
+        change this on an opened port.
+
+    .. attribute:: dsrdtr
+
+        Read or write current hardware flow control setting. It is possible to
+        change this on an opened port.
+
+    .. attribute:: interCharTimeout
+
+        Read or write current inter character timeout setting. It is possible
+        to change this on an opened port.
+
+    The following constants are also provided:
+
+    .. attribute:: BAUDRATES
+
+        A tuple of standard baud rate values. The actual device may support more
+        or less...
+
+    .. attribute:: BYTESIZES
+
+        A tuple of supported byte size values.
+
+    .. attribute:: PARITIES
+
+        A tuple of supported parity settings.
+
+    .. attribute:: STOPBITS
+
+        A tuple of supported stop bit settings.
+
+
+
 Exceptions
 ==========
 
