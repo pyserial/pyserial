@@ -5,4 +5,5 @@ Version 0.2     27 Jan 2005
     Windows version now using ctypes
 
 Version ...     ...
-    added setDataDir to Windows backend
+    add setDataDir to Windows backend
+    [SF 2785532] add getData for ppdev backend

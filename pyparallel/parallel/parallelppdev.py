@@ -567,8 +567,12 @@ class Parallel:
         """Sets the states of the data bus line drivers (pins 2-9)"""
         self._data=d
         return self.PPWDATA(d)
+    
+    def getData(self):
+        """Gets the states of the data bus line (pin 2-9)"""
+        return self.PPRDATA()
 
-    #status lines
+    # status lines
     def getInError(self):
         """Returns the level on the nFault pin (15)"""
         return (self.PPRSTATUS() & PARPORT_STATUS_ERROR) != 0
