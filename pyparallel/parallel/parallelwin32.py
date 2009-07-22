@@ -77,6 +77,14 @@ class Parallel:
     def setData(self, value):
         _pyparallel.outp(self.dataRegAdr, value)
 
+    def setDataDir( self, level):
+        """set for port as input, clear for output"""
+        if level:
+            self.ctrlReg |= 0x20
+        else:
+            self.ctrlReg &= ~0x20
+        _pyparallel.outp(self.ctrlRegAdr, self.ctrlReg)
+
     # control register output functions
     def setDataStrobe(self, level):
         """data strobe bit"""
@@ -101,7 +109,7 @@ class Parallel:
         else:
             self.ctrlReg = self.ctrlReg & ~0x04
         _pyparallel.outp(self.ctrlRegAdr, self.ctrlReg)
-    
+
     def setSelect(self, level):
         """select bit"""
         if level:
