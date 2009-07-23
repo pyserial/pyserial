@@ -129,6 +129,31 @@ API
     for tests and simulations without real hardware.
 
 
+Notes
+=====
+
+Linux
+-----
+1. The :manpage:`lp(4)` module must be unloaded, ``rmmod lp``. ``lp`` claims
+   exclusive access to the port and other programs won't be able to use it.
+
+2. The :manpage:`ppdev(4)` module needs to be loaded, ``modprobe ppdev``. When
+   ``udev`` is in use, (default with 2.6 kernels) this will create a
+   ``/dev/parport0``.
+
+3. The user needs to have write permissions to ``/dev/parport0``. Many
+   distributions have an ``lp`` group that owns the device; the simplest is to
+   add the user account to this group. Simply changing permissions on the
+   device is not the best strategy as they will be reverted to their defaults
+   next time the driver is loaded.
+
+
+Windows
+-------
+The giveio driver must be installed as the module needs direct access to the
+hardware. This also means that USB parallel port adapters won't be supported.
+
+
 Misc
 ====
 References
