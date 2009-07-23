@@ -231,7 +231,6 @@ class Serial(SerialBase):
         if not self.hComPort: raise portNotOpenError
         if not isinstance(data, str):
             raise TypeError('expected str, got %s' % type(data))
-        #print repr(s),
         if data:
             #~ win32event.ResetEvent(self._overlappedWrite.hEvent)
             err, n = win32file.WriteFile(self.hComPort, data, self._overlappedWrite)
@@ -329,16 +328,15 @@ class Serial(SerialBase):
 # Nur Testfunktion!!
 if __name__ == '__main__':
     s = Serial(0)
-    print s
+    sys.stdout.write("%s\n" % s)
 
     s = Serial()
-    print s
-
+    sys.stdout.write("%s\n" % s)
 
     s.baudrate = 19200
     s.databits = 7
     s.close()
     s.port = 0
     s.open()
-    print s
+    sys.stdout.write("%s\n" % s)
 

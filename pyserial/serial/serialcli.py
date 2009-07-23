@@ -233,17 +233,19 @@ class Serial(SerialBase):
 
 #Nur Testfunktion!!
 if __name__ == '__main__':
+    import sys
+
     s = Serial(0)
-    print s
-    
+    sys.stdio.write('%s\n' % s)
+
     s = Serial()
-    print s
-    
-    
+    sys.stdio.write('%s\n' % s)
+
+
     s.baudrate = 19200
     s.databits = 7
     s.close()
     s.port = 0
     s.open()
-    print s
+    sys.stdio.write('%s\n' % s)
 

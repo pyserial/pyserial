@@ -392,9 +392,9 @@ class SerialBase(FileLike):
 
 if __name__ == '__main__':
     s = SerialBase()
-    print s.portstr
-    print s.getSupportedBaudrates()
-    print s.getSupportedByteSizes()
-    print s.getSupportedParities()
-    print s.getSupportedStopbits()
-    print s
+    sys.stdio.write('port name:  %s\n' % s.portstr)
+    sys.stdio.write('baud rates: %s\n' % s.getSupportedBaudrates())
+    sys.stdio.write('byte sizes: %s\n' % s.getSupportedByteSizes())
+    sys.stdio.write('parities:   %s\n' % s.getSupportedParities())
+    sys.stdio.write('stop bits:  %s\n' % s.getSupportedStopbits())
+    sys.stdio.write('%s\n' % s)

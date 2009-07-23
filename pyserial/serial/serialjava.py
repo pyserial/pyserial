@@ -233,8 +233,8 @@ if __name__ == '__main__':
     s.flushInput()
     s.flushOutput()
     s.write('hello')
-    print repr(s.read(5))
-    print s.inWaiting()
+    sys.stdio.write('%r\n' % s.read(5))
+    sys.stdio.write('%s\n' % s.inWaiting())
     del s
 
 

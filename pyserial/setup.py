@@ -1,12 +1,13 @@
 # setup.py
+import sys
+
 try:
     from setuptools import setup
 except ImportError:
-    print "standart distutils"
+    sys.stdout.write("standard distutils\n")
     from distutils.core import setup
 else:
-    print "setuptools"
-import sys
+    sys.stdout.write("setuptools\n")
 
 #windows installer:
 # python setup.py bdist_wininst

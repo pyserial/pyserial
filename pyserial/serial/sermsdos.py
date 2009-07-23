@@ -50,7 +50,7 @@ BAUD_RATES = {
                 4800: "48",
                 9600: "96",
                 19200: "19"}
-                
+
 (PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK,
 PARITY_SPACE) = range(5)
 (STOPBITS_ONE, STOPBITS_ONEANDAHALF,
@@ -91,10 +91,10 @@ class Serial(serialutil.FileLike):
                  ):
 
         if type(port) == type(''):
-        #strings are taken directly
+        # strings are taken directly
             self.portstr = port
         else:
-        #numbers are transformed to a string
+        # numbers are transformed to a string
             self.portstr = device(port+1)
 
         self.baud = BAUD_RATES[baudrate]
@@ -145,7 +145,6 @@ class Serial(serialutil.FileLike):
         """Read num bytes from serial port"""
         handle = os.open(self.portstr,
         os.O_RDONLY | os.O_BINARY)
-        # print os.fstat(handle)
         rv = os.read(handle, num)
         os.close(handle)
         return rv
@@ -197,19 +196,5 @@ class Serial(serialutil.FileLike):
         self.retry , self.filename), ' ')
 
 if __name__ == '__main__':
-    print __name__
     s = Serial(0)
-    print s
-
-
-
-
-
-
-
-
-
-
-
-
-
+    sys.stdio.write('%s %s\n' % (__name__, s))

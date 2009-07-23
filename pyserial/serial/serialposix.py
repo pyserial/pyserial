@@ -69,7 +69,8 @@ elif plat[:3] == 'aix':      # AIX
 
 else:
     #platform detection has failed...
-    print """don't know how to number ttys on this system.
+    sys.stderr.write("""\
+don't know how to number ttys on this system.
 ! Use an explicit path (eg /dev/ttyS1) or send this information to
 ! the author of this module:
 
@@ -81,7 +82,7 @@ also add the device name of the serial port and where the
 counting starts for the first serial port.
 e.g. 'first serial port: /dev/ttyS0'
 and with a bit luck you can get this module running...
-""" % (sys.platform, os.name, VERSION)
+""" % (sys.platform, os.name, VERSION))
     # no exception, just continue with a brave attempt to build a device name
     # even if the device name is not correct for the platform it has chances
     # to work using a string with the real device name as port parameter.
@@ -496,7 +497,7 @@ if __name__ == '__main__':
     s.flushInput()
     s.flushOutput()
     s.write('hello')
-    print repr(s.read(5))
-    print s.inWaiting()
+    sys.stdio.write('%r\n' % s.read(5))
+    sys.stdio.write('%s\n' % s.inWaiting())
     del s
 
