@@ -45,11 +45,11 @@ Classes
         - Device name: depending on operating system. e.g. ``/dev/ttyUSB0``
           on GNU/Linux or ``COM3`` on Windows.
 
-        Possible values for the parameter ``timeout``::
+        Possible values for the parameter ``timeout``:
 
-                timeout = None  # wait forever
-                timeout = 0     # non-blocking mode (return immediately on read)
-                timeout = x     # set timeout to x seconds (float allowed)
+        - ``timeout = None``:  wait forever
+        - ``timeout = 0``:     non-blocking mode (return immediately on read)
+        - ``timeout = x``:     set timeout to x seconds (float allowed)
 
 
     .. method:: open()
@@ -70,13 +70,18 @@ Classes
 
     .. method:: read(size=1)
 
-        Read size bytes from the serial port. If a timeout is set it may return
-        less characters as requested. With no timeout it will block until the
-        requested number of bytes is read.
+        :param size: Number of bytes to read.
+        :return: Bytes read from the port.
 
-    .. method:: write(s)
+        Read ``size`` bytes from the serial port. If a timeout is set it may
+        return less characters as requested. With no timeout it will block
+        until the requested number of bytes is read.
 
-        Write the string `s` to the port.
+    .. method:: write(data)
+
+        :param data: Data to send.
+
+        Write the string ``data`` to the port.
 
     .. method:: flush():
 
@@ -94,34 +99,50 @@ Classes
 
     .. method:: sendBreak(duration=0.25)
 
+        :param duration: Time (float) to activate the BREAK condition.
+
         Send break condition. Timed, returns to idle state after given
         duration.
 
     .. method:: setBreak(level=True)
 
+        :param level: when true activate BREAK condition, else disable.
+
         Set break: Controls TXD. When active, no transmitting is possible.
 
     .. method:: setRTS(level=True)
+
+        :param level: Set control line to logic level.
 
         Set RTS line to specified logic level.
 
     .. method:: setDTR(level=True)
 
+        :param level: Set control line to logic level.
+
         Set DTR line to specified logic level.
 
     .. method:: getCTS()
+
+        :return: Current state (boolean)
 
         Return the state of the CTS line.
 
     .. method:: getDSR()
 
+        :return: Current state (boolean)
+
         Return the state of the DSR line.
 
     .. method:: getRI()
 
+        :return: Current state (boolean)
+
         Return the state of the RI line.
 
     .. method:: getCD()
+
+        :return: Current state (boolean)
 
         Return the state of the CD line
 
@@ -199,20 +220,19 @@ Classes
     .. method:: fileno()
 
         :platform: Unix
+        :return: File descriptor.
 
-        Return file descriptor number.
-
+        Return file descriptor number for the port that is opened by this object.
 
     .. method:: setXON(level=True)
 
         :platform: Windows
+        :param level: Set flow control state.
 
         Set software flow control state.
 
 
 .. class:: FileLike
-
-    .. method:: readline()
 
     An abstract file like class. It is used as base class for :class:`Serial`.
 
@@ -258,7 +278,7 @@ Classes
 
         Raises NotImplementedError, needs to be overridden by subclass.
 
-    .. method:: write()
+    .. method:: write(data)
 
         Raises NotImplementedError, needs to be overridden by subclass.
 

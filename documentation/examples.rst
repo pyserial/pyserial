@@ -151,6 +151,51 @@ tcp_serial_redirect.py_
 .. _tcp_serial_redirect.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/tcp_serial_redirect.py
 
 
+Multi-port TCP/IP - serial bridge
+=================================
+This example implements a TCP/IP to serial port service that works with
+multiple ports at once. It uses select, no threads, and runs on POSIX systems
+only.
+
+- Check existence of ``/tty/USB0...9``.
+- Ports are periodically checked using ``os.path.exists``.
+- Send Zeroconfig announcements when port appears or disappears (uses
+  python-avahi and dbus).
+- Single process for all ports (not per port).
+- All published services are kept in a dictionary that maps device->publisher
+  object.
+- A delay of 5 seconds slows down the poll loop to a reasonable period.
+- The script implements a daemon that logs to the syslog, unless specified
+  otherwise on the command line.
+
+
+Requirements
+------------
+- python (>2.4)
+- python-avahi
+- python-dbus
+- python-serial
+
+
+Installation
+------------
+- Copy the script ``port_publisher.py`` to ``/usr/local/bin``.
+- Copy the script ``port_publisher.sh`` to ``/etc/init.d``.
+- Add links to the runlevels using ``update-rc.d port_publisher.sh defaults 99``
+- Thats it :-) the service will be started on next reboot. Alternatively run
+  ``invoke-rc.d port_publisher.sh start`` as root.
+
+
+port_publisher.py_
+    Multi-port TCP/IP-serial converter for POSIX environments.
+
+port_publisher.sh_
+    Example init.d script.
+
+.. _port_publisher.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/port_publisher.py
+.. _port_publisher.sh: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/port_publisher.sh
+
+
 wxPython examples
 =================
 A simple terminal application for wxPython and a flexible serial port
@@ -219,12 +264,12 @@ need a loop back connector. The scripts itself contain more information.
 test.py_
     Basic tests.
 
-test_high_load.py_
-    Tests involving sending a lot of data.
-
 test_advanced.py_
     Test more advanced features.
 
+test_high_load.py_
+    Tests involving sending a lot of data.
+
 .. _test.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/test.py
-.. _test_high_load.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/test_high_load.py
 .. _test_advanced.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/test_advanced.py
+.. _test_high_load.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/test_high_load.py
