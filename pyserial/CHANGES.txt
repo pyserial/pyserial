@@ -305,6 +305,8 @@ New Features:
 - 1.5 stop bits (STOPBITS_ONE_POINT_FIVE, implemented on all platforms)
 - miniterm application extended
 - add scanlinux.py example
+- Support for Win32 is now written on the top of ctypes (bundled with
+  Python 2.5+) instead of pywin32 (patch by Giovanni Bajo).
 
 Bugfixes:
 
