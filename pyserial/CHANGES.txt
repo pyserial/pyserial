@@ -316,6 +316,7 @@ Bugfixes:
 Bugfixes (posix):
 
 - [Bug 2810169] Propagate exceptions raised in serialposix _reconfigure
+- [Bug 2562610] setting non standard baud rates on Darwin (Emmanuel Blot)
 
 Bugfixes (win32):
 

@@ -9,12 +9,13 @@
 #
 # parts based on code from Grant B. Edwards  <grante@visi.com>:
 #  ftp://ftp.visi.com/users/grante/python/PosixSerial.py
+#
 # references: http://www.easysw.com/~mike/serial/serial.html
 
 import sys, os, fcntl, termios, struct, select, errno
 from serialutil import *
 
-#Do check the Python version as some constants have moved.
+# Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):
     import TERMIOS
 else:
@@ -25,47 +26,184 @@ if (sys.hexversion < 0x020200f0):
 else:
     FCNTL = fcntl
 
+baudrate_constants = {
+    0:       0000000,  # hang up
+    50:      0000001,
+    75:      0000002,
+    110:     0000003,
+    134:     0000004,
+    150:     0000005,
+    200:     0000006,
+    300:     0000007,
+    600:     0000010,
+    1200:    0000011,
+    1800:    0000012,
+    2400:    0000013,
+    4800:    0000014,
+    9600:    0000015,
+    19200:   0000016,
+    38400:   0000017,
+    57600:   0010001,
+    115200:  0010002,
+    230400:  0010003,
+    460800:  0010004,
+    500000:  0010005,
+    576000:  0010006,
+    921600:  0010007,
+    1000000: 0010010,
+    1152000: 0010011,
+    1500000: 0010012,
+    2000000: 0010013,
+    2500000: 0010014,
+    3000000: 0010015,
+    3500000: 0010016,
+    4000000: 0010017
+}
+
 # try to detect the OS so that a device can be selected...
+# this code block should supply a device() and set_special_baudrate() function
+# for the platform
 plat = sys.platform.lower()
 
 if   plat[:5] == 'linux':    # Linux (confirmed)
+
     def device(port):
         return '/dev/ttyS%d' % port
 
-elif plat == 'cygwin':       # cywin/win32 (confirmed)
+    ASYNC_SPD_MASK = 0x1030
+    ASYNC_SPD_CUST = 0x0030
+
+    def set_special_baudrate(port, baudrate):
+        import array
+        buf = array.array('i', [0] * 32)
+
+        # get serial_struct
+        FCNTL.ioctl(port.fd, TERMIOS.TIOCGSERIAL, buf)
+
+        # set custom divisor
+        buf[6] = buf[7] / baudrate
+
+        # update flags
+        buf[4] &= ~ASYNC_SPD_MASK
+        buf[4] |= ASYNC_SPD_CUST
+
+        # set serial_struct
+        try:
+            res = FCNTL.ioctl(port.fd, TERMIOS.TIOCSSERIAL, buf)
+        except IOError:
+            raise ValueError('Failed to set custom baud rate: %r' % baudrate)
+
+elif plat == 'cygwin':       # cygwin/win32 (confirmed)
+
     def device(port):
         return '/dev/com%d' % (port + 1)
 
+    ASYNC_SPD_MASK = 0x1030
+    ASYNC_SPD_CUST = 0x0030
+
+    # XXX untested!
+    def set_special_baudrate(port, baudrate):
+        import array
+        buf = array.array('i', [0] * 32)
+
+        # get serial_struct
+        FCNTL.ioctl(port.fd, TERMIOS.TIOCGSERIAL, buf)
+
+        # set custom divisor
+        buf[6] = buf[7] / baudrate
+
+        # update flags
+        buf[4] &= ~ASYNC_SPD_MASK
+        buf[4] |= ASYNC_SPD_CUST
+
+        # set serial_struct
+        try:
+            res = FCNTL.ioctl(port.fd, TERMIOS.TIOCSSERIAL, buf)
+        except IOError:
+            raise ValueError('Failed to set custom baud rate: %r' % baudrate)
+
 elif plat     == 'openbsd3': # BSD (confirmed)
+
     def device(port):
         return '/dev/ttyp%d' % port
 
+    def set_special_baudrate(port, baudrate):
+        raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
+
 elif plat[:3] == 'bsd' or  \
      plat[:7] == 'freebsd' or \
-     plat[:7] == 'openbsd' or \
-     plat[:6] == 'darwin':   # BSD (confirmed for freebsd4: cuaa%d)
+     plat[:7] == 'openbsd':  # BSD (confirmed for freebsd4: cuaa%d)
+
     def device(port):
         return '/dev/cuad%d' % port
 
+    def set_special_baudrate(port, baudrate):
+        raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
+
+elif plat[:6] == 'darwin':   # OS X
+
+    version = os.uname()[2].split('.')
+    # Tiger or above can support arbitrary serial speeds
+    if int(version[0]) >= 8:
+        # remove all speeds not supported with TERMIOS so that pyserial never
+        # attempts to use them directly
+        for b in baudrate_constants.keys():
+            if b > 230400:
+                del baudrate_constants[b]
+
+        def set_special_baudrate(port, baudrate):
+            # use IOKit-specific call to set up high speeds
+            import array, fcntl
+            buf = array.array('i', [baudrate])
+            IOSSIOSPEED = 0x80045402 #_IOW('T', 2, speed_t)
+            fcntl.ioctl(port.fd, IOSSIOSPEED, buf, 1)
+    else: # version < 8
+        def set_special_baudrate(port, baudrate):
+            raise ValueError("baud rate not supported")
+
+    def device(port):
+        return '/dev/cuad%d' % port
+
+
 elif plat[:6] == 'netbsd':   # NetBSD 1.6 testing by Erk
+
     def device(port):
         return '/dev/dty%02d' % port
 
+    def set_special_baudrate(port, baudrate):
+        raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
+
 elif plat[:4] == 'irix':     # IRIX (partially tested)
+
     def device(port):
         return '/dev/ttyf%d' % (port+1) #XXX different device names depending on flow control
 
+    def set_special_baudrate(port, baudrate):
+        raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
+
 elif plat[:2] == 'hp':       # HP-UX (not tested)
+
     def device(port):
         return '/dev/tty%dp0' % (port+1)
 
+    def set_special_baudrate(port, baudrate):
+        raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
+
 elif plat[:5] == 'sunos':    # Solaris/SunOS (confirmed)
+
     def device(port):
         return '/dev/tty%c' % (ord('a')+port)
 
+    def set_special_baudrate(port, baudrate):
+        raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
+
 elif plat[:3] == 'aix':      # AIX
+
     def device(port):
         return '/dev/tty%d' % (port)
+
+    def set_special_baudrate(port, baudrate):
+        raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
 
 else:
     #platform detection has failed...
@@ -88,6 +226,8 @@ and with a bit luck you can get this module running...
     # to work using a string with the real device name as port parameter.
     def device(portum):
         return '/dev/ttyS%d' % portnum
+    def set_special_baudrate(port, baudrate):
+        raise SerialException("sorry don't know how to handle non standard baud rate on this platform")
     #~ raise Exception, "this module does not run on this platform, sorry."
 
 # whats up with "aix", "beos", ....
@@ -123,43 +263,6 @@ TIOCM_DTR_str = struct.pack('I', TIOCM_DTR)
 
 TIOCSBRK  = hasattr(TERMIOS, 'TIOCSBRK') and TERMIOS.TIOCSBRK or 0x5427
 TIOCCBRK  = hasattr(TERMIOS, 'TIOCCBRK') and TERMIOS.TIOCCBRK or 0x5428
-
-ASYNC_SPD_MASK = 0x1030
-ASYNC_SPD_CUST = 0x0030
-
-baudrate_constants = {
-    0:       0000000,  # hang up
-    50:      0000001,
-    75:      0000002,
-    110:     0000003,
-    134:     0000004,
-    150:     0000005,
-    200:     0000006,
-    300:     0000007,
-    600:     0000010,
-    1200:    0000011,
-    1800:    0000012,
-    2400:    0000013,
-    4800:    0000014,
-    9600:    0000015,
-    19200:   0000016,
-    38400:   0000017,
-    57600:   0010001,
-    115200:  0010002,
-    230400:  0010003,
-    460800:  0010004,
-    500000:  0010005,
-    576000:  0010006,
-    921600:  0010007,
-    1000000: 0010010,
-    1152000: 0010011,
-    1500000: 0010012,
-    2000000: 0010013,
-    2500000: 0010014,
-    3000000: 0010015,
-    3500000: 0010016,
-    4000000: 0010017
-}
 
 
 class Serial(SerialBase):
@@ -310,24 +413,7 @@ class Serial(SerialBase):
 
         # apply custom baud rate, if any
         if custom_baud is not None:
-            import array
-            buf = array.array('i', [0] * 32)
-
-            # get serial_struct
-            FCNTL.ioctl(self.fd, TERMIOS.TIOCGSERIAL, buf)
-
-            # set custom divisor
-            buf[6] = buf[7] / custom_baud
-
-            # update flags
-            buf[4] &= ~ASYNC_SPD_MASK
-            buf[4] |= ASYNC_SPD_CUST
-
-            # set serial_struct
-            try:
-                res = FCNTL.ioctl(self.fd, TERMIOS.TIOCSSERIAL, buf)
-            except IOError:
-                raise ValueError('Failed to set custom baud rate: %r' % self._baudrate)
+            set_special_baudrate(self, custom_baud)
 
     def close(self):
         """Close port"""
@@ -484,10 +570,10 @@ class Serial(SerialBase):
 
 if __name__ == '__main__':
     s = Serial(0,
-                 baudrate=19200,        # baudrate
-                 bytesize=EIGHTBITS,    # number of databits
+                 baudrate=19200,        # baud rate
+                 bytesize=EIGHTBITS,    # number of data bits
                  parity=PARITY_EVEN,    # enable parity checking
-                 stopbits=STOPBITS_ONE, # number of stopbits
+                 stopbits=STOPBITS_ONE, # number of stop bits
                  timeout=3,             # set a timeout value, None for waiting forever
                  xonxoff=0,             # enable software flow control
                  rtscts=0,              # enable RTS/CTS flow control
