@@ -44,4 +44,3 @@ setup(
     platforms = 'any',
     #~ scripts = ['scripts/python-miniterm'],
 )
-)
