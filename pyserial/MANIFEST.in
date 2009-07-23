@@ -1,0 +1,38 @@
+include README.txt
+include LICENSE.txt
+include CHANGES.txt
+include MANIFEST.in
+include setup.py
+include serial/__init__.py
+include serial/serialcli.py
+include serial/serialjava.py
+include serial/serialposix.py
+include serial/serialutil.py
+include serial/serialwin32.py
+include serial/sermsdos.py
+include serial/win32.py
+
+include examples/enhancedserial.py
+include examples/miniterm.py
+include examples/port_publisher.py
+include examples/port_publisher.sh
+include examples/scan.py
+include examples/scanlinux.py
+include examples/scanwin32.py
+include examples/setup_demo.py
+include examples/setup-miniterm-py2exe.py
+include examples/tcp_serial_redirect.py
+include examples/test.py
+include examples/test_advanced.py
+include examples/test_high_load.py
+include examples/wxSerialConfigDialog.py
+include examples/wxSerialConfigDialog.wxg
+include examples/wxTerminal.py
+include examples/wxTerminal.wxg
+
+#include scripts/python-miniterm
+
+#include ../documentation/*.rst
+#include ../documentation/conf.py
+#include ../documentation/Makefile
+
