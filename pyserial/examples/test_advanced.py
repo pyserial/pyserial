@@ -114,7 +114,7 @@ class Test_ChangeAttributes(unittest.TestCase):
             # test internals
             self.failUnlessEqual(self.s._stopbits, stopbits)
         # test illegal values
-        for illegal_value in (0, 3, 1.5, 57, 'a', None):
+        for illegal_value in (0, 3, 2.5, 57, 'a', None):
             self.failUnlessRaises(ValueError, self.s.setStopbits, illegal_value)
 
     def test_TimeoutSetting(self):
