@@ -8,6 +8,7 @@ from ctypes.wintypes import DWORD
 from ctypes.wintypes import WORD
 from ctypes.wintypes import BYTE
 
+INVALID_HANDLE_VALUE = HANDLE(-1).value
 
 class _SECURITY_ATTRIBUTES(Structure):
     pass
@@ -17,6 +18,7 @@ CreateEventW = _stdcall_libraries['kernel32'].CreateEventW
 CreateEventW.restype = HANDLE
 CreateEventW.argtypes = [LPSECURITY_ATTRIBUTES, BOOL, BOOL, LPCWSTR]
 CreateEvent = CreateEventW # alias
+
 CreateFileW = _stdcall_libraries['kernel32'].CreateFileW
 CreateFileW.restype = HANDLE
 CreateFileW.argtypes = [LPCWSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE]
@@ -123,6 +125,10 @@ SetCommTimeouts = _stdcall_libraries['kernel32'].SetCommTimeouts
 SetCommTimeouts.restype = BOOL
 SetCommTimeouts.argtypes = [HANDLE, LPCOMMTIMEOUTS]
 
+WaitForSingleObject = _stdcall_libraries['kernel32'].WaitForSingleObject
+WaitForSingleObject.restype = DWORD
+WaitForSingleObject.argtypes = [HANDLE, DWORD]
+
 ONESTOPBIT = 0 # Variable c_int
 TWOSTOPBITS = 2 # Variable c_int
 ONE5STOPBITS = 1
@@ -132,6 +138,18 @@ ODDPARITY = 1 # Variable c_int
 EVENPARITY = 2 # Variable c_int
 MARKPARITY = 3
 SPACEPARITY = 4
+
+RTS_CONTROL_HANDSHAKE = 2 # Variable c_int
+RTS_CONTROL_DISABLE = 0 # Variable c_int
+RTS_CONTROL_ENABLE = 1 # Variable c_int
+SETRTS = 3
+CLRRTS = 4
+
+DTR_CONTROL_HANDSHAKE = 2 # Variable c_int
+DTR_CONTROL_DISABLE = 0 # Variable c_int
+DTR_CONTROL_ENABLE = 1 # Variable c_int
+SETDTR = 5
+CLRDTR = 6
 
 MS_DSR_ON = 32 # Variable c_ulong
 EV_RING = 256 # Variable c_int
@@ -148,19 +166,15 @@ EV_RLSD = 32 # Variable c_int
 ERROR_IO_PENDING = 997 # Variable c_long
 MS_CTS_ON = 16 # Variable c_ulong
 EV_EVENT1 = 2048 # Variable c_int
-RTS_CONTROL_HANDSHAKE = 2 # Variable c_int
 EV_RX80FULL = 1024 # Variable c_int
 PURGE_RXABORT = 2 # Variable c_int
 FILE_ATTRIBUTE_NORMAL = 128 # Variable c_int
 PURGE_TXABORT = 1 # Variable c_int
 SETXON = 2 # Variable c_int
 OPEN_EXISTING = 3 # Variable c_int
-RTS_CONTROL_ENABLE = 1 # Variable c_int
 MS_RING_ON = 64 # Variable c_ulong
 EV_TXEMPTY = 4 # Variable c_int
 EV_RXFLAG = 2 # Variable c_int
-DTR_CONTROL_HANDSHAKE = 2 # Variable c_int
-DTR_CONTROL_ENABLE = 1 # Variable c_int
 MS_RLSD_ON = 128 # Variable c_ulong
 GENERIC_READ = 2147483648L # Variable c_ulong
 EV_EVENT2 = 4096 # Variable c_int
@@ -168,6 +182,7 @@ EV_CTS = 8 # Variable c_int
 EV_BREAK = 64 # Variable c_int
 PURGE_RXCLEAR = 8 # Variable c_int
 ULONG_PTR = c_ulong
+INFINITE = 0xFFFFFFFFL
 
 class N11_OVERLAPPED4DOLLAR_48E(Union):
     pass
