@@ -37,9 +37,7 @@ Features
   RTS/CTS and/or Xon/Xoff.
 * Working with or without receive timeout.
 * File like API with "read" and "write" ("readline" etc. also supported).
-* The files in this package are 100% pure Python. They depend on non standard
-  but common packages on Windows (pywin32) and Jython (JavaComm). POSIX (Linux,
-  BSD) uses only modules from the standard Python distribution).
+* The files in this package are 100% pure Python.
 * The port is set up for binary transmission. No NULL byte stripping, CR-LF
   translation etc. (which are many times enabled for POSIX.) This makes this
   module universally useful.
@@ -48,7 +46,7 @@ Features
 Requirements
 ============
 * Python 2.2 or newer
-* pywin32 extensions on Windows
+* ctypes extensions on Windows (is in standard library since Python 2.5+)
 * "Java Communications" (JavaComm) or compatible extension for Java/Jython
 
 
@@ -96,7 +94,6 @@ Windows
 References
 ==========
 * Python: http://www.python.org/
-* pywin32: http://sourceforge.net/projects/pywin32/ (previously known as win32all)
 * Jython: http://www.jython.org/
 * Java@IBM: http://www-106.ibm.com/developerworks/java/jdk/ (JavaComm links are
   on the download page for the respective platform JDK)
@@ -111,4 +108,7 @@ Older versions are still available on the `Download Page`_. pySerial 1.21 is
 compatible with Python 2.0 on Windows, Linux and several un*x like systems,
 MacOSX and Jython.
 
+On windows they will depend on pywin32_ (previously known as win32all)
+
 .. _`Download Page`: http://sourceforge.net/project/showfiles.php?group_id=46487
+.. _pywin32: http://pypi.python.org/pypi/pywin32

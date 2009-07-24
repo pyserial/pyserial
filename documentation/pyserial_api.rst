@@ -38,6 +38,13 @@ Classes
         :param interCharTimeout:
             Inter-character timeout, None to disable.
 
+        :exception ValueError:
+            Will be raised when parameter are out of range, e.g. baudrate, data bits.
+
+        :exception SerialException:
+            In case the device can not be found or can not be configured.
+
+
         The port is immediately opened on object creation, when a ``port`` is
         given. It is not opened when port is None.
 
@@ -80,6 +87,10 @@ Classes
     .. method:: write(data)
 
         :param data: Data to send.
+
+        :exception SerialTimeoutException:
+            In case a write timeout is configured for the port and the time is
+            exceeded.
 
         Write the string ``data`` to the port.
 
@@ -241,7 +252,7 @@ Classes
     This class is used to provide the above functions for to Serial
     port objects.
 
-    Note that when the serial port was opened with _NO_ timeout that
+    Note that when the serial port was opened with no timeout that
     readline blocks until it sees a newline (or the specified size is
     reached) and that readlines would never return and therefore
     refuses to work (it raises an exception in this case)!
@@ -269,6 +280,9 @@ Classes
     .. method:: writelines(sequence)
 
         Write a list of strings to the port.
+
+
+    The following three methods are overridden in :class:`Serial`.
 
     .. method:: flush()
 
@@ -307,53 +321,43 @@ Classes
 
     .. attribute:: baudrate
 
-        Read or write current baud rate setting. It is possible to change this
-        on an opened port.
+        Read or write current baud rate setting.
 
     .. attribute:: bytesize
 
-        Read or write current data byte size setting. It is possible to change
-        this on an opened port.
+        Read or write current data byte size setting.
 
     .. attribute:: parity
 
-        Read or write current parity setting. It is possible to change this on
-        an opened port.
+        Read or write current parity setting.
 
     .. attribute:: stopbits
 
-        Read or write current stop bit width setting. It is possible to change
-        this on an opened port.
+        Read or write current stop bit width setting.
 
     .. attribute:: timeout
 
-        Read or write current read timeout setting. It is possible to change
-        this on an opened port.
+        Read or write current read timeout setting.
 
     .. attribute:: writeTimeout
 
-        Read or write current write timeout setting. It is possible to change
-        this on an opened port.
+        Read or write current write timeout setting.
 
     .. attribute:: xonxoff
 
-        Read or write current software flow control rate setting. It is
-        possible to change this on an opened port.
+        Read or write current software flow control rate setting.
 
     .. attribute:: rtscts
 
-        Read or write current hardware flow control setting. It is possible to
-        change this on an opened port.
+        Read or write current hardware flow control setting.
 
     .. attribute:: dsrdtr
 
-        Read or write current hardware flow control setting. It is possible to
-        change this on an opened port.
+        Read or write current hardware flow control setting.
 
     .. attribute:: interCharTimeout
 
-        Read or write current inter character timeout setting. It is possible
-        to change this on an opened port.
+        Read or write current inter character timeout setting.
 
     The following constants are also provided:
 
@@ -414,5 +418,7 @@ Bytesize
 
 Others
 -------
+Default control characters for software flow control.
+
 .. data:: XON
 .. data:: XOFF
