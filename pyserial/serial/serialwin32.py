@@ -19,8 +19,7 @@ def device(portnum):
     return 'COM%d' % (portnum+1) #numbers are transformed to a string
 
 class Serial(SerialBase):
-    """Serial port implemenation for Win32. This implemenatation requires a 
-       win32all installation."""
+    """Serial port implementation for Win32 based on ctypes."""
 
     BAUDRATES = (50,75,110,134,150,200,300,600,1200,1800,2400,4800,9600,
                  19200,38400,57600,115200)
