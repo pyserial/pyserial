@@ -3,14 +3,6 @@ include LICENSE.txt
 include CHANGES.txt
 include MANIFEST.in
 include setup.py
-include serial/__init__.py
-include serial/serialcli.py
-include serial/serialjava.py
-include serial/serialposix.py
-include serial/serialutil.py
-include serial/serialwin32.py
-include serial/sermsdos.py
-include serial/win32.py
 
 include examples/enhancedserial.py
 include examples/miniterm.py
