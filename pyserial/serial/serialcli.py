@@ -87,7 +87,7 @@ class Serial(SerialBase):
             raise ValueError("Unsupported number of data bits: %r" % self._bytesize)
 
         if self._parity == PARITY_NONE:
-            self._port_handle.Parity       = System.IO.Ports.Parity.None
+            self._port_handle.Parity       = getattr(System.IO.Ports.Parity, 'None') # reserved keyword in Py3k
         elif self._parity == PARITY_EVEN:
             self._port_handle.Parity       = System.IO.Ports.Parity.Even
         elif self._parity == PARITY_ODD:
@@ -115,7 +115,7 @@ class Serial(SerialBase):
         elif self._xonxoff:
             self._port_handle.Handshake  = System.IO.Ports.Handshake.XOnXOff
         else:
-            self._port_handle.Handshake  = System.IO.Ports.Handshake.None
+            self._port_handle.Handshake  = getattr(System.IO.Ports.Handshake, 'None')   # reserved keyword in Py3k
 
     #~ def __del__(self):
         #~ self.close()
