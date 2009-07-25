@@ -14,9 +14,9 @@ except ImportError:
         raise ImportError("build_py_2to3 not found in distutils - it is required for Python 3.x")
     from distutils.command.build_py import build_py
 
-if sys.version < '2.2.3':
-    # distutils that old can't cope with the "classifiers" or
-    # "download_url" keywords and True/False constants are missing
+if sys.version < '2.3':
+    # distutils that old can't cope with the "classifiers" or "download_url"
+    # keywords and True/False constants and basestring are missing
     raise ValueError("Sorry Python versions older than 2.2.3 are no longer"
                      "supported - check http://pyserial.sf.net for older "
                      "releases or upgrade your Python installation.")

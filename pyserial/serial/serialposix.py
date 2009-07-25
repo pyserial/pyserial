@@ -265,7 +265,7 @@ TIOCSBRK  = hasattr(TERMIOS, 'TIOCSBRK') and TERMIOS.TIOCSBRK or 0x5427
 TIOCCBRK  = hasattr(TERMIOS, 'TIOCCBRK') and TERMIOS.TIOCCBRK or 0x5428
 
 
-class Serial(SerialBase):
+class PosixSerial(SerialBase):
     """Serial port class POSIX implementation. Serial port configuration is 
     done with termios and fcntl. Runs on Linux and many other Un*x like
     systems."""
@@ -273,9 +273,9 @@ class Serial(SerialBase):
     def open(self):
         """Open port with current settings. This may throw a SerialException
            if the port cannot be opened."""
+        self.fd = None
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
-        self.fd = None
         # open
         try:
             self.fd = os.open(self.portstr, os.O_RDWR|os.O_NOCTTY|os.O_NONBLOCK)
@@ -434,7 +434,7 @@ class Serial(SerialBase):
         s = fcntl.ioctl(self.fd, TIOCINQ, TIOCM_zero_str)
         return struct.unpack('I',s)[0]
 
-    def read(self, size=1):
+    def _read(self, size=1):
         """Read size bytes from the serial port. If a timeout is set it may
            return less characters as requested. With no timeout it will block
            until the requested number of bytes is read."""
@@ -453,9 +453,10 @@ class Serial(SerialBase):
                     break   # early abort on timeout
         return read
 
-    def write(self, data):
+    def _write(self, data):
         """Output the given string over the serial port."""
         if self.fd is None: raise portNotOpenError
+        #~ if not isinstance(port, basestring):
         if not isinstance(data, str):
             raise TypeError('expected str, got %s' % type(data))
         t = len(data)
@@ -476,6 +477,7 @@ class Serial(SerialBase):
             except OSError,v:
                 if v.errno != errno.EAGAIN:
                     raise
+        return len(data)
 
     def flush(self):
         """Flush of file like objects. In this case, wait until all data
@@ -567,6 +569,19 @@ class Serial(SerialBase):
            WARNING: this function is not portable to different platforms!"""
         if self.fd is None: raise portNotOpenError
         return self.fd
+
+
+# assemble Serial class with the platform specifc implementation and the base
+# for file-like behavior
+class Serial(PosixSerial, FileLike):
+    pass
+
+# for Python 2.6 and newer, that provide the new I/O library, implement a
+# RawSerial object that plays nice with it.
+if support_io_module:
+    class RawSerial(PosixSerial, RawSerialBase):
+        pass
+
 
 if __name__ == '__main__':
     s = Serial(0,

@@ -24,12 +24,13 @@ XOFF = chr(19)
 class SerialException(Exception):
     """Base class for serial port related exceptions."""
 
-portNotOpenError = SerialException('Port not open')
+portNotOpenError = ValueError('Attempting to use a port that is not open')
 
 class SerialTimeoutException(SerialException):
     """Write timeouts give an exception"""
 
 writeTimeoutError = SerialTimeoutException("Write timeout")
+
 
 class FileLike(object):
     """An abstract file like class.
@@ -45,8 +46,31 @@ class FileLike(object):
     refuses to work (it raises an exception in this case)!
     """
 
-    def read(self, size): raise NotImplementedError
-    def write(self, s): raise NotImplementedError
+    def __init__(self):
+        self.closed = True
+
+    def close(self):
+        self.closed = True
+
+    # so that ports are closed when objects are discarded
+    def __del__(self):
+        """Destructor.  Calls close()."""
+        # The try/except block is in case this is called at program
+        # exit time, when it's possible that globals have already been
+        # deleted, and then the close() call might fail.  Since
+        # there's nothing we can do about such failures and they annoy
+        # the end users, we suppress the traceback.
+        try:
+            self.close()
+        except:
+            pass
+
+    # read and write directly use the platform dependent implementation
+    def read(self, size=1):
+        return self._read(size)
+
+    def write(self, data):
+        return self._write(data)
 
     def readline(self, size=None, eol='\n'):
         """read a line which is terminated with end-of-line (eol) character
@@ -101,15 +125,32 @@ class FileLike(object):
     def __iter__(self):
         return self
 
+    # other functions of file-likes - not used by pySerial
 
-class SerialBase(FileLike):
+    #~ readinto(b)
+
+    def seek(self, pos, whence=0):
+        raise IOError("file is not seekable")
+
+    def tell(self):
+        raise IOError("file is not seekable")
+
+    def truncate(self, n=None):
+        raise IOError("file is not seekable")
+
+    def isatty(self):
+        return False
+
+
+class SerialBase(object):
     """Serial port base class. Provides __init__ function and properties to
        get/set port settings."""
 
     # default values, may be overridden in subclasses that do not support all values
-    BAUDRATES = (50,75,110,134,150,200,300,600,1200,1800,2400,4800,9600,
-                 19200,38400,57600,115200,230400,460800,500000,576000,921600,
-                 1000000,1152000,1500000,2000000,2500000,3000000,3500000,4000000)
+    BAUDRATES = (50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
+                 9600, 19200, 38400, 57600, 115200, 230400, 460800, 500000,
+                 576000, 921600, 1000000, 1152000, 1500000, 2000000, 2500000,
+                 3000000, 3500000, 4000000)
     BYTESIZES = (FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS)
     PARITIES  = (PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE)
     STOPBITS  = (STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO)
@@ -194,13 +235,14 @@ class SerialBase(FileLike):
         was_open = self._isOpen
         if was_open: self.close()
         if port is not None:
-            if type(port) in [type(''), type(u'')]:       # strings are taken directly
+            if isinstance(port, basestring):
                 self.portstr = port
             else:
                 self.portstr = self.makeDeviceName(port)
         else:
             self.portstr = None
         self._port = port
+        self.name = self.portstr
         if was_open: self.open()
 
     def getPort(self):
@@ -384,11 +426,48 @@ class SerialBase(FileLike):
             self.dsrdtr,
         )
 
+# for Python 2.6 and newer, that provide the new I/O library, implement a
+# RawSerial object that plays nice with it.
+try:
+    import io
+except ImportError:
+    support_io_module = False
+else:
+    support_io_module = True
+
+    class RawSerialBase(io.RawIOBase):
+        def readable(self): return True
+        def writable(self): return True
+        def readinto(self, b):
+            data = self._read(len(b))
+            n = len(data)
+            try:
+                b[:n] = data
+            except TypeError, err:
+                import array
+                if not isinstance(b, array.array):
+                    raise err
+                b[:n] = array.array(b'b', data)
+            return n
+
+        def write(self, b):
+            if self.closed:
+                raise ValueError("write to closed file")
+            if isinstance(b, unicode):
+                raise TypeError("can't write unicode to binary stream")
+            n = len(b)
+            if n == 0:
+                return 0
+            self._write(b)
+
+
+
 if __name__ == '__main__':
+    import sys
     s = SerialBase()
-    sys.stdio.write('port name:  %s\n' % s.portstr)
-    sys.stdio.write('baud rates: %s\n' % s.getSupportedBaudrates())
-    sys.stdio.write('byte sizes: %s\n' % s.getSupportedByteSizes())
-    sys.stdio.write('parities:   %s\n' % s.getSupportedParities())
-    sys.stdio.write('stop bits:  %s\n' % s.getSupportedStopbits())
-    sys.stdio.write('%s\n' % s)
+    sys.stdout.write('port name:  %s\n' % s.portstr)
+    sys.stdout.write('baud rates: %s\n' % s.getSupportedBaudrates())
+    sys.stdout.write('byte sizes: %s\n' % s.getSupportedByteSizes())
+    sys.stdout.write('parities:   %s\n' % s.getSupportedParities())
+    sys.stdout.write('stop bits:  %s\n' % s.getSupportedStopbits())
+    sys.stdout.write('%s\n' % s)

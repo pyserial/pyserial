@@ -17,7 +17,7 @@ def device(portnum):
     """Turn a port number into a device name"""
     return 'COM%d' % (portnum+1) #numbers are transformed to a string
 
-class Serial(SerialBase):
+class Win32Serial(SerialBase):
     """Serial port implementation for Win32 based on ctypes."""
 
     BAUDRATES = (50,75,110,134,150,200,300,600,1200,1800,2400,4800,9600,
@@ -196,7 +196,7 @@ class Serial(SerialBase):
             raise SerialException('call to ClearCommError failed')
         return comstat.cbInQue
 
-    def read(self, size=1):
+    def _read(self, size=1):
         """Read size bytes from the serial port. If a timeout is set it may
            return less characters as requested. With no timeout it will block
            until the requested number of bytes is read."""
@@ -231,7 +231,7 @@ class Serial(SerialBase):
             read = ''
         return read
 
-    def write(self, data):
+    def _write(self, data):
         """Output the given string over the serial port."""
         if not self.hComPort: raise portNotOpenError
         if not isinstance(data, str):
@@ -247,6 +247,7 @@ class Serial(SerialBase):
             err = win32.GetOverlappedResult(self.hComPort, self._overlappedWrite, ctypes.byref(n), True)
             if n.value != len(data):
                 raise writeTimeoutError
+        return n.value
 
 
     def flushInput(self):
@@ -338,6 +339,18 @@ class Serial(SerialBase):
         if not win32.ClearCommError(self.hComPort, ctypes.byref(flags), ctypes.byref(comstat)):
             raise SerialException('call to ClearCommError failed')
         return comstat.cbOutQue
+
+# assemble Serial class with the platform specifc implementation and the base
+# for file-like behavior
+class Serial(Win32Serial, FileLike):
+    pass
+
+# for Python 2.6 and newer, that provide the new I/O library, implement a
+# RawSerial object that plays nice with it.
+if support_io_module:
+    class RawSerial(Win32Serial, RawSerialBase):
+        pass
+
 
 
 # Nur Testfunktion!!

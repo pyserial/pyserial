@@ -28,7 +28,7 @@ The homepage is at http://pyserial.sf.net.
 Features
 ========
 * Same class based interface on all supported platforms.
-* Access to the port settings through Python 2.2+ properties.
+* Access to the port settings through Python 2.3+ properties.
 * Port numbering starts at zero, no need to know the port name in the user
   program.
 * Port string (device name) can be specified if access through numbering is
@@ -45,7 +45,7 @@ Features
 
 Requirements
 ============
-* Python 2.2.3 or newer
+* Python 2.3 or newer
 * ctypes extensions on Windows (is in standard library since Python 2.5+)
 * "Java Communications" (JavaComm) or compatible extension for Java/Jython
 

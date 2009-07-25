@@ -21,7 +21,7 @@ sab = System.Array[System.Byte]
 def as_byte_array(string):
     return sab([ord(x) for x in string])
 
-class Serial(SerialBase):
+class IronSerial(SerialBase):
     """Serial port implemenation for .NET/Mono."""
 
     BAUDRATES = (50,75,110,134,150,200,300,600,1200,1800,2400,4800,9600,
@@ -145,7 +145,7 @@ class Serial(SerialBase):
         if not self._port_handle: raise portNotOpenError
         return self._port_handle.BytesToRead
 
-    def read(self, size=1):
+    def _read(self, size=1):
         """Read size bytes from the serial port. If a timeout is set it may
            return less characters as requested. With no timeout it will block
            until the requested number of bytes is read."""
@@ -162,7 +162,7 @@ class Serial(SerialBase):
                 size -= 1
         return ''.join(data)
 
-    def write(self, data):
+    def _write(self, data):
         """Output the given string over the serial port."""
         if not self._port_handle: raise portNotOpenError
         if not isinstance(data, str):
@@ -173,6 +173,7 @@ class Serial(SerialBase):
             self._port_handle.Write(as_byte_array(data), 0, len(data))
         except System.TimeoutException, e:
             raise writeTimeoutError
+        return len(data)
 
     def flushInput(self):
         """Clear input buffer, discarding all that is in the buffer."""
@@ -230,6 +231,20 @@ class Serial(SerialBase):
         return self._port_handle.CDHolding
 
     # - - platform specific - - - -
+    # none
+
+
+# assemble Serial class with the platform specifc implementation and the base
+# for file-like behavior
+class Serial(IronSerial, FileLike):
+    pass
+
+# for Python 2.6 and newer, that provide the new I/O library, implement a
+# RawSerial object that plays nice with it.
+if support_io_module:
+    class RawSerial(IronSerial, RawSerialBase):
+        pass
+
 
 #Nur Testfunktion!!
 if __name__ == '__main__':

@@ -56,7 +56,7 @@ Classes
 
         - ``timeout = None``:  wait forever
         - ``timeout = 0``:     non-blocking mode (return immediately on read)
-        - ``timeout = x``:     set timeout to x seconds (float allowed)
+        - ``timeout = x``:     set timeout to ``x`` seconds (float allowed)
 
 
     .. method:: open()
@@ -67,9 +67,8 @@ Classes
 
         Close port immediately.
 
-    .. method:: setBaudrate(baudrate)
 
-        Change baud rate on an open port.
+    The following methods may rise :exc:`ValueError` when applied to a closed port.
 
     .. method:: inWaiting()
 
@@ -159,10 +158,16 @@ Classes
 
     Read-only attributes:
 
-    .. attribute:: portstr
+    .. attribute:: name
 
         Device name. This is always the device name even if the
         port was opened by a number. (Read Only).
+
+        .. versionadded:: 2.5
+
+    .. attribute:: portstr
+
+        :deprecated: use :attr:`name` instead
 
     .. attribute:: BAUDRATES
 
@@ -243,6 +248,19 @@ Classes
         Set software flow control state.
 
 
+.. class:: RawSerial
+
+    This class is only present when run with Python 2.6 and newer that prides
+    the module :mod:`io`. It shares the same interface with :class:`Serial`
+    with the difference that :meth:`read` and :meth:`write` work with
+    :class:`bytes`and :class:`bytearrays`.
+
+    This also means that readline is borrowed from the :mod:`io` module and
+    lacks the ``eol`` parameter.
+
+    .. versionadded:: 2.5
+
+
 .. class:: FileLike
 
     An abstract file like class. It is used as base class for :class:`Serial`.
@@ -296,6 +314,33 @@ Classes
 
         Raises NotImplementedError, needs to be overridden by subclass.
 
+    The following functions are implemented for compatibility with other
+    file-like objects, however serial ports are not seekable.
+
+
+    .. method:: seek(pos, whence=0)
+
+        :exception IOError: always, as method is not supported on serial port
+
+        .. versionadded:: 2.5
+
+    .. method:: tell()
+
+        :exception IOError: always, as method is not supported on serial port
+
+        .. versionadded:: 2.5
+
+    .. method:: truncate(self, n=None):
+
+        :exception IOError: always, as method is not supported on serial port
+
+        .. versionadded:: 2.5
+
+    .. method:: isatty()
+
+        :exception IOError: always, as method is not supported on serial port
+
+        .. versionadded:: 2.5
 
     To be able to use the file like object as iterator for e.g. 
     ``for line in Serial(0): ...`` usage:
@@ -422,3 +467,24 @@ Default control characters for software flow control.
 
 .. data:: XON
 .. data:: XOFF
+
+Version
+
+.. data:: VERSION
+
+    A string indicating the pySerial version, such as ``2.5``.
+
+Functions:
+
+.. function:: device(number)
+
+    :param number: Port number.
+    :return: String containing device name.
+    :deprecated: Use device names directly.
+
+    Convert a port number to a platform dependent device name. Unfortunately
+    this does not work well for all platforms; e.g. some may miss USB-Serial
+    converters and enumerate only internal serial ports.
+
+    The conversion may be made off-line, that is, there is no guarantee that
+    the returned device name really exists on the system.

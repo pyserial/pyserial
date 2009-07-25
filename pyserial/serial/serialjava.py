@@ -46,7 +46,8 @@ def device(portnumber):
             ports.append(el)
     return ports[portnumber].getName()
 
-class Serial(SerialBase):
+
+class JavaSerial(SerialBase):
     """Serial port class, implemented with Java Communications API and
        thus usable with jython and the appropriate java extension."""
 
@@ -144,7 +145,7 @@ class Serial(SerialBase):
         if not self.sPort: raise portNotOpenError
         return self._instream.available()
 
-    def read(self, size=1):
+    def _read(self, size=1):
         """Read size bytes from the serial port. If a timeout is set it may
            return less characters as requested. With no timeout it will block
            until the requested number of bytes is read."""
@@ -160,10 +161,11 @@ class Serial(SerialBase):
                     read = read + chr(x)
         return read
 
-    def write(self, data):
+    def _write(self, data):
         """Output the given string over the serial port."""
         if not self.sPort: raise portNotOpenError
         self._outstream.write(data)
+        return len(data)
 
     def flushInput(self):
         """Clear input buffer, discarding all that is in the buffer."""
@@ -190,7 +192,7 @@ class Serial(SerialBase):
         """Set terminal status line: Request To Send"""
         if not self.sPort: raise portNotOpenError
         self.sPort.setRTS(level)
-        
+
     def setDTR(self, level=1):
         """Set terminal status line: Data Terminal Ready"""
         if not self.sPort: raise portNotOpenError
@@ -216,6 +218,17 @@ class Serial(SerialBase):
         if not self.sPort: raise portNotOpenError
         self.sPort.isCD()
 
+
+# assemble Serial class with the platform specifc implementation and the base
+# for file-like behavior
+class Serial(JaveSerial, FileLike):
+    pass
+
+# for Python 2.6 and newer, that provide the new I/O library, implement a
+# RawSerial object that plays nice with it.
+if support_io_module:
+    class RawSerial(JavaSerial, RawSerialBase):
+        pass
 
 
 if __name__ == '__main__':
