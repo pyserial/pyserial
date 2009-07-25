@@ -117,7 +117,7 @@ class JavaSerial(SerialBase):
             jflowin  |=  comm.SerialPort.FLOWCONTROL_XONXOFF_IN
             jflowout |=  comm.SerialPort.FLOWCONTROL_XONXOFF_OUT
 
-        self.sPort.setSerialPortParams(baudrate, jdatabits, jstopbits, jparity)
+        self.sPort.setSerialPortParams(self._baudrate, jdatabits, jstopbits, jparity)
         self.sPort.setFlowControlMode(jflowin | jflowout)
 
         if self._timeout >= 0:
