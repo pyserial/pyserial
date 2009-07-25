@@ -45,7 +45,7 @@ Features
 
 Requirements
 ============
-* Python 2.2 or newer
+* Python 2.2.3 or newer
 * ctypes extensions on Windows (is in standard library since Python 2.5+)
 * "Java Communications" (JavaComm) or compatible extension for Java/Jython
 
