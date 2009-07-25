@@ -1,4 +1,8 @@
-# setup.py
+# setup.py for pyserial
+#
+# windows installer:
+#  python setup.py bdist_wininst
+
 import sys
 
 from distutils.core import setup
@@ -10,12 +14,9 @@ except ImportError:
         raise ImportError("build_py_2to3 not found in distutils - it is required for Python 3.x")
     from distutils.command.build_py import build_py
 
-# windows installer:
-#  python setup.py bdist_wininst
-
-# patch distutils if it can't cope with the "classifiers" or
-# "download_url" keywords
 if sys.version < '2.2.3':
+    # distutils that old can't cope with the "classifiers" or
+    # "download_url" keywords and True/False constants are missing
     raise ValueError("Sorry Python versions older than 2.2.3 are no longer"
                      "supported - check http://pyserial.sf.net for older "
                      "releases or upgrade your Python installation.")
@@ -38,6 +39,7 @@ setup(
         'Natural Language :: English',
         'Operating System :: POSIX',
         'Operating System :: Microsoft :: Windows',
+        #~ 'Operating System :: Microsoft :: Windows :: Windows CE', # could work due to new ctypes impl. someone needs to confirm that
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.3',
@@ -49,6 +51,7 @@ setup(
         'Programming Language :: Python :: 3.1',
         'Topic :: Communications',
         'Topic :: Software Development :: Libraries',
+        'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Terminals :: Serial',
     ],
     platforms = 'any',
