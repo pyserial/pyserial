@@ -5,31 +5,54 @@
 # (C) 2001-2009 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
+# compatibility folder Python < 2.6 
+try:
+    bytes
+    bytearray
+except AttributeError:
+    # Python older than 2.6 do not have these types. Like for Python 2.6 they
+    # should behave like str.  for Python older than 3.0 we want to work with
+    # strings anyway, only later versions have a trues bytes type.
+    bytes = str
+    # bytearray is a mutable type that is easily turned into an instance of
+    # bytes
+    class bytearray(list):
+        # for bytes(bytearray()) usage
+        def __str__(self): return ''.join(self)
+        # append automatically converts integers to characters
+        def append(self, item):
+            if isinstance(item, str):
+                list.append(self, item)
+            else:
+                list.append(self, chr(item))
+
+
 PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE = 'N', 'E', 'O', 'M', 'S'
 STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO = (1, 1.5, 2)
 FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS = (5, 6, 7, 8)
 
 PARITY_NAMES = {
-    PARITY_NONE: 'None',
-    PARITY_EVEN: 'Even',
-    PARITY_ODD:  'Odd',
-    PARITY_MARK: 'Mark',
-    PARITY_SPACE:'Space',
+    PARITY_NONE:  'None',
+    PARITY_EVEN:  'Even',
+    PARITY_ODD:   'Odd',
+    PARITY_MARK:  'Mark',
+    PARITY_SPACE: 'Space',
 }
 
 XON  = chr(17)
 XOFF = chr(19)
 
 
-class SerialException(Exception):
+class SerialException(IOError):
     """Base class for serial port related exceptions."""
 
-portNotOpenError = ValueError('Attempting to use a port that is not open')
 
 class SerialTimeoutException(SerialException):
     """Write timeouts give an exception"""
 
+
 writeTimeoutError = SerialTimeoutException("Write timeout")
+portNotOpenError = ValueError('Attempting to use a port that is not open')
 
 
 class FileLike(object):
@@ -64,49 +87,6 @@ class FileLike(object):
             self.close()
         except:
             pass
-
-    # read and write directly use the platform dependent implementation
-    def read(self, size=1):
-        return self._read(size)
-
-    def write(self, data):
-        return self._write(data)
-
-    def readline(self, size=None, eol='\n'):
-        """read a line which is terminated with end-of-line (eol) character
-        ('\n' by default) or until timeout"""
-        line = ''
-        while 1:
-            c = self.read(1)
-            if c:
-                line += c   # not very efficient but lines are usually not that long
-                if c == eol:
-                    break
-                if size is not None and len(line) >= size:
-                    break
-            else:
-                break
-        return line
-
-    def readlines(self, sizehint=None, eol='\n'):
-        """read a list of lines, until timeout
-        sizehint is ignored"""
-        if self.timeout is None:
-            raise ValueError("Serial port MUST have enabled timeout for this function!")
-        lines = []
-        while 1:
-            line = self.readline(eol=eol)
-            if line:
-                lines.append(line)
-                if line[-1] != eol:    # was the line received with a timeout?
-                    break
-            else:
-                break
-        return lines
-
-    def xreadlines(self, sizehint=None):
-        """just call readlines - here for compatibility"""
-        return self.readlines()
 
     def writelines(self, sequence):
         for line in sequence:
@@ -177,17 +157,17 @@ class SerialBase(object):
            is returned."""
 
         self._isOpen   = False
-        self._port     = None           #  correct value is assigned below trough properties
-        self._baudrate = None           #  correct value is assigned below trough properties
-        self._bytesize = None           #  correct value is assigned below trough properties
-        self._parity   = None           #  correct value is assigned below trough properties
-        self._stopbits = None           #  correct value is assigned below trough properties
-        self._timeout  = None           #  correct value is assigned below trough properties
-        self._writeTimeout = None       #  correct value is assigned below trough properties
-        self._xonxoff  = None           #  correct value is assigned below trough properties
-        self._rtscts   = None           #  correct value is assigned below trough properties
-        self._dsrdtr   = None           #  correct value is assigned below trough properties
-        self._interCharTimeout = None   #  correct value is assigned below trough properties
+        self._port     = None           # correct value is assigned below through properties
+        self._baudrate = None           # correct value is assigned below through properties
+        self._bytesize = None           # correct value is assigned below through properties
+        self._parity   = None           # correct value is assigned below through properties
+        self._stopbits = None           # correct value is assigned below through properties
+        self._timeout  = None           # correct value is assigned below through properties
+        self._writeTimeout = None       # correct value is assigned below through properties
+        self._xonxoff  = None           # correct value is assigned below through properties
+        self._rtscts   = None           # correct value is assigned below through properties
+        self._dsrdtr   = None           # correct value is assigned below through properties
+        self._interCharTimeout = None   # correct value is assigned below through properties
 
         # assign values using get/set methods using the properties feature
         self.port     = port
@@ -255,10 +235,9 @@ class SerialBase(object):
 
 
     def setBaudrate(self, baudrate):
-        """Change baudrate. It raises a ValueError if the port is open and the
-        baudrate is not possible. If the port is closed, then tha value is
+        """Change baud rate. It raises a ValueError if the port is open and the
+        baud rate is not possible. If the port is closed, then tha value is
         accepted and the exception is raised when the port is opened."""
-        #~ if baudrate not in self.BAUDRATES: raise ValueError("Not a valid baudrate: %r" % baudrate)
         try:
             self._baudrate = int(baudrate)
         except TypeError:
@@ -267,10 +246,10 @@ class SerialBase(object):
             if self._isOpen:  self._reconfigurePort()
 
     def getBaudrate(self):
-        """Get the current baudrate setting."""
+        """Get the current baud rate setting."""
         return self._baudrate
 
-    baudrate = property(getBaudrate, setBaudrate, doc="Baudrate setting")
+    baudrate = property(getBaudrate, setBaudrate, doc="Baud rate setting")
 
 
     def setByteSize(self, bytesize):
@@ -300,16 +279,16 @@ class SerialBase(object):
 
 
     def setStopbits(self, stopbits):
-        """Change stopbits size."""
-        if stopbits not in self.STOPBITS: raise ValueError("Not a valid stopbit size: %r" % (stopbits,))
+        """Change stop bits size."""
+        if stopbits not in self.STOPBITS: raise ValueError("Not a valid stop bit size: %r" % (stopbits,))
         self._stopbits = stopbits
         if self._isOpen: self._reconfigurePort()
 
     def getStopbits(self):
-        """Get the current stopbits setting."""
+        """Get the current stop bits setting."""
         return self._stopbits
 
-    stopbits = property(getStopbits, setStopbits, doc="Stopbits setting")
+    stopbits = property(getStopbits, setStopbits, doc="Stop bits setting")
 
 
     def setTimeout(self, timeout):
@@ -351,23 +330,23 @@ class SerialBase(object):
 
 
     def setXonXoff(self, xonxoff):
-        """Change XonXoff setting."""
+        """Change XON/XOFF setting."""
         self._xonxoff = xonxoff
         if self._isOpen: self._reconfigurePort()
 
     def getXonXoff(self):
-        """Get the current XonXoff setting."""
+        """Get the current XON/XOFF setting."""
         return self._xonxoff
 
-    xonxoff = property(getXonXoff, setXonXoff, doc="Xon/Xoff setting")
+    xonxoff = property(getXonXoff, setXonXoff, doc="XON/XOFF setting")
 
     def setRtsCts(self, rtscts):
-        """Change RtsCts flow control setting."""
+        """Change RTS/CTS flow control setting."""
         self._rtscts = rtscts
         if self._isOpen: self._reconfigurePort()
 
     def getRtsCts(self):
-        """Get the current RtsCts flow control setting."""
+        """Get the current RTS/CTS flow control setting."""
         return self._rtscts
 
     rtscts = property(getRtsCts, setRtsCts, doc="RTS/CTS flow control setting")
@@ -383,7 +362,7 @@ class SerialBase(object):
         if self._isOpen: self._reconfigurePort()
 
     def getDsrDtr(self):
-        """Get the current DsrDtr flow control setting."""
+        """Get the current DSR/DTR flow control setting."""
         return self._dsrdtr
 
     dsrdtr = property(getDsrDtr, setDsrDtr, "DSR/DTR flow control setting")
@@ -426,40 +405,61 @@ class SerialBase(object):
             self.dsrdtr,
         )
 
-# for Python 2.6 and newer, that provide the new I/O library, implement a
-# RawSerial object that plays nice with it.
-try:
-    import io
-except ImportError:
-    support_io_module = False
-else:
-    support_io_module = True
+    #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-    class RawSerialBase(io.RawIOBase):
-        def readable(self): return True
-        def writable(self): return True
-        def readinto(self, b):
-            data = self._read(len(b))
-            n = len(data)
-            try:
-                b[:n] = data
-            except TypeError, err:
-                import array
-                if not isinstance(b, array.array):
-                    raise err
-                b[:n] = array.array(b'b', data)
-            return n
+    def readline(self, size=None, eol='\n'):
+        """read a line which is terminated with end-of-line (eol) character
+        ('\n' by default) or until timeout"""
+        line = ''
+        while 1:
+            c = self.read(1)
+            if c:
+                line += c   # not very efficient but lines are usually not that long
+                if c == eol:
+                    break
+                if size is not None and len(line) >= size:
+                    break
+            else:
+                break
+        return bytes(line)
 
-        def write(self, b):
-            if self.closed:
-                raise ValueError("write to closed file")
-            if isinstance(b, unicode):
-                raise TypeError("can't write unicode to binary stream")
-            n = len(b)
-            if n == 0:
-                return 0
-            self._write(b)
+    def readlines(self, sizehint=None, eol='\n'):
+        """read a list of lines, until timeout
+        sizehint is ignored"""
+        if self.timeout is None:
+            raise ValueError("Serial port MUST have enabled timeout for this function!")
+        lines = []
+        while 1:
+            line = self.readline(eol=eol)
+            if line:
+                lines.append(line)
+                if line[-1] != eol:    # was the line received with a timeout?
+                    break
+            else:
+                break
+        return lines
 
+    def xreadlines(self, sizehint=None):
+        """just call readlines - here for compatibility"""
+        return self.readlines()
+
+    #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+    # compatibility with io library
+
+    def readable(self): return True
+    def writable(self): return True
+    def seekable(self): return False
+    def readinto(self, b):
+        data = self.read(len(b))
+        n = len(data)
+        try:
+            b[:n] = data
+        except TypeError, err:
+            import array
+            if not isinstance(b, array.array):
+                raise err
+            b[:n] = array.array('b', data)
+        return n
 
 
 if __name__ == '__main__':

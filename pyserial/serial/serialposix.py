@@ -434,47 +434,46 @@ class PosixSerial(SerialBase):
         s = fcntl.ioctl(self.fd, TIOCINQ, TIOCM_zero_str)
         return struct.unpack('I',s)[0]
 
-    def _read(self, size=1):
+    def read(self, size=1):
         """Read size bytes from the serial port. If a timeout is set it may
            return less characters as requested. With no timeout it will block
            until the requested number of bytes is read."""
         if self.fd is None: raise portNotOpenError
-        read = ''
+        read = bytearray()
         inp = None
         if size > 0:
             while len(read) < size:
                 # print "\tread(): size",size, "have", len(read)    #debug
-                ready,_,_ = select.select([self.fd],[],[], self._timeout)
+                ready,_,_ = select.select([self.fd], [], [], self._timeout)
                 if not ready:
                     break   # timeout
-                buf = os.read(self.fd, size-len(read))
-                read = read + buf
+                buf = os.read(self.fd, size - len(read))
+                read.extend(buf)
                 if (self._timeout >= 0 or self._interCharTimeout > 0) and not buf:
                     break   # early abort on timeout
-        return read
+        return bytes(read)
 
-    def _write(self, data):
+    def write(self, data):
         """Output the given string over the serial port."""
         if self.fd is None: raise portNotOpenError
-        #~ if not isinstance(port, basestring):
-        if not isinstance(data, str):
-            raise TypeError('expected str, got %s' % type(data))
+        if not isinstance(data, bytes):
+            raise TypeError('expected %s, got %s' % (bytes, type(data)))
         t = len(data)
         d = data
         while t > 0:
             try:
                 if self._writeTimeout is not None and self._writeTimeout > 0:
-                    _,ready,_ = select.select([],[self.fd],[], self._writeTimeout)
+                    _, ready, _ = select.select([], [self.fd], [], self._writeTimeout)
                     if not ready:
                         raise writeTimeoutError
                 n = os.write(self.fd, d)
                 if self._writeTimeout is not None and self._writeTimeout > 0:
-                    _,ready,_ = select.select([],[self.fd],[], self._writeTimeout)
+                    _, ready, _ = select.select([], [self.fd], [], self._writeTimeout)
                     if not ready:
                         raise writeTimeoutError
                 d = d[n:]
                 t = t - n
-            except OSError,v:
+            except OSError, v:
                 if v.errno != errno.EAGAIN:
                     raise
         return len(data)
@@ -572,14 +571,17 @@ class PosixSerial(SerialBase):
 
 
 # assemble Serial class with the platform specifc implementation and the base
-# for file-like behavior
-class Serial(PosixSerial, FileLike):
-    pass
-
-# for Python 2.6 and newer, that provide the new I/O library, implement a
-# RawSerial object that plays nice with it.
-if support_io_module:
-    class RawSerial(PosixSerial, RawSerialBase):
+# for file-like behavior. for Python 2.6 and newer, that provide the new I/O
+# library, derrive from io.RawIOBase
+try:
+    import io
+except ImportError:
+    # classic version with our own file-like emulation
+    class Serial(PosixSerial, FileLike):
+        pass
+else:
+    # io library present
+    class Serial(PosixSerial, io.RawIOBase):
         pass
 
 

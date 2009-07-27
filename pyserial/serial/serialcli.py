@@ -11,21 +11,23 @@ import System
 import System.IO.Ports
 from serialutil import *
 
+
 def device(portnum):
     """Turn a port number into a device name"""
     return System.IO.Ports.SerialPort.GetPortNames()[portnum]
+
 
 # must invoke function with byte array, make a helper to convert strings
 # to byte arrays
 sab = System.Array[System.Byte]
 def as_byte_array(string):
-    return sab([ord(x) for x in string])
+    return sab([ord(x) for x in string])  # XXX will require adaption when run with a 3.x compatible IronPython
 
 class IronSerial(SerialBase):
     """Serial port implemenation for .NET/Mono."""
 
-    BAUDRATES = (50,75,110,134,150,200,300,600,1200,1800,2400,4800,9600,
-                 19200,38400,57600,115200)
+    BAUDRATES = (50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
+                9600, 19200, 38400, 57600, 115200)
 
     def open(self):
         """Open port with current settings. This may throw a SerialException
@@ -145,28 +147,28 @@ class IronSerial(SerialBase):
         if not self._port_handle: raise portNotOpenError
         return self._port_handle.BytesToRead
 
-    def _read(self, size=1):
+    def read(self, size=1):
         """Read size bytes from the serial port. If a timeout is set it may
            return less characters as requested. With no timeout it will block
            until the requested number of bytes is read."""
         if not self._port_handle: raise portNotOpenError
-            # must use single byte reads as this is the only way to read
-            # without applying encodings
-        data = []
+        # must use single byte reads as this is the only way to read
+        # without applying encodings
+        data = bytearray()
         while size:
             try:
-                data.append(chr(self._port_handle.ReadByte()))
+                data.append(self._port_handle.ReadByte())
             except System.TimeoutException, e:
                 break
             else:
                 size -= 1
-        return ''.join(data)
+        return bytes(data)
 
-    def _write(self, data):
+    def write(self, data):
         """Output the given string over the serial port."""
         if not self._port_handle: raise portNotOpenError
-        if not isinstance(data, str):
-            raise TypeError('expected str, got %s' % type(data))
+        if not isinstance(data, bytes):
+            raise TypeError('expected %s, got %s' % (bytes, type(data)))
         try:
             # must call overloaded method with byte array argument
             # as this is the only one not applying encodings
@@ -234,19 +236,22 @@ class IronSerial(SerialBase):
     # none
 
 
-# assemble Serial class with the platform specifc implementation and the base
-# for file-like behavior
-class Serial(IronSerial, FileLike):
-    pass
-
-# for Python 2.6 and newer, that provide the new I/O library, implement a
-# RawSerial object that plays nice with it.
-if support_io_module:
-    class RawSerial(IronSerial, RawSerialBase):
+# assemble Serial class with the platform specific implementation and the base
+# for file-like behavior. for Python 2.6 and newer, that provide the new I/O
+# library, derive from io.RawIOBase
+try:
+    import io
+except ImportError:
+    # classic version with our own file-like emulation
+    class Serial(IronSerial, FileLike):
+        pass
+else:
+    # io library present
+    class Serial(IronSerial, io.RawIOBase):
         pass
 
 
-#Nur Testfunktion!!
+# Nur Testfunktion!!
 if __name__ == '__main__':
     import sys
 

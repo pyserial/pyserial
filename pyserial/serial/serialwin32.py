@@ -13,15 +13,17 @@ import win32
 
 from serialutil import *
 
+
 def device(portnum):
     """Turn a port number into a device name"""
-    return 'COM%d' % (portnum+1) #numbers are transformed to a string
+    return 'COM%d' % (portnum+1) # numbers are transformed to a string
+
 
 class Win32Serial(SerialBase):
     """Serial port implementation for Win32 based on ctypes."""
 
-    BAUDRATES = (50,75,110,134,150,200,300,600,1200,1800,2400,4800,9600,
-                 19200,38400,57600,115200)
+    BAUDRATES = (50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
+                 9600, 19200, 38400, 57600, 115200)
 
     def open(self):
         """Open port with current settings. This may throw a SerialException
@@ -33,8 +35,12 @@ class Win32Serial(SerialBase):
         # not all versions of windows seem to support this properly
         # so that the first few ports are used with the DOS device name
         port = self.portstr
-        if port.upper().startswith('COM') and int(port[3:]) > 8:
-            port = '\\\\.\\' + port
+        try:
+            if port.upper().startswith('COM') and int(port[3:]) > 8:
+                port = '\\\\.\\' + port
+        except ValueError:
+            # for like COMnotanumber
+            pass
         self.hComPort = win32.CreateFile(port,
                win32.GENERIC_READ | win32.GENERIC_WRITE,
                0, # exclusive access
@@ -43,7 +49,7 @@ class Win32Serial(SerialBase):
                win32.FILE_ATTRIBUTE_NORMAL | win32.FILE_FLAG_OVERLAPPED,
                0)
         if self.hComPort == win32.INVALID_HANDLE_VALUE:
-            self.hComPort = None    #'cause __del__ is called anyway
+            self.hComPort = None    # 'cause __del__ is called anyway
             raise SerialException("could not open port %s: %s" % (self.portstr, ctypes.WinError()))
 
         # Setup a 4k buffer
@@ -196,7 +202,7 @@ class Win32Serial(SerialBase):
             raise SerialException('call to ClearCommError failed')
         return comstat.cbInQue
 
-    def _read(self, size=1):
+    def read(self, size=1):
         """Read size bytes from the serial port. If a timeout is set it may
            return less characters as requested. With no timeout it will block
            until the requested number of bytes is read."""
@@ -218,7 +224,7 @@ class Win32Serial(SerialBase):
                     err = win32.WaitForSingleObject(self._overlappedRead.hEvent, win32.INFINITE)
                     read = buf.raw[:rc.value]
                 else:
-                    read = ''
+                    read = bytes()
             else:
                 buf = ctypes.create_string_buffer(size)
                 rc = win32.DWORD()
@@ -228,14 +234,14 @@ class Win32Serial(SerialBase):
                 err = win32.GetOverlappedResult(self.hComPort, ctypes.byref(self._overlappedRead), ctypes.byref(rc), True)
                 read = buf.raw[:rc.value]
         else:
-            read = ''
-        return read
+            read = bytes()
+        return bytes(read)
 
-    def _write(self, data):
+    def write(self, data):
         """Output the given string over the serial port."""
         if not self.hComPort: raise portNotOpenError
-        if not isinstance(data, str):
-            raise TypeError('expected str, got %s' % type(data))
+        if not isinstance(data, bytes):
+            raise TypeError('expected %s, got %s' % (bytes, type(data)))
         if data:
             #~ win32event.ResetEvent(self._overlappedWrite.hEvent)
             n = win32.DWORD()
@@ -340,17 +346,20 @@ class Win32Serial(SerialBase):
             raise SerialException('call to ClearCommError failed')
         return comstat.cbOutQue
 
-# assemble Serial class with the platform specifc implementation and the base
-# for file-like behavior
-class Serial(Win32Serial, FileLike):
-    pass
 
-# for Python 2.6 and newer, that provide the new I/O library, implement a
-# RawSerial object that plays nice with it.
-if support_io_module:
-    class RawSerial(Win32Serial, RawSerialBase):
+# assemble Serial class with the platform specific implementation and the base
+# for file-like behavior. for Python 2.6 and newer, that provide the new I/O
+# library, derive from io.RawIOBase
+try:
+    import io
+except ImportError:
+    # classic version with our own file-like emulation
+    class Serial(Win32Serial, FileLike):
         pass
-
+else:
+    # io library present
+    class Serial(Win32Serial, io.RawIOBase):
+        pass
 
 
 # Nur Testfunktion!!

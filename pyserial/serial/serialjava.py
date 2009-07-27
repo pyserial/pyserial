@@ -16,6 +16,7 @@ def my_import(name):
         mod = getattr(mod, comp)
     return mod
 
+
 def detect_java_comm(names):
     """try given list of modules and return that imports"""
     for name in names:
@@ -26,6 +27,7 @@ def detect_java_comm(names):
         except (ImportError, AttributeError):
             pass
     raise ImportError("No Java Communications API implementation found")
+
 
 # Java Communications API implementations
 # http://mho.republika.pl/java/comm/
@@ -56,10 +58,10 @@ class JavaSerial(SerialBase):
            if the port cannot be opened."""
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
-        if type(self._port) == type(''):      #strings are taken directly
+        if type(self._port) == type(''):      # strings are taken directly
             portId = comm.CommPortIdentifier.getPortIdentifier(self._port)
         else:
-            portId = comm.CommPortIdentifier.getPortIdentifier(device(self._port))     #numbers are transformed to a comportid obj
+            portId = comm.CommPortIdentifier.getPortIdentifier(device(self._port))     # numbers are transformed to a comport id obj
         try:
             self.sPort = portId.open("python serial module", 10)
         except Exception, msg:
@@ -71,7 +73,7 @@ class JavaSerial(SerialBase):
         self._isOpen = True
 
     def _reconfigurePort(self):
-        """Set commuication parameters on opened port."""
+        """Set communication parameters on opened port."""
         if not self.sPort:
             raise SerialException("Can only operate on a valid port handle")
 
@@ -145,12 +147,12 @@ class JavaSerial(SerialBase):
         if not self.sPort: raise portNotOpenError
         return self._instream.available()
 
-    def _read(self, size=1):
+    def read(self, size=1):
         """Read size bytes from the serial port. If a timeout is set it may
            return less characters as requested. With no timeout it will block
            until the requested number of bytes is read."""
         if not self.sPort: raise portNotOpenError
-        read = ''
+        read = bytearray()
         if size > 0:
             while len(read) < size:
                 x = self._instream.read()
@@ -158,12 +160,14 @@ class JavaSerial(SerialBase):
                     if self.timeout >= 0:
                         break
                 else:
-                    read = read + chr(x)
-        return read
+                    read.append(x)
+        return bytes(read)
 
-    def _write(self, data):
+    def write(self, data):
         """Output the given string over the serial port."""
         if not self.sPort: raise portNotOpenError
+        if not isinstance(data, bytes):
+            raise TypeError('expected %s, got %s' % (bytes, type(data)))
         self._outstream.write(data)
         return len(data)
 
@@ -219,28 +223,31 @@ class JavaSerial(SerialBase):
         self.sPort.isCD()
 
 
-# assemble Serial class with the platform specifc implementation and the base
-# for file-like behavior
-class Serial(JaveSerial, FileLike):
-    pass
-
-# for Python 2.6 and newer, that provide the new I/O library, implement a
-# RawSerial object that plays nice with it.
-if support_io_module:
-    class RawSerial(JavaSerial, RawSerialBase):
+# assemble Serial class with the platform specific implementation and the base
+# for file-like behavior. for Python 2.6 and newer, that provide the new I/O
+# library, derive from io.RawIOBase
+try:
+    import io
+except ImportError:
+    # classic version with our own file-like emulation
+    class Serial(JavaSerial, FileLike):
+        pass
+else:
+    # io library present
+    class Serial(JavaSerial, io.RawIOBase):
         pass
 
 
 if __name__ == '__main__':
     s = Serial(0,
-                 baudrate=19200,        #baudrate
-                 bytesize=EIGHTBITS,    #number of databits
-                 parity=PARITY_EVEN,    #enable parity checking
-                 stopbits=STOPBITS_ONE, #number of stopbits
-                 timeout=3,             #set a timeout value, None for waiting forever
-                 xonxoff=0,             #enable software flow control
-                 rtscts=0,              #enable RTS/CTS flow control
-               )
+         baudrate=19200,        # baudrate
+         bytesize=EIGHTBITS,    # number of databits
+         parity=PARITY_EVEN,    # enable parity checking
+         stopbits=STOPBITS_ONE, # number of stopbits
+         timeout=3,             # set a timeout value, None for waiting forever
+         xonxoff=0,             # enable software flow control
+         rtscts=0,              # enable RTS/CTS flow control
+    )
     s.setRTS(1)
     s.setDTR(1)
     s.flushInput()
