@@ -11,8 +11,8 @@ try:
     bytearray
 except AttributeError:
     # Python older than 2.6 do not have these types. Like for Python 2.6 they
-    # should behave like str.  for Python older than 3.0 we want to work with
-    # strings anyway, only later versions have a trues bytes type.
+    # should behave like str. For Python older than 3.0 we want to work with
+    # strings anyway, only later versions have a true bytes type.
     bytes = str
     # bytearray is a mutable type that is easily turned into an instance of
     # bytes
@@ -25,7 +25,11 @@ except AttributeError:
                 list.append(self, item)
             else:
                 list.append(self, chr(item))
-
+    XON  = chr(17)
+    XOFF = chr(19)
+else:
+    XON  = bytes([17])
+    XOFF = bytes([19])
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE = 'N', 'E', 'O', 'M', 'S'
 STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO = (1, 1.5, 2)
@@ -38,9 +42,6 @@ PARITY_NAMES = {
     PARITY_MARK:  'Mark',
     PARITY_SPACE: 'Space',
 }
-
-XON  = chr(17)
-XOFF = chr(19)
 
 
 class SerialException(IOError):
@@ -236,7 +237,7 @@ class SerialBase(object):
 
     def setBaudrate(self, baudrate):
         """Change baud rate. It raises a ValueError if the port is open and the
-        baud rate is not possible. If the port is closed, then tha value is
+        baud rate is not possible. If the port is closed, then the value is
         accepted and the exception is raised when the port is opened."""
         try:
             self._baudrate = int(baudrate)
@@ -294,12 +295,11 @@ class SerialBase(object):
     def setTimeout(self, timeout):
         """Change timeout setting."""
         if timeout is not None:
-            if timeout < 0: raise ValueError("Not a valid timeout: %r" % (timeout,))
             try:
                 timeout + 1     # test if it's a number, will throw a TypeError if not...
             except TypeError:
                 raise ValueError("Not a valid timeout: %r" % (timeout,))
-
+            if timeout < 0: raise ValueError("Not a valid timeout: %r" % (timeout,))
         self._timeout = timeout
         if self._isOpen: self._reconfigurePort()
 

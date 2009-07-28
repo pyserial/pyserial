@@ -282,12 +282,17 @@ class PosixSerial(SerialBase):
         except Exception, msg:
             self.fd = None
             raise SerialException("could not open port %s: %s" % (self._port, msg))
-        #~ fcntl.fcntl(self.fd, FCNTL.F_SETFL, 0)  #set blocking
+        #~ fcntl.fcntl(self.fd, FCNTL.F_SETFL, 0)  # set blocking
 
         try:
             self._reconfigurePort()
         except:
-            os.close(self.fd)
+            try:
+                os.close(self.fd)
+            except:
+                # ignore any exception when closing the port
+                # also to keep original exception that happened when setting up
+                pass
             self.fd = None
             raise
         else:
@@ -301,19 +306,19 @@ class PosixSerial(SerialBase):
             raise SerialException("Can only operate on a valid port handle")
         custom_baud = None
 
-        vmin = vtime = 0                #timeout is done via select
+        vmin = vtime = 0                # timeout is done via select
         if self._interCharTimeout is not None:
             vmin = 1
             vtime = int(self._interCharTimeout * 10)
         try:
             iflag, oflag, cflag, lflag, ispeed, ospeed, cc = termios.tcgetattr(self.fd)
-        except termios.error, msg:      #if a port is nonexistent but has a /dev file, it'll fail here
+        except termios.error, msg:      # if a port is nonexistent but has a /dev file, it'll fail here
             raise SerialException("Could not configure port: %s" % msg)
         # set up raw mode / no echo / binary
         cflag |=  (TERMIOS.CLOCAL|TERMIOS.CREAD)
         lflag &= ~(TERMIOS.ICANON|TERMIOS.ECHO|TERMIOS.ECHOE|TERMIOS.ECHOK|TERMIOS.ECHONL|
                      TERMIOS.ISIG|TERMIOS.IEXTEN) #|TERMIOS.ECHOPRT
-        for flag in ('ECHOCTL', 'ECHOKE'): #netbsd workaround for Erk
+        for flag in ('ECHOCTL', 'ECHOKE'): # netbsd workaround for Erk
             if hasattr(TERMIOS, flag):
                 lflag &= ~getattr(TERMIOS, flag)
 
@@ -326,7 +331,7 @@ class PosixSerial(SerialBase):
 
         # setup baud rate
         try:
-            ispeed = ospeed = getattr(TERMIOS,'B%s' % (self._baudrate))
+            ispeed = ospeed = getattr(TERMIOS, 'B%s' % (self._baudrate))
         except AttributeError:
             try:
                 ispeed = ospeed = baudrate_constants[self._baudrate]
@@ -392,12 +397,12 @@ class PosixSerial(SerialBase):
                 cflag |=  (TERMIOS.CRTSCTS)
             else:
                 cflag &= ~(TERMIOS.CRTSCTS)
-        elif hasattr(TERMIOS, 'CNEW_RTSCTS'):   #try it with alternate constant name
+        elif hasattr(TERMIOS, 'CNEW_RTSCTS'):   # try it with alternate constant name
             if self._rtscts:
                 cflag |=  (TERMIOS.CNEW_RTSCTS)
             else:
                 cflag &= ~(TERMIOS.CNEW_RTSCTS)
-        #XXX should there be a warning if setting up rtscts (and xonxoff etc) fails??
+        # XXX should there be a warning if setting up rtscts (and xonxoff etc) fails??
 
         # buffer
         # vmin "minimal number of characters to be read. = for non blocking"
@@ -449,7 +454,8 @@ class PosixSerial(SerialBase):
                     break   # timeout
                 buf = os.read(self.fd, size - len(read))
                 read.extend(buf)
-                if (self._timeout >= 0 or self._interCharTimeout > 0) and not buf:
+                if ((self._timeout is not None and self._timeout >= 0) or 
+                    (self._interCharTimeout is not None and self._interCharTimeout > 0)) and not buf:
                     break   # early abort on timeout
         return bytes(read)
 
