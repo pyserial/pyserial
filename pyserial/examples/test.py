@@ -23,17 +23,27 @@ On a 9 pole DSUB these are the pins (2-3) (4-6) (7-8)
 """
 
 import unittest, threading, time
+import sys
 import serial
 
 # on which port should the tests be performed:
 PORT=0
 
+if sys.version_info >= (3, 0):
+    def data(string):
+        return bytes(string, 'latin1')
+    bytes_0to255 = [bytes([x]) for x in range(256)]
+else:
+    def data(string): return string
+    bytes_0to255 = [chr(x) for x in range(256)]
+
 
 class Test4_Nonblocking(unittest.TestCase):
     """Test with timeouts"""
-    timeout=0
+    timeout = 0
+
     def setUp(self):
-        self.s = serial.Serial(PORT,timeout=self.timeout)
+        self.s = serial.Serial(PORT, timeout=self.timeout)
 
     def tearDown(self):
         self.s.close()
@@ -45,31 +55,32 @@ class Test4_Nonblocking(unittest.TestCase):
 
     def test1_ReadEmpty(self):
         """timeout: After port open, the input buffer must be empty"""
-        self.failUnless(self.s.read(1)=='', "expected empty buffer")
+        self.failUnlessEqual(self.s.read(1), data(''), "expected empty buffer")
 
     def test2_Loopback(self):
         """timeout: each sent character should return (binary test).
            this is also a test for the binary capability of a port."""
-        for c in map(chr,range(256)):
+        for c in bytes_0to255:
             self.s.write(c)
-            time.sleep(0.02)    # there might be a small delay until the character is ready (especially on win32)
-            self.failUnless(self.s.inWaiting()==1, "expected exactly one character for inWainting()")
-            self.failUnless(self.s.read(1)==c, "expected a '%s' which was written before" % c)
-        self.failUnless(self.s.read(1)=='', "expected empty buffer after all sent chars are read")
+            # there might be a small delay until the character is ready (especially on win32)
+            time.sleep(0.02)
+            self.failUnlessEqual(self.s.inWaiting(), 1, "expected exactly one character for inWainting()")
+            self.failUnlessEqual(self.s.read(1), c, "expected a '%s' which was written before" % c)
+        self.failUnlessEqual(self.s.read(1), data(''), "expected empty buffer after all sent chars are read")
 
     def test2_LoopbackTimeout(self):
         """timeout: test the timeout/immediate return.
         partial results should be returned."""
-        self.s.write("HELLO")
+        self.s.write(data("HELLO"))
         time.sleep(0.1)    # there might be a small delay until the character is ready (especially on win32)
         # read more characters as are available to run in the timeout
-        self.failUnless(self.s.read(10)=='HELLO', "expected the 'HELLO' which was written before")
-        self.failUnless(self.s.read(1)=='', "expected empty buffer after all sent chars are read")
+        self.failUnlessEqual(self.s.read(10), data('HELLO'), "expected the 'HELLO' which was written before")
+        self.failUnlessEqual(self.s.read(1), data(''), "expected empty buffer after all sent chars are read")
 
 
 class Test3_Timeout(Test4_Nonblocking):
     """Same tests as the NonBlocking ones but this time with timeout"""
-    timeout=1
+    timeout = 1
 
     def test0_Messy(self):
         """Blocking (timeout=1)"""
@@ -88,7 +99,7 @@ class SendEvent(threading.Thread):
     def run(self):
         time.sleep(self.delay)
         if not self.stopped:
-            self.serial.write("E")
+            self.serial.write(data("E"))
         self.x.set()
 
     def isSet(self):
@@ -114,30 +125,31 @@ class Test1_Forever(unittest.TestCase):
         """no timeout: after port open, the input buffer must be empty (read).
         a character is sent after some time to terminate the test (SendEvent)."""
         c = self.s.read(1)
-        if not (self.event.isSet() and c == 'E'):
+        if not (self.event.isSet() and c == data('E')):
             self.fail("expected marker")
 
 class Test2_Forever(unittest.TestCase):
     """Tests a port with no timeout"""
     def setUp(self):
-        self.s = serial.Serial(PORT,timeout=None)
+        self.s = serial.Serial(PORT, timeout=None)
 
     def tearDown(self):
         self.s.close()
 
     def test1_inWaitingEmpty(self):
         """no timeout: after port open, the input buffer must be empty (inWaiting)"""
-        self.failUnless(self.s.inWaiting()==0, "expected empty buffer")
+        self.failUnlessEqual(self.s.inWaiting(), 0, "expected empty buffer")
 
     def test2_Loopback(self):
         """no timeout: each sent character should return (binary test).
            this is also a test for the binary capability of a port."""
-        for c in map(chr,range(256)):
+        for c in bytes_0to255:
             self.s.write(c)
-            time.sleep(0.02)    # there might be a small delay until the character is ready (especially on win32)
-            self.failUnless(self.s.inWaiting()==1, "expected exactly one character for inWainting()")
-            self.failUnless(self.s.read(1)==c, "expected an '%s' which was written before" % c)
-        self.failUnless(self.s.inWaiting()==0, "expected empty buffer after all sent chars are read")
+            # there might be a small delay until the character is ready (especially on win32)
+            time.sleep(0.02)
+            self.failUnlessEqual(self.s.inWaiting(), 1, "expected exactly one character for inWainting()")
+            self.failUnlessEqual(self.s.read(1), c, "expected an '%s' which was written before" % c)
+        self.failUnlessEqual(self.s.inWaiting(), 0, "expected empty buffer after all sent chars are read")
 
 
 class Test0_DataWires(unittest.TestCase):
@@ -188,7 +200,7 @@ class Test_MoreTimeouts(unittest.TestCase):
         self.s.write(serial.XOFF)
         time.sleep(0.5) # some systems need a little delay so that they can react on XOFF
         t1 = time.time()
-        self.failUnlessRaises(serial.SerialTimeoutException, self.s.write, "timeout please"*100)
+        self.failUnlessRaises(serial.SerialTimeoutException, self.s.write, data("timeout please"*100))
         t2 = time.time()
         self.failUnless( 1 <= (t2-t1) < 2, "Timeout not in the given interval (%s)" % (t2-t1))
 
