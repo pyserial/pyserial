@@ -462,8 +462,8 @@ class PosixSerial(SerialBase):
     def write(self, data):
         """Output the given string over the serial port."""
         if self.fd is None: raise portNotOpenError
-        if not isinstance(data, bytes):
-            raise TypeError('expected %s, got %s' % (bytes, type(data)))
+        if not isinstance(data, (bytes, bytearray)):
+            raise TypeError('expected %s or bytearray, got %s' % (bytes, type(data)))
         t = len(data)
         d = data
         while t > 0:

@@ -167,8 +167,8 @@ class IronSerial(SerialBase):
     def write(self, data):
         """Output the given string over the serial port."""
         if not self._port_handle: raise portNotOpenError
-        if not isinstance(data, bytes):
-            raise TypeError('expected %s, got %s' % (bytes, type(data)))
+        if not isinstance(data, (bytes, bytearray)):
+            raise TypeError('expected %s or bytearray, got %s' % (bytes, type(data)))
         try:
             # must call overloaded method with byte array argument
             # as this is the only one not applying encodings

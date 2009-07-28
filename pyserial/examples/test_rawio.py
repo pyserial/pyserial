@@ -12,8 +12,8 @@ Part of pyserial (http://pyserial.sf.net)  (C)2001-2009 cliechti@gmx.net
 Intended to be run on different platforms, to ensure portability of
 the code.
 
-This modules contains test for RawSerial. This only works on Python 2.6+ with
-the io library.
+This modules contains test for the interaction between Serial and the io
+library. This only works on Python 2.6+ that introduced the io library.
 
 For all these tests a simple hardware is required.
 Loopback HW adapter:
@@ -25,25 +25,36 @@ Shortcut these pin pairs:
 On a 9 pole DSUB these are the pins (2-3) (4-6) (7-8)
 """
 
-import unittest, threading, time
+import unittest
+import sys
+import io
 import serial
 
-# on which port should the tests be performed:
-PORT=0
+# trick to make that this test run under 2.6 and 3.x without modification.
+# problem is, io library on 2.6 does NOT accept type 'str' and 3.x doesn't
+# like u'nicode' strings with the prefix and it is not providing an unicode
+# function ('str' is now what 'unicode' used to be)
+if sys.version_info >= (3, 0):
+    def unicode(x): return x
 
-class Test_RawSerial(unittest.TestCase):
+
+# on which port should the tests be performed:
+PORT = 0
+
+class Test_SerialAndIO(unittest.TestCase):
 
     def setUp(self):
-        self.s = serial.RawSerial(PORT)
+        self.s = serial.Serial(PORT, timeout=1)
+        self.io = io.TextIOWrapper(io.BufferedRWPair(self.s, self.s))
 
     def tearDown(self):
         self.s.close()
 
-    def test_hello(self):
-        self.s.write(bytes("hello"))
-        hello = self.s.read(5)
-        #~ print hello
-        self.failUnlessEqual(hello, bytes("hello"))
+    def test_hello_raw(self):
+        self.io.write(unicode("hello\n"))
+        self.io.flush()
+        hello = self.io.readline()
+        self.failUnlessEqual(hello, unicode("hello\n"))
 
 
 if __name__ == '__main__':

@@ -240,8 +240,8 @@ class Win32Serial(SerialBase):
     def write(self, data):
         """Output the given string over the serial port."""
         if not self.hComPort: raise portNotOpenError
-        if not isinstance(data, bytes):
-            raise TypeError('expected %s, got %s' % (bytes, type(data)))
+        if not isinstance(data, (bytes, bytearray)):
+            raise TypeError('expected %s or bytearray, got %s' % (bytes, type(data)))
         if data:
             #~ win32event.ResetEvent(self._overlappedWrite.hEvent)
             n = win32.DWORD()

@@ -104,8 +104,8 @@ Classes
         Write the string *data* to the port.
 
         .. versionchanged:: 2.5
-            Accepts an instance of :class:`bytes` when available (Python 2.6
-            and newer) and :class:`str` otherwiese.
+            Accepts instances of :class:`bytes` and :class:`bytearray` when
+            available (Python 2.6 and newer) and :class:`str` otherwiese.
 
     .. method:: inWaiting()
 
