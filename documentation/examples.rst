@@ -206,6 +206,8 @@ wxTerminal.py_
     limited by wx and it may suddenly stop displaying new input.
 
 wxTerminal.wxg_
+test_high_load.py_
+    Tests involving sending a lot of data.
     A wxGlade design file for the terminal application.
 
 wxSerialConfigDialog.py_
@@ -270,6 +272,11 @@ test_advanced.py_
 test_high_load.py_
     Tests involving sending a lot of data.
 
+test_iolib.py_
+    Tests involving the :mod:`io` library. Only available for Python 2.6 and
+    newer.
+
 .. _test.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/test.py
 .. _test_advanced.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/test_advanced.py
 .. _test_high_load.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/test_high_load.py
+.. _test_iolib.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/test_iolib.py

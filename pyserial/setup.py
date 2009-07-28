@@ -17,7 +17,7 @@ except ImportError:
 if sys.version < '2.3':
     # distutils that old can't cope with the "classifiers" or "download_url"
     # keywords and True/False constants and basestring are missing
-    raise ValueError("Sorry Python versions older than 2.2.3 are no longer"
+    raise ValueError("Sorry Python versions older than 2.3 are no longer"
                      "supported - check http://pyserial.sf.net for older "
                      "releases or upgrade your Python installation.")
 

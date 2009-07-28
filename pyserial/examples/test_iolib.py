@@ -52,7 +52,7 @@ class Test_SerialAndIO(unittest.TestCase):
 
     def test_hello_raw(self):
         self.io.write(unicode("hello\n"))
-        self.io.flush()
+        self.io.flush() # it is buffering. required to get the data out
         hello = self.io.readline()
         self.failUnlessEqual(hello, unicode("hello\n"))
 

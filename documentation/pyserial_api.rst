@@ -503,7 +503,8 @@ Byte size
 
 Others
 -------
-Default control characters for software flow control:
+Default control characters (instnces of :class:`bytes` for Python 3.0+) for
+software flow control:
 
 .. data:: XON
 .. data:: XOFF

@@ -28,12 +28,8 @@ The homepage is at http://pyserial.sf.net.
 Features
 ========
 * Same class based interface on all supported platforms.
-* Access to the port settings through Python 2.3+ properties.
-* Port numbering starts at zero, no need to know the port name in the user
-  program.
-* Port string (device name) can be specified if access through numbering is
-  inappropriate.
-* Support for different bytesizes, stopbits, parity and flow control with
+* Access to the port settings through Python properties.
+* Support for different byte sizes, stop bits, parity and flow control with
   RTS/CTS and/or Xon/Xoff.
 * Working with or without receive timeout.
 * File like API with "read" and "write" ("readline" etc. also supported).
@@ -41,11 +37,12 @@ Features
 * The port is set up for binary transmission. No NULL byte stripping, CR-LF
   translation etc. (which are many times enabled for POSIX.) This makes this
   module universally useful.
+* Compatible with :mod:`io` library (Python 2.6+)
 
 
 Requirements
 ============
-* Python 2.3 or newer
+* Python 2.3 or newer, including Python 3.x
 * ctypes extensions on Windows (is in standard library since Python 2.5+)
 * "Java Communications" (JavaComm) or compatible extension for Java/Jython
 
@@ -56,8 +53,6 @@ Installation
 pyserial
 --------
 This installs a package that can be used from Python (``import serial``).
-
-The Python pywin32 library needs to be installed on Windows.
 
 To install the module for all users on the system, administrator rights (root)
 is required..
@@ -108,7 +103,8 @@ Older versions are still available on the `Download Page`_. pySerial 1.21 is
 compatible with Python 2.0 on Windows, Linux and several un*x like systems,
 MacOSX and Jython.
 
-On windows they will depend on pywin32_ (previously known as win32all)
+On windows releases older than 2.5 will depend on pywin32_ (previously known as
+win32all)
 
 .. _`Download Page`: http://sourceforge.net/project/showfiles.php?group_id=46487
 .. _pywin32: http://pypi.python.org/pypi/pywin32
