@@ -9,7 +9,7 @@
 try:
     bytes
     bytearray
-except AttributeError:
+except (NameError, AttributeError):
     # Python older than 2.6 do not have these types. Like for Python 2.6 they
     # should behave like str. For Python older than 3.0 we want to work with
     # strings anyway, only later versions have a true bytes type.
@@ -30,6 +30,7 @@ except AttributeError:
 else:
     XON  = bytes([17])
     XOFF = bytes([19])
+
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE = 'N', 'E', 'O', 'M', 'S'
 STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO = (1, 1.5, 2)
