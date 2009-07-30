@@ -14,10 +14,12 @@ details.
 
 Copyright (C) 2001-2009 Chris Liechti <cliechti(at)gmx.net>
 
-The `project page on SourceForge`_ and here is the `SVN repository`_ and the
-`Download Page`_.
+Other pages (online)
 
-The homepage is at http://pyserial.sf.net.
+- `project page on SourceForge`_
+- `SVN repository`_
+- `Download Page`_ with releases
+- This page, when viewed online is at http://pyserial.sf.net.
 
 .. _LICENSE: appendix.html#license
 .. _`project page on SourceForge`: http://sourceforge.net/projects/pyserial/
