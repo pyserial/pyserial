@@ -18,7 +18,7 @@ Bugfixes:
 
 - Win32, when not specifying a timeout
 - Typos in the Docs
-        
+
 New Features:
 
 - added ``serialutil`` which provides a base class for the ``Serial``
@@ -120,7 +120,7 @@ Bugfixes (win32):
 - remove send timeout (its not used in the linux impl. anyway).
 
 
-Version 1.21    30 sep 2003
+Version 1.21    30 Sep 2003
 ---------------------------
 Bugfixes (win32):
 
@@ -241,12 +241,9 @@ New Features:
 
 - iterator interface. ``for line in Serial(...): ...`` is now possible
   Suggested by Bernhard Bender
-
 - ``sendBreak()`` accepts a ``duration`` argument. Default duration increased.
-
 - win32 handles \\.\COMx format automatically for com ports of higher number
   (COM10 is internally translated to \\.\COM10 etc.)
-
 - miniterm.py has a new feature to send a file (upload) and configurable
   special characters for exit and upload. Refactored internals to class based
   structure (upload and class refactoring by Colin D Bennett)
@@ -302,11 +299,16 @@ Version 2.5      <date>
 ---------------------------
 New Features:
 
-- 1.5 stop bits (STOPBITS_ONE_POINT_FIVE, implemented on all platforms)
-- miniterm application extended
-- add scanlinux.py example
+- Python 3.x support (through 2to3)
+- compatible with Python io library (Python 2.6+)
 - Support for Win32 is now written on the top of ctypes (bundled with
   Python 2.5+) instead of pywin32 (patch by Giovanni Bajo).
+- 1.5 stop bits (STOPBITS_ONE_POINT_FIVE, implemented on all platforms)
+- Documentation update, now written with Sphinx/ReST
+- miniterm application extended (CTRL+T -> menu)
+- miniterm.py is now installed as "script"
+- add scanlinux.py example
+- add port_publisher example
 
 Bugfixes:
 

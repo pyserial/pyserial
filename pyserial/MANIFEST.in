@@ -22,9 +22,8 @@ include examples/wxSerialConfigDialog.wxg
 include examples/wxTerminal.py
 include examples/wxTerminal.wxg
 
-#include scripts/python-miniterm
-
-#include ../documentation/*.rst
-#include ../documentation/conf.py
-#include ../documentation/Makefile
+include documentation/*.rst
+include documentation/pyserial.png
+include documentation/conf.py
+include documentation/Makefile
 
