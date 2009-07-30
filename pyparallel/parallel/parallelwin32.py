@@ -58,8 +58,7 @@ os.environ['PATH'] = os.environ['PATH'] + ';' + os.path.abspath(os.path.dirname(
 #python extension in earlier versions of this modules
 _pyparallel = ctypes.windll.simpleio
 #need to initialize giveio on WinNT based systems
-if _pyparallel.init():
-    raise IOError('Could not access the giveio driver which is required on NT based systems.')
+_pyparallel.init()
 
 
 class Parallel:
@@ -76,14 +75,6 @@ class Parallel:
 
     def setData(self, value):
         _pyparallel.outp(self.dataRegAdr, value)
-
-    def setDataDir( self, level):
-        """set for port as input, clear for output"""
-        if level:
-            self.ctrlReg |= 0x20
-        else:
-            self.ctrlReg &= ~0x20
-        _pyparallel.outp(self.ctrlRegAdr, self.ctrlReg)
 
     # control register output functions
     def setDataStrobe(self, level):
@@ -109,7 +100,7 @@ class Parallel:
         else:
             self.ctrlReg = self.ctrlReg & ~0x04
         _pyparallel.outp(self.ctrlRegAdr, self.ctrlReg)
-
+    
     def setSelect(self, level):
         """select bit"""
         if level:
