@@ -240,8 +240,10 @@ class Win32Serial(SerialBase):
     def write(self, data):
         """Output the given string over the serial port."""
         if not self.hComPort: raise portNotOpenError
-        if not isinstance(data, (bytes, bytearray)):
-            raise TypeError('expected %s or bytearray, got %s' % (bytes, type(data)))
+        #~ if not isinstance(data, (bytes, bytearray)):
+            #~ raise TypeError('expected %s or bytearray, got %s' % (bytes, type(data)))
+        # convert data (needed in case of memoryview instance: Py 3.1 io lib), ctypes doesn't like memoryview
+        data = bytes(data)
         if data:
             #~ win32event.ResetEvent(self._overlappedWrite.hEvent)
             n = win32.DWORD()
@@ -253,7 +255,9 @@ class Win32Serial(SerialBase):
             err = win32.GetOverlappedResult(self.hComPort, self._overlappedWrite, ctypes.byref(n), True)
             if n.value != len(data):
                 raise writeTimeoutError
-        return n.value
+            return n.value
+        else:
+            return 0
 
 
     def flushInput(self):
