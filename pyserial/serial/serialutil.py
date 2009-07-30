@@ -25,6 +25,10 @@ except (NameError, AttributeError):
                 list.append(self, item)
             else:
                 list.append(self, chr(item))
+
+# create control bytes, depending on true type of bytes
+# all Python versions prior 3.x convert str([17]) to '[17]' instead of '\x11'
+if bytes is str:
     XON  = chr(17)
     XOFF = chr(19)
 else:
