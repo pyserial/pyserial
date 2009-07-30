@@ -1,6 +1,6 @@
-======================
-pySerial Release Notes
-======================
+========================
+ pySerial Release Notes
+========================
 
 Version 1.0     13 Feb 2002
 ---------------------------
@@ -94,6 +94,7 @@ Bugfixes (win32):
 - RTS/CTS handling as suggested in Bug #635072
 - bugfix of timeouts brought up by Markus Hoffrogge
 
+
 Version 1.19    19 Mar 2003
 ---------------------------
 Bugfixes (posix):
@@ -106,6 +107,7 @@ Bugfixes (win32):
 - added ``int()`` conversion, [Bug 702120]
 - remove code to set control lines in close method of win32
   version. [Bug 669625]
+
 
 Version 1.20    28 Aug 2003
 ---------------------------
@@ -130,6 +132,7 @@ Bugfixes (examples):
 
 - small change in ``miniterm.py`` that should mage it run on cygwin,
   [Bug 809904] submitted by Rolf Campbell.
+
 
 Version 2.0b1    1 Oct 2003
 ---------------------------
@@ -323,6 +326,6 @@ Bugfixes (posix):
 Bugfixes (win32):
 
 - [Bug 2469098] parity PARITY_MARK, PARITY_SPACE isn't supported on win32
-- [SF 2446218] outWaiting implemented
+- [SF  2446218] outWaiting implemented
 - [Bug 2392892] scanwin32.py better exception handling
 - [Bug 2505422] scanwin32.py Vista 64bit compatibility
