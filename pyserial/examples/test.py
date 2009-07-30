@@ -202,7 +202,8 @@ class Test_MoreTimeouts(unittest.TestCase):
         t1 = time.time()
         self.failUnlessRaises(serial.SerialTimeoutException, self.s.write, data("timeout please"*100))
         t2 = time.time()
-        self.failUnless( 1 <= (t2-t1) < 2, "Timeout not in the given interval (%s)" % (t2-t1))
+        self.failUnless( 0.9 <= (t2-t1) < 2.1, "Timeout not in the given interval (%s)" % (t2-t1))
+
 
 if __name__ == '__main__':
     import sys
