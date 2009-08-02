@@ -7,7 +7,7 @@
 
 """\
 Some tests for the serial module.
-Part of pyserial (http://pyserial.sf.net)  (C)2001-2008 cliechti@gmx.net
+Part of pyserial (http://pyserial.sf.net)  (C)2001-2009 cliechti@gmx.net
 
 Intended to be run on different platforms, to ensure portability of
 the code.
@@ -22,12 +22,14 @@ Shortcut these pin pairs:
 On a 9 pole DSUB these are the pins (2-3) (4-6) (7-8)
 """
 
-import unittest, threading, time
+import unittest
+import threading
+import time
 import sys
 import serial
 
 # on which port should the tests be performed:
-PORT=0
+PORT = 0
 
 if sys.version_info >= (3, 0):
     def data(string):
@@ -43,7 +45,7 @@ class Test4_Nonblocking(unittest.TestCase):
     timeout = 0
 
     def setUp(self):
-        self.s = serial.Serial(PORT, timeout=self.timeout)
+        self.s = serial.serial_class_for_url(PORT, timeout=self.timeout)
 
     def tearDown(self):
         self.s.close()
@@ -63,7 +65,7 @@ class Test4_Nonblocking(unittest.TestCase):
         for c in bytes_0to255:
             self.s.write(c)
             # there might be a small delay until the character is ready (especially on win32)
-            time.sleep(0.02)
+            time.sleep(0.05)
             self.failUnlessEqual(self.s.inWaiting(), 1, "expected exactly one character for inWainting()")
             self.failUnlessEqual(self.s.read(1), c, "expected a '%s' which was written before" % c)
         self.failUnlessEqual(self.s.read(1), data(''), "expected empty buffer after all sent chars are read")
@@ -72,7 +74,7 @@ class Test4_Nonblocking(unittest.TestCase):
         """timeout: test the timeout/immediate return.
         partial results should be returned."""
         self.s.write(data("HELLO"))
-        time.sleep(0.1)    # there might be a small delay until the character is ready (especially on win32)
+        time.sleep(0.1)    # there might be a small delay until the character is ready (especially on win32 and rfc2217)
         # read more characters as are available to run in the timeout
         self.failUnlessEqual(self.s.read(10), data('HELLO'), "expected the 'HELLO' which was written before")
         self.failUnlessEqual(self.s.read(1), data(''), "expected empty buffer after all sent chars are read")
@@ -87,8 +89,9 @@ class Test3_Timeout(Test4_Nonblocking):
         # this is only here to write out the message in verbose mode
         # because Test3 and Test4 print the same messages
 
+
 class SendEvent(threading.Thread):
-    def __init__(self, serial, delay=1):
+    def __init__(self, serial, delay=3):
         threading.Thread.__init__(self)
         self.serial = serial
         self.delay = delay
@@ -114,7 +117,7 @@ class Test1_Forever(unittest.TestCase):
     character is sent after some time to stop the test, this is done
     through the SendEvent class and the Loopback HW."""
     def setUp(self):
-        self.s = serial.Serial(PORT, timeout=None)
+        self.s = serial.serial_class_for_url(PORT, timeout=None)
         self.event = SendEvent(self.s)
 
     def tearDown(self):
@@ -128,10 +131,11 @@ class Test1_Forever(unittest.TestCase):
         if not (self.event.isSet() and c == data('E')):
             self.fail("expected marker")
 
+
 class Test2_Forever(unittest.TestCase):
     """Tests a port with no timeout"""
     def setUp(self):
-        self.s = serial.Serial(PORT, timeout=None)
+        self.s = serial.serial_class_for_url(PORT, timeout=None)
 
     def tearDown(self):
         self.s.close()
@@ -145,8 +149,8 @@ class Test2_Forever(unittest.TestCase):
            this is also a test for the binary capability of a port."""
         for c in bytes_0to255:
             self.s.write(c)
-            # there might be a small delay until the character is ready (especially on win32)
-            time.sleep(0.02)
+            # there might be a small delay until the character is ready (especially on win32 and rfc2217)
+            time.sleep(0.05)
             self.failUnlessEqual(self.s.inWaiting(), 1, "expected exactly one character for inWainting()")
             self.failUnlessEqual(self.s.read(1), c, "expected an '%s' which was written before" % c)
         self.failUnlessEqual(self.s.inWaiting(), 0, "expected empty buffer after all sent chars are read")
@@ -155,7 +159,7 @@ class Test2_Forever(unittest.TestCase):
 class Test0_DataWires(unittest.TestCase):
     """Test modem control lines"""
     def setUp(self):
-        self.s = serial.Serial(PORT)
+        self.s = serial.serial_class_for_url(PORT)
 
     def tearDown(self):
         self.s.close()
@@ -182,10 +186,12 @@ class Test0_DataWires(unittest.TestCase):
         """Test RI"""
         self.failUnless(not self.s.getRI(), "RI -> 0")
 
+
 class Test_MoreTimeouts(unittest.TestCase):
     """Test with timeouts"""
     def setUp(self):
-        self.s = serial.Serial()        # create an closed serial port
+        # create an closed serial port
+        self.s = serial.serial_class_for_url(PORT, do_not_open=True)
 
     def tearDown(self):
         self.s.close()

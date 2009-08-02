@@ -16,7 +16,7 @@ the code.
 
 These tests open a serial port and change all the settings on the fly.
 If the port is really correctly configured cannot be determined - that
-would require external hardware or a nullmodem cable and an other
+would require external hardware or a null modem cable and an other
 serial port library... Thus it mainly tests that all features are
 correctly implemented and that the interface does what it should.
 
@@ -26,13 +26,14 @@ import unittest
 import serial
 
 # on which port should the tests be performed:
-PORT=0
+PORT = 0
 
 class Test_ChangeAttributes(unittest.TestCase):
     """Test with timeouts"""
 
     def setUp(self):
-        self.s = serial.Serial()        # create a closed serial port
+        # create a closed serial port
+        self.s = serial.serial_class_for_url(PORT, do_not_open=True)
 
     def tearDown(self):
         self.s.close()
@@ -81,7 +82,7 @@ class Test_ChangeAttributes(unittest.TestCase):
         # test illegal values, depending on machine/port some of these may be valid...
         self.s.port = PORT
         self.s.open()
-        for illegal_value in (500000,576000,921600,92160):
+        for illegal_value in (500000, 576000, 921600, 92160):
             self.failUnlessRaises(ValueError, self.s.setBaudrate, illegal_value)
 
     def test_BytesizeSetting(self):
@@ -161,6 +162,7 @@ class Test_ChangeAttributes(unittest.TestCase):
             self.failUnless(self.s.isOpen())
             self.s.close()
             self.failUnless(not self.s.isOpen())
+
 
 if __name__ == '__main__':
     import sys

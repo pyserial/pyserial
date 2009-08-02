@@ -21,11 +21,11 @@ Shortcut these pin pairs:
 On a 9 pole DSUB these are the pins (2-3) (4-6) (7-8)
 """
 
-import unittest, threading, time
+import unittest
 import sys
 import serial
 
-#on which port should the tests be performed:
+# on which port should the tests be performed:
 PORT = 0
 BAUDRATE = 115200
 #~ BAUDRATE=9600
@@ -44,7 +44,8 @@ class TestHighLoad(unittest.TestCase):
     #~ N = 1
 
     def setUp(self):
-        self.s = serial.Serial(PORT,BAUDRATE, timeout=10)
+        self.s = serial.serial_class_for_url(PORT, PORT, BAUDRATE, timeout=10)
+
     def tearDown(self):
         self.s.close()
 
@@ -64,6 +65,7 @@ class TestHighLoad(unittest.TestCase):
         read = self.s.read(len(q)*self.N)
         self.failUnless(read==q*self.N, "expected what was written before. got %d bytes, expected %d" % (len(read), self.N*len(q)))
         self.failUnless(self.s.inWaiting()==0, "expected empty buffer after all sent chars are read")
+
 
 if __name__ == '__main__':
     import sys
