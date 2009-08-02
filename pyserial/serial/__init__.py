@@ -25,16 +25,22 @@ else:
         raise Exception("Sorry: no implementation for your platform ('%s') available" % os.name)
 
 
-def serial_class_for_url(url, do_not_open=False, *args, **kwargs):
+def serial_class_for_url(url, *args, **kwargs):
     """Get a native or a RFC2217 implementation of the Serial class, depending
-    on port/url. The port is not opened when do_not_open is true, by default it is."""
+    on port/url. The port is not opened when the keyword parameter
+    'do_not_open' is true, by default it is."""
+    # check remove extra parameter to not confuse the Serial class
+    do_open = 'do_not_open' not in kwargs or not kwargs['do_not_open']
+    if 'do_not_open' in kwargs: del kwargs['do_not_open']
+    # check port type and get class
     if url.lower().startswith('rfc2217://'):
         import rfc2217  # late import, so that users that don't use it don't have to load it
         klass = rfc2217.Serial # RFC2217 implementation
     else:
         klass = Serial   # 'native' implementation
+    # instantiate and open when desired
     instance = klass(None, *args, **kwargs)
     instance.port = url
-    if not do_not_open:
+    if do_open:
         instance.open()
     return instance
