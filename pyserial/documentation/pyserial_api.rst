@@ -502,6 +502,7 @@ Classes
       buffer may eat all your memory when never read)
     - The telnet option negotiation may be done incorrectly.
 
+    .. versionadded:: 2.5
 
 .. seealso::
 
@@ -576,3 +577,21 @@ Functions:
 
     The conversion may be made off-line, that is, there is no guarantee that
     the returned device name really exists on the system.
+
+
+.. function:: serial_class_for_url(url, do_not_open=False, \*args, \*\*kwargs)
+
+    :param url: Device name, number or URL
+    :param do_not_open: When set to true, the serial port is not opened.
+    :return: an instance of :class:`Serial` or a compatible object.
+
+    Get a native or a :rfc:`2217` implementation of the Serial class, depending
+    on port/url.
+
+    When *url* matches the form ``rfc2217://<host>:<port>`` an instance of
+    :class:`rfc2217.Serial` is returned. In all other cases the native (system
+    dependant) :class:`Serial` instance is returned.
+
+    The port is not opened when *do_not_open* is true, by default it is opened.
+
+    .. versionadded:: 2.5
