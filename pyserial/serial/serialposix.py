@@ -606,7 +606,7 @@ if __name__ == '__main__':
     s.flushInput()
     s.flushOutput()
     s.write('hello')
-    sys.stdio.write('%r\n' % s.read(5))
-    sys.stdio.write('%s\n' % s.inWaiting())
+    sys.stdout.write('%r\n' % s.read(5))
+    sys.stdout.write('%s\n' % s.inWaiting())
     del s
 
