@@ -29,24 +29,25 @@ Other pages (online)
 
 Features
 ========
-* Same class based interface on all supported platforms.
-* Access to the port settings through Python properties.
-* Support for different byte sizes, stop bits, parity and flow control with
+- Same class based interface on all supported platforms.
+- Access to the port settings through Python properties.
+- Support for different byte sizes, stop bits, parity and flow control with
   RTS/CTS and/or Xon/Xoff.
-* Working with or without receive timeout.
-* File like API with "read" and "write" ("readline" etc. also supported).
-* The files in this package are 100% pure Python.
-* The port is set up for binary transmission. No NULL byte stripping, CR-LF
+- Working with or without receive timeout.
+- File like API with "read" and "write" ("readline" etc. also supported).
+- The files in this package are 100% pure Python.
+- The port is set up for binary transmission. No NULL byte stripping, CR-LF
   translation etc. (which are many times enabled for POSIX.) This makes this
   module universally useful.
-* Compatible with :mod:`io` library (Python 2.6+)
+- Compatible with :mod:`io` library (Python 2.6+)
+- RFC2217 client (experimental)
 
 
 Requirements
 ============
-* Python 2.3 or newer, including Python 3.x
-* ctypes extensions on Windows (is in standard library since Python 2.5+)
-* "Java Communications" (JavaComm) or compatible extension for Java/Jython
+- Python 2.3 or newer, including Python 3.x
+- ctypes extensions on Windows (is in standard library since Python 2.5+)
+- "Java Communications" (JavaComm) or compatible extension for Java/Jython
 
 
 Installation

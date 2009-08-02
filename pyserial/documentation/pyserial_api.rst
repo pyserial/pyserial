@@ -461,6 +461,53 @@ Classes
         Returns self.
 
 
+.. class:: rfc2217.Serial
+
+    This implements a :rfc:`2217` compatible client. Port names are URLs in the
+    form: ``rfc2217://<host>:<port>``
+
+    .. warning:: This implementation is currently in an experimental state. Use
+        at your own risk.
+
+    This class API is compatible to :class:`Serial` with a few exceptions:
+
+    - numbers as port name are not allowed, only URLs in the form described
+      above.
+    - writeTimeout is not implemented
+    - The current implementation starts a thread that keeps reading from the
+      (internal) socket. The thread is managed automatically by the
+      :class:`rfc2217.Serial` port object on :meth:`open`/:meth:`close`.
+      However it may be a problem for user applications that like to use select
+      instead of threads.
+
+    Due to the nature of the network and protocol involved there are a few
+    extra points to keep in mind:
+
+    - All operations have an additional latency time.
+    - Setting control lines (RTS/CTS) needs more time.
+    - Reading the status lines (DSR/DTR etc.) returns a cached value. When that
+      cache is updated depends entirely on the server. The server itself may
+      implement a polling at a certain rate and quick changes may be invisible.
+    - The network layer also has buffers. This means that :meth:`flush`,
+      :meth:`flushInput` and :meth:`flushOutput` may work with additional delay.
+      Likewise :meth:`inWaiting` returns the size of the data arrived at the
+      object internal buffer and excludes any bytes in the network buffers or
+      any server side buffer.
+    - Closing and immediately reopening the same port may fail due to time
+      needed by the server to get ready again.
+
+    Not implemented yet / Possible problems with the implementation:
+
+    - :rfc:`2217` flow control between client and server. (objects internal
+      buffer may eat all your memory when never read)
+    - The telnet option negotiation may be done incorrectly.
+
+
+.. seealso::
+
+   :rfc:`2217` - Telnet Com Port Control Option
+
+
 
 Exceptions
 ==========

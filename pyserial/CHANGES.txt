@@ -312,6 +312,7 @@ New Features:
 - miniterm.py is now installed as "script"
 - add scanlinux.py example
 - add port_publisher example
+- experimental RFC2217 client support (serial.rfc2217.Serial, see docs)
 
 Bugfixes:
 
