@@ -149,7 +149,9 @@ class Test_ChangeAttributes(unittest.TestCase):
         # no illegal values here, normal rules for the boolean value of an
         # object are used thus all objects have a truth value.
 
-    def test_UnconfiguredPort(self):
+    # this test does not work anymore since serial_class_for_url that is used
+    # now, already sets a port
+    def disabled_test_UnconfiguredPort(self):
         # an unconfigured port cannot be opened
         self.failUnlessRaises(serial.SerialException, self.s.open)
 

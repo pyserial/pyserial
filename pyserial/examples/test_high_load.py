@@ -44,7 +44,7 @@ class TestHighLoad(unittest.TestCase):
     #~ N = 1
 
     def setUp(self):
-        self.s = serial.serial_class_for_url(PORT, PORT, BAUDRATE, timeout=10)
+        self.s = serial.serial_class_for_url(PORT, BAUDRATE, timeout=10)
 
     def tearDown(self):
         self.s.close()
