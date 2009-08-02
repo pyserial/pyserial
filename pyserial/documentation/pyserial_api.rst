@@ -500,7 +500,6 @@ Classes
 
     - :rfc:`2217` flow control between client and server. (objects internal
       buffer may eat all your memory when never read)
-    - The telnet option negotiation may be done incorrectly.
 
     .. versionadded:: 2.5
 

@@ -15,7 +15,6 @@
 #   severs). consider implementing a compatibility mode flag to make check
 #   conditional
 # - write timeout not implemented at all
-# - telnet negotiation probably not correctly implemented
 
 from serialutil import *
 import time
@@ -171,6 +170,57 @@ TELNET_ACTION_SUCCESS_MAP = {
     WONT: (DONT, WONT),
 }
 
+REQUESTED = 'REQUESTED'
+ACTIVE = 'ACTIVE'
+INACTIVE = 'INACTIVE'
+REALLY_INACTIVE = 'REALLY_INACTIVE'
+
+class TelnetOption(object):
+    """Manages one telnet option, keeps track of DO/DONT WILL/WONT"""
+    def __init__(self, name, option, send_yes, send_no, ack_yes, ack_no, initial_state):
+        self.name = name
+        self.option = option
+        self.send_yes = send_yes
+        self.send_no = send_no
+        self.ack_yes = ack_yes
+        self.ack_no = ack_no
+        self.state = initial_state
+        self.active = False
+
+    def __repr__(self):
+        return "%s:%s(%s)" % (self.name, self.active, self.state)
+
+    def process_incoming(self, command, send_option):
+        if command == self.ack_yes:
+            if self.state is REQUESTED:
+                self.state = ACTIVE
+                self.active = True
+            elif self.state is ACTIVE:
+                pass
+            elif self.state is INACTIVE:
+                self.state = ACTIVE
+                send_option(self.send_yes, self.option)
+                self.active = True
+            elif self.state is REALLY_INACTIVE:
+                send_option(self.send_no, self.option)
+            else:
+                raise ValueError('option in illegal state %r' % self)
+        elif command == self.ack_no:
+            if self.state is REQUESTED:
+                self.state = INACTIVE
+                self.active = False
+            elif self.state is ACTIVE:
+                self.state = INACTIVE
+                send_option(self.send_no, self.option)
+                self.active = False
+            elif self.state is INACTIVE:
+                pass
+            elif self.state is REALLY_INACTIVE:
+                pass
+            else:
+                raise ValueError('option in illegal state %r' % self)
+
+
 class RFC2217Serial(SerialBase):
     """Serial port implementation for RFC2217 remote serial ports"""
 
@@ -192,7 +242,20 @@ class RFC2217Serial(SerialBase):
         self._socket.settimeout(5)
 
         self._read_buffer = Queue.Queue()
-        self._telnet_negotiated_options = {}
+        # name the following separately so that, below, a check can be easily done
+        mandadory_options = [
+            TelnetOption('we-BINARY', BINARY, WILL, WONT, DO, DONT, INACTIVE),
+            TelnetOption('they-BINARY', BINARY, DO, DONT, WILL, WONT, INACTIVE),
+            TelnetOption('we-RFC2217', COM_PORT_OPTION, WILL, WONT, DO, DONT, REQUESTED),
+            TelnetOption('they-RFC2217', COM_PORT_OPTION, DO, DONT, WILL, WONT, REQUESTED),
+        ]
+        # all supported telnet options
+        self._telnet_options = [
+            TelnetOption('ECHO', ECHO, DO, DONT, WILL, WONT, INACTIVE),
+            TelnetOption('we-SGA', SGA, WILL, WONT, DO, DONT, REQUESTED),
+            TelnetOption('they-SGA', SGA, DO, DONT, WILL, WONT, REQUESTED),
+        ] + mandadory_options
+        # RFC2217 specific states
         self._rfc2217_negotiated_options = {}
         self._linestate = 0
         self._modemstate = 0
@@ -202,14 +265,22 @@ class RFC2217Serial(SerialBase):
         self._thread.setName('pySerial RFC2217 reader thread for %s' % (self._port,))
         self._thread.start()
 
-        # negotiate Telnet/RFC2217
-        self._negotiate_telnet_option(DO, BINARY)
-        #~ self._negotiate_telnet_option(DONT, ECHO)
-        if self._negotiate_telnet_option(DO, COM_PORT_OPTION) in (WILL, DO):
-            raise SerialException("Remote does not seem to support RFC2217")
+        # negotiate Telnet/RFC2217 -> send initial requests
+        for option in self._telnet_options:
+            if option.state is REQUESTED:
+                self._telnet_send_option(option.send_yes, option.option)
+        # now wait until important options are negotiated
+        timeout_time = time.time() + 3
+        while time.time() < timeout_time:
+            if sum(o.active for o in mandadory_options) == len(mandadory_options): break
+            time.sleep(0.05)    # prevent 100% CPU load
+        #~ print self._telnet_options
+        if sum(o.active for o in mandadory_options) != len(mandadory_options):
+            raise SerialException("Remote does not seem to support RFC2217 or BINARY mode")
 
         # fine, go on, set RFC2271 specific things
         self._reconfigurePort()
+
         self._isOpen = True
         if not self._rtscts:
             self.setRTS(True)
@@ -450,9 +521,19 @@ class RFC2217Serial(SerialBase):
         #~ print "_telnet_process_command %r" % ord(command)
 
     def _telnet_negotiate_option(self, command, option):
-        """Process DO, DONT, WILL, WONT"""
-        self._telnet_negotiated_options[option] = command
+        """Process incomming DO, DONT, WILL, WONT"""
         #~ print "_telnet_negotiate_option %r %r" % ({DO:'DO', DONT:'DONT', WILL:'WILL', WONT:'WONT'}[command], ord(option))
+        known = False
+        for item in self._telnet_options:
+            if item.option == option:
+                item.process_incoming(command, send_option=self._telnet_send_option)
+                known = True
+        if not known:
+            # handle unknown options
+            # only answer to positive requests and deny them
+            if command == WILL or command == DO:
+                self._telnet_send_option((command == WILL and DONT or WONT), option)
+
 
     def _telnet_process_suboption(self, suboption):
         """Process suboptions, the data between IAC SB and IAC SE"""
@@ -472,21 +553,10 @@ class RFC2217Serial(SerialBase):
 
     # - outgoing telnet commands and options
 
-    def _negotiate_telnet_option(self, action, option):
+    def _telnet_send_option(self, action, option):
         """Send DO, DONT, WILL, WONT"""
-        #~ print "_negotiate_telnet_option %r %r" % ({DO:'DO', DONT:'DONT', WILL:'WILL', WONT:'WONT'}[action], ord(option))
-        #~ if option in self._telnet_negotiated_options and \
-                #~ self._telnet_negotioted_options[option] in TELNET_ACTION_SUCCESS_MAP[action]:
-            #~ print "_negotiate_telnet_option already in good state"
-            #~ return
+        #~ print "_telnet_send_option %r %r" % ({DO:'DO', DONT:'DONT', WILL:'WILL', WONT:'WONT'}[action], ord(option))
         self._socket.sendall(to_bytes([IAC, action, option]))
-        for tries in range(10):
-            if option in self._telnet_negotiated_options and \
-                    self._telnet_negotiated_options[option] in TELNET_ACTION_SUCCESS_MAP[action]:
-                break
-            time.sleep(0.1)
-        else:
-            raise SerialException("Timeout or server rejected telnet option %r" % (option,))
 
     def _set_comport_option(self, option, value=[]):
         """Subnegotiation of RFC2217 parameters"""
