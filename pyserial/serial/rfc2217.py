@@ -302,7 +302,7 @@ class RFC2217Serial(SerialBase):
         ]
         # all supported telnet options
         self._telnet_options = [
-            TelnetOption(self, 'ECHO', ECHO, DO, DONT, WILL, WONT, INACTIVE),
+            TelnetOption(self, 'ECHO', ECHO, DO, DONT, WILL, WONT, REQUESTED),
             TelnetOption(self, 'we-SGA', SGA, WILL, WONT, DO, DONT, REQUESTED),
             TelnetOption(self, 'they-SGA', SGA, DO, DONT, WILL, WONT, REQUESTED),
         ] + mandadory_options
