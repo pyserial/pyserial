@@ -323,6 +323,8 @@ class RFC2217Serial(SerialBase):
         # cache for line and modem states that the server sends to us
         self._linestate = 0
         self._modemstate = 0
+        # RFC2217 flow control between server and client
+        self._remote_suspend_flow = False
 
         self._thread = threading.Thread(target=self._read_loop)
         self._thread.setDaemon(True)
@@ -533,7 +535,6 @@ class RFC2217Serial(SerialBase):
         M_NEGOTIATE = 2
         mode = M_NORMAL
         suboption = None
-        #~ print "XXX reader loop started"
         while self._socket is not None:
             try:
                 data = self._socket.recv(1024)
@@ -544,7 +545,6 @@ class RFC2217Serial(SerialBase):
                 break
                 # XXX
             for byte in data:
-                #~ print "XXX", ord(byte)
                 if mode == M_NORMAL:
                     # interpret as command or as data
                     if byte == IAC:
@@ -568,7 +568,7 @@ class RFC2217Serial(SerialBase):
                         mode = M_NORMAL
                     elif byte == SE:
                         # sub option end -> process it now
-                        self._telnet_process_suboption(suboption)
+                        self._telnet_process_suboption(bytes(suboption))
                         suboption = None
                         mode = M_NORMAL
                     elif byte in (DO, DONT, WILL, WONT):
@@ -583,7 +583,6 @@ class RFC2217Serial(SerialBase):
                     self._telnet_negotiate_option(telnet_command, byte)
                     mode = M_NORMAL
         self._thread = None
-        #~ print "XXX reader loop terminated"
 
     # - incoming telnet commands and options
 
@@ -614,11 +613,13 @@ class RFC2217Serial(SerialBase):
         """Process suboptions, the data between IAC SB and IAC SE"""
         if suboption[0:1] == COM_PORT_OPTION:
             if suboption[1:2] == SERVER_NOTIFY_LINESTATE and len(suboption) >= 3:
-                self._linestate = suboption[2] # XXX ensure it is a number
-                #~ print "_telnet_process_suboption COM_PORT_OPTION LINESTATE %s %r" % (bin(self._linestate), self._linestate)
+                self._linestate = ord(suboption[2:3]) # ensure it is a number
             elif suboption[1:2] == SERVER_NOTIFY_MODEMSTATE and len(suboption) >= 3:
-                self._modemstate = suboption[2] # XXX ensure it is a number
-                #~ print "_telnet_process_suboption COM_PORT_OPTION MODEMSTATE %s %r" % (bin(self._modemstate), self._modemstate)
+                self._modemstate = ord(suboption[2:3]) # ensure it is a number
+            elif suboption[1:2] == FLOWCONTROL_SUSPEND:
+                self._remote_suspend_flow = True
+            elif suboption[1:2] == FLOWCONTROL_RESUME:
+                self._remote_suspend_flow = False
             else:
                 for item in self._rfc2217_options.values():
                     if item.ack_option == suboption[1:2]:
@@ -646,14 +647,20 @@ class RFC2217Serial(SerialBase):
 
     def rfc2217_send_purge(self, value):
         item = self._rfc2217_options['purge']
-        item.set(value)
-        item.wait(3)
+        item.set(value) # transmit desired purge type
+        item.wait(3)    # wait for acknowledged from the server
 
     def rfc2217_set_control(self, value):
         self.rfc2217_send_subnegotiation(SET_CONTROL, value)
         # answers are currently ignored as the server i test with sends
         # answers, but not the expected ones....
         time.sleep(0.1)  # this helps getting the unit tests passed
+
+    def rfc2217_flow_server_ready(self):
+        """check if server is ready to receive data. block for some time when
+        not"""
+        #~ if self._remote_suspend_flow:
+            #~ wait---
 
 
 # assemble Serial class with the platform specific implementation and the base
