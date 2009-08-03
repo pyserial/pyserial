@@ -381,7 +381,8 @@ Classes
         :param b: bytearray or array instance
         :return: Number of byte read
 
-        Read up to len(b) bytes into bytearray *b* and return the number of bytes read.
+        Read up to len(b) bytes into :class:`bytearray` *b* and return the
+        number of bytes read.
 
         .. versionadded:: 2.5
 
@@ -389,7 +390,7 @@ Classes
 .. note::
 
     For systems that provide the :mod:`io` library (Python 2.6 and newer), the
-    class :class:`Serial` will derrive from :class:`io.RawIOBase`. For all
+    class :class:`Serial` will derive from :class:`io.RawIOBase`. For all
     others from :class:`FileLike`.
 
 .. class:: FileLike
@@ -503,13 +504,18 @@ Classes
 
     - :rfc:`2217` flow control between client and server (objects internal
       buffer may eat all your memory when never read).
+    - No authentication support (servers may not prompt for a password etc.)
+    - No encryption.
+
+    Due to lack of authentication and encryption it is not suitable to use this
+    client for connections across the internet and should only be used in
+    controlled environments.
 
     .. versionadded:: 2.5
 
 .. seealso::
 
    :rfc:`2217` - Telnet Com Port Control Option
-
 
 
 Exceptions
@@ -581,19 +587,21 @@ Functions:
     the returned device name really exists on the system.
 
 
-.. function:: serial_class_for_url(url, do_not_open=False, \*args, \*\*kwargs)
+.. function:: serial_class_for_url(url, \*args, \*\*kwargs)
 
     :param url: Device name, number or URL
     :param do_not_open: When set to true, the serial port is not opened.
     :return: an instance of :class:`Serial` or a compatible object.
 
     Get a native or a :rfc:`2217` implementation of the Serial class, depending
-    on port/url.
+    on port/url. This factory function is useful when an application wants
+    to support both, local ports and remote ports.
 
     When *url* matches the form ``rfc2217://<host>:<port>`` an instance of
     :class:`rfc2217.Serial` is returned. In all other cases the native (system
     dependant) :class:`Serial` instance is returned.
 
-    The port is not opened when *do_not_open* is true, by default it is opened.
+    The port is not opened when a keyword parameter called *do_not_open* is
+    given and true, by default it is opened.
 
     .. versionadded:: 2.5
