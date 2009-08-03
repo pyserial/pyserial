@@ -67,6 +67,9 @@ Classes
         - ``timeout = 0``:     non-blocking mode (return immediately on read)
         - ``timeout = x``:     set timeout to ``x`` seconds (float allowed)
 
+        Note that enabling both flow control methods (*xonxoff* and *rtscts*)
+        together may not be supported. It is common to use one of the methods
+        at once, not both.
 
     .. method:: open()
 
@@ -91,7 +94,7 @@ Classes
 
         .. versionchanged:: 2.5
             Returns an instance of :class:`bytes` when available (Python 2.6
-            and newer) and :class:`str` otherwiese.
+            and newer) and :class:`str` otherwise.
 
     .. method:: write(data)
 
@@ -105,7 +108,7 @@ Classes
 
         .. versionchanged:: 2.5
             Accepts instances of :class:`bytes` and :class:`bytearray` when
-            available (Python 2.6 and newer) and :class:`str` otherwiese.
+            available (Python 2.6 and newer) and :class:`str` otherwise.
 
     .. method:: inWaiting()
 
@@ -375,10 +378,10 @@ Classes
 
     .. method:: readinto(b)
 
-        :param b: bytearray or array instace
+        :param b: bytearray or array instance
         :return: Number of byte read
 
-        Read up to len(b) bytes into bytearray b and return the number of bytes read.
+        Read up to len(b) bytes into bytearray *b* and return the number of bytes read.
 
         .. versionadded:: 2.5
 
@@ -498,8 +501,8 @@ Classes
 
     Not implemented yet / Possible problems with the implementation:
 
-    - :rfc:`2217` flow control between client and server. (objects internal
-      buffer may eat all your memory when never read)
+    - :rfc:`2217` flow control between client and server (objects internal
+      buffer may eat all your memory when never read).
 
     .. versionadded:: 2.5
 
@@ -550,7 +553,7 @@ Byte size
 
 Others
 -------
-Default control characters (instnces of :class:`bytes` for Python 3.0+) for
+Default control characters (instances of :class:`bytes` for Python 3.0+) for
 software flow control:
 
 .. data:: XON

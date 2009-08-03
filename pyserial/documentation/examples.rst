@@ -78,6 +78,9 @@ running shows the help text::
     --- x X           disable/enable software flow control
     --- r R           disable/enable hardware flow control
 
+.. versionchanged:: 2.5
+    Added :kbd:`Control+t` menu and added support for opening :rfc:`2217` ports
+    (use ``rfc2217:://<host>:<port>`` as *port* argument when invoking).
 
 miniterm.py_
     The miniterm program.
@@ -262,6 +265,9 @@ Unit tests
 ==========
 The project uses a number of unit test to verify the functionality. They all
 need a loop back connector. The scripts itself contain more information.
+
+The unit tests are performed on port ``0`` unless a different device name or
+rfc2217 URL is given on the command line (argv[1]).
 
 test.py_
     Basic tests.
