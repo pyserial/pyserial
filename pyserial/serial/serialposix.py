@@ -575,6 +575,14 @@ class PosixSerial(SerialBase):
         if self.fd is None: raise portNotOpenError
         return self.fd
 
+    def flowControl(self, enable):
+        """manually control flow - when hardware or software flow control is
+        enabled"""
+        if enable:
+            termios.tcflow(self.fd, TERMIOS.TCION)
+        else:
+            termios.tcflow(self.fd, TERMIOS.TCIOFF)
+
 
 # assemble Serial class with the platform specifc implementation and the base
 # for file-like behavior. for Python 2.6 and newer, that provide the new I/O
