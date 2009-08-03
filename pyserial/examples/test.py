@@ -167,19 +167,19 @@ class Test0_DataWires(unittest.TestCase):
     def test1_RTS(self):
         """Test RTS/CTS"""
         self.s.setRTS(0)
-        time.sleep(0.1)
+        time.sleep(01.1)
         self.failUnless(not self.s.getCTS(), "CTS -> 0")
         self.s.setRTS(1)
-        time.sleep(0.1)
+        time.sleep(01.1)
         self.failUnless(self.s.getCTS(), "CTS -> 1")
 
     def test2_DTR(self):
         """Test DTR/DSR"""
         self.s.setDTR(0)
-        time.sleep(0.1)
+        time.sleep(01.1)
         self.failUnless(not self.s.getDSR(), "DSR -> 0")
         self.s.setDTR(1)
-        time.sleep(0.1)
+        time.sleep(01.1)
         self.failUnless(self.s.getDSR(), "DSR -> 1")
 
     def test3_RI(self):
