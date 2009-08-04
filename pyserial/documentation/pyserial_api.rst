@@ -364,16 +364,19 @@ Classes
     .. method:: readable()
 
         :return: True
+
         .. versionadded:: 2.5
 
     .. method:: writable()
 
         :return: True
+
         .. versionadded:: 2.5
 
     .. method:: seekable()
 
         :return: False
+
         .. versionadded:: 2.5
 
     .. method:: readinto(b)
@@ -386,7 +389,7 @@ Classes
 
         .. versionadded:: 2.5
 
- 
+
 .. note::
 
     For systems that provide the :mod:`io` library (Python 2.6 and newer), the
@@ -467,8 +470,8 @@ Classes
 
 .. class:: rfc2217.Serial
 
-    This implements a :rfc:`2217` compatible client. Port names are URLs in the
-    form: ``rfc2217://<host>:<port>``
+    This implements a :rfc:`2217` compatible client. Port names are URLs_ in the
+    form: ``rfc2217://<host>:<port>[/<option>[/<option>]]``
 
     .. warning:: This implementation is currently in an experimental state. Use
         at your own risk.
@@ -589,7 +592,7 @@ Functions:
 
 .. function:: serial_class_for_url(url, \*args, \*\*kwargs)
 
-    :param url: Device name, number or URL
+    :param url: Device name, number or URL_
     :param do_not_open: When set to true, the serial port is not opened.
     :return: an instance of :class:`Serial` or a compatible object.
 
@@ -605,3 +608,27 @@ Functions:
     given and true, by default it is opened.
 
     .. versionadded:: 2.5
+
+.. _URL: URLs_
+
+URLs
+----
+The class :class:`rfc2217.Serial` and the function :func:`serial_class_for_url`
+accept the following type URL::
+
+    rfc2217://<host>:<port>[/<option>[/<option>]]
+
+Supported options are:
+
+- ``ign_set_control`` does not wait for acknowledges to SET_CONTROL. This
+  option can be used for non compliant servers (i.e. when getting an
+  ``remote rejected value for option 'control'`` error when connecting)
+- ``debug``: Prints diagnostic messages (not useful for end users)
+
+(Future releases of pySerial might add more types).
+
+Examples::
+
+    rfc2217://localhost:7000
+    rfc2217://localhost:7000/ign_set_control
+    rfc2217://localhost:7000/ign_set_control/debug
