@@ -5,8 +5,14 @@
 # requires Python 2.2 'cause socket.sendall is used
 
 
-import sys, os, serial, threading, socket, codecs
-
+import sys
+import os
+import time
+import threading
+import socket
+import codecs
+import serial
+import serial.rfc2217
 try:
     True
 except NameError:
@@ -14,20 +20,37 @@ except NameError:
     False = 0
 
 class Redirector:
-    def __init__(self, serial, socket, ser_newline=None, net_newline=None, spy=False):
-        self.serial = serial
+    def __init__(self, serial_instance, socket, ser_newline=None, net_newline=None, spy=False, rfc2217=False):
+        self.serial = serial_instance
         self.socket = socket
         self.ser_newline = ser_newline
         self.net_newline = net_newline
         self.spy = spy
+        self.rfc2217 = rfc2217
+        self._write_lock = threading.Lock()
+        if self.rfc2217:
+            self.manager = serial.rfc2217.RFC2217Manager(self.serial, self, debug_output=False)
+        else:
+            self.manager = None
+
+    def statusline_poller(self):
+        while self.alive:
+            time.sleep(1)
+            self.manager.check_modem_lines()
 
     def shortcut(self):
-        """connect the serial port to the tcp port by copying everything
+        """connect the serial port to the TCP port by copying everything
            from one side to the other"""
         self.alive = True
         self.thread_read = threading.Thread(target=self.reader)
-        self.thread_read.setDaemon(1)
+        self.thread_read.setDaemon(True)
+        self.thread_read.setName('serial->socket')
         self.thread_read.start()
+        if self.rfc2217:
+            self.thread_poll = threading.Thread(target=self.statusline_poller)
+            self.thread_poll.setDaemon(True)
+            self.thread_poll.setName('status line poll')
+            self.thread_poll.start()
         self.writer()
 
     def reader(self):
@@ -47,12 +70,24 @@ class Redirector:
                         # do the newline conversion
                         # XXX fails for CR+LF in input when it is cut in half at the begin or end of the string
                         data = net_newline.join(data.split(ser_newline))
-                    self.socket.sendall(data)           # send it over TCP
+                    self._write_lock.acquire()
+                    try:
+                        self.socket.sendall(data)           # send it over TCP
+                    finally:
+                        self._write_lock.release()
             except socket.error, msg:
                 sys.stderr.write('ERROR: %s\n' % msg)
                 # probably got disconnected
                 break
         self.alive = False
+
+    def write(self, data):
+        """thread safe socket write with no data escaping. used to send telnet stuff"""
+        self._write_lock.acquire()
+        try:
+            self.socket.sendall(data)
+        finally:
+            self._write_lock.release()
 
     def writer(self):
         """loop forever and copy socket->serial"""
@@ -61,6 +96,8 @@ class Redirector:
                 data = self.socket.recv(1024)
                 if not data:
                     break
+                if self.rfc2217:
+                    data = ''.join(self.manager.filter(data))
                 if self.ser_newline and self.net_newline:
                     # do the newline conversion
                     # XXX fails for CR+LF in input when it is cut in half at the begin or end of the string
@@ -183,6 +220,13 @@ it waits for the next connect.
         default = 7777
     )
 
+    group.add_option("--rfc2217",
+        dest = "rfc2217",
+        action = "store_true",
+        help = "allow control commands with Telnet extension RFC-2217",
+        default = False
+    )
+
     group = optparse.OptionGroup(parser,
         "Newline Settings",
         "Convert newlines between network and serial port. Conversion is normally disabled and can be enabled by --convert."
@@ -281,7 +325,7 @@ it waits for the next connect.
     srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     srv.bind( ('', options.local_port) )
     srv.listen(1)
-    while 1:
+    while True:
         try:
             sys.stderr.write("Waiting for connection on %s...\n" % options.local_port)
             connection, addr = srv.accept()
@@ -293,11 +337,14 @@ it waits for the next connect.
                 options.convert and ser_newline or None,
                 options.convert and net_newline or None,
                 options.spy,
+                options.rfc2217,
             )
             r.shortcut()
             if options.spy: sys.stdout.write('\n')
             sys.stderr.write('Disconnected\n')
             connection.close()
+        except KeyboardInterrupt:
+            break
         except socket.error, msg:
             sys.stderr.write('ERROR: %s\n' % msg)
 
