@@ -195,20 +195,21 @@ RFC2217_PARITY_MAP = {
     PARITY_MARK: 4,
     PARITY_SPACE: 5,
 }
+RFC2217_REVERSE_PARITY_MAP = dict((v,k) for k,v in RFC2217_PARITY_MAP.items())
 
 RFC2217_STOPBIT_MAP = {
     STOPBITS_ONE: 1,
     STOPBITS_ONE_POINT_FIVE: 3,
     STOPBITS_TWO: 2,
 }
+RFC2217_REVERSE_STOPBIT_MAP = dict((v,k) for k,v in RFC2217_STOPBIT_MAP.items())
 
-TELNET_ACTION_SUCCESS_MAP = {
-    DO:   (DO, WILL),
-    WILL: (DO, WILL),
-    DONT: (DONT, WONT),
-    WONT: (DONT, WONT),
-}
+# Telnet filter states
+M_NORMAL = 0
+M_IAC_SEEN = 1
+M_NEGOTIATE = 2
 
+# TelnetOption and TelnetSubnegotiation states
 REQUESTED = 'REQUESTED'
 ACTIVE = 'ACTIVE'
 INACTIVE = 'INACTIVE'
@@ -625,9 +626,6 @@ class RFC2217Serial(SerialBase):
 
     def _telnetReadLoop(self):
         """read loop for the socket"""
-        M_NORMAL = 0
-        M_IAC_SEEN = 1
-        M_NEGOTIATE = 2
         mode = M_NORMAL
         suboption = None
         try:
@@ -793,8 +791,289 @@ else:
     class Serial(RFC2217Serial, io.RawIOBase):
         pass
 
+# ###
+# The following is code that helps implementing an RFC2217 server.
 
-# simple test
+class RFC2217Manager(object):
+    """This class manages the state of Telnet and RFC2217. It needs a serial
+    instance and a connection to work with. connection is expected to implement
+    a thread safe write function"""
+
+    def __init__(self, serial_port, connection, debug_output=False):
+        self.serial = serial_port
+        self.connection = connection
+        self.debug_output = debug_output
+
+        # filter state machine
+        self.mode = M_NORMAL
+        self.suboption = None
+        self.telnet_command = None
+
+        # states for modem/line control events
+        self.modemstate_mask = 255
+        self.last_modemstate = None
+        self.linstate_mask = 0
+
+        # all supported telnet options
+        self._telnet_options = [
+            TelnetOption(self, 'ECHO', ECHO, WILL, WONT, DO, DONT, REQUESTED),
+            TelnetOption(self, 'we-SGA', SGA, WILL, WONT, DO, DONT, REQUESTED),
+            TelnetOption(self, 'they-SGA', SGA, DO, DONT, WILL, WONT, INACTIVE),
+            TelnetOption(self, 'we-BINARY', BINARY, WILL, WONT, DO, DONT, INACTIVE),
+            TelnetOption(self, 'they-BINARY', BINARY, DO, DONT, WILL, WONT, REQUESTED),
+            TelnetOption(self, 'we-RFC2217', COM_PORT_OPTION, WILL, WONT, DO, DONT, REQUESTED),
+            TelnetOption(self, 'they-RFC2217', COM_PORT_OPTION, DO, DONT, WILL, WONT, INACTIVE),
+            ]
+
+        # negotiate Telnet/RFC2217 -> send initial requests
+        for option in self._telnet_options:
+            if option.state is REQUESTED:
+                self.telnetSendOption(option.send_yes, option.option)
+        # issue 1st modem state notification
+        # XXX should wait until negotiation is finished
+        self.check_modem_lines()
+
+    # - outgoing telnet commands and options
+
+    def telnetSendOption(self, action, option):
+        """Send DO, DONT, WILL, WONT"""
+        self.connection.write(to_bytes([IAC, action, option]))
+
+    def rfc2217SendSubnegotiation(self, option, value=[]):
+        """Subnegotiation of RFC2217 parameters"""
+        self.connection.write(to_bytes([IAC, SB, COM_PORT_OPTION, option] + list(value) + [IAC, SE]))
+
+    # - check modem lines, needs to be called periodically from user to
+    # establish polling
+
+    def check_modem_lines(self):
+        modemstate = (
+            (self.serial.getCTS() and MODEMSTATE_MASK_CTS) |
+            (self.serial.getDSR() and MODEMSTATE_MASK_DSR) |
+            (self.serial.getRI() and MODEMSTATE_MASK_RI) |
+            (self.serial.getCD() and MODEMSTATE_MASK_CD)
+        )
+        # XXX also assemble delta bits
+        modemstate &= self.modemstate_mask
+        if modemstate != self.last_modemstate:
+            self.rfc2217SendSubnegotiation(
+                SERVER_NOTIFY_MODEMSTATE,
+                to_bytes([modemstate])
+                )
+            self.last_modemstate = modemstate
+            if self.debug_output:
+                print "NOTIFY_MODEMSTATE: %s" % (modemstate,)
+
+    # - incoming data filter
+
+    def filter(self, data):
+        """handle a bunch of incoming bytes. this is a generator. it will yield
+        all characters not of interest for Telnet/RFC2217.
+
+        The idea is that the reader thread pushes data from the socket through
+        this filter:
+
+        for byte in filter(socket.recv(1024)):
+            # do things like CR/LF conversion/whatever
+            # and write data to the serial port
+            serial.write(byte)
+
+        (socket error handling code left as exercise for the reader)
+        """
+        for byte in data:
+            if self.mode == M_NORMAL:
+                # interpret as command or as data
+                if byte == IAC:
+                    self.mode = M_IAC_SEEN
+                else:
+                    # store data in sub option buffer or pass it to our
+                    # consumer depending on state
+                    if self.suboption is not None:
+                        self.suboption.append(byte)
+                    else:
+                        yield byte
+            elif self.mode == M_IAC_SEEN:
+                if byte == IAC:
+                    # interpret as command doubled -> insert character
+                    # itself
+                    self._read_buffer.put(IAC)
+                    self.mode = M_NORMAL
+                elif byte == SB:
+                    # sub option start
+                    self.suboption = bytearray()
+                    self.mode = M_NORMAL
+                elif byte == SE:
+                    # sub option end -> process it now
+                    self._telnetProcessSubnegotiation(bytes(self.suboption))
+                    self.suboption = None
+                    self.mode = M_NORMAL
+                elif byte in (DO, DONT, WILL, WONT):
+                    # negotiation
+                    self.telnet_command = byte
+                    self.mode = M_NEGOTIATE
+                else:
+                    # other telnet commands
+                    self._telnetProcessCommand(byte)
+                    self.mode = M_NORMAL
+            elif self.mode == M_NEGOTIATE: # DO, DONT, WILL, WONT was received, option now following
+                self._telnetNegotiateOption(self.telnet_command, byte)
+                self.mode = M_NORMAL
+
+    # - incoming telnet commands and options
+
+    def _telnetProcessCommand(self, command):
+        """Process commands other than DO, DONT, WILL, WONT"""
+        # Currently none. RFC2217 only uses negotiation and subnegotiation.
+        #~ print "_telnetProcessCommand %r" % ord(command)
+
+    def _telnetNegotiateOption(self, command, option):
+        """Process incoming DO, DONT, WILL, WONT"""
+        # check our registered telnet options and forward command to them
+        # they know themselves if they have to answer or not
+        known = False
+        for item in self._telnet_options:
+            # can have more than one match! as some options are duplicated for
+            # 'us' and 'them'
+            if item.option == option:
+                item.process_incoming(command)
+                known = True
+        if not known:
+            # handle unknown options
+            # only answer to positive requests and deny them
+            if command == WILL or command == DO:
+                self.telnetSendOption((command == WILL and DONT or WONT), option)
+
+
+    def _telnetProcessSubnegotiation(self, suboption):
+        """Process subnegotiation, the data between IAC SB and IAC SE"""
+        if suboption[0:1] == COM_PORT_OPTION:
+            if suboption[1:2] == SET_BAUDRATE:
+                backup = self.serial.baudrate
+                try:
+                    (self.serial.baudrate,) = struct.unpack("!I", suboption[2:6])
+                except ValueError, e:
+                    if self.debug_output:
+                        print "failed to set baudrate: %s" % (e,)
+                    self.serial.baudrate = backup
+                self.rfc2217SendSubnegotiation(SERVER_SET_BAUDRATE, struct.pack("!I", self.serial.baudrate))
+            elif suboption[1:2] == SET_DATASIZE:
+                backup = self.serial.bytesize
+                try:
+                    (self.serial.bytesize,) = struct.unpack("!B", suboption[2:3])
+                except ValueError, e:
+                    if self.debug_output:
+                        print "failed to set datasize: %s" % (e,)
+                    self.serial.bytesize = backup
+                self.rfc2217SendSubnegotiation(SERVER_SET_DATASIZE, struct.pack("!B", self.serial.bytesize))
+            elif suboption[1:2] == SET_PARITY:
+                backup = self.serial.parity
+                try:
+                    self.serial.parity = RFC2217_REVERSE_PARITY_MAP[struct.unpack("!B", suboption[2:3])[0]]
+                except ValueError, e:
+                    if self.debug_output:
+                        print "failed to set parity: %s" % (e,)
+                    self.serial.parity = backup
+                self.rfc2217SendSubnegotiation(
+                    SERVER_SET_PARITY,
+                    struct.pack("!B", RFC2217_PARITY_MAP[self.serial.parity])
+                    )
+            elif suboption[1:2] == SET_STOPSIZE:
+                backup = self.serial.stopbits
+                try:
+                    self.serial.stopbits = RFC2217_REVERSE_STOPBIT_MAP[struct.unpack("!B", suboption[2:3])[0]]
+                except ValueError, e:
+                    if self.debug_output:
+                        print "failed to set stopsize: %s" % (e,)
+                    self.serial.stopbits = backup
+                self.rfc2217SendSubnegotiation(
+                    SERVER_SET_STOPSIZE,
+                    struct.pack("!B", RFC2217_STOPBIT_MAP[self.serial.stopbits])
+                    )
+            elif suboption[1:2] == SET_CONTROL:
+                if suboption[2:3] == SET_CONTROL_REQ_FLOW_SETTING:
+                    if self.serial.xonxoff:
+                        self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_SW_FLOW_CONTROL)
+                    elif self.serial.rtscts:
+                        self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_HW_FLOW_CONTROL)
+                    else:
+                        self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_NO_FLOW_CONTROL)
+                elif suboption[2:3] == SET_CONTROL_USE_NO_FLOW_CONTROL:
+                    self.serial.xonxoff = False
+                    self.serial.rtscts = False
+                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_NO_FLOW_CONTROL)
+                elif suboption[2:3] == SET_CONTROL_USE_SW_FLOW_CONTROL:
+                    self.serial.xonxoff = True
+                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_SW_FLOW_CONTROL)
+                elif suboption[2:3] == SET_CONTROL_USE_HW_FLOW_CONTROL:
+                    self.serial.rtscts = True
+                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_HW_FLOW_CONTROL)
+                elif suboption[2:3] == SET_CONTROL_REQ_BREAK_STATE:
+                    pass # XXX needs cached value
+                elif suboption[2:3] == SET_CONTROL_BREAK_ON:
+                    self.serial.setBreak(True)
+                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_BREAK_ON)
+                elif suboption[2:3] == SET_CONTROL_BREAK_OFF:
+                    self.serial.setBreak(False)
+                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_BREAK_OFF)
+                elif suboption[2:3] == SET_CONTROL_REQ_DTR:
+                    pass # XXX needs cached value
+                elif suboption[2:3] == SET_CONTROL_DTR_ON:
+                    self.serial.setDTR(True)
+                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_DTR_ON)
+                elif suboption[2:3] == SET_CONTROL_DTR_OFF:
+                    self.serial.setDTR(False)
+                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_DTR_OFF)
+                elif suboption[2:3] == SET_CONTROL_REQ_RTS:
+                    pass # XXX needs cached value
+                    #~ self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_RTS_ON)
+                elif suboption[2:3] == SET_CONTROL_RTS_ON:
+                    self.serial.setRTS(True)
+                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_RTS_ON)
+                elif suboption[2:3] == SET_CONTROL_RTS_OFF:
+                    self.serial.setRTS(False)
+                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_RTS_OFF)
+                #~ elif suboption[2:3] == SET_CONTROL_REQ_FLOW_SETTING_IN:
+                #~ elif suboption[2:3] == SET_CONTROL_USE_NO_FLOW_CONTROL_IN:
+                #~ elif suboption[2:3] == SET_CONTROL_USE_SW_FLOW_CONTOL_IN:
+                #~ elif suboption[2:3] == SET_CONTROL_USE_HW_FLOW_CONTOL_IN:
+                #~ elif suboption[2:3] == SET_CONTROL_USE_DCD_FLOW_CONTROL:
+                #~ elif suboption[2:3] == SET_CONTROL_USE_DTR_FLOW_CONTROL:
+                #~ elif suboption[2:3] == SET_CONTROL_USE_DSR_FLOW_CONTROL:
+            elif suboption[1:2] == NOTIFY_LINESTATE:
+                pass
+            elif suboption[1:2] == NOTIFY_MODEMSTATE:
+                pass
+            elif suboption[1:2] == FLOWCONTROL_SUSPEND:
+                self._remote_suspend_flow = True
+            elif suboption[1:2] == FLOWCONTROL_RESUME:
+                self._remote_suspend_flow = False
+            elif suboption[1:2] == SET_LINESTATE_MASK:
+                self.linstate_mask = ord(suboption[2:3]) # ensure it is a number
+            elif suboption[1:2] == SET_MODEMSTATE_MASK:
+                self.modemstate_mask = ord(suboption[2:3]) # ensure it is a number
+            elif suboption[1:2] == PURGE_DATA:
+                if suboption[2:3] == PURGE_RECEIVE_BUFFER:
+                    self.serial.flushInput()
+                    self.rfc2217SendSubnegotiation(SERVER_PURGE_DATA, PURGE_RECEIVE_BUFFER)
+                elif suboption[2:3] == PURGE_TRANSMIT_BUFFER:
+                    self.serial.flushOutput()
+                    self.rfc2217SendSubnegotiation(SERVER_PURGE_DATA, PURGE_TRANSMIT_BUFFER)
+                elif suboption[2:3] == PURGE_BOTH_BUFFERS:
+                    self.serial.flushInput()
+                    self.serial.flushOutput()
+                    self.rfc2217SendSubnegotiation(SERVER_PURGE_DATA, PURGE_BOTH_BUFFERS)
+                else:
+                    if self.debug_output:
+                        print "undefined PURGE_DATA: %r" % list(suboption[2:])
+            else:
+                if self.debug_output:
+                    print "undefined COM_PORT_OPTION: %r" % list(suboption[1:])
+        else:
+            pass
+            #~ print "_telnetProcessSubnegotiation unknown %r" % suboption
+
+
+# simple client test
 if __name__ == '__main__':
     import sys
     s = Serial('rfc2217://localhost:7000', 115200)
