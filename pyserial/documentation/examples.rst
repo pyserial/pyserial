@@ -98,8 +98,26 @@ TCP/IP - serial bridge
 This program opens a TCP/IP port. When a connection is made to that port (e.g.
 with telnet) it forwards all data to the serial port and vice versa.
 
-The serial port settings are set on the command line when starting the program.
-There is no possibility to change settings from remote.
+There are two modes of operation:
+
+raw socket (default):
+
+- The serial port settings are set on the command line when starting the
+  program.
+- There is no possibility to change settings from remote.
+- All data is passed through as-is.
+
+:rfc:`2217` (use ``--rfc2217`` command line option):
+
+- The initial serial port settings are set on the command line when starting
+  the program.
+- The port settings and control lines (RTS/DTR) can changed at any time using
+  :rfc:`2217` requests. The status lines (DSR/CTS/RI/CD) are polled every
+  second and notifications are sent to the client.
+- Telnet character IAC (0xff) needs to be doubled in data stream. IAC followed
+  by an other value is interpreted as telnet command sequence.
+- Telnet negotiation commands are sent when connecting to the server.
+
 ::
 
     Usage: tcp_serial_redirect.py [options] [port [baudrate]]
@@ -130,6 +148,7 @@ There is no possibility to change settings from remote.
 
         -P LOCAL_PORT, --localport=LOCAL_PORT
                             local TCP port
+        --rfc2217           allow control commands with Telnet extension RFC-2217
 
       Newline Settings:
         Convert newlines between network and serial port. Conversion is
@@ -146,6 +165,8 @@ There is no possibility to change settings from remote.
     NOTE: no security measures are implemented. Anyone can remotely connect to
     this service over the network.  Only one connection at once is supported. When
     the connection is terminated it waits for the next connect.
+
+.. versionchanged:: 2.5 added ``--rfc2217`` option
 
 
 tcp_serial_redirect.py_
