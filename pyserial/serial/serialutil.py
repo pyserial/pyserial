@@ -26,14 +26,18 @@ except (NameError, AttributeError):
             else:
                 list.append(self, chr(item))
 
-# create control bytes, depending on true type of bytes
 # all Python versions prior 3.x convert str([17]) to '[17]' instead of '\x11'
-if bytes is str:
-    XON  = chr(17)
-    XOFF = chr(19)
-else:
-    XON  = bytes([17])
-    XOFF = bytes([19])
+# so a simple bytes(sequence) doesn't work for all versions
+def to_bytes(seq):
+    """convert a sequence to a bytes type"""
+    b = bytearray()
+    for item in seq:
+        b.append(item)  # this one handles int and str
+    return bytes(b)
+
+# create control bytes
+XON  = to_bytes([17])
+XOFF = to_bytes([19])
 
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE = 'N', 'E', 'O', 'M', 'S'

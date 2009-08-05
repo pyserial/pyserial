@@ -62,12 +62,6 @@ import socket
 import threading
 import Queue
 
-def to_bytes(seq):
-    b = bytearray()
-    for item in seq:
-        b.append(item)
-    return bytes(b)
-
 # port string is expected to be something like this:
 # rfc2217://host:port
 # host may be an IP or including domain, whatever.
@@ -863,6 +857,22 @@ class PortManager(object):
             self.last_modemstate = modemstate
             if self.debug_output:
                 print "NOTIFY_MODEMSTATE: %s" % (modemstate,)
+
+    # - outgoing data escaping
+
+    def escape(self, data):
+        """this function is for the user. all outgoing data has to be properly
+        escaped, so that no IAC character in the data stream messes up the
+        Telnet state machine in the server.
+
+        socket.sendall(escape(data))
+        """
+        for byte in data:
+            if byte == IAC:
+                yield IAC
+                yield IAC
+            else:
+                yield byte
 
     # - incoming data filter
 

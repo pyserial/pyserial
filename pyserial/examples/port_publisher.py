@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 """\
 Multi-port serial<->TCP/IP forwarder.
+- RFC 2217
 - check existence of serial port periodically
 - start/stop forwarders
 - each forwarder creates a server socket and opens the serial port
@@ -9,10 +10,13 @@ Multi-port serial<->TCP/IP forwarder.
 - only one client per connection
 """
 import sys, os, time
+import traceback
 import socket
 import select
+
 import serial
-import traceback
+import serial.rfc2217
+
 import avahi
 import dbus
 
@@ -69,7 +73,10 @@ class ZeroconfService:
 class Forwarder(ZeroconfService):
     """\
     Single port serial<->TCP/IP forarder that depends on an external select
-    loop. Zeroconf publish/unpublish on open/close.
+    loop.
+    - Buffers for serial -> network and network -> serial
+    - RFC 2217 state
+    - Zeroconf publish/unpublish on open/close.
     """
 
     def __init__(self, device, name, network_port, on_close=None):
@@ -84,6 +91,7 @@ class Forwarder(ZeroconfService):
         self.serial.timeout = 0
         self.socket = None
         self.server_socket = None
+        self.rfc2217 = None # instantiate later, when connecting
 
     def __del__(self):
         try:
@@ -145,6 +153,11 @@ class Forwarder(ZeroconfService):
             self.on_close = None
             callback(self)
 
+    def write(self, data):
+        """the write method is used by serial.rfc2217.PortManager. it has to
+        write to the network."""
+        self.buffer_ser2net += data
+
     def update_select_maps(self, read_map, write_map, error_map):
         """Update dictionaries for select call. insert fd->callback mapping"""
         if self.alive:
@@ -180,6 +193,9 @@ class Forwarder(ZeroconfService):
             if data:
                 # store data in buffer if there is a client connected
                 if self.socket is not None:
+                    # escape outgoing data when needed (Telnet IAC (0xff) character)
+                    if self.rfc2217:
+                        data = serial.to_bytes(self.rfc2217.escape(data))
                     self.buffer_ser2net += data
             else:
                 self.handle_serial_error()
@@ -207,6 +223,9 @@ class Forwarder(ZeroconfService):
             # read a chunk from the serial port
             data = self.socket.recv(1024)
             if data:
+                # Process RFC 2217 stuff when enabled
+                if self.rfc2217:
+                    data = serial.to_bytes(self.rfc2217.filter(data))
                 # add data to buffer
                 self.buffer_net2ser += data
             else:
@@ -239,6 +258,7 @@ class Forwarder(ZeroconfService):
             self.socket.setblocking(0)
             if not options.quiet:
                 print '%s: Connected by %s:%s' % (self.device, addr[0], addr[1])
+            self.rfc2217 = serial.rfc2217.PortManager(self.serial, self, debug_output=False)
         else:
             # reject connection if there is already one
             connection.close()
@@ -251,6 +271,8 @@ class Forwarder(ZeroconfService):
 
     def handle_disconnect(self):
         """Socket gets disconnected"""
+        # stop RFC 2217 state machine
+        self.rfc2217 = None
         # clear send buffer
         self.buffer_ser2net = ''
         # close network connection
@@ -275,7 +297,7 @@ if __name__ == '__main__':
 %prog [options]
 
 Announce the existence of devices using zeroconf and provide
-a TCP/IP <-> serial port gateway.
+a TCP/IP <-> serial port gateway (implements RFC 2217).
 
 Note that the TCP/IP server is not protected. Everyone can connect
 to it!

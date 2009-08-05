@@ -69,6 +69,9 @@ class Redirector:
                         # do the newline conversion
                         # XXX fails for CR+LF in input when it is cut in half at the begin or end of the string
                         data = net_newline.join(data.split(ser_newline))
+                    # escape outgoing data when needed (Telnet IAC (0xff) character)
+                    if self.rfc2217:
+                        data = serial.to_bytes(self.rfc2217.escape(data))
                     self._write_lock.acquire()
                     try:
                         self.socket.sendall(data)           # send it over TCP
@@ -96,7 +99,7 @@ class Redirector:
                 if not data:
                     break
                 if self.rfc2217:
-                    data = ''.join(self.rfc2217.filter(data))
+                    data = serial.to_bytes(self.rfc2217.filter(data))
                 if self.ser_newline and self.net_newline:
                     # do the newline conversion
                     # XXX fails for CR+LF in input when it is cut in half at the begin or end of the string
