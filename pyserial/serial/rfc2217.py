@@ -216,7 +216,7 @@ REALLY_INACTIVE = 'REALLY_INACTIVE'
 class TelnetOption(object):
     """Manage a single telnet option, keeps track of DO/DONT WILL/WONT."""
 
-    def __init__(self, connection, name, option, send_yes, send_no, ack_yes, ack_no, initial_state):
+    def __init__(self, connection, name, option, send_yes, send_no, ack_yes, ack_no, initial_state, activation_callback=None):
         """Init option. 
         :param connection: connection used to transmit answers
         :param name: a readable name for debug outputs
@@ -236,6 +236,7 @@ class TelnetOption(object):
         self.ack_no = ack_no
         self.state = initial_state
         self.active = False
+        self.activation_callback = activation_callback
 
     def __repr__(self):
         """String for debug outputs"""
@@ -248,12 +249,16 @@ class TelnetOption(object):
             if self.state is REQUESTED:
                 self.state = ACTIVE
                 self.active = True
+                if self.activation_callback is not None:
+                    self.activation_callback()
             elif self.state is ACTIVE:
                 pass
             elif self.state is INACTIVE:
                 self.state = ACTIVE
                 self.connection.telnetSendOption(self.send_yes, self.option)
                 self.active = True
+                if self.activation_callback is not None:
+                    self.activation_callback()
             elif self.state is REALLY_INACTIVE:
                 self.connection.telnetSendOption(self.send_no, self.option)
             else:
@@ -833,6 +838,7 @@ class PortManager(object):
         self.serial = serial_port
         self.connection = connection
         self.debug_output = debug_output
+        self._client_is_rfc2217 = False
 
         # filter state machine
         self.mode = M_NORMAL
@@ -851,8 +857,8 @@ class PortManager(object):
             TelnetOption(self, 'they-SGA', SGA, DO, DONT, WILL, WONT, INACTIVE),
             TelnetOption(self, 'we-BINARY', BINARY, WILL, WONT, DO, DONT, INACTIVE),
             TelnetOption(self, 'they-BINARY', BINARY, DO, DONT, WILL, WONT, REQUESTED),
-            TelnetOption(self, 'we-RFC2217', COM_PORT_OPTION, WILL, WONT, DO, DONT, REQUESTED),
-            TelnetOption(self, 'they-RFC2217', COM_PORT_OPTION, DO, DONT, WILL, WONT, INACTIVE),
+            TelnetOption(self, 'we-RFC2217', COM_PORT_OPTION, WILL, WONT, DO, DONT, REQUESTED, self._client_ok),
+            TelnetOption(self, 'they-RFC2217', COM_PORT_OPTION, DO, DONT, WILL, WONT, INACTIVE, self._client_ok),
             ]
 
         # negotiate Telnet/RFC2217 -> send initial requests
@@ -860,8 +866,17 @@ class PortManager(object):
             if option.state is REQUESTED:
                 self.telnetSendOption(option.send_yes, option.option)
         # issue 1st modem state notification
-        # XXX should wait until negotiation is finished
-        self.check_modem_lines()
+
+    def _client_ok(self):
+        """callback of telnet option. it gets called when option is activated.
+        this one here is used to detect when the client agrees on RFC 2217. a
+        flag is set so that other functions like check_modem_lines know if the
+        client is ok."""
+        # The callback is used for we and they so if one party agrees, we're
+        # already happy. it seems not all servers do the negotiation correctly
+        # and i guess there are incorrect clients too.. so be happy if client
+        # answers one or the other positively.
+        self._client_is_rfc2217 = True
 
     # - outgoing telnet commands and options
 
@@ -894,9 +909,9 @@ class PortManager(object):
         if deltas & MODEMSTATE_MASK_CD:
             modemstate |= MODEMSTATE_MASK_CD_CHANGE
         # if new state is different and the mask allows this change, send
-        # notification
+        # notification. suppress notifications when client is not rfc2217
         if modemstate != self.last_modemstate or force_notification:
-            if modemstate & self.modemstate_mask or force_notification:
+            if (self._client_is_rfc2217 and modemstate & self.modemstate_mask) or force_notification:
                 self.rfc2217SendSubnegotiation(
                     SERVER_NOTIFY_MODEMSTATE,
                     to_bytes([modemstate & self.modemstate_mask])
