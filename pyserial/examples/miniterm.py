@@ -176,11 +176,11 @@ class Miniterm:
         sys.stderr.write('--- hardware flow control %s\n' % (self.serial.rtscts and 'active' or 'inactive'))
         sys.stderr.write('--- data escaping: %s\n' % (REPR_MODES[self.repr_mode],))
         sys.stderr.write('--- linefeed: %s\n' % (LF_MODES[self.convert_outgoing],))
-        sys.stderr.write('--- CTS: %s DSR: %s RI:%s CD: %s:\n' % (
-            self.serial.getCTS(),
-            self.serial.getDSR(),
-            self.serial.getRI(),
-            self.serial.getCD(),
+        sys.stderr.write('--- CTS: %s  DSR: %s  RI: %s  CD: %s\n' % (
+            (self.serial.getCTS() and 'active' or 'inactive'),
+            (self.serial.getDSR() and 'active' or 'inactive'),
+            (self.serial.getRI() and 'active' or 'inactive'),
+            (self.serial.getCD() and 'active' or 'inactive'),
             ))
 
     def reader(self):
