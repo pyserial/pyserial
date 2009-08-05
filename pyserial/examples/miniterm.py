@@ -480,7 +480,7 @@ def main():
     if options.cr and options.lf:
         parser.error("only one of --cr or --lf can be specified")
 
-    if options.dtr_state is not None and options.rts_state is not None and options.dtr_state == options.rts_state:
+    if options.menu_char == options.exit_char:
         parser.error('--exit-char can not be the same as --menu-char')
 
     global EXITCHARCTER, MENUCHARACTER
