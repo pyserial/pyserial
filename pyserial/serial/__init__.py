@@ -32,12 +32,20 @@ def serial_for_url(url, *args, **kwargs):
     # check remove extra parameter to not confuse the Serial class
     do_open = 'do_not_open' not in kwargs or not kwargs['do_not_open']
     if 'do_not_open' in kwargs: del kwargs['do_not_open']
+    # the default is to use the native version
+    klass = Serial   # 'native' implementation
     # check port type and get class
-    if url.lower().startswith('rfc2217://'):
-        import rfc2217  # late import, so that users that don't use it don't have to load it
-        klass = rfc2217.Serial # RFC2217 implementation
+    try:
+        url_nocase = url.lower()
+    except AttributeError:
+        # its not a string, use default
+        pass
     else:
-        klass = Serial   # 'native' implementation
+        if url_nocase.startswith('rfc2217://'):
+            import rfc2217  # late import, so that users that don't use it don't have to load it
+            klass = rfc2217.Serial # RFC2217 implementation
+        else:
+            klass = Serial   # 'native' implementation
     # instantiate and open when desired
     instance = klass(None, *args, **kwargs)
     instance.port = url
