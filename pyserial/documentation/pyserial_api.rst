@@ -7,6 +7,9 @@
 Classes
 =======
 
+Native ports
+------------
+
 .. class:: Serial
 
     .. method:: __init__(port=None, baudrate=9600, bytesize=EIGHTBITS, parity=PARITY_NONE, stopbits=STOPBITS_ONE, timeout=None, xonxoff=0, rtscts=0, interCharTimeout=None)
@@ -467,14 +470,16 @@ Classes
 
         Returns self.
 
+:rfc:`2217` Network ports
+-------------------------
+
+.. warning:: This implementation is currently in an experimental state. Use
+    at your own risk.
 
 .. class:: rfc2217.Serial
 
     This implements a :rfc:`2217` compatible client. Port names are URLs_ in the
     form: ``rfc2217://<host>:<port>[/<option>[/<option>]]``
-
-    .. warning:: This implementation is currently in an experimental state. Use
-        at your own risk.
 
     This class API is compatible to :class:`Serial` with a few exceptions:
 
@@ -513,6 +518,82 @@ Classes
     Due to lack of authentication and encryption it is not suitable to use this
     client for connections across the internet and should only be used in
     controlled environments.
+
+    .. versionadded:: 2.5
+
+
+.. class:: rfc2217.PortManager
+
+    This class provides helper functions for implementing :rfc:`2217`
+    compatible servers.
+
+    Basically, it implements every thing needed for the :rfc:`2217` protocol.
+    It just does not open sockets and read/write to serial ports (though it
+    changes other port settings). The user of this class must take care of the
+    data transmission itself. The reason for that is, that this way, this class
+    supports all programming models such as threads and select.
+
+    Usage examples can be found in the examples where two TCP/IP - serial
+    converters are shown, one using threads (the single port server) and an
+    other using select (the multi port server).
+
+    .. note:: Each new client connection must create a new instance as this
+              object (and the :rfc:`2217` protocol) has internal state.
+
+    .. method:: __init__(serial_port, connection, debug_output=False)
+
+        :param serial_port: a :class:`Serial` instance that is managed.
+        :param connection: an object implementing :meth:`write`, used to write
+            to the network.
+
+        Initializes the Manager and starts negotiating with client in Telnet
+        and :rfc:`2217` protocol. The negotiation starts immediately so that
+        the class should be instantiated in the moment the client connects.
+
+        The *serial_port* can be controlled by :rfc:`2217` commands. This
+        object will modify the port settings (baud rate etc) and control lines
+        (RTS/DTR) send BREAK etc. when the corresponding commands are found by
+        the :meth:`filter` method.
+
+        The *connection* object must implement a :meth:`write(data)` function.
+        This function must ensure that *data* is written at once (no user data
+        mixed in, i.e. it must be thread-safe). All data must be sent in its
+        raw form (:meth:`escape` must not be used) as it is used to send Telnet
+        and :rfc:`2217` control commands.
+
+    .. method:: escape(data)
+
+        :param data: data to be sent over the network.
+        :return: data, escaped for Telnet/:rfc:`2217`
+
+        A generator that escapes all data to be compatible with :rfc:`2217`.
+        Implementors of servers should use this function to process all data
+        sent over the network.
+
+        The function returns a generator which can be used in ``for`` loops.
+        It can be converted to bytes using ``serial.to_bytes``.
+
+    .. method:: filter(data)
+
+        :param data: data read from the network, including Telnet and
+            :rfc:`2217` controls.
+        :return: data, free from Telnet and :rfc:`2217` controls.
+
+        A generator that filters and processes all data related to :rfc:`2217`.
+        Implementors of servers should use this function to process all data
+        received from the network.
+
+        The function returns a generator which can be used in ``for`` loops.
+        It can be converted to bytes using ``serial.to_bytes``.
+
+    .. method:: check_modem_lines()
+
+        This function needs to be called periodically (e.g. every second) when
+        the server wants to send NOTIFY_MODEMSTATE messages. This is required
+        to support the client for reading CTS/DSR/RI/CD status lines.
+
+        The function reads the status line and issues the notifications
+        automatically.
 
     .. versionadded:: 2.5
 

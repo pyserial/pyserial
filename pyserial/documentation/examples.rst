@@ -181,37 +181,38 @@ This example implements a TCP/IP to serial port service that works with
 multiple ports at once. It uses select, no threads, and runs on POSIX systems
 only.
 
-- Check existence of ``/tty/USB0...9``.
-- Ports are periodically checked using ``os.path.exists``.
-- Send Zeroconfig announcements when port appears or disappears (uses
-  python-avahi and dbus).
-- Single process for all ports (not per port).
-- All published services are kept in a dictionary that maps device->publisher
-  object.
-- A delay of 5 seconds slows down the poll loop to a reasonable period.
-- The script implements a daemon that logs to the syslog, unless specified
-  otherwise on the command line.
+- Full control over the serial port with :rfc:`2217`.
+- Check existence of ``/tty/USB0...9``. This is done every 5 seconds using
+  ``os.path.exists``.
+- Send zeroconf announcements when port appears or disappears (uses
+  python-avahi and dbus). Service name: ``_serial_port._tcp``.
+- Each serial port becomes available as one TCP/IP server. e.g.
+  ``/dev/ttyUSB0`` is reachable at ``<host>:7000``.
+- Single process for all ports and sockets (not per port).
+- The script can be started as daemon.
+- Logging to stdout or when run as daemon to syslog.
 
 
-Requirements
-------------
-- python (>2.4)
+Requirements:
+
+- Python (>= 2.4)
 - python-avahi
 - python-dbus
-- python-serial
+- python-serial (>= 2.5)
 
 
-Installation
-------------
+Installation as daemon:
+
 - Copy the script ``port_publisher.py`` to ``/usr/local/bin``.
 - Copy the script ``port_publisher.sh`` to ``/etc/init.d``.
 - Add links to the runlevels using ``update-rc.d port_publisher.sh defaults 99``
 - Thats it :-) the service will be started on next reboot. Alternatively run
   ``invoke-rc.d port_publisher.sh start`` as root.
 
+.. versionadded:: 2.5 new example
 
 port_publisher.py_
-    Multi-port TCP/IP-serial converter for POSIX environments.
+    Multi-port TCP/IP-serial converter (RFC 2217) for POSIX environments.
 
 port_publisher.sh_
     Example init.d script.

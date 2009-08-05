@@ -266,7 +266,7 @@ class Forwarder(ZeroconfService):
                 print '%s: Rejecting connect from %s:%s' % (self.device, addr[0], addr[1])
 
     def handle_server_error(self):
-        """Socker server fails"""
+        """Socket server fails"""
         self.close()
 
     def handle_disconnect(self):
