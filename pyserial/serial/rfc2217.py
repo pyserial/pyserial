@@ -794,7 +794,7 @@ else:
 # ###
 # The following is code that helps implementing an RFC2217 server.
 
-class RFC2217Manager(object):
+class PortManager(object):
     """This class manages the state of Telnet and RFC2217. It needs a serial
     instance and a connection to work with. connection is expected to implement
     a thread safe write function"""

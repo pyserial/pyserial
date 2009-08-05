@@ -26,17 +26,16 @@ class Redirector:
         self.ser_newline = ser_newline
         self.net_newline = net_newline
         self.spy = spy
-        self.rfc2217 = rfc2217
         self._write_lock = threading.Lock()
-        if self.rfc2217:
-            self.manager = serial.rfc2217.RFC2217Manager(self.serial, self, debug_output=False)
+        if rfc2217:
+            self.rfc2217 = serial.rfc2217.PortManager(self.serial, self, debug_output=False)
         else:
-            self.manager = None
+            self.rfc2217 = None
 
     def statusline_poller(self):
         while self.alive:
             time.sleep(1)
-            self.manager.check_modem_lines()
+            self.rfc2217.check_modem_lines()
 
     def shortcut(self):
         """connect the serial port to the TCP port by copying everything
@@ -97,7 +96,7 @@ class Redirector:
                 if not data:
                     break
                 if self.rfc2217:
-                    data = ''.join(self.manager.filter(data))
+                    data = ''.join(self.rfc2217.filter(data))
                 if self.ser_newline and self.net_newline:
                     # do the newline conversion
                     # XXX fails for CR+LF in input when it is cut in half at the begin or end of the string
