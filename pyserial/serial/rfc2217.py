@@ -53,6 +53,10 @@
 # options:
 # - "debug" print diagnostic messages
 # - "ign_set_control": do not look at the answers to SET_CONTROL
+# - "poll_modem": issue NOTIFY_MODEMSTATE requests when CTS/DTR/RI/CD is read.
+#   Without this option it expects that the server sends notifications
+#   automatically on change (which most servers do and is according to the
+#   RFC).
 # the order of the options is not relevant
 
 from serialutil import *
@@ -341,6 +345,7 @@ class RFC2217Serial(SerialBase):
            if the port cannot be opened."""
         self.debug_output = False
         self._ignore_set_control_answer = False
+        self._poll_modem_state = False
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
         try:
@@ -388,7 +393,8 @@ class RFC2217Serial(SerialBase):
         self._rfc2217_options.update(self._rfc2217_port_settings)
         # cache for line and modem states that the server sends to us
         self._linestate = 0
-        self._modemstate = 0
+        self._modemstate = None
+        self._modemstate_expires = 0
         # RFC2217 flow control between server and client
         self._remote_suspend_flow = False
 
@@ -499,6 +505,8 @@ class RFC2217Serial(SerialBase):
                         self.debug_output = True
                     elif option == 'ign_set_control':
                         self._ignore_set_control_answer = True
+                    elif option == 'poll_modem':
+                        self._poll_modem_state = True
                     else:
                         raise ValueError('unknown option: %r' % (option,))
             # get host and port
@@ -596,22 +604,22 @@ class RFC2217Serial(SerialBase):
     def getCTS(self):
         """Read terminal status line: Clear To Send"""
         if not self._isOpen: raise portNotOpenError
-        return bool(self._modemstate & MODEMSTATE_MASK_CTS)
+        return bool(self.getModemState() & MODEMSTATE_MASK_CTS)
 
     def getDSR(self):
         """Read terminal status line: Data Set Ready"""
         if not self._isOpen: raise portNotOpenError
-        return bool(self._modemstate & MODEMSTATE_MASK_DSR)
+        return bool(self.getModemState() & MODEMSTATE_MASK_DSR)
 
     def getRI(self):
         """Read terminal status line: Ring Indicator"""
         if not self._isOpen: raise portNotOpenError
-        return bool(self._modemstate & MODEMSTATE_MASK_RI)
+        return bool(self.getModemState() & MODEMSTATE_MASK_RI)
 
     def getCD(self):
         """Read terminal status line: Carrier Detect"""
         if not self._isOpen: raise portNotOpenError
-        return bool(self._modemstate & MODEMSTATE_MASK_CD)
+        return bool(self.getModemState() & MODEMSTATE_MASK_CD)
 
     # - - - platform specific - - -
     # None so far
@@ -712,6 +720,8 @@ class RFC2217Serial(SerialBase):
                 self._modemstate = ord(suboption[2:3]) # ensure it is a number
                 if self.debug_output:
                     print "NOTIFY_MODEMSTATE: %s" % self._modemstate
+                # update time when we think that a poll would make sense
+                self._modemstate_expires = time.time() + 0.3
             elif suboption[1:2] == FLOWCONTROL_SUSPEND:
                 self._remote_suspend_flow = True
             elif suboption[1:2] == FLOWCONTROL_RESUME:
@@ -770,6 +780,31 @@ class RFC2217Serial(SerialBase):
         #~ if self._remote_suspend_flow:
             #~ wait---
 
+    def getModemState(self):
+        """get last modem state (cached value. if value is "old", request a new
+        one. this cache helps that we don't issue to many requests when e.g. all
+        status lines, one after the other is queried by te user (getCTS, getDSR
+        etc.)"""
+        # active modem state polling enabled? is the value fresh enough?
+        if self._poll_modem_state and self._modemstate_expires < time.time():
+            # when it is older, request an update
+            self.rfc2217SendSubnegotiation(NOTIFY_MODEMSTATE)
+            timeout_time = time.time() + 3
+            while time.time() < timeout_time:
+                time.sleep(0.05)    # prevent 100% CPU load
+                # when expiration time is updated, it means that there is a new
+                # value
+                if self._modemstate_expires > time.time():
+                    break
+            # even when there is a timeout, do not generate an error just
+            # return the last known value. this way we can support buggy
+            # servers that do not respond to polls, but send automatic
+            # updates.
+        if self._modemstate is not None:
+            return self._modemstate
+        else:
+            # never received a notification from the server
+            raise SerialException("remote sends no NOTIFY_MODEMSTATE" % (self.name))
 
 # assemble Serial class with the platform specific implementation and the base
 # for file-like behavior. for Python 2.6 and newer, that provide the new I/O
@@ -784,6 +819,7 @@ else:
     # io library present
     class Serial(RFC2217Serial, io.RawIOBase):
         pass
+
 
 # ###
 # The following is code that helps implementing an RFC2217 server.
@@ -840,23 +876,37 @@ class PortManager(object):
     # - check modem lines, needs to be called periodically from user to
     # establish polling
 
-    def check_modem_lines(self):
+    def check_modem_lines(self, force_notification=False):
         modemstate = (
             (self.serial.getCTS() and MODEMSTATE_MASK_CTS) |
             (self.serial.getDSR() and MODEMSTATE_MASK_DSR) |
             (self.serial.getRI() and MODEMSTATE_MASK_RI) |
             (self.serial.getCD() and MODEMSTATE_MASK_CD)
         )
-        # XXX also assemble delta bits
-        modemstate &= self.modemstate_mask
-        if modemstate != self.last_modemstate:
-            self.rfc2217SendSubnegotiation(
-                SERVER_NOTIFY_MODEMSTATE,
-                to_bytes([modemstate])
-                )
-            self.last_modemstate = modemstate
-            if self.debug_output:
-                print "NOTIFY_MODEMSTATE: %s" % (modemstate,)
+        # check what has changed
+        deltas = modemstate ^ (self.last_modemstate or 0) # when last is None -> 0
+        if deltas & MODEMSTATE_MASK_CTS:
+            modemstate |= MODEMSTATE_MASK_CTS_CHANGE
+        if deltas & MODEMSTATE_MASK_DSR:
+            modemstate |= MODEMSTATE_MASK_DSR_CHANGE
+        if deltas & MODEMSTATE_MASK_RI:
+            modemstate |= MODEMSTATE_MASK_RI_CHANGE
+        if deltas & MODEMSTATE_MASK_CD:
+            modemstate |= MODEMSTATE_MASK_CD_CHANGE
+        # if new state is different and the mask allows this change, send
+        # notification
+        if modemstate != self.last_modemstate or force_notification:
+            if modemstate & self.modemstate_mask or force_notification:
+                self.rfc2217SendSubnegotiation(
+                    SERVER_NOTIFY_MODEMSTATE,
+                    to_bytes([modemstate & self.modemstate_mask])
+                    )
+                if self.debug_output:
+                    print "NOTIFY_MODEMSTATE: %s" % (modemstate,)
+            # save last state, but forget about deltas.
+            # otherwise it would also notify about changing deltas which is
+            # probably not very useful
+            self.last_modemstate = modemstate & 0xf0
 
     # - outgoing data escaping
 
@@ -1050,9 +1100,14 @@ class PortManager(object):
                 #~ elif suboption[2:3] == SET_CONTROL_USE_DTR_FLOW_CONTROL:
                 #~ elif suboption[2:3] == SET_CONTROL_USE_DSR_FLOW_CONTROL:
             elif suboption[1:2] == NOTIFY_LINESTATE:
-                pass
+                # client polls for current state
+                self.rfc2217SendSubnegotiation(
+                    SERVER_NOTIFY_LINESTATE,
+                    to_bytes([0])   # sorry, nothing like that imeplemented
+                    )
             elif suboption[1:2] == NOTIFY_MODEMSTATE:
-                pass
+                # client polls for current state
+                self.check_modem_lines(force_notification=True)
             elif suboption[1:2] == FLOWCONTROL_SUSPEND:
                 self._remote_suspend_flow = True
             elif suboption[1:2] == FLOWCONTROL_RESUME:

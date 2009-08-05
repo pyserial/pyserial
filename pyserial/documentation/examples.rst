@@ -191,7 +191,10 @@ only.
 - Single process for all ports and sockets (not per port).
 - The script can be started as daemon.
 - Logging to stdout or when run as daemon to syslog.
-
+- modem status lines (CTS/DSR/RI/CD) are not polled periodically and the server
+  therefore does not send NOTIFY_MODEMSTATE on its own. However it responds to
+  request from the client (i.e. use the ``poll_modem`` option in the URL when
+  using a pySerial client.)
 
 Requirements:
 
@@ -231,8 +234,6 @@ wxTerminal.py_
     limited by wx and it may suddenly stop displaying new input.
 
 wxTerminal.wxg_
-test_high_load.py_
-    Tests involving sending a lot of data.
     A wxGlade design file for the terminal application.
 
 wxSerialConfigDialog.py_

@@ -545,6 +545,7 @@ Native ports
         :param serial_port: a :class:`Serial` instance that is managed.
         :param connection: an object implementing :meth:`write`, used to write
             to the network.
+        :param debug_output: used for development please set for False
 
         Initializes the Manager and starts negotiating with client in Telnet
         and :rfc:`2217` protocol. The negotiation starts immediately so that
@@ -586,7 +587,9 @@ Native ports
         The function returns a generator which can be used in ``for`` loops.
         It can be converted to bytes using ``serial.to_bytes``.
 
-    .. method:: check_modem_lines()
+    .. method:: check_modem_lines(force_notification=False)
+
+        :param force_notification: Set to false. Parameter is for internal use.
 
         This function needs to be called periodically (e.g. every second) when
         the server wants to send NOTIFY_MODEMSTATE messages. This is required
@@ -703,13 +706,20 @@ Supported options are:
 
 - ``ign_set_control`` does not wait for acknowledges to SET_CONTROL. This
   option can be used for non compliant servers (i.e. when getting an
-  ``remote rejected value for option 'control'`` error when connecting)
-- ``debug``: Prints diagnostic messages (not useful for end users)
+  ``remote rejected value for option 'control'`` error when connecting).
+
+- ``poll_modem``: The client issues NOTIFY_MODEMSTATE requests when status
+  lines are read (CTS/DTR/RI/CD). Without this option it relies on the server
+  sending the notifications automatically (that's what the RFC suggests and
+  most servers do). Enable this option when :meth:`getCTS` does not work as
+  expected, i.e. for servers that do not send notifications.
+
+- ``debug``: Prints diagnostic messages (not useful for end users).
 
 (Future releases of pySerial might add more types).
 
 Examples::
 
     rfc2217://localhost:7000
-    rfc2217://localhost:7000/ign_set_control
+    rfc2217://localhost:7000/poll_modem
     rfc2217://localhost:7000/ign_set_control/debug
