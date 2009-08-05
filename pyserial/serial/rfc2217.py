@@ -971,7 +971,7 @@ class PortManager(object):
                 if byte == IAC:
                     # interpret as command doubled -> insert character
                     # itself
-                    self._read_buffer.put(IAC)
+                    yield IAC
                     self.mode = M_NORMAL
                 elif byte == SB:
                     # sub option start
