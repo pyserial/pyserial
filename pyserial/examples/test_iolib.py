@@ -55,7 +55,7 @@ PORT = 0
 class Test_SerialAndIO(unittest.TestCase):
 
     def setUp(self):
-        self.s = serial.serial_class_for_url(PORT, timeout=1)
+        self.s = serial.serial_for_url(PORT, timeout=1)
         self.io = io.TextIOWrapper(io.BufferedRWPair(self.s, self.s))
 
     def tearDown(self):

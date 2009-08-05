@@ -33,7 +33,7 @@ class Test_ChangeAttributes(unittest.TestCase):
 
     def setUp(self):
         # create a closed serial port
-        self.s = serial.serial_class_for_url(PORT, do_not_open=True)
+        self.s = serial.serial_for_url(PORT, do_not_open=True)
 
     def tearDown(self):
         self.s.close()
@@ -149,7 +149,7 @@ class Test_ChangeAttributes(unittest.TestCase):
         # no illegal values here, normal rules for the boolean value of an
         # object are used thus all objects have a truth value.
 
-    # this test does not work anymore since serial_class_for_url that is used
+    # this test does not work anymore since serial_for_url that is used
     # now, already sets a port
     def disabled_test_UnconfiguredPort(self):
         # an unconfigured port cannot be opened

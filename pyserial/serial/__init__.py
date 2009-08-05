@@ -25,7 +25,7 @@ else:
         raise Exception("Sorry: no implementation for your platform ('%s') available" % os.name)
 
 
-def serial_class_for_url(url, *args, **kwargs):
+def serial_for_url(url, *args, **kwargs):
     """Get a native or a RFC2217 implementation of the Serial class, depending
     on port/url. The port is not opened when the keyword parameter
     'do_not_open' is true, by default it is."""

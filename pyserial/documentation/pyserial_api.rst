@@ -590,7 +590,7 @@ Functions:
     the returned device name really exists on the system.
 
 
-.. function:: serial_class_for_url(url, \*args, \*\*kwargs)
+.. function:: serial_for_url(url, \*args, \*\*kwargs)
 
     :param url: Device name, number or URL_
     :param do_not_open: When set to true, the serial port is not opened.
@@ -613,7 +613,7 @@ Functions:
 
 URLs
 ----
-The class :class:`rfc2217.Serial` and the function :func:`serial_class_for_url`
+The class :class:`rfc2217.Serial` and the function :func:`serial_for_url`
 accept the following type URL::
 
     rfc2217://<host>:<port>[/<option>[/<option>]]
