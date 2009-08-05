@@ -809,7 +809,7 @@ class RFC2217Serial(SerialBase):
             return self._modemstate
         else:
             # never received a notification from the server
-            raise SerialException("remote sends no NOTIFY_MODEMSTATE" % (self.name))
+            raise SerialException("remote sends no NOTIFY_MODEMSTATE")
 
 # assemble Serial class with the platform specific implementation and the base
 # for file-like behavior. for Python 2.6 and newer, that provide the new I/O
@@ -877,6 +877,9 @@ class PortManager(object):
         # and i guess there are incorrect clients too.. so be happy if client
         # answers one or the other positively.
         self._client_is_rfc2217 = True
+        # this is to ensure that the client gets a notification, even if there
+        # was no change
+        self.check_modem_lines(force_notification=True)
 
     # - outgoing telnet commands and options
 
@@ -911,7 +914,7 @@ class PortManager(object):
         # if new state is different and the mask allows this change, send
         # notification. suppress notifications when client is not rfc2217
         if modemstate != self.last_modemstate or force_notification:
-            if (self._client_is_rfc2217 and modemstate & self.modemstate_mask) or force_notification:
+            if (self._client_is_rfc2217 and (modemstate & self.modemstate_mask)) or force_notification:
                 self.rfc2217SendSubnegotiation(
                     SERVER_NOTIFY_MODEMSTATE,
                     to_bytes([modemstate & self.modemstate_mask])
