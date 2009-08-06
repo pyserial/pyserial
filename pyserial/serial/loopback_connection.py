@@ -118,9 +118,16 @@ class LoopbackSerial(SerialBase):
         connection is blocked. May raise SerialException if the connection is
         closed."""
         if not self._isOpen: raise portNotOpenError
+        # calculate aprox time that would be used to send the data
+        time_used_to_send = 10.0*len(data) / self._baudrate
+        # when a write timeout is configured check if we would be successful
+        # (not sending anything, not even the part that would have time)
+        if self._writeTimeout is not None and time_used_to_send > self._writeTimeout:
+            time.sleep(self._writeTimeout) # must wait so that unit test succeeds
+            raise writeTimeoutError
         self.buffer_lock.acquire()
         try:
-            self.loop_buffer += data
+            self.loop_buffer += bytes(data)
         finally:
             self.buffer_lock.release()
         return len(data)
