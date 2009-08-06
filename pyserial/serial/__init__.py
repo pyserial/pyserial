@@ -47,6 +47,9 @@ def serial_for_url(url, *args, **kwargs):
         elif url_nocase.startswith('socket://'):
             import socket_connection  # late import, so that users that don't use it don't have to load it
             klass = socket_connection.Serial
+        elif url_nocase.startswith('loop://'):
+            import loopback_connection  # late import, so that users that don't use it don't have to load it
+            klass = loopback_connection.Serial
         else:
             klass = Serial   # 'native' implementation
     # instantiate and open when desired

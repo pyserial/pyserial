@@ -702,6 +702,7 @@ accept the following types URL:
 
 - ``rfc2217://<host>:<port>[/<option>[/<option>]]``
 - ``socket://<host>:<port>[/<option>[/<option>]]``
+- ``loop://[<option>[/<option>]]``
 
 (Future releases of pySerial might add more types).
 
@@ -733,6 +734,15 @@ accept the following types URL:
     Supported options in the URL are:
 
     - ``debug``: Prints diagnostic messages (not useful for end users).
+
+``loop://``
+    The least useful type. It simulates a loop back connection.
+    ``RX<->TX``  ``RTS<->CTS``  ``DTR<->DSR``
+
+    Supported options in the URL are:
+
+    - ``debug``: Prints diagnostic messages (not useful for end users).
+
 
 Examples::
 
