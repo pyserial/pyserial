@@ -181,18 +181,20 @@ def comports(available_only=True):
                 #~ raise ctypes.WinError()
                 # not getting friendly name for com0com devices, try something else
                 szFriendlyName = ctypes.create_string_buffer(1024)
-                SetupDiGetDeviceRegistryProperty(
+                if SetupDiGetDeviceRegistryProperty(
                     g_hdi,
                     ctypes.byref(devinfo),
                     SPDRP_LOCATION_INFORMATION,
                     None,
                     ctypes.byref(szFriendlyName), ctypes.sizeof(szFriendlyName) - 1,
                     None
-                    )
-        try:
-            port_name = re.search(r"\((.*)\)", szFriendlyName.value).group(1)
-        except AttributeError, msg:
-            port_name = szFriendlyName.value
+                ):
+                    port_name = "\\\\.\\" + szFriendlyName.value
+        else:
+            try:
+                port_name = re.search(r"\((.*)\)", szFriendlyName.value).group(1)
+            except AttributeError, msg:
+                port_name = szFriendlyName.value
         yield port_name, szFriendlyName.value, szHardwareID.value
 
     SetupDiDestroyDeviceInfoList(g_hdi)
