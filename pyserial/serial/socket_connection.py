@@ -19,10 +19,7 @@
 
 from serialutil import *
 import time
-import struct
 import socket
-import threading
-import Queue
 
 class SocketSerial(SerialBase):
     """Serial port implementation for plain sockets."""
@@ -72,8 +69,6 @@ class SocketSerial(SerialBase):
                     # ignore errors.
                     pass
                 self._socket = None
-            if self._thread:
-                self._thread.join()
             self._isOpen = False
             # in case of quick reconnects, give the server some time
             time.sleep(0.3)
@@ -108,7 +103,7 @@ class SocketSerial(SerialBase):
     def inWaiting(self):
         """Return the number of characters currently in the input buffer."""
         if not self._isOpen: raise portNotOpenError
-        return self._read_buffer.qsize()
+        return 0 # hmmm, see comment in read()
 
     def read(self, size=1):
         """Read size bytes from the serial port. If a timeout is set it may
