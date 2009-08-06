@@ -314,6 +314,7 @@ New Features:
 - add port_publisher example
 - experimental RFC-2217 client support (serial.rfc2217.Serial, see docs)
 - experimental RFC-2217 server support (examples/tcp_serial_redirector.py)
+- ``serial.serial_for_url`` factory function
 
 Bugfixes:
 

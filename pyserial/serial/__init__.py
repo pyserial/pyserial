@@ -3,7 +3,7 @@
 # portable serial port access with python
 # this is a wrapper module for different platform implementations
 #
-# (C)2001-2002 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2009 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
 VERSION = '2.5'
@@ -26,8 +26,8 @@ else:
 
 
 def serial_for_url(url, *args, **kwargs):
-    """Get a native or a RFC2217 implementation of the Serial class, depending
-    on port/url. The port is not opened when the keyword parameter
+    """Get a native, a RFC2217 or socket implementation of the Serial class,
+    depending on port/url. The port is not opened when the keyword parameter
     'do_not_open' is true, by default it is."""
     # check remove extra parameter to not confuse the Serial class
     do_open = 'do_not_open' not in kwargs or not kwargs['do_not_open']
@@ -44,6 +44,9 @@ def serial_for_url(url, *args, **kwargs):
         if url_nocase.startswith('rfc2217://'):
             import rfc2217  # late import, so that users that don't use it don't have to load it
             klass = rfc2217.Serial # RFC2217 implementation
+        elif url_nocase.startswith('socket://'):
+            import socket_connection  # late import, so that users that don't use it don't have to load it
+            klass = socket_connection.Serial
         else:
             klass = Serial   # 'native' implementation
     # instantiate and open when desired

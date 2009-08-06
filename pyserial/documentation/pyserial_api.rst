@@ -698,25 +698,41 @@ Functions:
 URLs
 ----
 The class :class:`rfc2217.Serial` and the function :func:`serial_for_url`
-accept the following type URL::
+accept the following types URL:
 
-    rfc2217://<host>:<port>[/<option>[/<option>]]
-
-Supported options are:
-
-- ``ign_set_control`` does not wait for acknowledges to SET_CONTROL. This
-  option can be used for non compliant servers (i.e. when getting an
-  ``remote rejected value for option 'control'`` error when connecting).
-
-- ``poll_modem``: The client issues NOTIFY_MODEMSTATE requests when status
-  lines are read (CTS/DTR/RI/CD). Without this option it relies on the server
-  sending the notifications automatically (that's what the RFC suggests and
-  most servers do). Enable this option when :meth:`getCTS` does not work as
-  expected, i.e. for servers that do not send notifications.
-
-- ``debug``: Prints diagnostic messages (not useful for end users).
+- ``rfc2217://<host>:<port>[/<option>[/<option>]]``
+- ``socket://<host>:<port>[/<option>[/<option>]]``
 
 (Future releases of pySerial might add more types).
+
+``rfc2217://``
+    Used to connect to :rfc:`2217` compatible servers. All serial port
+    functions are supported.
+
+    Supported options in the URL are:
+
+    - ``ign_set_control`` does not wait for acknowledges to SET_CONTROL. This
+      option can be used for non compliant servers (i.e. when getting an
+      ``remote rejected value for option 'control'`` error when connecting).
+
+    - ``poll_modem``: The client issues NOTIFY_MODEMSTATE requests when status
+      lines are read (CTS/DTR/RI/CD). Without this option it relies on the server
+      sending the notifications automatically (that's what the RFC suggests and
+      most servers do). Enable this option when :meth:`getCTS` does not work as
+      expected, i.e. for servers that do not send notifications.
+
+    - ``debug``: Prints diagnostic messages (not useful for end users).
+
+``socket://``
+    The purpose of this connection type is that applications using pySerial can
+    connect to TCP/IP to serial port converters that do not support :rfc:`2217`.
+
+    Uses a TCP/IP socket. All serial port settings, control and status lines
+    are ignored. Only data is transmitted and received.
+
+    Supported options in the URL are:
+
+    - ``debug``: Prints diagnostic messages (not useful for end users).
 
 Examples::
 
