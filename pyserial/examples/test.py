@@ -34,10 +34,15 @@ PORT = 0
 if sys.version_info >= (3, 0):
     def data(string):
         return bytes(string, 'latin1')
-    bytes_0to255 = [bytes([x]) for x in range(256)]
+    bytes_0to255 = bytes([range(256)])
 else:
     def data(string): return string
-    bytes_0to255 = [chr(x) for x in range(256)]
+    bytes_0to255 = ''.join([chr(x) for x in range(256)])
+
+
+def segments(data, size=16):
+    for a in range(0, len(data), size):
+        yield data[a:a+size]
 
 
 class Test4_Nonblocking(unittest.TestCase):
@@ -62,12 +67,13 @@ class Test4_Nonblocking(unittest.TestCase):
     def test2_Loopback(self):
         """timeout: each sent character should return (binary test).
            this is also a test for the binary capability of a port."""
-        for c in bytes_0to255:
-            self.s.write(c)
+        for block in segments(bytes_0to255):
+            length = len(block)
+            self.s.write(block)
             # there might be a small delay until the character is ready (especially on win32)
             time.sleep(0.05)
-            self.failUnlessEqual(self.s.inWaiting(), 1, "expected exactly one character for inWainting()")
-            self.failUnlessEqual(self.s.read(1), c, "expected a '%s' which was written before" % c)
+            self.failUnlessEqual(self.s.inWaiting(), length, "expected exactly %d character for inWainting()" % length)
+            self.failUnlessEqual(self.s.read(length), block)#, "expected a %r which was written before" % block)
         self.failUnlessEqual(self.s.read(1), data(''), "expected empty buffer after all sent chars are read")
 
     def test2_LoopbackTimeout(self):
@@ -148,12 +154,13 @@ class Test2_Forever(unittest.TestCase):
     def test2_Loopback(self):
         """no timeout: each sent character should return (binary test).
            this is also a test for the binary capability of a port."""
-        for c in bytes_0to255:
-            self.s.write(c)
+        for block in segments(bytes_0to255):
+            length = len(block)
+            self.s.write(block)
             # there might be a small delay until the character is ready (especially on win32 and rfc2217)
             time.sleep(0.05)
-            self.failUnlessEqual(self.s.inWaiting(), 1, "expected exactly one character for inWainting()")
-            self.failUnlessEqual(self.s.read(1), c, "expected an '%s' which was written before" % c)
+            self.failUnlessEqual(self.s.inWaiting(), length)#, "expected exactly %d character for inWainting()" % length)
+            self.failUnlessEqual(self.s.read(length), block) #, "expected %r which was written before" % block)
         self.failUnlessEqual(self.s.inWaiting(), 0, "expected empty buffer after all sent chars are read")
 
 
