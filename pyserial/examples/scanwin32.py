@@ -95,6 +95,7 @@ INVALID_HANDLE_VALUE = 0
 ERROR_INSUFFICIENT_BUFFER = 122
 SPDRP_HARDWAREID = 1
 SPDRP_FRIENDLYNAME = 12
+SPDRP_LOCATION_INFORMATION = 13
 ERROR_NO_MORE_ITEMS = 259
 
 def comports(available_only=True):
@@ -178,12 +179,20 @@ def comports(available_only=True):
             # Ignore ERROR_INSUFFICIENT_BUFFER
             if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
                 #~ raise ctypes.WinError()
-                # not getting friendly name for com0com devices -> skip it
-                continue
+                # not getting friendly name for com0com devices, try something else
+                szFriendlyName = ctypes.create_string_buffer(1024)
+                SetupDiGetDeviceRegistryProperty(
+                    g_hdi,
+                    ctypes.byref(devinfo),
+                    SPDRP_LOCATION_INFORMATION,
+                    None,
+                    ctypes.byref(szFriendlyName), ctypes.sizeof(szFriendlyName) - 1,
+                    None
+                    )
         try:
             port_name = re.search(r"\((.*)\)", szFriendlyName.value).group(1)
         except AttributeError, msg:
-            pass
+            port_name = szFriendlyName.value
         yield port_name, szFriendlyName.value, szHardwareID.value
 
     SetupDiDestroyDeviceInfoList(g_hdi)
