@@ -61,7 +61,8 @@ PSP_DEVICE_INTERFACE_DATA = ctypes.POINTER(SP_DEVICE_INTERFACE_DATA)
 PSP_DEVICE_INTERFACE_DETAIL_DATA = ctypes.c_void_p
 
 class dummy(ctypes.Structure):
-    _fields_=[("d1",ctypes.DWORD), ("d2",ctypes.CHAR)]
+    _fields_=[("d1", DWORD), ("d2", CHAR)]
+    _pack_ = 1
 SIZEOF_SP_DEVICE_INTERFACE_DETAIL_DATA_A = ctypes.sizeof(dummy)
 
 SetupDiDestroyDeviceInfoList = ctypes.windll.setupapi.SetupDiDestroyDeviceInfoList
@@ -165,7 +166,7 @@ def comports(available_only=True):
                 raise ctypes.WinError()
 
         # friendly name
-        szFriendlyName = ctypes.create_string_buffer('\0' * 250)
+        szFriendlyName = ctypes.create_string_buffer(1024)
         if not SetupDiGetDeviceRegistryProperty(
             g_hdi,
             ctypes.byref(devinfo),
@@ -176,11 +177,13 @@ def comports(available_only=True):
         ):
             # Ignore ERROR_INSUFFICIENT_BUFFER
             if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
-                raise ctypes.WinError()
+                #~ raise ctypes.WinError()
+                # not getting friendly name for com0com devices -> skip it
+                continue
         try:
             port_name = re.search(r"\((.*)\)", szFriendlyName.value).group(1)
-        except AttributeError,msg:
-            port_name = "???"
+        except AttributeError, msg:
+            pass
         yield port_name, szFriendlyName.value, szHardwareID.value
 
     SetupDiDestroyDeviceInfoList(g_hdi)
