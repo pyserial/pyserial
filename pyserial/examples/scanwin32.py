@@ -99,8 +99,10 @@ SPDRP_LOCATION_INFORMATION = 13
 ERROR_NO_MORE_ITEMS = 259
 
 def comports(available_only=True):
-    """This generator scans the device registry for com ports and yields port, desc, hwid.
-       If available_only is true only return currently existing ports."""
+    """This generator scans the device registry for com ports and yields
+    (order, port, desc, hwid).  If available_only is true only return currently
+    existing ports. Order is a helper to get sorted lists. it can be ignored
+    otherwise."""
     flags = DIGCF_DEVICEINTERFACE
     if available_only:
         flags |= DIGCF_PRESENT
@@ -153,7 +155,7 @@ def comports(available_only=True):
             raise ctypes.WinError()
 
         # hardware ID
-        szHardwareID = ctypes.create_string_buffer('\0' * 250)
+        szHardwareID = ctypes.create_string_buffer(250)
         if not SetupDiGetDeviceRegistryProperty(
             g_hdi,
             ctypes.byref(devinfo),
@@ -190,25 +192,41 @@ def comports(available_only=True):
                     None
                 ):
                     port_name = "\\\\.\\" + szFriendlyName.value
+                    order = None
+                else:
+                    port_name = szFriendlyName.value
+                    order = None
         else:
             try:
-                port_name = re.search(r"\((.*)\)", szFriendlyName.value).group(1)
+                m = re.search(r"\((.*?(\d+))\)", szFriendlyName.value)
+                #~ print szFriendlyName.value, m.groups()
+                port_name = m.group(1)
+                order = int(m.group(2))
             except AttributeError, msg:
                 port_name = szFriendlyName.value
-        yield port_name, szFriendlyName.value, szHardwareID.value
+                order = None
+        yield order, port_name, szFriendlyName.value, szHardwareID.value
 
     SetupDiDestroyDeviceInfoList(g_hdi)
 
 
 if __name__ == '__main__':
     import serial
-    for port, desc, hwid in comports():
+    print "-"*78
+    print "Serial ports"
+    print "-"*78
+    for order, port, desc, hwid in sorted(comports()):
+        print "%-10s: %s (%s) ->" % (port, desc, hwid),
         try:
-            print "%s: %s (%s)" % (port, desc, hwid)
-            print " "*10, serial.Serial(port) #test open
+            serial.Serial(port) # test open
         except serial.serialutil.SerialException:
-            print "can't be openend."
+            print "can't be openend"
+        else:
+            print "Ready"
+    print
     # list of all ports the system knows
-    print "-"*60
-    for port, desc, hwid in comports(False):
+    print "-"*78
+    print "All serial ports (registry)"
+    print "-"*78
+    for order, port, desc, hwid in sorted(comports(False)):
         print "%-10s: %s (%s)" % (port, desc, hwid)
