@@ -356,6 +356,7 @@ class RFC2217Serial(SerialBase):
         try:
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._socket.connect(self.fromURL(self.portstr))
+            self._socket.setsockopt( socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         except Exception, msg:
             self._socket = None
             raise SerialException("Could not open port %s: %s" % (self.portstr, msg))
