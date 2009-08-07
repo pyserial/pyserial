@@ -12,7 +12,7 @@
 #
 # references: http://www.easysw.com/~mike/serial/serial.html
 
-import sys, os, fcntl, termios, struct, select, errno
+import sys, os, fcntl, termios, struct, select, errno, time
 from serialutil import *
 
 # Do check the Python version as some constants have moved.
@@ -462,19 +462,22 @@ class PosixSerial(SerialBase):
     def write(self, data):
         """Output the given string over the serial port."""
         if self.fd is None: raise portNotOpenError
-        if not isinstance(data, (bytes, bytearray)):
-            raise TypeError('expected %s or bytearray, got %s' % (bytes, type(data)))
         t = len(data)
         d = data
+        if self._writeTimeout is not None and self._writeTimeout > 0:
+            timeout = time.time() + self._writeTimeout
+        else:
+            timeout = None
         while t > 0:
             try:
-                if self._writeTimeout is not None and self._writeTimeout > 0:
-                    _, ready, _ = select.select([], [self.fd], [], self._writeTimeout)
-                    if not ready:
-                        raise writeTimeoutError
                 n = os.write(self.fd, d)
-                if self._writeTimeout is not None and self._writeTimeout > 0:
-                    _, ready, _ = select.select([], [self.fd], [], self._writeTimeout)
+                if timeout:
+                    # when timeout is set, use select to wait for being ready
+                    # with the time left as timeout
+                    timeleft = timeout - time.time()
+                    if timeleft < 0:
+                        raise writeTimeoutError
+                    _, ready, _ = select.select([], [self.fd], [], timeleft)
                     if not ready:
                         raise writeTimeoutError
                 d = d[n:]
