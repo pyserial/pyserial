@@ -98,7 +98,7 @@ class LoopbackSerial(SerialBase):
         if self._timeout is not None:
             timeout = time.time() + self._timeout
         else:
-            timeout = time.time() + 9999999 # ok.. thats just long...
+            timeout = None
         while len(data) < size:
             self.buffer_lock.acquire()
             try:
@@ -109,7 +109,7 @@ class LoopbackSerial(SerialBase):
             data += block
             # check for timeout now, after data has been read.
             # useful for timeout = 0 (non blocking) read
-            if time.time() > timeout:
+            if timeout and time.time() > timeout:
                 break
         return bytes(data)
 
