@@ -214,7 +214,7 @@ class Test_MoreTimeouts(unittest.TestCase):
         self.s.write(serial.XOFF)
         time.sleep(0.5) # some systems need a little delay so that they can react on XOFF
         t1 = time.time()
-        self.failUnlessRaises(serial.SerialTimeoutException, self.s.write, data("timeout please"*100))
+        self.failUnlessRaises(serial.SerialTimeoutException, self.s.write, data("timeout please"*200))
         t2 = time.time()
         self.failUnless( 0.9 <= (t2-t1) < 2.1, "Timeout not in the given interval (%s)" % (t2-t1))
 
