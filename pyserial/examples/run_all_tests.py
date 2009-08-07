@@ -11,6 +11,10 @@ import sys
 import os
 import time
 
+# inject local copy to avoid testing the installed version instead of the
+# working copy
+sys.path.insert(0, '..')
+
 PORT = 'loop://'
 
 # find files and the tests in them
