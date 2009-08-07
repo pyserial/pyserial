@@ -33,7 +33,6 @@ BAUDRATE = 115200
 if sys.version_info >= (2, 6):
     bytes_0to255 = bytes(range(256))
 else:
-    def data(string): return string
     bytes_0to255 = ''.join([chr(x) for x in range(256)])
 
 

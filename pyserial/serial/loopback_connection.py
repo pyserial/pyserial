@@ -94,15 +94,15 @@ class LoopbackSerial(SerialBase):
         return less characters as requested. With no timeout it will block
         until the requested number of bytes is read."""
         if not self._isOpen: raise portNotOpenError
-        data = bytearray()
         if self._timeout is not None:
             timeout = time.time() + self._timeout
         else:
             timeout = None
+        data = bytearray()
         while len(data) < size:
             self.buffer_lock.acquire()
             try:
-                block = bytes(self.loop_buffer[:size])
+                block = to_bytes(self.loop_buffer[:size])
                 del self.loop_buffer[:size]
             finally:
                 self.buffer_lock.release()

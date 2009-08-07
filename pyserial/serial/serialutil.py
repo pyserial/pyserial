@@ -25,6 +25,11 @@ except (NameError, AttributeError):
                 list.append(self, item)
             else:
                 list.append(self, chr(item))
+        # +=
+        def __iadd__(self, other):
+            for byte in other:
+                self.append(byte)
+            return self
 
 # all Python versions prior 3.x convert str([17]) to '[17]' instead of '\x11'
 # so a simple bytes(sequence) doesn't work for all versions
