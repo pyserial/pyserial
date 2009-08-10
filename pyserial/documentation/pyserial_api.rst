@@ -392,6 +392,30 @@ Native ports
 
         .. versionadded:: 2.5
 
+     .. method:: getSettingsDict()
+
+        :return: a dictionary with current port settings.
+
+        Get a dictionary with port settings. This is useful to backup the
+        current settings so that a later point in time they can be restored
+        using :meth:`applySettingsDict`.
+
+        Note that control lines (RTS/DTR) are part of the settings.
+
+        .. versionadded:: 2.5
+
+     .. method:: applySettingsDict(d)
+
+        :param d: a dictionary with port settings.
+
+        Applies a dictionary that was created by :meth:`getSettingsDict`. Only
+        changes are applied and when a key is missing it means that the setting
+        stays unchanged.
+
+        Note that control lines (RTS/DTR) are not changed.
+
+        .. versionadded:: 2.5
+
 
 .. note::
 

@@ -399,6 +399,23 @@ class SerialBase(object):
 
     interCharTimeout = property(getInterCharTimeout, setInterCharTimeout, doc="Inter-character timeout setting for read()")
 
+    #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+    _SETTINGS = ('baudrate', 'bytesize', 'parity', 'stopbits', 'xonxoff',
+            'dsrdtr', 'rtscts', 'timeout', 'writeTimeout', 'interCharTimeout')
+
+    def getSettingsDict(self):
+        """Get current port settings as a dictionary. For use with
+        applySettingsDict"""
+        return dict([(key, getattr(self, '_'+key)) for key in self._SETTINGS])
+
+    def applySettingsDict(self, d):
+        """apply stored settings from a dictionary returned from
+        getSettingsDict. it's allowed to delete keys from the dictionary. these
+        values will simply left unchanged."""
+        for key in self._SETTINGS:
+            if d[key] != getattr(self, '_'+key):   # check against internal "_" value
+                setattr(self, key, d[key])          # set non "_" value to use properties write function
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
