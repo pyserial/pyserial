@@ -827,13 +827,13 @@ else:
         pass
 
 
-# ###
+#############################################################################
 # The following is code that helps implementing an RFC2217 server.
 
 class PortManager(object):
     """This class manages the state of Telnet and RFC2217. It needs a serial
     instance and a connection to work with. connection is expected to implement
-    a thread safe write function"""
+    a (thread safe) write function, that writes the string to the network."""
 
     def __init__(self, serial_port, connection, debug_output=False):
         self.serial = serial_port
