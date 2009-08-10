@@ -313,8 +313,10 @@ New Features:
 - add scanlinux.py example
 - add port_publisher example
 - experimental RFC-2217 client support (serial.rfc2217.Serial, see docs)
-- experimental RFC-2217 server support (examples/tcp_serial_redirector.py)
-- ``serial.serial_for_url`` factory function
+- experimental RFC-2217 server support (examples/rfc2217_server.py)
+- add ``serial.serial_for_url`` factory function (support for native ports and
+  ``rfc2217``, ``socket`` and ``loop`` URLs)
+- add ``getSettingsDict`` and ``applySettingsDict`` serial object methods
 
 Bugfixes:
 
