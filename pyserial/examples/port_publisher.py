@@ -111,6 +111,8 @@ class Forwarder(ZeroconfService):
         except Exception, msg:
             self.handle_serial_error(msg)
 
+        self.serial_settings_backup = self.serial.getSettingsDict()
+
         # start the socket server
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.setsockopt(
@@ -250,6 +252,8 @@ class Forwarder(ZeroconfService):
 
     def handle_connect(self):
         """Server socket gets a connection"""
+        print "XXX",  self.serial.getSettingsDict()
+
         # accept a connection in any case, close connection
         # below if already busy
         connection, addr = self.server_socket.accept()
@@ -258,7 +262,13 @@ class Forwarder(ZeroconfService):
             self.socket.setblocking(0)
             self.socket.setsockopt( socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             if not options.quiet:
-                print '%s: Connected by %s:%s' % (self.device, addr[0], addr[1])
+                try:
+                    host = socket.gethostbyaddr(addr[0])[0]
+                except (socket.herror, socket.gaierror):
+                    host = '<unknown>'
+                print '%s: Connected by %s (%s:%s)' % (self.device, host, addr[0], addr[1])
+            self.serial.setRTS(True)
+            self.serial.setDTR(True)
             self.rfc2217 = serial.rfc2217.PortManager(self.serial, self, debug_output=False)
         else:
             # reject connection if there is already one
@@ -272,6 +282,11 @@ class Forwarder(ZeroconfService):
 
     def handle_disconnect(self):
         """Socket gets disconnected"""
+        # signal disconnected terminal with control lines
+        self.serial.setRTS(False)
+        self.serial.setDTR(False)
+        # restore original port configuration in case it was changed
+        self.serial.applySettingsDict(self.serial_settings_backup)
         # stop RFC 2217 state machine
         self.rfc2217 = None
         # clear send buffer

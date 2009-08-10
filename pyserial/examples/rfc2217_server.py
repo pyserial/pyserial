@@ -81,14 +81,14 @@ class Redirector:
                 sys.stderr.write('ERROR: %s\n' % msg)
                 # probably got disconnected
                 break
-        self.alive = False
-        self.thread_read.join()
+        self.stop()
 
     def stop(self):
         """Stop copying"""
         if self.alive:
             self.alive = False
             self.thread_read.join()
+            self.thread_poll.join()
 
 
 if __name__ == '__main__':
@@ -121,7 +121,7 @@ it waits for the next connect.
     # connect to serial port
     ser = serial.Serial()
     ser.port     = args[0]
-    ser.timeout  = 1     # required so that the reader thread can exit
+    ser.timeout  = 3     # required so that the reader thread can exit
 
     sys.stderr.write("--- RFC 2217 TCP/IP to Serial redirector --- type Ctrl-C / BREAK to quit\n")
 
@@ -132,6 +132,10 @@ it waits for the next connect.
         sys.exit(1)
 
     sys.stderr.write("--- Serving serial port: %s\n" % (ser.portstr,))
+    settings = ser.getSettingsDict()
+    # reset contol line as no _remote_ "terminal" has been connected yet
+    ser.setDTR(False)
+    ser.setRTS(False)
 
     srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -141,19 +145,33 @@ it waits for the next connect.
     while True:
         try:
             connection, addr = srv.accept()
-            sys.stderr.write('Connected by %s\n' % (addr,))
-            # enter console->serial loop
+            try:
+                host = socket.gethostbyaddr(addr[0])[0]
+            except (socket.herror, socket.gaierror):
+                host = '<unknown>'
+            sys.stderr.write('Connected by %s (%s) \n' % (host, addr,))
+            connection.setsockopt( socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            ser.setRTS(True)
+            ser.setDTR(True)
+            # enter network <-> serial loop
             r = Redirector(
                 ser,
                 connection,
             )
-            r.shortcut()
-            sys.stderr.write('Disconnected\n')
-            connection.close()
+            try:
+                r.shortcut()
+            finally:
+                sys.stderr.write('Disconnected\n')
+                r.stop()
+                connection.close()
+                ser.setDTR(False)
+                ser.setRTS(False)
+            # Restore port settings (may have been changed by RFC 2217 capable
+            # client)
+            ser.applySettingsDict(settings)
         except KeyboardInterrupt:
             break
         except socket.error, msg:
             sys.stderr.write('ERROR: %s\n' % msg)
 
     sys.stderr.write('\n--- exit ---\n')
-
