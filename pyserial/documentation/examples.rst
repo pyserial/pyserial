@@ -287,16 +287,21 @@ scanwin32.py_
 Unit tests
 ==========
 The project uses a number of unit test to verify the functionality. They all
-need a loop back connector. The scripts itself contain more information.
+need a loop back connector. The scripts itself contain more information. All
+test scripts are contained in the directory ``test``.
 
 The unit tests are performed on port ``0`` unless a different device name or
-rfc2217 URL is given on the command line (argv[1]).
+``rfc2217://`` URL is given on the command line (argv[1]).
+
+run_all_tests.py_
+    Collect all tests from all ``test*`` files and run them. By default, the
+    ``loop://`` device is used.
 
 test.py_
-    Basic tests.
+    Basic tests (binary capabilities, timeout, control lines).
 
 test_advanced.py_
-    Test more advanced features.
+    Test more advanced features (properties).
 
 test_high_load.py_
     Tests involving sending a lot of data.
@@ -305,7 +310,8 @@ test_iolib.py_
     Tests involving the :mod:`io` library. Only available for Python 2.6 and
     newer.
 
-.. _test.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/test.py
-.. _test_advanced.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/test_advanced.py
-.. _test_high_load.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/test_high_load.py
-.. _test_iolib.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/test_iolib.py
+.. _run_all_tests.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/run_all_tests.py
+.. _test.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test.py
+.. _test_advanced.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_advanced.py
+.. _test_high_load.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_high_load.py
+.. _test_iolib.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_iolib.py
