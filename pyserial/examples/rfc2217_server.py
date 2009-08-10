@@ -145,11 +145,7 @@ it waits for the next connect.
     while True:
         try:
             connection, addr = srv.accept()
-            try:
-                host = socket.gethostbyaddr(addr[0])[0]
-            except (socket.herror, socket.gaierror):
-                host = '<unknown>'
-            sys.stderr.write('Connected by %s (%s) \n' % (host, addr,))
+            sys.stderr.write('Connected by %s:%s \n' % (addr[0], addr[1]))
             connection.setsockopt( socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             ser.setRTS(True)
             ser.setDTR(True)

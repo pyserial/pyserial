@@ -252,21 +252,15 @@ class Forwarder(ZeroconfService):
 
     def handle_connect(self):
         """Server socket gets a connection"""
-        print "XXX",  self.serial.getSettingsDict()
-
         # accept a connection in any case, close connection
         # below if already busy
         connection, addr = self.server_socket.accept()
         if self.socket is None:
             self.socket = connection
             self.socket.setblocking(0)
-            self.socket.setsockopt( socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             if not options.quiet:
-                try:
-                    host = socket.gethostbyaddr(addr[0])[0]
-                except (socket.herror, socket.gaierror):
-                    host = '<unknown>'
-                print '%s: Connected by %s (%s:%s)' % (self.device, host, addr[0], addr[1])
+                print '%s: Connected by %s (%s:%s)' % (self.device, addr[0], addr[1])
             self.serial.setRTS(True)
             self.serial.setDTR(True)
             self.rfc2217 = serial.rfc2217.PortManager(self.serial, self, debug_output=False)
