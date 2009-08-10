@@ -392,7 +392,7 @@ Native ports
 
         .. versionadded:: 2.5
 
-     .. method:: getSettingsDict()
+    .. method:: getSettingsDict()
 
         :return: a dictionary with current port settings.
 
@@ -404,7 +404,7 @@ Native ports
 
         .. versionadded:: 2.5
 
-     .. method:: applySettingsDict(d)
+    .. method:: applySettingsDict(d)
 
         :param d: a dictionary with port settings.
 
