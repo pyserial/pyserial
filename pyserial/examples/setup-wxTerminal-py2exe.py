@@ -26,7 +26,7 @@ setup(
         },
     ],
     zipfile = "stuff.lib",
-    
+
     description = "Simple serial terminal application",
     version = "0.1",
     author = "Chris Liechti",

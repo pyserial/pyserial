@@ -19,6 +19,10 @@ miniterm::
 Command line options can be given so that binary data including escapes for
 terminals are escaped or output as hex.
 
+miniterm supports :rfc:`2217` remote serial ports and raw sockets using URLs
+such as ``rfc2217:://<host>:<port>`` respectively ``socket://<host>:<port>`` as
+*port* argument when invoking.
+
 Command line options ``miniterm.py -h``::
 
     Usage: miniterm.py [options] [port [baudrate]]
@@ -79,8 +83,7 @@ running shows the help text::
     --- r R           disable/enable hardware flow control
 
 .. versionchanged:: 2.5
-    Added :kbd:`Control+t` menu and added support for opening :rfc:`2217` ports
-    (use ``rfc2217:://<host>:<port>`` as *port* argument when invoking).
+    Added :kbd:`Control+t` menu and added support for opening URLs.
 
 miniterm.py_
     The miniterm program.
@@ -98,25 +101,13 @@ TCP/IP - serial bridge
 This program opens a TCP/IP port. When a connection is made to that port (e.g.
 with telnet) it forwards all data to the serial port and vice versa.
 
-There are two modes of operation:
-
-raw socket (default):
+This example only exports a raw socket connection. The next example
+below gives the client much more control over the remote serial port.
 
 - The serial port settings are set on the command line when starting the
   program.
 - There is no possibility to change settings from remote.
 - All data is passed through as-is.
-
-:rfc:`2217` (use ``--rfc2217`` command line option):
-
-- The initial serial port settings are set on the command line when starting
-  the program.
-- The port settings and control lines (RTS/DTR) can changed at any time using
-  :rfc:`2217` requests. The status lines (DSR/CTS/RI/CD) are polled every
-  second and notifications are sent to the client.
-- Telnet character IAC (0xff) needs to be doubled in data stream. IAC followed
-  by an other value is interpreted as telnet command sequence.
-- Telnet negotiation commands are sent when connecting to the server.
 
 ::
 
@@ -166,23 +157,63 @@ raw socket (default):
     this service over the network.  Only one connection at once is supported. When
     the connection is terminated it waits for the next connect.
 
-.. versionchanged:: 2.5 added ``--rfc2217`` option
-
 
 tcp_serial_redirect.py_
     Main program.
 
 .. _tcp_serial_redirect.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/tcp_serial_redirect.py
 
+Single port TCP/IP - serial bridge (RFC 2217)
+=============================================
+Simple cross platform :rfc:`2217` serial port server. It uses threads and is
+portable (runs on POSIX, Windows, etc).
 
-Multi-port TCP/IP - serial bridge
-=================================
+- The port settings and control lines (RTS/DTR) can changed at any time using
+  :rfc:`2217` requests. The status lines (DSR/CTS/RI/CD) are polled every
+  second and notifications are sent to the client.
+- Telnet character IAC (0xff) needs to be doubled in data stream. IAC followed
+  by an other value is interpreted as Telnet command sequence.
+- Telnet negotiation commands are sent when connecting to the server.
+- RTS/DTR are activated on client connect and deactivated on disconnect.
+- Default port settings are set again when client disconnects.
+- modem status lines (CTS/DSR/RI/CD) are polled periodically and the server
+  automatically sends NOTIFY_MODEMSTATE events.
+::
+
+    Usage: rfc2217_server.py [options] port
+
+    RFC 2217 Serial to Network (TCP/IP) redirector.
+
+    Options:
+      -h, --help            show this help message and exit
+      -p LOCAL_PORT, --localport=LOCAL_PORT
+                            local TCP port
+
+    NOTE: no security measures are implemented. Anyone can remotely connect to
+    this service over the network.  Only one connection at once is supported. When
+    the connection is terminated it waits for the next connect.
+
+.. versionadded:: 2.5
+
+rfc2217_server.py_
+    Main program.
+
+setup-rfc2217_server-py2exe.py_
+    This is a py2exe setup script for Windows. It can be used to create a
+    standalone ``rfc2217_server.exe``.
+
+.. _rfc2217_server.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/rfc2217_server.py
+.. _setup-rfc2217_server-py2exe.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/setup-rfc2217_server-py2exe.py
+
+
+Multi-port TCP/IP - serial bridge (RFC 2217)
+============================================
 This example implements a TCP/IP to serial port service that works with
-multiple ports at once. It uses select, no threads, and runs on POSIX systems
-only.
+multiple ports at once. It uses select, no threads, for the serial ports and
+the network sockets and therefore runs on POSIX systems only.
 
 - Full control over the serial port with :rfc:`2217`.
-- Check existence of ``/tty/USB0...9``. This is done every 5 seconds using
+- Check existence of ``/tty/USB0...8``. This is done every 5 seconds using
   ``os.path.exists``.
 - Send zeroconf announcements when port appears or disappears (uses
   python-avahi and dbus). Service name: ``_serial_port._tcp``.
@@ -191,6 +222,7 @@ only.
 - Single process for all ports and sockets (not per port).
 - The script can be started as daemon.
 - Logging to stdout or when run as daemon to syslog.
+- Default port settings are set again when client disconnects.
 - modem status lines (CTS/DSR/RI/CD) are not polled periodically and the server
   therefore does not send NOTIFY_MODEMSTATE on its own. However it responds to
   request from the client (i.e. use the ``poll_modem`` option in the URL when
@@ -202,7 +234,6 @@ Requirements:
 - python-avahi
 - python-dbus
 - python-serial (>= 2.5)
-
 
 Installation as daemon:
 
@@ -242,14 +273,14 @@ wxSerialConfigDialog.py_
 wxSerialConfigDialog.wxg_
     The wxGlade design file for the configuration dialog.
 
-setup_demo.py_
+setup-wxTerminal-py2exe.py_
     A py2exe setup script to package the terminal application.
 
 .. _wxTerminal.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/wxTerminal.py
 .. _wxTerminal.wxg: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/wxTerminal.wxg
 .. _wxSerialConfigDialog.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/wxSerialConfigDialog.py
 .. _wxSerialConfigDialog.wxg: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/wxSerialConfigDialog.wxg
-.. _setup_demo.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/setup_demo.py
+.. _setup-wxTerminal-py2exe.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/setup-wxTerminal-py2exe.py
 
 
 Wrapper class

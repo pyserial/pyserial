@@ -95,7 +95,7 @@ if __name__ == '__main__':
     import optparse
 
     parser = optparse.OptionParser(
-        usage = "%prog [options] [port [baudrate]]",
+        usage = "%prog [options] port",
         description = "RFC 2217 Serial to Network (TCP/IP) redirector.",
         epilog = """\
 NOTE: no security measures are implemented. Anyone can remotely connect
