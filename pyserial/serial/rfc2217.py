@@ -351,6 +351,7 @@ class RFC2217Serial(SerialBase):
         self.debug_output = False
         self._ignore_set_control_answer = False
         self._poll_modem_state = False
+        self._network_timeout = 3
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
         try:
@@ -414,7 +415,7 @@ class RFC2217Serial(SerialBase):
             if option.state is REQUESTED:
                 self.telnetSendOption(option.send_yes, option.option)
         # now wait until important options are negotiated
-        timeout_time = time.time() + 3
+        timeout_time = time.time() + self._network_timeout
         while time.time() < timeout_time:
             time.sleep(0.05)    # prevent 100% CPU load
             if sum(o.active for o in mandadory_options) == len(mandadory_options):
@@ -457,7 +458,7 @@ class RFC2217Serial(SerialBase):
 
         # and now wait until parameters are active
         items = self._rfc2217_port_settings.values()
-        timeout_time = time.time() + 3
+        timeout_time = time.time() + self._network_timeout
         while time.time() < timeout_time:
             time.sleep(0.05)    # prevent 100% CPU load
             if sum(o.active for o in items) == len(items):
@@ -507,12 +508,18 @@ class RFC2217Serial(SerialBase):
                 url, options = url.split('/', 1)
                 # process options now, directly altering self
                 for option in options.split('/'):
+                    if '=' in option:
+                        option, value = option.split('=', 1)
+                    else:
+                        value = None
                     if option == 'debug':
                         self.debug_output = True
                     elif option == 'ign_set_control':
                         self._ignore_set_control_answer = True
                     elif option == 'poll_modem':
                         self._poll_modem_state = True
+                    elif option == 'timeout':
+                        self._network_timeout = float(value)
                     else:
                         raise ValueError('unknown option: %r' % (option,))
             # get host and port
@@ -767,7 +774,7 @@ class RFC2217Serial(SerialBase):
     def rfc2217SendPurge(self, value):
         item = self._rfc2217_options['purge']
         item.set(value) # transmit desired purge type
-        item.wait(3)    # wait for acknowledge from the server
+        item.wait(self._network_timeout) # wait for acknowledge from the server
 
     def rfc2217SetControl(self, value):
         item = self._rfc2217_options['control']
@@ -778,7 +785,7 @@ class RFC2217Serial(SerialBase):
             # at all) i.e. sredird
             time.sleep(0.1)  # this helps getting the unit tests passed
         else:
-            item.wait(3)    # wait for acknowledge from the server
+            item.wait(self._network_timeout)  # wait for acknowledge from the server
 
     def rfc2217FlowServerReady(self):
         """check if server is ready to receive data. block for some time when
@@ -795,7 +802,7 @@ class RFC2217Serial(SerialBase):
         if self._poll_modem_state and self._modemstate_expires < time.time():
             # when it is older, request an update
             self.rfc2217SendSubnegotiation(NOTIFY_MODEMSTATE)
-            timeout_time = time.time() + 3
+            timeout_time = time.time() + self._network_timeout
             while time.time() < timeout_time:
                 time.sleep(0.05)    # prevent 100% CPU load
                 # when expiration time is updated, it means that there is a new

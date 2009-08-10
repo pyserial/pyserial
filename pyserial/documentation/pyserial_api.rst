@@ -746,6 +746,11 @@ accept the following types URL:
       most servers do). Enable this option when :meth:`getCTS` does not work as
       expected, i.e. for servers that do not send notifications.
 
+    - ``timeout=<value>``: Change network timeout (default 3 seconds). This is
+      useful when the server takes a little more time to send its answers. The
+      timeout applies to the initial Telnet / :rfc:`2271` negotiation as well
+      as changing port settings or control line change commands.
+
     - ``debug``: Prints diagnostic messages (not useful for end users).
 
 ``socket://``
@@ -768,8 +773,10 @@ accept the following types URL:
     - ``debug``: Prints diagnostic messages (not useful for end users).
 
 
-Examples::
+Examples:
 
-    rfc2217://localhost:7000
-    rfc2217://localhost:7000/poll_modem
-    rfc2217://localhost:7000/ign_set_control/debug
+- ``rfc2217://localhost:7000``
+- ``rfc2217://localhost:7000/poll_modem``
+- ``rfc2217://localhost:7000/ign_set_control/timeout=5.5``
+- ``socket://localhost:7777``
+- ``loop://``
