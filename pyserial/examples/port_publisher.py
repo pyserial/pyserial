@@ -260,7 +260,7 @@ class Forwarder(ZeroconfService):
             self.socket.setblocking(0)
             self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             if not options.quiet:
-                print '%s: Connected by %s (%s:%s)' % (self.device, addr[0], addr[1])
+                print '%s: Connected by %s:%s' % (self.device, addr[0], addr[1])
             self.serial.setRTS(True)
             self.serial.setDTR(True)
             self.rfc2217 = serial.rfc2217.PortManager(self.serial, self, debug_output=False)
