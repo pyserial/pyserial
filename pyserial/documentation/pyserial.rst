@@ -40,7 +40,7 @@ Features
   translation etc. (which are many times enabled for POSIX.) This makes this
   module universally useful.
 - Compatible with :mod:`io` library (Python 2.6+)
-- RFC2217 client (experimental)
+- RFC 2217 client (experimental), server provided in the examples.
 
 
 Requirements

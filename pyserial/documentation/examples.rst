@@ -163,21 +163,20 @@ tcp_serial_redirect.py_
 
 .. _tcp_serial_redirect.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/tcp_serial_redirect.py
 
-Single port TCP/IP - serial bridge (RFC 2217)
+Single-port TCP/IP - serial bridge (RFC 2217)
 =============================================
 Simple cross platform :rfc:`2217` serial port server. It uses threads and is
 portable (runs on POSIX, Windows, etc).
 
-- The port settings and control lines (RTS/DTR) can changed at any time using
-  :rfc:`2217` requests. The status lines (DSR/CTS/RI/CD) are polled every
+- The port settings and control lines (RTS/DTR) can be changed at any time
+  using :rfc:`2217` requests. The status lines (DSR/CTS/RI/CD) are polled every
   second and notifications are sent to the client.
 - Telnet character IAC (0xff) needs to be doubled in data stream. IAC followed
   by an other value is interpreted as Telnet command sequence.
 - Telnet negotiation commands are sent when connecting to the server.
 - RTS/DTR are activated on client connect and deactivated on disconnect.
 - Default port settings are set again when client disconnects.
-- modem status lines (CTS/DSR/RI/CD) are polled periodically and the server
-  automatically sends NOTIFY_MODEMSTATE events.
+
 ::
 
     Usage: rfc2217_server.py [options] port
