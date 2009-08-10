@@ -12,7 +12,6 @@ import threading
 import socket
 import codecs
 import serial
-import serial.rfc2217
 try:
     True
 except NameError:
@@ -20,22 +19,13 @@ except NameError:
     False = 0
 
 class Redirector:
-    def __init__(self, serial_instance, socket, ser_newline=None, net_newline=None, spy=False, rfc2217=False):
+    def __init__(self, serial_instance, socket, ser_newline=None, net_newline=None, spy=False):
         self.serial = serial_instance
         self.socket = socket
         self.ser_newline = ser_newline
         self.net_newline = net_newline
         self.spy = spy
         self._write_lock = threading.Lock()
-        if rfc2217:
-            self.rfc2217 = serial.rfc2217.PortManager(self.serial, self, debug_output=False)
-        else:
-            self.rfc2217 = None
-
-    def statusline_poller(self):
-        while self.alive:
-            time.sleep(1)
-            self.rfc2217.check_modem_lines()
 
     def shortcut(self):
         """connect the serial port to the TCP port by copying everything
@@ -45,11 +35,6 @@ class Redirector:
         self.thread_read.setDaemon(True)
         self.thread_read.setName('serial->socket')
         self.thread_read.start()
-        if self.rfc2217:
-            self.thread_poll = threading.Thread(target=self.statusline_poller)
-            self.thread_poll.setDaemon(True)
-            self.thread_poll.setName('status line poll')
-            self.thread_poll.start()
         self.writer()
 
     def reader(self):
@@ -70,8 +55,6 @@ class Redirector:
                         # XXX fails for CR+LF in input when it is cut in half at the begin or end of the string
                         data = net_newline.join(data.split(ser_newline))
                     # escape outgoing data when needed (Telnet IAC (0xff) character)
-                    if self.rfc2217:
-                        data = serial.to_bytes(self.rfc2217.escape(data))
                     self._write_lock.acquire()
                     try:
                         self.socket.sendall(data)           # send it over TCP
@@ -98,8 +81,6 @@ class Redirector:
                 data = self.socket.recv(1024)
                 if not data:
                     break
-                if self.rfc2217:
-                    data = serial.to_bytes(self.rfc2217.filter(data))
                 if self.ser_newline and self.net_newline:
                     # do the newline conversion
                     # XXX fails for CR+LF in input when it is cut in half at the begin or end of the string
@@ -222,13 +203,6 @@ it waits for the next connect.
         default = 7777
     )
 
-    group.add_option("--rfc2217",
-        dest = "rfc2217",
-        action = "store_true",
-        help = "allow control commands with Telnet extension RFC-2217",
-        default = False
-    )
-
     group = optparse.OptionGroup(parser,
         "Newline Settings",
         "Convert newlines between network and serial port. Conversion is normally disabled and can be enabled by --convert."
@@ -324,7 +298,6 @@ it waits for the next connect.
         ser.setDTR(options.dtr_state)
 
     srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     srv.bind( ('', options.local_port) )
     srv.listen(1)
     while True:
@@ -332,14 +305,13 @@ it waits for the next connect.
             sys.stderr.write("Waiting for connection on %s...\n" % options.local_port)
             connection, addr = srv.accept()
             sys.stderr.write('Connected by %s\n' % (addr,))
-            # enter console->serial loop
+            # enter network <-> serial loop
             r = Redirector(
                 ser,
                 connection,
                 options.convert and ser_newline or None,
                 options.convert and net_newline or None,
                 options.spy,
-                options.rfc2217,
             )
             r.shortcut()
             if options.spy: sys.stdout.write('\n')
