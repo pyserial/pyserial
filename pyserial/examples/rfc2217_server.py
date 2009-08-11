@@ -12,18 +12,26 @@ import time
 import socket
 import serial
 import serial.rfc2217
+import logging
 
 class Redirector:
-    def __init__(self, serial_instance, socket):
+    def __init__(self, serial_instance, socket, debug=None):
         self.serial = serial_instance
         self.socket = socket
         self._write_lock = threading.Lock()
-        self.rfc2217 = serial.rfc2217.PortManager(self.serial, self, debug_output=False)
+        self.rfc2217 = serial.rfc2217.PortManager(
+            self.serial,
+            self,
+            debug_output = (debug and logging.getLogger('rfc2217.server'))
+            )
+        self.log = logging.getLogger('redirector')
 
     def statusline_poller(self):
+        self.log.debug('status line poll thread started')
         while self.alive:
             time.sleep(1)
             self.rfc2217.check_modem_lines()
+        self.log.debug('status line poll thread terminated')
 
     def shortcut(self):
         """connect the serial port to the TCP port by copying everything
@@ -41,6 +49,7 @@ class Redirector:
 
     def reader(self):
         """loop forever and copy serial->socket"""
+        self.log.debug('reader thread started')
         while self.alive:
             try:
                 data = self.serial.read(1)              # read one, blocking
@@ -56,10 +65,11 @@ class Redirector:
                     finally:
                         self._write_lock.release()
             except socket.error, msg:
-                sys.stderr.write('ERROR: %s\n' % msg)
+                self.log.error('%s' % (msg,))
                 # probably got disconnected
                 break
         self.alive = False
+        self.log.debug('reader thread terminated')
 
     def write(self, data):
         """thread safe socket write with no data escaping. used to send telnet stuff"""
@@ -78,13 +88,14 @@ class Redirector:
                     break
                 self.serial.write(serial.to_bytes(self.rfc2217.filter(data)))
             except socket.error, msg:
-                sys.stderr.write('ERROR: %s\n' % msg)
+                self.log.error('%s' % (msg,))
                 # probably got disconnected
                 break
         self.stop()
 
     def stop(self):
         """Stop copying"""
+        self.log.debug('stopping')
         if self.alive:
             self.alive = False
             self.thread_read.join()
@@ -113,25 +124,43 @@ it waits for the next connect.
         default = 2217
     )
 
+    parser.add_option("-v", "--verbose",
+        dest = "verbosity",
+        action = "count",
+        help = "print more diagnostic messages (option can be given multiple times)",
+        default = 0
+    )
+
     (options, args) = parser.parse_args()
 
     if len(args) != 1:
         parser.error('serial port name required as argument')
+
+    if options.verbosity > 3:
+        options.verbosity = 3
+    level = (
+        logging.WARNING,
+        logging.INFO,
+        logging.DEBUG,
+        logging.NOTSET,
+        )[options.verbosity]
+    logging.basicConfig(level=logging.INFO)
+    logging.getLogger('rfc2217').setLevel(level)
 
     # connect to serial port
     ser = serial.Serial()
     ser.port     = args[0]
     ser.timeout  = 3     # required so that the reader thread can exit
 
-    sys.stderr.write("--- RFC 2217 TCP/IP to Serial redirector --- type Ctrl-C / BREAK to quit\n")
+    logging.info("RFC 2217 TCP/IP to Serial redirector - type Ctrl-C / BREAK to quit")
 
     try:
         ser.open()
     except serial.SerialException, e:
-        sys.stderr.write("Could not open serial port %s: %s\n" % (ser.portstr, e))
+        logging.error("Could not open serial port %s: %s" % (ser.portstr, e))
         sys.exit(1)
 
-    sys.stderr.write("--- Serving serial port: %s\n" % (ser.portstr,))
+    logging.info("Serving serial port: %s" % (ser.portstr,))
     settings = ser.getSettingsDict()
     # reset contol line as no _remote_ "terminal" has been connected yet
     ser.setDTR(False)
@@ -141,11 +170,11 @@ it waits for the next connect.
     srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     srv.bind( ('', options.local_port) )
     srv.listen(1)
-    sys.stderr.write("--- TCP/IP port: %s\n" % (options.local_port,))
+    logging.info("TCP/IP port: %s" % (options.local_port,))
     while True:
         try:
             connection, addr = srv.accept()
-            sys.stderr.write('Connected by %s:%s \n' % (addr[0], addr[1]))
+            logging.info('Connected by %s:%s' % (addr[0], addr[1]))
             connection.setsockopt( socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             ser.setRTS(True)
             ser.setDTR(True)
@@ -153,11 +182,12 @@ it waits for the next connect.
             r = Redirector(
                 ser,
                 connection,
+                options.verbosity > 0
             )
             try:
                 r.shortcut()
             finally:
-                sys.stderr.write('Disconnected\n')
+                logging.info('Disconnected')
                 r.stop()
                 connection.close()
                 ser.setDTR(False)
@@ -168,6 +198,6 @@ it waits for the next connect.
         except KeyboardInterrupt:
             break
         except socket.error, msg:
-            sys.stderr.write('ERROR: %s\n' % msg)
+            logging.error('%s' % (msg,))
 
-    sys.stderr.write('\n--- exit ---\n')
+    logging.info('--- exit ---')
