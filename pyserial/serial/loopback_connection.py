@@ -85,13 +85,13 @@ class LoopbackSerial(SerialBase):
         try:
             # process options now, directly altering self
             for option in url.split('/'):
-                if not option:
-                    pass
                 if '=' in option:
                     option, value = option.split('=', 1)
                 else:
                     value = None
-                if option == 'logging':
+                if not option:
+                    pass
+                elif option == 'logging':
                     logging.basicConfig()   # XXX is that good to call it here?
                     self.logger = logging.getLogger('pySerial.loop')
                     self.logger.setLevel(LOGGER_LEVELS[value])
