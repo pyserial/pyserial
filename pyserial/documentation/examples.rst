@@ -1,6 +1,10 @@
+.. _examples:
+
 ==========
  Examples
 ==========
+
+.. _miniterm:
 
 Miniterm
 ========

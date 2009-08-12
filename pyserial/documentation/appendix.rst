@@ -2,6 +2,38 @@
  Appendix
 ==========
 
+How To
+======
+
+Enable :rfc:`2217` in programs using pySerial.
+    Patch the code where the :class:`serial.Serial` is instantiated. Replace
+    it with::
+
+        try:
+            s = serial.serial_for_url(...)
+        except AttributeError:
+            s = serial.Serial(...)
+
+    Assuming the application already stores port names as strings that's all
+    that is required. The user just needs a way to change the port setting of
+    your application to an ``rfc2217://`` :ref:`URL <URLs>` (e.g. by editing a
+    configuration file, GUI dialog etc.).
+
+    Please note that this enables all :ref:`URL <URLs>` types supported by
+    pySerial and that those involving the network are unencrypted and not
+    protected against eavesdropping.
+
+Test your setup.
+    Is the device not working as expected? Maybe it's time to check the
+    connection before proceeding. :ref:`miniterm` from the :ref:`examples`
+    can be used to open the serial port and do some basic tests.
+
+    To test cables, connecting RX to TX (loop back) and typing some characters
+    in :ref:`miniterm` is a simple test. When the characters are displayed
+    on the screen, then at least RX and TX work (they still could be swapped
+    though).
+
+
 Related software
 ================
 

@@ -569,7 +569,8 @@ Native ports
         :param serial_port: a :class:`Serial` instance that is managed.
         :param connection: an object implementing :meth:`write`, used to write
             to the network.
-        :param debug_output: used for development please set for False
+        :param debug_output: enables debug messages: a :class:`logging.Logger`
+            instance or None.
 
         Initializes the Manager and starts negotiating with client in Telnet
         and :rfc:`2217` protocol. The negotiation starts immediately so that
@@ -585,6 +586,11 @@ Native ports
         mixed in, i.e. it must be thread-safe). All data must be sent in its
         raw form (:meth:`escape` must not be used) as it is used to send Telnet
         and :rfc:`2217` control commands.
+
+        For diagnostics of the connection or the implementation, *debug_output*
+        can be set to an instance of a :class:`logging.Logger` (e.g.
+        ``logging.getLogger('rfc2217.server')``). The caller should configure
+        the logger using ``setLevel`` for the desired detail level of the logs.
 
     .. method:: escape(data)
 
@@ -700,7 +706,7 @@ Functions:
 
 .. function:: serial_for_url(url, \*args, \*\*kwargs)
 
-    :param url: Device name, number or URL_
+    :param url: Device name, number or :ref:`URL <URLs>`
     :param do_not_open: When set to true, the serial port is not opened.
     :return: an instance of :class:`Serial` or a compatible object.
 
@@ -717,7 +723,7 @@ Functions:
 
     .. versionadded:: 2.5
 
-.. _URL: URLs_
+.. _URLs:
 
 URLs
 ----
@@ -751,7 +757,11 @@ accept the following types URL:
       timeout applies to the initial Telnet / :rfc:`2271` negotiation as well
       as changing port settings or control line change commands.
 
-    - ``debug``: Prints diagnostic messages (not useful for end users).
+    - ``logging=[debug|info|warning|error]``: Prints diagnostic messages (not
+      useful for end users). It uses the logging module so that the application
+      can setup up logging handlers etc. It will call
+      :meth:`logging.basicConfig` which initializes for output on
+      ``sys.stderr`` (if no logging was set up already).
 
 ``socket://``
     The purpose of this connection type is that applications using pySerial can

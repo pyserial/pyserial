@@ -72,12 +72,12 @@ import logging
 # host may be an IP or including domain, whatever.
 # port is 0...65535
 
+# map log level names to constants. used in fromURL()
 LOGGER_LEVELS = {
     'debug': logging.DEBUG,
     'info': logging.INFO,
     'warning': logging.WARNING,
     'error': logging.ERROR,
-    'critical': logging.CRITICAL
     }
 
 
