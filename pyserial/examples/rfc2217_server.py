@@ -145,6 +145,7 @@ it waits for the next connect.
         logging.NOTSET,
         )[options.verbosity]
     logging.basicConfig(level=logging.INFO)
+    logging.getLogger('root').setLevel(logging.INFO)
     logging.getLogger('rfc2217').setLevel(level)
 
     # connect to serial port

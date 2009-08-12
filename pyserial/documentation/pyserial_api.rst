@@ -758,10 +758,10 @@ accept the following types URL:
       as changing port settings or control line change commands.
 
     - ``logging=[debug|info|warning|error]``: Prints diagnostic messages (not
-      useful for end users). It uses the logging module so that the application
-      can setup up logging handlers etc. It will call
-      :meth:`logging.basicConfig` which initializes for output on
-      ``sys.stderr`` (if no logging was set up already).
+      useful for end users). It uses the logging module and a logger called
+      ``pySerial.rfc2217`` so that the application can setup up logging
+      handlers etc. It will call :meth:`logging.basicConfig` which initializes
+      for output on ``sys.stderr`` (if no logging was set up already).
 
 ``socket://``
     The purpose of this connection type is that applications using pySerial can
@@ -772,7 +772,11 @@ accept the following types URL:
 
     Supported options in the URL are:
 
-    - ``debug``: Prints diagnostic messages (not useful for end users).
+    - ``logging=[debug|info|warning|error]``: Prints diagnostic messages (not
+      useful for end users). It uses the logging module and a logger called
+      ``pySerial.socket`` so that the application can setup up logging handlers
+      etc. It will call :meth:`logging.basicConfig` which initializes for
+      output on ``sys.stderr`` (if no logging was set up already).
 
 ``loop://``
     The least useful type. It simulates a loop back connection.
@@ -780,7 +784,11 @@ accept the following types URL:
 
     Supported options in the URL are:
 
-    - ``debug``: Prints diagnostic messages (not useful for end users).
+    - ``logging=[debug|info|warning|error]``: Prints diagnostic messages (not
+      useful for end users). It uses the logging module and a logger called
+      ``pySerial.loop`` so that the application can setup up logging handlers
+      etc. It will call :meth:`logging.basicConfig` which initializes for
+      output on ``sys.stderr`` (if no logging was set up already).
 
 
 Examples:
@@ -789,4 +797,4 @@ Examples:
 - ``rfc2217://localhost:7000/poll_modem``
 - ``rfc2217://localhost:7000/ign_set_control/timeout=5.5``
 - ``socket://localhost:7777``
-- ``loop://``
+- ``loop://logging=debug``

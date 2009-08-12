@@ -18,6 +18,16 @@
 from serialutil import *
 import threading
 import time
+import logging
+
+# map log level names to constants. used in fromURL()
+LOGGER_LEVELS = {
+    'debug': logging.DEBUG,
+    'info': logging.INFO,
+    'warning': logging.WARNING,
+    'error': logging.ERROR,
+    }
+
 
 class LoopbackSerial(SerialBase):
     """Serial port implementation for plain sockets."""
@@ -28,7 +38,7 @@ class LoopbackSerial(SerialBase):
     def open(self):
         """Open port with current settings. This may throw a SerialException
            if the port cannot be opened."""
-        self.debug_output = False
+        self.debug_output = None
         self.buffer_lock = threading.Lock()
         self.loop_buffer = bytearray()
         self.cts = False
@@ -56,6 +66,8 @@ class LoopbackSerial(SerialBase):
         # not that's it of any real use, but it helps in the unit tests
         if not isinstance(self._baudrate, (int, long)) or not 0 < self._baudrate < 2**32:
             raise ValueError("invalid baudrate: %r" % (self._baudrate))
+        if self.debug_output:
+            self.debug_output.info('_reconfigurePort()')
 
     def close(self):
         """Close port"""
@@ -75,8 +87,15 @@ class LoopbackSerial(SerialBase):
             for option in url.split('/'):
                 if not option:
                     pass
-                elif option == 'debug':
-                    self.debug_output = True
+                if '=' in option:
+                    option, value = option.split('=', 1)
+                else:
+                    value = None
+                if option == 'logging':
+                    logging.basicConfig()   # XXX is that good to call it here?
+                    self.debug_output = logging.getLogger('pySerial.loop')
+                    self.debug_output.setLevel(LOGGER_LEVELS[value])
+                    self.debug_output.debug('enabled logging')
                 else:
                     raise ValueError('unknown option: %r' % (option,))
         except ValueError, e:
@@ -87,6 +106,10 @@ class LoopbackSerial(SerialBase):
     def inWaiting(self):
         """Return the number of characters currently in the input buffer."""
         if not self._isOpen: raise portNotOpenError
+        if self.debug_output:
+            # attention the logged value can differ from return value in
+            # threaded environments...
+            self.debug_output.debug('inWaiting() -> %d' % (len(self.loop_buffer),))
         return len(self.loop_buffer)
 
     def read(self, size=1):
@@ -135,6 +158,8 @@ class LoopbackSerial(SerialBase):
     def flushInput(self):
         """Clear input buffer, discarding all that is in the buffer."""
         if not self._isOpen: raise portNotOpenError
+        if self.debug_output:
+            self.debug_output.info('flushInput()')
         self.buffer_lock.acquire()
         try:
             del self.loop_buffer[:]
@@ -145,6 +170,8 @@ class LoopbackSerial(SerialBase):
         """Clear output buffer, aborting the current output and
         discarding all that is in the buffer."""
         if not self._isOpen: raise portNotOpenError
+        if self.debug_output:
+            self.debug_output.info('flushOutput()')
 
     def sendBreak(self, duration=0.25):
         """Send break condition. Timed, returns to idle state after given
@@ -155,35 +182,49 @@ class LoopbackSerial(SerialBase):
         """Set break: Controls TXD. When active, to transmitting is
         possible."""
         if not self._isOpen: raise portNotOpenError
+        if self.debug_output:
+            self.debug_output.info('setBreak(%r)' % (level,))
 
     def setRTS(self, level=True):
         """Set terminal status line: Request To Send"""
         if not self._isOpen: raise portNotOpenError
+        if self.debug_output:
+            self.debug_output.info('setRTS(%r) -> state of CTS' % (level,))
         self.cts = level
 
     def setDTR(self, level=True):
         """Set terminal status line: Data Terminal Ready"""
         if not self._isOpen: raise portNotOpenError
+        if self.debug_output:
+            self.debug_output.info('setDTR(%r) -> state of DSR' % (level,))
         self.dsr = level
 
     def getCTS(self):
         """Read terminal status line: Clear To Send"""
         if not self._isOpen: raise portNotOpenError
+        if self.debug_output:
+            self.debug_output.info('getCTS() -> state of RTS (%r)' % (self.cts,))
         return self.cts
 
     def getDSR(self):
         """Read terminal status line: Data Set Ready"""
         if not self._isOpen: raise portNotOpenError
+        if self.debug_output:
+            self.debug_output.info('getDSR() -> state of DTR (%r)' % (self.dsr,))
         return self.dsr
 
     def getRI(self):
         """Read terminal status line: Ring Indicator"""
         if not self._isOpen: raise portNotOpenError
+        if self.debug_output:
+            self.debug_output.info('returning dummy for getRI()')
         return False
 
     def getCD(self):
         """Read terminal status line: Carrier Detect"""
         if not self._isOpen: raise portNotOpenError
+        if self.debug_output:
+            self.debug_output.info('returning dummy for getCD()')
         return True
 
     # - - - platform specific - - -

@@ -524,7 +524,7 @@ class RFC2217Serial(SerialBase):
                         value = None
                     if option == 'logging':
                         logging.basicConfig()   # XXX is that good to call it here?
-                        self.debug_output = logging.getLogger('rfc2217.client')
+                        self.debug_output = logging.getLogger('pySerial.rfc2217')
                         self.debug_output.setLevel(LOGGER_LEVELS[value])
                         self.debug_output.debug('enabled logging')
                     elif option == 'ign_set_control':
