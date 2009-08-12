@@ -22,7 +22,7 @@ class Redirector:
         self.rfc2217 = serial.rfc2217.PortManager(
             self.serial,
             self,
-            debug_output = (debug and logging.getLogger('rfc2217.server'))
+            logger = (debug and logging.getLogger('rfc2217.server'))
             )
         self.log = logging.getLogger('redirector')
 
