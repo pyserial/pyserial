@@ -26,40 +26,6 @@ if (sys.hexversion < 0x020200f0):
 else:
     FCNTL = fcntl
 
-baudrate_constants = {
-    0:       0000000,  # hang up
-    50:      0000001,
-    75:      0000002,
-    110:     0000003,
-    134:     0000004,
-    150:     0000005,
-    200:     0000006,
-    300:     0000007,
-    600:     0000010,
-    1200:    0000011,
-    1800:    0000012,
-    2400:    0000013,
-    4800:    0000014,
-    9600:    0000015,
-    19200:   0000016,
-    38400:   0000017,
-    57600:   0010001,
-    115200:  0010002,
-    230400:  0010003,
-    460800:  0010004,
-    500000:  0010005,
-    576000:  0010006,
-    921600:  0010007,
-    1000000: 0010010,
-    1152000: 0010011,
-    1500000: 0010012,
-    2000000: 0010013,
-    2500000: 0010014,
-    3000000: 0010015,
-    3500000: 0010016,
-    4000000: 0010017
-}
-
 # try to detect the OS so that a device can be selected...
 # this code block should supply a device() and set_special_baudrate() function
 # for the platform
@@ -93,42 +59,59 @@ if   plat[:5] == 'linux':    # Linux (confirmed)
         except IOError:
             raise ValueError('Failed to set custom baud rate: %r' % baudrate)
 
+    baudrate_constants = {
+        0:       0000000,  # hang up
+        50:      0000001,
+        75:      0000002,
+        110:     0000003,
+        134:     0000004,
+        150:     0000005,
+        200:     0000006,
+        300:     0000007,
+        600:     0000010,
+        1200:    0000011,
+        1800:    0000012,
+        2400:    0000013,
+        4800:    0000014,
+        9600:    0000015,
+        19200:   0000016,
+        38400:   0000017,
+        57600:   0010001,
+        115200:  0010002,
+        230400:  0010003,
+        460800:  0010004,
+        500000:  0010005,
+        576000:  0010006,
+        921600:  0010007,
+        1000000: 0010010,
+        1152000: 0010011,
+        1500000: 0010012,
+        2000000: 0010013,
+        2500000: 0010014,
+        3000000: 0010015,
+        3500000: 0010016,
+        4000000: 0010017
+    }
+
 elif plat == 'cygwin':       # cygwin/win32 (confirmed)
 
     def device(port):
         return '/dev/com%d' % (port + 1)
 
-    ASYNC_SPD_MASK = 0x1030
-    ASYNC_SPD_CUST = 0x0030
-
-    # XXX untested!
     def set_special_baudrate(port, baudrate):
-        import array
-        buf = array.array('i', [0] * 32)
+        raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
 
-        # get serial_struct
-        FCNTL.ioctl(port.fd, TERMIOS.TIOCGSERIAL, buf)
+    baudrate_constants = {}
 
-        # set custom divisor
-        buf[6] = buf[7] / baudrate
-
-        # update flags
-        buf[4] &= ~ASYNC_SPD_MASK
-        buf[4] |= ASYNC_SPD_CUST
-
-        # set serial_struct
-        try:
-            res = FCNTL.ioctl(port.fd, TERMIOS.TIOCSSERIAL, buf)
-        except IOError:
-            raise ValueError('Failed to set custom baud rate: %r' % baudrate)
-
-elif plat     == 'openbsd3': # BSD (confirmed)
+elif plat == 'openbsd3':    # BSD (confirmed)
 
     def device(port):
         return '/dev/ttyp%d' % port
 
     def set_special_baudrate(port, baudrate):
         raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
+
+    baudrate_constants = {}
 
 elif plat[:3] == 'bsd' or  \
      plat[:7] == 'freebsd' or \
@@ -140,17 +123,13 @@ elif plat[:3] == 'bsd' or  \
     def set_special_baudrate(port, baudrate):
         raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
 
+    baudrate_constants = {}
+
 elif plat[:6] == 'darwin':   # OS X
 
     version = os.uname()[2].split('.')
     # Tiger or above can support arbitrary serial speeds
     if int(version[0]) >= 8:
-        # remove all speeds not supported with TERMIOS so that pyserial never
-        # attempts to use them directly
-        for b in baudrate_constants.keys():
-            if b > 230400:
-                del baudrate_constants[b]
-
         def set_special_baudrate(port, baudrate):
             # use IOKit-specific call to set up high speeds
             import array, fcntl
@@ -164,6 +143,8 @@ elif plat[:6] == 'darwin':   # OS X
     def device(port):
         return '/dev/cuad%d' % port
 
+    baudrate_constants = {}
+
 
 elif plat[:6] == 'netbsd':   # NetBSD 1.6 testing by Erk
 
@@ -173,6 +154,8 @@ elif plat[:6] == 'netbsd':   # NetBSD 1.6 testing by Erk
     def set_special_baudrate(port, baudrate):
         raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
 
+    baudrate_constants = {}
+
 elif plat[:4] == 'irix':     # IRIX (partially tested)
 
     def device(port):
@@ -180,6 +163,8 @@ elif plat[:4] == 'irix':     # IRIX (partially tested)
 
     def set_special_baudrate(port, baudrate):
         raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
+
+    baudrate_constants = {}
 
 elif plat[:2] == 'hp':       # HP-UX (not tested)
 
@@ -189,6 +174,8 @@ elif plat[:2] == 'hp':       # HP-UX (not tested)
     def set_special_baudrate(port, baudrate):
         raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
 
+    baudrate_constants = {}
+
 elif plat[:5] == 'sunos':    # Solaris/SunOS (confirmed)
 
     def device(port):
@@ -197,6 +184,8 @@ elif plat[:5] == 'sunos':    # Solaris/SunOS (confirmed)
     def set_special_baudrate(port, baudrate):
         raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
 
+    baudrate_constants = {}
+
 elif plat[:3] == 'aix':      # AIX
 
     def device(port):
@@ -204,6 +193,8 @@ elif plat[:3] == 'aix':      # AIX
 
     def set_special_baudrate(port, baudrate):
         raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
+
+    baudrate_constants = {}
 
 else:
     #platform detection has failed...
@@ -228,6 +219,7 @@ and with a bit luck you can get this module running...
         return '/dev/ttyS%d' % portnum
     def set_special_baudrate(port, baudrate):
         raise SerialException("sorry don't know how to handle non standard baud rate on this platform")
+    baudrate_constants = {}
     #~ raise Exception, "this module does not run on this platform, sorry."
 
 # whats up with "aix", "beos", ....
