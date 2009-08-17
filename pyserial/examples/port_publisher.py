@@ -263,7 +263,7 @@ class Forwarder(ZeroconfService):
                 print '%s: Connected by %s:%s' % (self.device, addr[0], addr[1])
             self.serial.setRTS(True)
             self.serial.setDTR(True)
-            self.rfc2217 = serial.rfc2217.PortManager(self.serial, self, debug_output=False)
+            self.rfc2217 = serial.rfc2217.PortManager(self.serial, self)
         else:
             # reject connection if there is already one
             connection.close()
