@@ -27,12 +27,12 @@ Native ports
 
         :param parity:
             Enable parity checking. Possible values:
-            :const:`PARITY_NONE` :const:`PARITY_EVEN` :const:`PARITY_ODD`
-            :const:`PARITY_MARK` :const:`PARITY_SPACE`
+            :const:`PARITY_NONE`, :const:`PARITY_EVEN`, :const:`PARITY_ODD`
+            :const:`PARITY_MARK`, :const:`PARITY_SPACE`
 
         :param stopbits:
             Number of stop bits. Possible values:
-            :const:`STOPBITS_ONE` :const:`STOPBITS_ONE_POINT_FIVE`
+            :const:`STOPBITS_ONE`, :const:`STOPBITS_ONE_POINT_FIVE`,
             :const:`STOPBITS_TWO`
 
         :param timeout:
@@ -653,29 +653,30 @@ Exceptions
 Constants
 =========
 
-Parity
-------
+*Parity*
+
 .. data:: PARITY_NONE
 .. data:: PARITY_EVEN
 .. data:: PARITY_ODD
 .. data:: PARITY_MARK
 .. data:: PARITY_SPACE
 
-Stop bits
----------
+*Stop bits*
+
 .. data:: STOPBITS_ONE
 .. data:: STOPBITS_ONE_POINT_FIVE
 .. data:: STOPBITS_TWO
 
-Byte size
----------
+*Byte size*
+
 .. data:: FIVEBITS
 .. data:: SIXBITS
 .. data:: SEVENBITS
 .. data:: EIGHTBITS
 
-Others
--------
+
+*Others*
+
 Default control characters (instances of :class:`bytes` for Python 3.0+) for
 software flow control:
 
@@ -688,7 +689,10 @@ Module version:
 
     A string indicating the pySerial version, such as ``2.5``.
 
-Functions:
+    .. versionadded:: 2.3
+
+Module functions
+================
 
 .. function:: device(number)
 
@@ -723,6 +727,7 @@ Functions:
 
     .. versionadded:: 2.5
 
+
 .. _URLs:
 
 URLs
@@ -733,6 +738,11 @@ accept the following types URL:
 - ``rfc2217://<host>:<port>[/<option>[/<option>]]``
 - ``socket://<host>:<port>[/<option>[/<option>]]``
 - ``loop://[<option>[/<option>]]``
+
+Device names are also supported:
+
+- ``/dev/ttyUSB0`` (Linux)
+- ``COM3`` (Windows)
 
 (Future releases of pySerial might add more types).
 
