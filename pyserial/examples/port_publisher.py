@@ -277,20 +277,22 @@ class Forwarder(ZeroconfService):
     def handle_disconnect(self):
         """Socket gets disconnected"""
         # signal disconnected terminal with control lines
-        self.serial.setRTS(False)
-        self.serial.setDTR(False)
-        # restore original port configuration in case it was changed
-        self.serial.applySettingsDict(self.serial_settings_backup)
-        # stop RFC 2217 state machine
-        self.rfc2217 = None
-        # clear send buffer
-        self.buffer_ser2net = ''
-        # close network connection
-        if self.socket is not None:
-            self.socket.close()
-            self.socket = None
-            if not options.quiet:
-                print '%s: Disconnected' % self.device
+        try:
+            self.serial.setRTS(False)
+            self.serial.setDTR(False)
+        finally:
+            # restore original port configuration in case it was changed
+            self.serial.applySettingsDict(self.serial_settings_backup)
+            # stop RFC 2217 state machine
+            self.rfc2217 = None
+            # clear send buffer
+            self.buffer_ser2net = ''
+            # close network connection
+            if self.socket is not None:
+                self.socket.close()
+                self.socket = None
+                if not options.quiet:
+                    print '%s: Disconnected' % self.device
 
 
 def test():
@@ -479,5 +481,5 @@ If running as daemon, write to syslog. Otherwise write to stdout.
         except SystemExit:
             raise
         except:
-            raise
+            #~ raise
             traceback.print_exc()
