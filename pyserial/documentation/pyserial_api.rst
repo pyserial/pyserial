@@ -113,6 +113,9 @@ Native ports
             Accepts instances of :class:`bytes` and :class:`bytearray` when
             available (Python 2.6 and newer) and :class:`str` otherwise.
 
+        .. versionchanged:: 2.5
+            Write returned ``None`` in previous versions.
+
     .. method:: inWaiting()
 
         Return the number of chars in the receive buffer.
