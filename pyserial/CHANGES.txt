@@ -334,3 +334,4 @@ Bugfixes (win32):
 - [SF  2446218] outWaiting implemented
 - [Bug 2392892] scanwin32.py better exception handling
 - [Bug 2505422] scanwin32.py Vista 64bit compatibility
+- [Bug 2886763] hComPort doesn't get initialized for Serial(port=None)
