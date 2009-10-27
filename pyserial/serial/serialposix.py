@@ -431,30 +431,53 @@ class PosixSerial(SerialBase):
         s = fcntl.ioctl(self.fd, TIOCINQ, TIOCM_zero_str)
         return struct.unpack('I',s)[0]
 
-    def read(self, size=1):
-        """Read size bytes from the serial port. If a timeout is set it may
-           return less characters as requested. With no timeout it will block
-           until the requested number of bytes is read."""
-        if self.fd is None: raise portNotOpenError
-        read = bytearray()
-        poll = select.poll()
-        poll.register(self.fd, select.POLLIN|select.POLLERR|select.POLLHUP|select.POLLNVAL)
-        inp = None
-        if size > 0:
-            while len(read) < size:
-                # print "\tread(): size",size, "have", len(read)    #debug
-                # wait until device becomes ready to read (or something fails)
-                for fd, event in poll.poll(self._timeout):
-                    if event & (select.POLLERR|select.POLLHUP|select.POLLNVAL):
-                        raise SerialException('device reports error (poll)')
-                    #  we don't care if it is select.POLLIN or timeout, that's
-                    #  handled below
-                buf = os.read(self.fd, size - len(read))
-                read.extend(buf)
-                if ((self._timeout is not None and self._timeout >= 0) or 
-                    (self._interCharTimeout is not None and self._interCharTimeout > 0)) and not buf:
-                    break   # early abort on timeout
-        return bytes(read)
+    if plat[:5] != 'linux':
+        #~ print "XXX USING SELECT"
+        # select based implementation, proved to work on many systems
+        def read(self, size=1):
+            """Read size bytes from the serial port. If a timeout is set it may
+               return less characters as requested. With no timeout it will block
+               until the requested number of bytes is read."""
+            if self.fd is None: raise portNotOpenError
+            read = ''
+            if size > 0:
+                while len(read) < size:
+                    ready,_,_ = select.select([self.fd],[],[], self._timeout)
+                    if not ready:
+                        break   # timeout
+                    buf = os.read(self.fd, size-len(read))
+                    read = read + buf
+                    if (self._timeout >= 0 or self._interCharTimeout > 0) and not buf:
+                        break   # early abort on timeout
+            return bytes(read)
+    else:
+        #~ print "XXX USING POLL"
+        # poll based implementation. not all systems support poll properly.
+        # however this one has better handling of errors, such as a device
+        # disconnecting while it's in use (i.e. USB-serial unplugged)
+        def read(self, size=1):
+            """Read size bytes from the serial port. If a timeout is set it may
+               return less characters as requested. With no timeout it will block
+               until the requested number of bytes is read."""
+            if self.fd is None: raise portNotOpenError
+            read = bytearray()
+            poll = select.poll()
+            poll.register(self.fd, select.POLLIN|select.POLLERR|select.POLLHUP|select.POLLNVAL)
+            if size > 0:
+                while len(read) < size:
+                    # print "\tread(): size",size, "have", len(read)    #debug
+                    # wait until device becomes ready to read (or something fails)
+                    for fd, event in poll.poll(self._timeout):
+                        if event & (select.POLLERR|select.POLLHUP|select.POLLNVAL):
+                            raise SerialException('device reports error (poll)')
+                        #  we don't care if it is select.POLLIN or timeout, that's
+                        #  handled below
+                    buf = os.read(self.fd, size - len(read))
+                    read.extend(buf)
+                    if ((self._timeout is not None and self._timeout >= 0) or 
+                        (self._interCharTimeout is not None and self._interCharTimeout > 0)) and not buf:
+                        break   # early abort on timeout
+            return bytes(read)
 
     def write(self, data):
         """Output the given string over the serial port."""

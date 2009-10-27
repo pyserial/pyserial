@@ -317,6 +317,9 @@ New Features:
 - add ``serial.serial_for_url`` factory function (support for native ports and
   ``rfc2217``, ``socket`` and ``loop`` URLs)
 - add ``getSettingsDict`` and ``applySettingsDict`` serial object methods
+- use a ``poll`` based implementation on Linux, instead of a ``select``based
+  like on other posix systems. It provides better error handling, but ``poll``
+  is not supported well on all platforms.
 
 Bugfixes:
 
