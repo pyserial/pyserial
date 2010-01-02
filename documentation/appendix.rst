@@ -44,7 +44,7 @@ com0com - http://com0com.sourceforge.net/
 License
 =======
 
-Copyright (C) 2001-2010 Chris Liechti <cliechti(at)gmx.net>;
+Copyright (C) 2001-2009 Chris Liechti <cliechti(at)gmx.net>;
 All Rights Reserved.
 
 This is the Python license. In short, you can use this product in commercial

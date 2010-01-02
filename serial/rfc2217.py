@@ -689,10 +689,7 @@ class RFC2217Serial(SerialBase):
                         if byte == IAC:
                             # interpret as command doubled -> insert character
                             # itself
-                            if suboption is not None:
-                                suboption.append(IAC)
-                            else:
-                                self._read_buffer.put(IAC)
+                            self._read_buffer.put(IAC)
                             mode = M_NORMAL
                         elif byte == SB:
                             # sub option start
@@ -791,9 +788,8 @@ class RFC2217Serial(SerialBase):
         """Send DO, DONT, WILL, WONT."""
         self._internal_raw_write(to_bytes([IAC, action, option]))
 
-    def rfc2217SendSubnegotiation(self, option, value=''):
+    def rfc2217SendSubnegotiation(self, option, value=[]):
         """Subnegotiation of RFC2217 parameters."""
-        value = value.replace(IAC, IAC_DOUBLED)
         self._internal_raw_write(to_bytes([IAC, SB, COM_PORT_OPTION, option] + list(value) + [IAC, SE]))
 
     def rfc2217SendPurge(self, value):
@@ -931,9 +927,8 @@ class PortManager(object):
         """Send DO, DONT, WILL, WONT."""
         self.connection.write(to_bytes([IAC, action, option]))
 
-    def rfc2217SendSubnegotiation(self, option, value=''):
+    def rfc2217SendSubnegotiation(self, option, value=[]):
         """Subnegotiation of RFC 2217 parameters."""
-        value = value.replace(IAC, IAC_DOUBLED)
         self.connection.write(to_bytes([IAC, SB, COM_PORT_OPTION, option] + list(value) + [IAC, SE]))
 
     # - check modem lines, needs to be called periodically from user to
@@ -1019,10 +1014,7 @@ class PortManager(object):
                 if byte == IAC:
                     # interpret as command doubled -> insert character
                     # itself
-                    if self.suboption is not None:
-                        self.suboption.append(byte)
-                    else:
-                        yield byte
+                    yield IAC
                     self.mode = M_NORMAL
                 elif byte == SB:
                     # sub option start
@@ -1228,11 +1220,11 @@ class PortManager(object):
             elif suboption[1:2] == SET_LINESTATE_MASK:
                 self.linstate_mask = ord(suboption[2:3]) # ensure it is a number
                 if self.logger:
-                    self.logger.info("line state mask: 0x%02x" % (self.linstate_mask,))
+                    self.logger.info("line state mask: 0x%02" % (self.linstate_mask,))
             elif suboption[1:2] == SET_MODEMSTATE_MASK:
                 self.modemstate_mask = ord(suboption[2:3]) # ensure it is a number
                 if self.logger:
-                    self.logger.info("modem state mask: 0x%02x" % (self.modemstate_mask,))
+                    self.logger.info("modem state mask: 0x%02" % (self.modemstate_mask,))
             elif suboption[1:2] == PURGE_DATA:
                 if suboption[2:3] == PURGE_RECEIVE_BUFFER:
                     self.serial.flushInput()

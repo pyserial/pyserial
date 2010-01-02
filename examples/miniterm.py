@@ -26,7 +26,7 @@ def key_description(character):
 # for the shortcut keys is used and not the value at program start
 def get_help_text():
     return """
---- pySerial (%(version)s) - miniterm - help
+--- pySerial - miniterm - help
 ---
 --- %(exit)-8s Exit program
 --- %(menu)-8s Menu escape key, followed by:
@@ -48,7 +48,6 @@ def get_help_text():
 --- x X           disable/enable software flow control
 --- r R           disable/enable hardware flow control
 """ % {
-    'version': getattr(serial, 'VERSION', 'unkown'),
     'exit': key_description(EXITCHARCTER),
     'menu': key_description(MENUCHARACTER),
     'rts': key_description('\x12'),
@@ -81,7 +80,7 @@ if os.name == 'nt':
         def getkey(self):
             while 1:
                 z = msvcrt.getch()
-                if z == '\0' or z == '\xe0':    # functions keys
+                if z == '\0' or z == '\xe0':    #functions keys
                     msvcrt.getch()
                 else:
                     if z == '\r':
@@ -103,6 +102,7 @@ elif os.name == 'posix':
             new[6][termios.VMIN] = 1
             new[6][termios.VTIME] = 0
             termios.tcsetattr(self.fd, termios.TCSANOW, new)
+            #s = ''    # We'll save the characters typed and add them to the pool.
 
         def getkey(self):
             c = os.read(self.fd, 1)
@@ -133,12 +133,7 @@ REPR_MODES = ('raw', 'some control', 'all control', 'hex')
 
 class Miniterm:
     def __init__(self, port, baudrate, parity, rtscts, xonxoff, echo=False, convert_outgoing=CONVERT_CRLF, repr_mode=0):
-        try:
-            self.serial = serial.serial_for_url(port, baudrate, parity=parity, rtscts=rtscts, xonxoff=xonxoff, timeout=1)
-        except AttributeError:
-            # happens when the installed pyserial is older than 2.5. use the
-            # Serial class directly then.
-            self.serial = serial.Serial(port, baudrate, parity=parity, rtscts=rtscts, xonxoff=xonxoff, timeout=1)
+        self.serial = serial.serial_for_url(port, baudrate, parity=parity, rtscts=rtscts, xonxoff=xonxoff, timeout=1)
         self.echo = echo
         self.repr_mode = repr_mode
         self.convert_outgoing = convert_outgoing
@@ -195,42 +190,36 @@ class Miniterm:
 
     def reader(self):
         """loop and copy serial->console"""
-        try:
-            while self.alive:
-                data = self.serial.read(1)
+        while self.alive:
+            data = self.serial.read(1)
 
-                if self.repr_mode == 0:
-                    # direct output, just have to care about newline setting
-                    if data == '\r' and self.convert_outgoing == CONVERT_CR:
+            if self.repr_mode == 0:
+                # direct output, just have to care about newline setting
+                if data == '\r' and self.convert_outgoing == CONVERT_CR:
+                    sys.stdout.write('\n')
+                else:
+                    sys.stdout.write(data)
+            elif self.repr_mode == 1:
+                # escape non-printable, let pass newlines
+                if self.convert_outgoing == CONVERT_CRLF and data in '\r\n':
+                    if data == '\n':
                         sys.stdout.write('\n')
-                    else:
-                        sys.stdout.write(data)
-                elif self.repr_mode == 1:
-                    # escape non-printable, let pass newlines
-                    if self.convert_outgoing == CONVERT_CRLF and data in '\r\n':
-                        if data == '\n':
-                            sys.stdout.write('\n')
-                        elif data == '\r':
-                            pass
-                    elif data == '\n' and self.convert_outgoing == CONVERT_LF:
-                        sys.stdout.write('\n')
-                    elif data == '\r' and self.convert_outgoing == CONVERT_CR:
-                        sys.stdout.write('\n')
-                    else:
-                        sys.stdout.write(repr(data)[1:-1])
-                elif self.repr_mode == 2:
-                    # escape all non-printable, including newline
+                    elif data == '\r':
+                        pass
+                elif data == '\n' and self.convert_outgoing == CONVERT_LF:
+                    sys.stdout.write('\n')
+                elif data == '\r' and self.convert_outgoing == CONVERT_CR:
+                    sys.stdout.write('\n')
+                else:
                     sys.stdout.write(repr(data)[1:-1])
-                elif self.repr_mode == 3:
-                    # escape everything (hexdump)
-                    for character in data:
-                        sys.stdout.write("%s " % character.encode('hex'))
-                sys.stdout.flush()
-        except serial.SerialException, e:
-            self.alive = False
-            # would be nice if the console reader could be interruptted at this
-            # point...
-            raise
+            elif self.repr_mode == 2:
+                # escape all non-printable, including newline
+                sys.stdout.write(repr(data)[1:-1])
+            elif self.repr_mode == 3:
+                # escape everything (hexdump)
+                for character in data:
+                    sys.stdout.write("%s " % character.encode('hex'))
+            sys.stdout.flush()
 
 
     def writer(self):

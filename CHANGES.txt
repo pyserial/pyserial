@@ -298,7 +298,7 @@ Bugfixes (jython):
  - The Jython backend tries javax.comm and gnu.io (Seo Sanghyeon)
 
 
-Version 2.5-rc1  2009-07-30
+Version 2.5      <date>
 ---------------------------
 New Features:
 
@@ -307,14 +307,16 @@ New Features:
 - Support for Win32 is now written on the top of ctypes (bundled with
   Python 2.5+) instead of pywin32 (patch by Giovanni Bajo).
 - 1.5 stop bits (STOPBITS_ONE_POINT_FIVE, implemented on all platforms)
+- Documentation update, now written with Sphinx/ReST
 - miniterm application extended (CTRL+T -> menu)
 - miniterm.py is now installed as "script"
 - add scanlinux.py example
 - add port_publisher example
+- experimental RFC-2217 client support (serial.rfc2217.Serial, see docs)
 - experimental RFC-2217 server support (examples/rfc2217_server.py)
+- add ``serial.serial_for_url`` factory function (support for native ports and
+  ``rfc2217``, ``socket`` and ``loop`` URLs)
 - add ``getSettingsDict`` and ``applySettingsDict`` serial object methods
-- use a ``poll`` based implementation on Posix, instead of a ``select`` based,
-  provides better error handling.
 
 Bugfixes:
 
@@ -332,41 +334,3 @@ Bugfixes (win32):
 - [SF  2446218] outWaiting implemented
 - [Bug 2392892] scanwin32.py better exception handling
 - [Bug 2505422] scanwin32.py Vista 64bit compatibility
-
-
-Version 2.5-rc2  2010-01-02
----------------------------
-New Features:
-
-- Documentation update, now written with Sphinx/ReST
-- Updated miniterm.py example
-- experimental RFC-2217 client support (serial.rfc2217.Serial, see docs)
-- add ``loop://`` device for testing.
-- add ``serial.serial_for_url`` factory function (support for native ports and
-  ``rfc2217``, ``socket`` and ``loop`` URLs)
-- add new example: ``rfc2217_server.py``
-- tests live in their own directory now (no longer in examples)
-
-Bugfixes:
-
-- [Bug 2915810] Fix for suboption parsing in rfc2217
-- Packaging bug (missed some files)
-
-Bugfixes (posix):
-
-- improve write timeout behavior
-- [Bug 2836297] move Linux specific constants to not break other platforms
-- ``poll`` based implementation for ``read`` is in a separate class
-  ``PosixPollSerial``, as it is not supported well on all platforms (the
-  default ``Serial`` class uses select).
-- changed error handling in ``read`` so that disconnected devices are
-  detected.
-
-
-Bugfixes (win32):
-
-- [Bug 2886763] hComPort doesn't get initialized for Serial(port=None)
-
-
-Version 2.5      <date>
----------------------------

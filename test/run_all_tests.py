@@ -15,12 +15,7 @@ import time
 # working copy
 sys.path.insert(0, '..')
 
-import serial
-print "Patching sys.path to test local version. Testing Version: %s" % (serial.VERSION,)
-
 PORT = 'loop://'
-if len(sys.argv) > 1:
-    PORT = sys.argv[1]
 
 # find files and the tests in them
 mainsuite = unittest.TestSuite()

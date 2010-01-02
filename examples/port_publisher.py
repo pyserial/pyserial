@@ -263,7 +263,7 @@ class Forwarder(ZeroconfService):
                 print '%s: Connected by %s:%s' % (self.device, addr[0], addr[1])
             self.serial.setRTS(True)
             self.serial.setDTR(True)
-            self.rfc2217 = serial.rfc2217.PortManager(self.serial, self)
+            self.rfc2217 = serial.rfc2217.PortManager(self.serial, self, debug_output=False)
         else:
             # reject connection if there is already one
             connection.close()
@@ -277,22 +277,20 @@ class Forwarder(ZeroconfService):
     def handle_disconnect(self):
         """Socket gets disconnected"""
         # signal disconnected terminal with control lines
-        try:
-            self.serial.setRTS(False)
-            self.serial.setDTR(False)
-        finally:
-            # restore original port configuration in case it was changed
-            self.serial.applySettingsDict(self.serial_settings_backup)
-            # stop RFC 2217 state machine
-            self.rfc2217 = None
-            # clear send buffer
-            self.buffer_ser2net = ''
-            # close network connection
-            if self.socket is not None:
-                self.socket.close()
-                self.socket = None
-                if not options.quiet:
-                    print '%s: Disconnected' % self.device
+        self.serial.setRTS(False)
+        self.serial.setDTR(False)
+        # restore original port configuration in case it was changed
+        self.serial.applySettingsDict(self.serial_settings_backup)
+        # stop RFC 2217 state machine
+        self.rfc2217 = None
+        # clear send buffer
+        self.buffer_ser2net = ''
+        # close network connection
+        if self.socket is not None:
+            self.socket.close()
+            self.socket = None
+            if not options.quiet:
+                print '%s: Disconnected' % self.device
 
 
 def test():
@@ -481,5 +479,5 @@ If running as daemon, write to syslog. Otherwise write to stdout.
         except SystemExit:
             raise
         except:
-            #~ raise
+            raise
             traceback.print_exc()
