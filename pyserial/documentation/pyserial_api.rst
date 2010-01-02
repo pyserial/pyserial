@@ -670,6 +670,9 @@ Constants
 .. data:: STOPBITS_ONE_POINT_FIVE
 .. data:: STOPBITS_TWO
 
+Note that 1.5 stop bits are not supported on Posix. It will fall back to 2 stop
+bits.
+
 *Byte size*
 
 .. data:: FIVEBITS
