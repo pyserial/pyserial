@@ -4,7 +4,7 @@
 # module for serial IO for POSIX compatible systems, like Linux
 # see __init__.py
 #
-# (C) 2001-2009 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2010 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 #
 # parts based on code from Grant B. Edwards  <grante@visi.com>:
@@ -197,7 +197,7 @@ elif plat[:3] == 'aix':      # AIX
     baudrate_constants = {}
 
 else:
-    #platform detection has failed...
+    # platform detection has failed...
     sys.stderr.write("""\
 don't know how to number ttys on this system.
 ! Use an explicit path (eg /dev/ttyS1) or send this information to
@@ -295,7 +295,7 @@ class PosixSerial(SerialBase):
     def _reconfigurePort(self):
         """Set communication parameters on opened port."""
         if self.fd is None:
-            raise SerialException("Can only operate on a valid port handle")
+            raise SerialException("Can only operate on a valid file descriptor")
         custom_baud = None
 
         vmin = vtime = 0                # timeout is done via select
@@ -431,53 +431,31 @@ class PosixSerial(SerialBase):
         s = fcntl.ioctl(self.fd, TIOCINQ, TIOCM_zero_str)
         return struct.unpack('I',s)[0]
 
-    if plat[:5] != 'linux':
-        #~ print "XXX USING SELECT"
-        # select based implementation, proved to work on many systems
-        def read(self, size=1):
-            """Read size bytes from the serial port. If a timeout is set it may
-               return less characters as requested. With no timeout it will block
-               until the requested number of bytes is read."""
-            if self.fd is None: raise portNotOpenError
-            read = ''
-            if size > 0:
-                while len(read) < size:
-                    ready,_,_ = select.select([self.fd],[],[], self._timeout)
-                    if not ready:
-                        break   # timeout
-                    buf = os.read(self.fd, size-len(read))
-                    read = read + buf
-                    if (self._timeout >= 0 or self._interCharTimeout > 0) and not buf:
-                        break   # early abort on timeout
-            return bytes(read)
-    else:
-        #~ print "XXX USING POLL"
-        # poll based implementation. not all systems support poll properly.
-        # however this one has better handling of errors, such as a device
-        # disconnecting while it's in use (i.e. USB-serial unplugged)
-        def read(self, size=1):
-            """Read size bytes from the serial port. If a timeout is set it may
-               return less characters as requested. With no timeout it will block
-               until the requested number of bytes is read."""
-            if self.fd is None: raise portNotOpenError
-            read = bytearray()
-            poll = select.poll()
-            poll.register(self.fd, select.POLLIN|select.POLLERR|select.POLLHUP|select.POLLNVAL)
-            if size > 0:
-                while len(read) < size:
-                    # print "\tread(): size",size, "have", len(read)    #debug
-                    # wait until device becomes ready to read (or something fails)
-                    for fd, event in poll.poll(self._timeout):
-                        if event & (select.POLLERR|select.POLLHUP|select.POLLNVAL):
-                            raise SerialException('device reports error (poll)')
-                        #  we don't care if it is select.POLLIN or timeout, that's
-                        #  handled below
-                    buf = os.read(self.fd, size - len(read))
-                    read.extend(buf)
-                    if ((self._timeout is not None and self._timeout >= 0) or 
-                        (self._interCharTimeout is not None and self._interCharTimeout > 0)) and not buf:
-                        break   # early abort on timeout
-            return bytes(read)
+    # select based implementation, proved to work on many systems
+    def read(self, size=1):
+        """Read size bytes from the serial port. If a timeout is set it may
+           return less characters as requested. With no timeout it will block
+           until the requested number of bytes is read."""
+        if self.fd is None: raise portNotOpenError
+        read = bytearray()
+        while len(read) < size:
+            ready,_,_ = select.select([self.fd],[],[], self._timeout)
+            # If select was used with a timeout, and the timeout occurs, it
+            # returns with empty lists -> thus abort read operation.
+            # For timeout == 0 (non-blocking operation) also abort when there
+            # is nothing to read.
+            if not ready:
+                break   # timeout
+            buf = os.read(self.fd, size-len(read))
+            # read should always return some data as select reported it was
+            # ready to read when we get to this point.
+            if not buf:
+                # Disconnected devices, at least on Linux, show the
+                # behavior that they are always ready to read immediately
+                # but reading returns nothing.
+                raise SerialException('device reports readiness to read but returned no data (device disconnected?)')
+            read.extend(buf)
+        return bytes(read)
 
     def write(self, data):
         """Output the given string over the serial port."""
@@ -620,6 +598,35 @@ else:
     # io library present
     class Serial(PosixSerial, io.RawIOBase):
         pass
+
+class PosixPollSerial(Serial):
+    """poll based read implementation. not all systems support poll properly.
+    however this one has better handling of errors, such as a device
+    disconnecting while it's in use (e.g. USB-serial unplugged)"""
+
+    def read(self, size=1):
+        """Read size bytes from the serial port. If a timeout is set it may
+           return less characters as requested. With no timeout it will block
+           until the requested number of bytes is read."""
+        if self.fd is None: raise portNotOpenError
+        read = bytearray()
+        poll = select.poll()
+        poll.register(self.fd, select.POLLIN|select.POLLERR|select.POLLHUP|select.POLLNVAL)
+        if size > 0:
+            while len(read) < size:
+                # print "\tread(): size",size, "have", len(read)    #debug
+                # wait until device becomes ready to read (or something fails)
+                for fd, event in poll.poll(self._timeout):
+                    if event & (select.POLLERR|select.POLLHUP|select.POLLNVAL):
+                        raise SerialException('device reports error (poll)')
+                    #  we don't care if it is select.POLLIN or timeout, that's
+                    #  handled below
+                buf = os.read(self.fd, size - len(read))
+                read.extend(buf)
+                if ((self._timeout is not None and self._timeout >= 0) or 
+                    (self._interCharTimeout is not None and self._interCharTimeout > 0)) and not buf:
+                    break   # early abort on timeout
+        return bytes(read)
 
 
 if __name__ == '__main__':
