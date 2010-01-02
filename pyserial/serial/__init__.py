@@ -3,10 +3,10 @@
 # portable serial port access with python
 # this is a wrapper module for different platform implementations
 #
-# (C) 2001-2009 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2010 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
-VERSION = '2.5'
+VERSION = '2.5-rc2'
 
 import sys
 
