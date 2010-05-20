@@ -5,7 +5,7 @@
 # (C) 2001-2009 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
-# compatibility folder Python < 2.6 
+# compatibility for older Python < 2.6 
 try:
     bytes
     bytearray
@@ -164,7 +164,7 @@ class SerialBase(object):
                  xonxoff=0,             # enable software flow control
                  rtscts=0,              # enable RTS/CTS flow control
                  writeTimeout=None,     # set a timeout for writes
-                 dsrdtr=None,           # None: use rtscts setting, dsrdtr override if true or false
+                 dsrdtr=False,          # None: use rtscts setting, dsrdtr override if True or False
                  interCharTimeout=None  # Inter-character timeout, None to disable
                  ):
         """Initialize comm port object. If a port is given, then the port will be
