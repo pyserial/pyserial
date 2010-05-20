@@ -221,7 +221,7 @@ class Win32Serial(SerialBase):
                 if n > 0:
                     buf = ctypes.create_string_buffer(n)
                     rc = win32.DWORD()
-                    err = win32.ReadFile(self.hComPort, buf, size, ctypes.byref(rc), ctypes.byref(self._overlappedRead))
+                    err = win32.ReadFile(self.hComPort, buf, n, ctypes.byref(rc), ctypes.byref(self._overlappedRead))
                     if not err and win32.GetLastError() != win32.ERROR_IO_PENDING:
                         raise SerialException("ReadFile failed (%s)" % ctypes.WinError())
                     err = win32.WaitForSingleObject(self._overlappedRead.hEvent, win32.INFINITE)
