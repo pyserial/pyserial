@@ -34,7 +34,7 @@ PORT = 0
 if sys.version_info >= (3, 0):
     def data(string):
         return bytes(string, 'latin1')
-    bytes_0to255 = bytes([range(256)])
+    bytes_0to255 = bytes(range(256))
 else:
     def data(string): return string
     bytes_0to255 = ''.join([chr(x) for x in range(256)])
