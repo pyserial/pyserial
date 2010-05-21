@@ -28,7 +28,7 @@ if sys.version < '2.3':
 setup(
     name = "pyserial" + suffix,
     description = "Python Serial Port Extension",
-    version = "2.5-rc2",
+    version = "2.5",
     author = "Chris Liechti",
     author_email = "cliechti@gmx.net",
     url = "http://pyserial.sourceforge.net/",
@@ -50,6 +50,7 @@ setup(
         'Programming Language :: Python :: 2.4',
         'Programming Language :: Python :: 2.5',
         'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.0',
         'Programming Language :: Python :: 3.1',

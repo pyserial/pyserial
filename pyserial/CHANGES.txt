@@ -370,3 +370,19 @@ Bugfixes (win32):
 
 Version 2.5      <date>
 ---------------------------
+New Features:
+
+- [Bug 2976262] dsrdtr should default to False
+  ``dsrdtr`` parameter default value changed from ``None`` (follow ``rtscts``
+  setting) to ``False``. This means ``rtscts=True`` enables hardware flow
+  control on RTS/CTS but no longer also on DTR/DSR. This change mostly
+  affects Win32 as on other platforms, that setting was ignored anyway.
+
+Bugfixes:
+
+- [Bug 2925854] test.py produces exception with python 3.1
+
+Bugfixes (win32):
+
+- [Bug 2998169] Memory corruption at faster transmission speeds.
+

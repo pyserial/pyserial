@@ -12,7 +12,7 @@ Native ports
 
 .. class:: Serial
 
-    .. method:: __init__(port=None, baudrate=9600, bytesize=EIGHTBITS, parity=PARITY_NONE, stopbits=STOPBITS_ONE, timeout=None, xonxoff=0, rtscts=0, interCharTimeout=None)
+    .. method:: __init__(port=None, baudrate=9600, bytesize=EIGHTBITS, parity=PARITY_NONE, stopbits=STOPBITS_ONE, timeout=None, xonxoff=0, rtscts=0, writeTimeout=None, dsrdtr=False, interCharTimeout=None)
 
         :param port:
             Device name or port number number or :const:`None`.
@@ -44,6 +44,12 @@ Native ports
         :param rtscts:
             Enable hardware (RTS/CTS) flow control.
 
+        :param dsrdtr:
+            Enable hardware (DSR/DTR) flow control.
+
+        :param writeTimeout:
+            Set a write timeout value.
+
         :param interCharTimeout:
             Inter-character timeout, :const:`None` to disable (default).
 
@@ -70,9 +76,15 @@ Native ports
         - ``timeout = 0``:     non-blocking mode (return immediately on read)
         - ``timeout = x``:     set timeout to ``x`` seconds (float allowed)
 
+        Writes are blocking by default unless *writeTimeout* is set. For possible
+        values refer to the list for *timeout* above.
+
         Note that enabling both flow control methods (*xonxoff* and *rtscts*)
         together may not be supported. It is common to use one of the methods
         at once, not both.
+
+        *dsrdtr* is not supported by all platforms (silently ignored). Setting
+        it to ``None`` has the effect that its state follows *rtscts*.
 
     .. method:: open()
 
