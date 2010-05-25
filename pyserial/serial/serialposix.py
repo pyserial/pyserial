@@ -568,7 +568,7 @@ class PosixSerial(SerialBase):
         """internal - not portable!"""
         if self.fd is None:
             raise portNotOpenError
-        fcntl.fcntl(self.fd, FCNTL.F_SETFL, FCNTL.O_NONBLOCK)
+        fcntl.fcntl(self.fd, FCNTL.F_SETFL, os.O_NONBLOCK)
 
     def fileno(self):
         """For easier use of the serial port instance with select.

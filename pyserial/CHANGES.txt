@@ -382,6 +382,10 @@ Bugfixes:
 
 - [Bug 2925854] test.py produces exception with python 3.1
 
+Bugfixes (posix):
+
+- [BUG 3006606] Nonblocking error - Unix platform
+
 Bugfixes (win32):
 
 - [Bug 2998169] Memory corruption at faster transmission speeds.
