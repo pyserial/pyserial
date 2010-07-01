@@ -26,7 +26,7 @@ if len(sys.argv) > 1:
 mainsuite = unittest.TestSuite()
 for modulename in [os.path.splitext(x)[0]
     for x in os.listdir('.')
-        if x != __file__ and x.startswith("test_") and x.endswith(".py")
+        if x != __file__ and x.startswith("test") and x.endswith(".py")
 ]:
     try:
         module = __import__(modulename)
