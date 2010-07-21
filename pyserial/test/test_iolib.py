@@ -3,7 +3,7 @@
 # Python Serial Port Extension for Win32, Linux, BSD, Jython
 # see __init__.py
 #
-# (C) 2001-2008 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2009 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
 """\
