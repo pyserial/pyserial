@@ -161,8 +161,8 @@ class SerialBase(object):
                  parity=PARITY_NONE,    # enable parity checking
                  stopbits=STOPBITS_ONE, # number of stop bits
                  timeout=None,          # set a timeout value, None to wait forever
-                 xonxoff=0,             # enable software flow control
-                 rtscts=0,              # enable RTS/CTS flow control
+                 xonxoff=False,         # enable software flow control
+                 rtscts=False,          # enable RTS/CTS flow control
                  writeTimeout=None,     # set a timeout for writes
                  dsrdtr=False,          # None: use rtscts setting, dsrdtr override if True or False
                  interCharTimeout=None  # Inter-character timeout, None to disable
