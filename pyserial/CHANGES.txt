@@ -314,7 +314,7 @@ New Features:
 - experimental RFC-2217 server support (examples/rfc2217_server.py)
 - add ``getSettingsDict`` and ``applySettingsDict`` serial object methods
 - use a ``poll`` based implementation on Posix, instead of a ``select`` based,
-  provides better error handling.
+  provides better error handling [removed again in later releases].
 
 Bugfixes:
 
@@ -368,7 +368,7 @@ Bugfixes (win32):
 - [Bug 2886763] hComPort doesn't get initialized for Serial(port=None)
 
 
-Version 2.5      <date>
+Version 2.5      2010-07-22
 ---------------------------
 New Features:
 
@@ -379,7 +379,9 @@ New Features:
   affects Win32 as on other platforms, that setting was ignored anyway.
 - Improved xreadlines, it is now a generator function that yields lines as they
   are received (previously it called readlines which would only return all
-  lines read after a read-timeout).
+  lines read after a read-timeout). However xreadlines is deprecated an not
+  available when the io module is used. Use ``for line in Serial(...):``
+  instead.
 
 Bugfixes:
 
@@ -393,4 +395,5 @@ Bugfixes (posix):
 Bugfixes (win32):
 
 - [Bug 2998169] Memory corruption at faster transmission speeds.
+  (bug introduced in 2.5-rc1)
 
