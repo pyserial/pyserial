@@ -440,7 +440,7 @@ class SerialBase(object):
 
     def readline(self, size=None, eol='\n'):
         """read a line which is terminated with end-of-line (eol) character
-        ('\n' by default) or until timeout"""
+        ('\n' by default) or until timeout."""
         line = bytearray()
         while 1:
             c = self.read(1)
@@ -455,8 +455,8 @@ class SerialBase(object):
         return bytes(line)
 
     def readlines(self, sizehint=None, eol='\n'):
-        """read a list of lines, until timeout
-        sizehint is ignored"""
+        """read a list of lines, until timeout.
+        sizehint is ignored."""
         if self.timeout is None:
             raise ValueError("Serial port MUST have enabled timeout for this function!")
         lines = []
@@ -471,8 +471,12 @@ class SerialBase(object):
         return lines
 
     def xreadlines(self, sizehint=None):
-        """just call readlines - here for compatibility"""
-        return self.readlines()
+        """Read lines, implemented as generator. It will raise StopIteration on
+        timeout (empty read). sizehint is ignored."""
+        while True:
+            line = self.readline()
+            if not line: break
+            yield line
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     # compatibility with io library

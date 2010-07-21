@@ -377,6 +377,9 @@ New Features:
   setting) to ``False``. This means ``rtscts=True`` enables hardware flow
   control on RTS/CTS but no longer also on DTR/DSR. This change mostly
   affects Win32 as on other platforms, that setting was ignored anyway.
+- Improved xreadlines, it is now a generator function that yields lines as they
+  are received (previously it called readlines which would only return all
+  lines read after a read-timeout).
 
 Bugfixes:
 
