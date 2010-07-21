@@ -616,7 +616,7 @@ class PosixPollSerial(Serial):
             while len(read) < size:
                 # print "\tread(): size",size, "have", len(read)    #debug
                 # wait until device becomes ready to read (or something fails)
-                for fd, event in poll.poll(self._timeout):
+                for fd, event in poll.poll(self._timeout*1000):
                     if event & (select.POLLERR|select.POLLHUP|select.POLLNVAL):
                         raise SerialException('device reports error (poll)')
                     #  we don't care if it is select.POLLIN or timeout, that's
