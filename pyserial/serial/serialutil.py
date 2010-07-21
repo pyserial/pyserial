@@ -5,7 +5,7 @@
 # (C) 2001-2009 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
-# compatibility for older Python < 2.6 
+# compatibility for older Python < 2.6
 try:
     bytes
     bytearray
@@ -43,6 +43,9 @@ def to_bytes(seq):
 # create control bytes
 XON  = to_bytes([17])
 XOFF = to_bytes([19])
+
+CR = to_bytes([13])
+LF = to_bytes([10])
 
 
 PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE = 'N', 'E', 'O', 'M', 'S'
@@ -119,6 +122,48 @@ class FileLike(object):
 
     def __iter__(self):
         return self
+
+
+    def readline(self, size=None, eol=LF):
+        """read a line which is terminated with end-of-line (eol) character
+        ('\n' by default) or until timeout."""
+        leneol = len(eol)
+        line = bytearray()
+        while True:
+            c = self.read(1)
+            if c:
+                line += c
+                if line[-leneol:] == eol:
+                    break
+                if size is not None and len(line) >= size:
+                    break
+            else:
+                break
+        return bytes(line)
+
+    def readlines(self, sizehint=None, eol='\n'):
+        """read a list of lines, until timeout.
+        sizehint is ignored."""
+        if self.timeout is None:
+            raise ValueError("Serial port MUST have enabled timeout for this function!")
+        lines = []
+        while True:
+            line = self.readline(eol=eol)
+            if line:
+                lines.append(line)
+                if line[-1] != eol:    # was the line received with a timeout?
+                    break
+            else:
+                break
+        return lines
+
+    def xreadlines(self, sizehint=None):
+        """Read lines, implemented as generator. It will raise StopIteration on
+        timeout (empty read). sizehint is ignored."""
+        while True:
+            line = self.readline()
+            if not line: break
+            yield line
 
     # other functions of file-likes - not used by pySerial
 
@@ -436,47 +481,6 @@ class SerialBase(object):
             self.dsrdtr,
         )
 
-    #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-    def readline(self, size=None, eol='\n'):
-        """read a line which is terminated with end-of-line (eol) character
-        ('\n' by default) or until timeout."""
-        line = bytearray()
-        while 1:
-            c = self.read(1)
-            if c:
-                line += c
-                if c == eol:
-                    break
-                if size is not None and len(line) >= size:
-                    break
-            else:
-                break
-        return bytes(line)
-
-    def readlines(self, sizehint=None, eol='\n'):
-        """read a list of lines, until timeout.
-        sizehint is ignored."""
-        if self.timeout is None:
-            raise ValueError("Serial port MUST have enabled timeout for this function!")
-        lines = []
-        while 1:
-            line = self.readline(eol=eol)
-            if line:
-                lines.append(line)
-                if line[-1] != eol:    # was the line received with a timeout?
-                    break
-            else:
-                break
-        return lines
-
-    def xreadlines(self, sizehint=None):
-        """Read lines, implemented as generator. It will raise StopIteration on
-        timeout (empty read). sizehint is ignored."""
-        while True:
-            line = self.readline()
-            if not line: break
-            yield line
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     # compatibility with io library
