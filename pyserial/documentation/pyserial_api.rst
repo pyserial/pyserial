@@ -12,7 +12,7 @@ Native ports
 
 .. class:: Serial
 
-    .. method:: __init__(port=None, baudrate=9600, bytesize=EIGHTBITS, parity=PARITY_NONE, stopbits=STOPBITS_ONE, timeout=None, xonxoff=0, rtscts=0, writeTimeout=None, dsrdtr=False, interCharTimeout=None)
+    .. method:: __init__(port=None, baudrate=9600, bytesize=EIGHTBITS, parity=PARITY_NONE, stopbits=STOPBITS_ONE, timeout=None, xonxoff=False, rtscts=False, writeTimeout=None, dsrdtr=False, interCharTimeout=None)
 
         :param port:
             Device name or port number number or :const:`None`.
@@ -85,6 +85,9 @@ Native ports
 
         *dsrdtr* is not supported by all platforms (silently ignored). Setting
         it to ``None`` has the effect that its state follows *rtscts*.
+
+        .. versionchanged:: 2.5
+            *dsrdtr* now defaults fo False (instead of *None*)
 
     .. method:: open()
 

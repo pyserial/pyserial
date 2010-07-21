@@ -12,7 +12,7 @@ automatically selects the appropriate backend.
 It is released under a free software license, see LICENSE_ for more
 details.
 
-Copyright (C) 2001-2009 Chris Liechti <cliechti(at)gmx.net>
+Copyright (C) 2001-2010 Chris Liechti <cliechti(at)gmx.net>
 
 Other pages (online)
 
@@ -62,15 +62,23 @@ is required..
 
 From source (tar.gz or checkout)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-http://pypi.python.org/pypi/pyserial
+Download the archive from http://pypi.python.org/pypi/pyserial.
 Unpack the archive, enter the ``pyserial-x.y`` directory and run::
 
     python setup.py install
 
-Setuptools/PyPI
-~~~~~~~~~~~~~~~
+For Python 3.x::
+
+    python3 setup.py install
+
+From PyPI
+~~~~~~~~~
 Alternatively it can be installed from PyPI, either manually downloading the
 files and installing as described above or using::
+
+    pip pyserial
+
+or::
 
     easy_install -U pyserial
 
@@ -79,7 +87,8 @@ Packages
 There are also packaged versions for some Linux distributions and Windows:
 
 Debian/Ubuntu
-    A package is available under the name "python-serial".
+    A package is available under the name "python-serial". Note that some
+    distributions package an older version of pySerial.
 
 Windows
     There is also a Windows installer for end users. It is located in the
