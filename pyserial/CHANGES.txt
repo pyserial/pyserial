@@ -381,6 +381,7 @@ New Features:
 Bugfixes:
 
 - [Bug 2925854] test.py produces exception with python 3.1
+- [Bug 3029812] 2.5rc2 readline(s) doesn't work
 
 Bugfixes (posix):
 

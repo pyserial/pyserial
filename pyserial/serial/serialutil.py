@@ -441,11 +441,11 @@ class SerialBase(object):
     def readline(self, size=None, eol='\n'):
         """read a line which is terminated with end-of-line (eol) character
         ('\n' by default) or until timeout"""
-        line = ''
+        line = bytearray()
         while 1:
             c = self.read(1)
             if c:
-                line += c   # not very efficient but lines are usually not that long
+                line += c
                 if c == eol:
                     break
                 if size is not None and len(line) >= size:
