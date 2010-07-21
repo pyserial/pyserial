@@ -340,6 +340,9 @@ test_advanced.py_
 test_high_load.py_
     Tests involving sending a lot of data.
 
+test_readline.py_
+    Tests involving readline.
+
 test_iolib.py_
     Tests involving the :mod:`io` library. Only available for Python 2.6 and
     newer.
@@ -348,4 +351,5 @@ test_iolib.py_
 .. _test.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test.py
 .. _test_advanced.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_advanced.py
 .. _test_high_load.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_high_load.py
+.. _test_readline.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_readline.py
 .. _test_iolib.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_iolib.py

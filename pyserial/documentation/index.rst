@@ -17,7 +17,7 @@ Other pages (online)
 
 .. _`project page on SourceForge`: http://sourceforge.net/projects/pyserial/
 .. _`SVN repository`: http://sourceforge.net/svn/?group_id=46487
-.. _`Download Page`: http://sourceforge.net/project/showfiles.php?group_id=46487
+.. _`Download Page`: http://pypi.python.org/pypi/pyserial
 
 
 Contents:

@@ -70,14 +70,26 @@ Native ports
         - Device name: depending on operating system. e.g. ``/dev/ttyUSB0``
           on GNU/Linux or ``COM3`` on Windows.
 
+        The parameter *baudrate* can be one of the standard values:
+        50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
+        9600, 19200, 38400, 57600, 115200.
+        These are well supported on all platforms. Standard values above 115200
+        such as: 230400, 460800, 500000, 576000, 921600, 1000000, 1152000,
+        1500000, 2000000, 2500000, 3000000, 3500000, 4000000 also work on many
+        platforms.
+
+        Non-standard values are also suported on some platforms (GNU/Linux, MAC
+        OSX >= Tiger, Windows). Though, even on these platforms some serial
+        ports may reject non-standard values.
+
         Possible values for the parameter *timeout*:
 
         - ``timeout = None``:  wait forever
         - ``timeout = 0``:     non-blocking mode (return immediately on read)
         - ``timeout = x``:     set timeout to ``x`` seconds (float allowed)
 
-        Writes are blocking by default unless *writeTimeout* is set. For possible
-        values refer to the list for *timeout* above.
+        Writes are blocking by default, unless *writeTimeout* is set. For
+        possible values refer to the list for *timeout* above.
 
         Note that enabling both flow control methods (*xonxoff* and *rtscts*)
         together may not be supported. It is common to use one of the methods
@@ -85,6 +97,9 @@ Native ports
 
         *dsrdtr* is not supported by all platforms (silently ignored). Setting
         it to ``None`` has the effect that its state follows *rtscts*.
+
+        Also consider using the function :func:`serial_for_url` instead of
+        creating Serial instances directly.
 
         .. versionchanged:: 2.5
             *dsrdtr* now defaults fo False (instead of *None*)
@@ -96,6 +111,10 @@ Native ports
     .. method:: close()
 
         Close port immediately.
+
+    .. method:: __del__()
+
+        Destructor, close port when serial port instance is freed.
 
 
     The following methods may raise :exc:`ValueError` when applied to a closed
@@ -211,90 +230,9 @@ Native ports
 
         :deprecated: use :attr:`name` instead
 
-    .. attribute:: BAUDRATES
+    New values can be assigned to the following attributes (properties), the
+    port will be reconfigured, even if it's opened at that time:
 
-        A list of valid baud rates. The list may be incomplete such that higher
-        baud rates may be supported by the device and that values in between the
-        standard baud rates are supported. (Read Only).
-
-    .. attribute:: BYTESIZES
-
-        A list of valid byte sizes for the device (Read Only).
-
-    .. attribute:: PARITIES
-
-        A list of valid parities for the device (Read Only).
-
-    .. attribute:: STOPBITS
-
-        A list of valid stop bit widths for the device (Read Only).
-
-
-    New values can be assigned to the following attributes, the port will be
-    reconfigured, even if it's opened at that time:
-
-    .. attribute:: port
-
-        Port name/number as set by the user.
-
-    .. attribute:: baudrate
-
-        Current baud rate setting.
-
-    .. attribute:: bytesize
-
-        Byte size in bits.
-
-    .. attribute:: parity
-
-        Parity setting.
-
-    .. attribute:: stopbits
-
-        Stop bit with.
-
-    .. attribute:: timeout
-
-        Timeout setting (seconds, float).
-
-    .. attribute:: xonxoff
-
-        If Xon/Xoff flow control is enabled.
-
-    .. attribute:: rtscts
-
-        If hardware flow control is enabled.
-
-    Platform specific methods.
-
-    .. warning:: Programs using the following methods are not portable to other platforms!
-
-    .. method:: nonblocking()
-
-        :platform: Unix
-
-        Configure the device for nonblocking operations. This can be useful if
-        the port is used with ``select``.
-
-    .. method:: fileno()
-
-        :platform: Unix
-        :return: File descriptor.
-
-        Return file descriptor number for the port that is opened by this object.
-
-    .. method:: setXON(level=True)
-
-        :platform: Windows
-        :param level: Set flow control state.
-
-        Set software flow control state.
-
-
-.. class:: SerialBase
-
-    The following attributes are implemented as properties. They work with open
-    and closed ports.
 
     .. attribute:: port
 
@@ -345,23 +283,24 @@ Native ports
 
     .. attribute:: BAUDRATES
 
-        A tuple of standard baud rate values. The actual device may support more
-        or less...
+        A list of valid baud rates. The list may be incomplete such that higher
+        baud rates may be supported by the device and that values in between the
+        standard baud rates are supported. (Read Only).
 
     .. attribute:: BYTESIZES
 
-        A tuple of supported byte size values.
+        A list of valid byte sizes for the device (Read Only).
 
     .. attribute:: PARITIES
 
-        A tuple of supported parity settings.
+        A list of valid parities for the device (Read Only).
 
     .. attribute:: STOPBITS
 
-        A tuple of supported stop bit settings.
+        A list of valid stop bit widths for the device (Read Only).
 
 
-    For compatibility with the :mod:`io` library are the following methods.
+    The following methods are for compatibility with the :mod:`io` library.
 
     .. method:: readable()
 
@@ -391,6 +330,8 @@ Native ports
 
         .. versionadded:: 2.5
 
+    The port settings can be read and written as dictionary.
+
     .. method:: getSettingsDict()
 
         :return: a dictionary with current port settings.
@@ -415,6 +356,31 @@ Native ports
 
         .. versionadded:: 2.5
 
+    Platform specific methods.
+
+    .. warning:: Programs using the following methods are not portable to other platforms!
+
+    .. method:: nonblocking()
+
+        :platform: Unix
+
+        Configure the device for nonblocking operation. This can be useful if
+        the port is used with :mod:`select`.
+
+    .. method:: fileno()
+
+        :platform: Unix
+        :return: File descriptor.
+
+        Return file descriptor number for the port that is opened by this object.
+        It is useful when serial ports are used with :mod:`select`.
+
+    .. method:: setXON(level=True)
+
+        :platform: Windows
+        :param level: Set flow control state.
+
+        Set software flow control state.
 
 .. note::
 
@@ -422,15 +388,19 @@ Native ports
     class :class:`Serial` will derive from :class:`io.RawIOBase`. For all
     others from :class:`FileLike`.
 
+    Implementation detail: some attributes and functions are provided by the
+    class :class:`SerialBase` and some by the platform specific class and
+    others by the base class mentioned above.
+
 .. class:: FileLike
 
-    An abstract file like class. It is used as base class for :class:`Serial`.
+    An abstract file like class. It is used as base class for :class:`Serial`
+    when no :mod:`io` module is available.
 
-    This class implements :meth:`readline` and :meth:`readlines` based on read
-    and :meth:`writelines` based on write.  This class is used to provide the
-    above functions for to Serial port objects.
+    This class implements :meth:`readline` and :meth:`readlines` based on
+    :meth:`read` and :meth:`writelines` based on :meth:`write`.
 
-    Note that when the serial port was opened with no timeout that
+    Note that when the serial port was opened with no timeout, that
     :meth:`readline` blocks until it sees a newline (or the specified size is
     reached) and that :meth:`readlines` would never return and therefore
     refuses to work (it raises an exception in this case)!
@@ -482,7 +452,7 @@ Native ports
 
         .. versionadded:: 2.5
 
-    To be able to use the file like object as iterator for e.g. 
+    To be able to use the file like object as iterator for e.g.
     ``for line in Serial(0): ...`` usage:
 
     .. method:: next()
@@ -493,13 +463,15 @@ Native ports
 
         Returns self.
 
+    Other high level access functions.
+
     .. method:: readline(size=None, eol='\\n')
 
         :param size: Max number of bytes to read, ``None`` -> no limit.
         :param eol: The end of line character.
 
         Read a line which is terminated with end-of-line (*eol*) character
-        (``\\n`` by default) or until timeout.
+        (``\n`` by default) or until timeout.
 
     .. method:: readlines(sizehint=None, eol='\\n')
 
@@ -514,16 +486,17 @@ Native ports
     .. method:: xreadlines(sizehint=None)
 
         Read lines, implemented as generator. Unlike *readlines* (that only
-        returns on a timeout) is this function yielding lines are they are
-        recevied.
+        returns on a timeout) is this function yielding lines as they are
+        received.
 
         .. deprecated:: 2.5
-            Use ``for line in s`` instead. This method is not available in
-            Python 2.6 and newer where the *io* library is available and
-            pySerial bases on *io*.
+            Use ``for line in Serial(...): ...`` instead. This method is not
+            available in Python 2.6 and newer where the :mod:`io` library is
+            available and pySerial bases on it.
 
         .. versionchanged:: 2.5
             Implement as generator.
+
 
 :rfc:`2217` Network ports
 -------------------------
@@ -750,11 +723,8 @@ Module functions
 
     Get a native or a :rfc:`2217` implementation of the Serial class, depending
     on port/url. This factory function is useful when an application wants
-    to support both, local ports and remote ports.
-
-    When *url* matches the form ``rfc2217://<host>:<port>`` an instance of
-    :class:`rfc2217.Serial` is returned. In all other cases the native (system
-    dependant) :class:`Serial` instance is returned.
+    to support both, local ports and remote ports. There is also support
+    for other types, see :ref:`URL <URLs>` section below.
 
     The port is not opened when a keyword parameter called *do_not_open* is
     given and true, by default it is opened.
@@ -762,16 +732,17 @@ Module functions
     .. versionadded:: 2.5
 
 
-.. function:: to_bytes(seqeucne)
+.. function:: to_bytes(sequence)
 
     :param sequence: String or list of integers
+    :returns: an instance of ``bytes``
 
     Convert a sequence to a bytes type. This is used to write code that is
     compatible to Python 2.x and 3.x.
 
-    In Python versions prior 3.x bytes is a subclass of str. They convert
-    str([17]) to '[17]' instead of '\x11' so a simple bytes(sequence) doesn't
-    work for all versions of Python.
+    In Python versions prior 3.x, bytes is a subclass of str. They convert
+    ``str([17])`` to ``'[17]'`` instead of ``'\x11'`` so a simple
+    bytes(sequence) doesn't work for all versions of Python.
 
     This function is used internally and in the unit tests.
 
@@ -795,7 +766,7 @@ Device names are also supported, e.g.:
 
 ``rfc2217://``
     Used to connect to :rfc:`2217` compatible servers. All serial port
-    functions are supported.
+    functions are supported. Implemented by :class:`rfc2217.Serial`.
 
     Supported options in the URL are:
 
