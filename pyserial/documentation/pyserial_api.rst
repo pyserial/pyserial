@@ -360,25 +360,6 @@ Native ports
 
         A tuple of supported stop bit settings.
 
-    .. method:: readline(size=None, eol='\\n')
-
-        :param size: Max number of bytes to read, ``None`` -> no limit.
-        :param eol: The end of line character.
-
-        Read a line which is terminated with end-of-line (*eol*) character
-        (``\\n`` by default) or until timeout.
-
-    .. method:: readlines(sizehint=None, eol='\\n')
-
-        :param size: Ignored parameter.
-        :param eol: The end of line character.
-
-        Read a list of lines, until timeout. *sizehint* is ignored and only
-        present for API compatibility with built-in File objects.
-
-    .. method:: xreadlines(sizehint=None)
-
-        Just calls :meth:`readlines` - here for compatibility.
 
     For compatibility with the :mod:`io` library are the following methods.
 
@@ -512,6 +493,38 @@ Native ports
 
         Returns self.
 
+    .. method:: readline(size=None, eol='\\n')
+
+        :param size: Max number of bytes to read, ``None`` -> no limit.
+        :param eol: The end of line character.
+
+        Read a line which is terminated with end-of-line (*eol*) character
+        (``\\n`` by default) or until timeout.
+
+    .. method:: readlines(sizehint=None, eol='\\n')
+
+        :param size: Ignored parameter.
+        :param eol: The end of line character.
+
+        Read a list of lines, until timeout. *sizehint* is ignored and only
+        present for API compatibility with built-in File objects.
+
+        Note that this function only returns on a timeout.
+
+    .. method:: xreadlines(sizehint=None)
+
+        Read lines, implemented as generator. Unlike *readlines* (that only
+        returns on a timeout) is this function yielding lines are they are
+        recevied.
+
+        .. deprecated:: 2.5
+            Use ``for line in s`` instead. This method is not available in
+            Python 2.6 and newer where the *io* library is available and
+            pySerial bases on *io*.
+
+        .. versionchanged:: 2.5
+            Implement as generator.
+
 :rfc:`2217` Network ports
 -------------------------
 
@@ -620,7 +633,7 @@ Native ports
         sent over the network.
 
         The function returns a generator which can be used in ``for`` loops.
-        It can be converted to bytes using ``serial.to_bytes``.
+        It can be converted to bytes using :func:`serial.to_bytes`.
 
     .. method:: filter(data)
 
@@ -633,7 +646,7 @@ Native ports
         received from the network.
 
         The function returns a generator which can be used in ``for`` loops.
-        It can be converted to bytes using ``serial.to_bytes``.
+        It can be converted to bytes using :func:`serial.to_bytes`.
 
     .. method:: check_modem_lines(force_notification=False)
 
@@ -749,18 +762,31 @@ Module functions
     .. versionadded:: 2.5
 
 
+.. function:: to_bytes(seqeucne)
+
+    :param sequence: String or list of integers
+
+    Convert a sequence to a bytes type. This is used to write code that is
+    compatible to Python 2.x and 3.x.
+
+    In Python versions prior 3.x bytes is a subclass of str. They convert
+    str([17]) to '[17]' instead of '\x11' so a simple bytes(sequence) doesn't
+    work for all versions of Python.
+
+    This function is used internally and in the unit tests.
+
+
 .. _URLs:
 
 URLs
 ----
-The class :class:`rfc2217.Serial` and the function :func:`serial_for_url`
-accept the following types URL:
+The function :func:`serial_for_url` accepts the following types of URLs:
 
 - ``rfc2217://<host>:<port>[/<option>[/<option>]]``
 - ``socket://<host>:<port>[/<option>[/<option>]]``
 - ``loop://[<option>[/<option>]]``
 
-Device names are also supported:
+Device names are also supported, e.g.:
 
 - ``/dev/ttyUSB0`` (Linux)
 - ``COM3`` (Windows)
@@ -810,8 +836,9 @@ Device names are also supported:
       output on ``sys.stderr`` (if no logging was set up already).
 
 ``loop://``
-    The least useful type. It simulates a loop back connection.
-    ``RX<->TX``  ``RTS<->CTS``  ``DTR<->DSR``
+    The least useful type. It simulates a loop back connection
+    (``RX<->TX``  ``RTS<->CTS``  ``DTR<->DSR``). It could be used to test
+    applications or run the unit tests.
 
     Supported options in the URL are:
 
