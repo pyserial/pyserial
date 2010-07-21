@@ -26,6 +26,7 @@ include test/test.py
 include test/test_advanced.py
 include test/test_high_load.py
 include test/test_io_lib.py
+include test/test_readline.py
 
 include documentation/*.rst
 include documentation/pyserial.png
