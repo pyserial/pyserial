@@ -2,7 +2,7 @@
 # Python Serial Port Extension for Win32, Linux, BSD, Jython
 # see __init__.py
 #
-# (C) 2001-2009 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2010 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
 # compatibility for older Python < 2.6
@@ -19,6 +19,7 @@ except (NameError, AttributeError):
     class bytearray(list):
         # for bytes(bytearray()) usage
         def __str__(self): return ''.join(self)
+        def __repr__(self): return 'bytearray(%r)' % ''.join(self)
         # append automatically converts integers to characters
         def append(self, item):
             if isinstance(item, str):
@@ -30,6 +31,20 @@ except (NameError, AttributeError):
             for byte in other:
                 self.append(byte)
             return self
+
+        def __getslice__(self, i, j):
+            return bytearray(list.__getslice__(self, i, j))
+
+        def __getitem__(self, item):
+            if isinstance(item, slice):
+                return bytearray(list.__getitem__(self, item))
+            else:
+                return ord(list.__getitem__(self, item))
+
+        def __eq__(self, other):
+            if isinstance(other, basestring):
+                other = bytearray(other)
+            return list.__eq__(self, other)
 
 # all Python versions prior 3.x convert str([17]) to '[17]' instead of '\x11'
 # so a simple bytes(sequence) doesn't work for all versions
@@ -123,7 +138,6 @@ class FileLike(object):
     def __iter__(self):
         return self
 
-
     def readline(self, size=None, eol=LF):
         """read a line which is terminated with end-of-line (eol) character
         ('\n' by default) or until timeout."""
@@ -141,7 +155,7 @@ class FileLike(object):
                 break
         return bytes(line)
 
-    def readlines(self, sizehint=None, eol='\n'):
+    def readlines(self, sizehint=None, eol=LF):
         """read a list of lines, until timeout.
         sizehint is ignored."""
         if self.timeout is None:
