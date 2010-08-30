@@ -20,7 +20,7 @@ def _IOR(type,nr,size): return _IOC(_IOC_READ,  type, nr, sizeof(size))
 def _IOW(type,nr,size): return _IOC(_IOC_WRITE, type, nr, sizeof(size))
 
 _IOC_SIZEBITS   = 14
-_IOC_SIZEMASK   = (1L << _IOC_SIZEBITS ) - 1
+_IOC_SIZEMASK   = (1 << _IOC_SIZEBITS ) - 1
 _IOC_NRSHIFT    = 0
 _IOC_NRBITS     = 8
 _IOC_TYPESHIFT  = _IOC_NRSHIFT + _IOC_NRBITS
@@ -31,13 +31,13 @@ IOCSIZE_SHIFT   = _IOC_SIZESHIFT
 
 # Python 2.2 uses a signed int for the ioctl() call, so ...
 if ( sys.version_info[0] < 3 ) or ( sys.version_info[1] < 3 ):
- _IOC_WRITE      =  1L
- _IOC_READ       = -2L
- _IOC_INOUT      = -1L
+ _IOC_WRITE      =  1
+ _IOC_READ       = -2
+ _IOC_INOUT      = -1
 else:
- _IOC_WRITE      =  1L
- _IOC_READ       =  2L
- _IOC_INOUT      =  3L
+ _IOC_WRITE      =  1
+ _IOC_READ       =  2
+ _IOC_INOUT      =  3
 
 _IOC_DIRSHIFT   = _IOC_SIZESHIFT + _IOC_SIZEBITS
 IOC_INOUT       = _IOC_INOUT << _IOC_DIRSHIFT
