@@ -1,7 +1,13 @@
-# setup.py for pyserial
+# setup.py for pySerial
 #
-# windows installer:
-#  python setup.py bdist_wininst
+# Windows installer:
+#   "python setup.py bdist_wininst"
+#
+# Direct install (all systems):
+#   "python setup.py install"
+#
+# For Python 3.x use the corresponding Python executable,
+# e.g. "python3 setup.py ..."
 
 import sys
 
@@ -9,10 +15,12 @@ from distutils.core import setup
 
 try:
     from distutils.command.build_py import build_py_2to3 as build_py
+    from distutils.command.build_scripts import build_scripts_2to3 as build_scripts
 except ImportError:
     if sys.version_info >= (3, 0):
         raise ImportError("build_py_2to3 not found in distutils - it is required for Python 3.x")
     from distutils.command.build_py import build_py
+    from distutils.command.build_scripts import build_scripts
     suffix = ""
 else:
     suffix = "-py3k"
@@ -60,7 +68,7 @@ setup(
         'Topic :: Terminals :: Serial',
     ],
     platforms = 'any',
-    cmdclass = {'build_py': build_py},
+    cmdclass = {'build_py': build_py, 'build_scripts': build_scripts},
 
     scripts = ['examples/miniterm.py'],
 )
