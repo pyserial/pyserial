@@ -13,7 +13,7 @@ Other pages (online)
 - `project page on SourceForge`_
 - `SVN repository`_
 - `Download Page`_ with releases
-- This page, when viewed online is at http://pyserial.sf.net.
+- This page, when viewed online, is at http://pyserial.sf.net.
 
 .. _`project page on SourceForge`: http://sourceforge.net/projects/pyserial/
 .. _`SVN repository`: http://sourceforge.net/svn/?group_id=46487

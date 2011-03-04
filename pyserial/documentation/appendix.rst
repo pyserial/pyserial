@@ -34,6 +34,33 @@ Test your setup.
     though).
 
 
+URL handlers
+============
+``serial_for_url`` can be used to access "virtual" serial ports identified by
+an URL scheme. E.g. for the RFC 2217, ``rfc2217:://``.
+
+Custom URL handlers can be added in the ``serial.urlhandler`` directory.
+Modules must be named ``protocol_xxx.py`` where ``xxx`` is the part that is
+used in the URL (``xxx://``).
+
+This is possible starting from pySerial V2.6.
+
+
+py2exe
+======
+py2exe and similar packaging programs scan the sources for import statements
+and create a list of modules that they package. pySerial may create two issues
+with that:
+
+- implementations for other modules are found. On Windows, it's save to exclude
+  'serialposix', 'serialjava' and 'serialcli' as these are not used.
+
+- ``serial_for_url`` does a dynamic lookup of protocol handlers at runtime.
+  If this function is used, the desired handlers have to be included manually
+  (e.g. 'serial.urlhandler.protocol_socket',
+  'serial.urlhandler.protocol_rfc2217', etc.)
+
+
 Related software
 ================
 
