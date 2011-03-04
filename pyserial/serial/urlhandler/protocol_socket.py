@@ -10,14 +10,14 @@
 # The purpose of this module is that applications using pySerial can connect to
 # TCP/IP to serial port converters that do not support RFC 2217.
 #
-# (C) 2001-2009 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2011 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 #
 # URL format:    socket://<host>:<port>[/option[/option...]]
 # options:
 # - "debug" print diagnostic messages
 
-from serialutil import *
+from serial.serialutil import *
 import time
 import socket
 import logging

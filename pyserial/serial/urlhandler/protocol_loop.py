@@ -8,14 +8,14 @@
 # The purpose of this module is.. well... You can run the unit tests with it.
 # and it was so easy to implement ;-)
 #
-# (C) 2001-2009 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2011 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 #
 # URL format:    loop://[option[/option...]]
 # options:
 # - "debug" print diagnostic messages
 
-from serialutil import *
+from serial.serialutil import *
 import threading
 import time
 import logging

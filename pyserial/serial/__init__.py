@@ -38,18 +38,18 @@ def serial_for_url(url, *args, **kwargs):
     try:
         url_nocase = url.lower()
     except AttributeError:
-        # its not a string, use default
+        # it's not a string, use default
         pass
     else:
-        if url_nocase.startswith('rfc2217://'):
-            import rfc2217  # late import, so that users that don't use it don't have to load it
-            klass = rfc2217.Serial # RFC2217 implementation
-        elif url_nocase.startswith('socket://'):
-            import socket_connection  # late import, so that users that don't use it don't have to load it
-            klass = socket_connection.Serial
-        elif url_nocase.startswith('loop://'):
-            import loopback_connection  # late import, so that users that don't use it don't have to load it
-            klass = loopback_connection.Serial
+        if '://' in url_nocase:
+            protocol = url_nocase.split('://', 1)[0]
+            module_name = 'serial.urlhandler.protocol_%s' % (protocol,)
+            try:
+                handler_module = __import__(module_name)
+            except ImportError:
+                raise ValueError('invalid URL, protocol %r not known' % (protocol,))
+            else:
+                klass = sys.modules[module_name].Serial
         else:
             klass = Serial   # 'native' implementation
     # instantiate and open when desired
