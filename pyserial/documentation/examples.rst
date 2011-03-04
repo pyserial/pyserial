@@ -27,7 +27,7 @@ miniterm supports :rfc:`2217` remote serial ports and raw sockets using URLs
 such as ``rfc2217:://<host>:<port>`` respectively ``socket://<host>:<port>`` as
 *port* argument when invoking.
 
-Command line options ``miniterm.py -h``::
+Command line options ``python -m serial.tools.miniterm -h``::
 
     Usage: miniterm.py [options] [port [baudrate]]
 
@@ -96,7 +96,7 @@ setup-miniterm-py2exe.py_
     This is a py2exe setup script for Windows. It can be used to create a
     standalone ``miniterm.exe``.
 
-.. _miniterm.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/miniterm.py
+.. _miniterm.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/serial/tools/miniterm.py
 .. _setup-miniterm-py2exe.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/setup-miniterm-py2exe.py
 
 

@@ -52,7 +52,7 @@ py2exe and similar packaging programs scan the sources for import statements
 and create a list of modules that they package. pySerial may create two issues
 with that:
 
-- implementations for other modules are found. On Windows, it's save to exclude
+- implementations for other modules are found. On Windows, it's safe to exclude
   'serialposix', 'serialjava' and 'serialcli' as these are not used.
 
 - ``serial_for_url`` does a dynamic lookup of protocol handlers at runtime.

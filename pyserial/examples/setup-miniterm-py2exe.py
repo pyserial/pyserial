@@ -8,19 +8,20 @@ sys.path.append('..')
 
 sys.argv.extend("py2exe --bundle 1".split())
 
+import serial.tools.miniterm
+
 setup(
-    name='miniterm',
-    #~ version='0.5',
-    zipfile=None,
+    name = 'miniterm',
+    zipfile = None,
     options = {"py2exe":
         {
             'dist_dir': 'bin',
-            'excludes': ['javax.comm'],
+            'excludes': ['serialjava', 'serialposix', 'serialcli'],
             'compressed': 1,
         }
     },
     console = [
-        #~ "miniterm_exe_wrapper.py",
-        "miniterm.py",
+        #~ "miniterm.py",
+        serial.tools.miniterm.__file__
     ],
 )
