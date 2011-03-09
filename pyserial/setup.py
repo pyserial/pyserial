@@ -36,11 +36,11 @@ if sys.version < '2.3':
 setup(
     name = "pyserial" + suffix,
     description = "Python Serial Port Extension",
-    version = "2.5",
+    version = "2.6pre",
     author = "Chris Liechti",
     author_email = "cliechti@gmx.net",
     url = "http://pyserial.sourceforge.net/",
-    packages = ['serial'],
+    packages = ['serial', 'serial.tools', 'serial.urlhandler'],
     license = "Python",
     long_description = "Python Serial Port Extension for Win32, Linux, BSD, Jython, IronPython",
     classifiers = [
