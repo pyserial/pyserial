@@ -70,5 +70,5 @@ setup(
     platforms = 'any',
     cmdclass = {'build_py': build_py, 'build_scripts': build_scripts},
 
-    scripts = ['examples/miniterm.py'],
+    scripts = ['serial/tools/miniterm.py'],
 )
