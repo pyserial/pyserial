@@ -33,10 +33,12 @@ if sys.version < '2.3':
                      "supported - check http://pyserial.sf.net for older "
                      "releases or upgrade your Python installation.")
 
+import serial
+
 setup(
     name = "pyserial" + suffix,
     description = "Python Serial Port Extension",
-    version = "2.6pre",
+    version = serial.VERSION,
     author = "Chris Liechti",
     author_email = "cliechti@gmx.net",
     url = "http://pyserial.sourceforge.net/",
