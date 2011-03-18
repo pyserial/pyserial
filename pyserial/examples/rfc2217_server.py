@@ -163,7 +163,7 @@ it waits for the next connect.
 
     logging.info("Serving serial port: %s" % (ser.portstr,))
     settings = ser.getSettingsDict()
-    # reset contol line as no _remote_ "terminal" has been connected yet
+    # reset control line as no _remote_ "terminal" has been connected yet
     ser.setDTR(False)
     ser.setRTS(False)
 

@@ -698,8 +698,8 @@ Module version:
 
     .. versionadded:: 2.3
 
-Module functions
-================
+Module functions and attributes
+===============================
 
 .. function:: device(number)
 
@@ -732,19 +732,39 @@ Module functions
     .. versionadded:: 2.5
 
 
+.. attribute:: protocol_handler_packages
+
+    This attribute is a list of package names (strings) that is searched for
+    protocol handlers.
+
+    e.g. we want to support a URL ``foobar://``. A module
+    ``my_handlers.protocol_foobar`` is provided by the user::
+
+        serial.protocol_handler_packages.append("my_handlers")
+        s = serial.serial_for_url("foobar://")
+
+    For an URL starting with ``XY://`` is the function :func:`serial_for_url`
+    attempts to import ``PACKAGE.protocol_XY`` with each candidate for
+    ``PACKAGE`` from this list.
+
+    .. versionadded:: 2.6
+
+
 .. function:: to_bytes(sequence)
 
     :param sequence: String or list of integers
     :returns: an instance of ``bytes``
 
-    Convert a sequence to a bytes type. This is used to write code that is
+    Convert a sequence to a ``bytes`` type. This is used to write code that is
     compatible to Python 2.x and 3.x.
 
-    In Python versions prior 3.x, bytes is a subclass of str. They convert
+    In Python versions prior 3.x, ``bytes`` is a subclass of str. They convert
     ``str([17])`` to ``'[17]'`` instead of ``'\x11'`` so a simple
-    bytes(sequence) doesn't work for all versions of Python.
+    ``bytes(sequence)`` doesn't work for all versions of Python.
 
     This function is used internally and in the unit tests.
+
+    .. versionadded:: 2.5
 
 
 .. _URLs:
@@ -762,7 +782,9 @@ Device names are also supported, e.g.:
 - ``/dev/ttyUSB0`` (Linux)
 - ``COM3`` (Windows)
 
-(Future releases of pySerial might add more types).
+Future releases of pySerial might add more types. Since pySerial 2.6 it is also
+possible for the user to add protocol handlers using
+:attr:`protocol_handler_packages`.
 
 ``rfc2217://``
     Used to connect to :rfc:`2217` compatible servers. All serial port

@@ -397,3 +397,14 @@ Bugfixes (win32):
 - [Bug 2998169] Memory corruption at faster transmission speeds.
   (bug introduced in 2.5-rc1)
 
+
+Version 2.6      2011-nn-nn
+---------------------------
+New Features:
+
+- Moved some of the examples to serial.tools so that they can be used
+  with ``python -m``
+- URL handers for ``serial_for_url`` are now imported dynamically. This allows
+  to add protocols w/o editing files. The list
+  ``serial.protocol_handler_packages`` can be used to add or remove user
+  packages with protocol handlers (see docs for details).
