@@ -41,6 +41,7 @@ def get_help_text():
 ---       %(lfm)s  line feed    %(repr)s  Cycle repr mode
 ---
 --- Port settings (%(menu)s followed by the following):
+--- p             change port
 --- 7 8           set data bits
 --- n e o s m     change parity (None, Even, Odd, Space, Mark)
 --- 1 2 3         set stop bits (1, 2, 1.5)
@@ -48,7 +49,7 @@ def get_help_text():
 --- x X           disable/enable software flow control
 --- r R           disable/enable hardware flow control
 """ % {
-    'version': getattr(serial, 'VERSION', 'unkown'),
+    'version': getattr(serial, 'VERSION', 'unknown version'),
     'exit': key_description(EXITCHARCTER),
     'menu': key_description(MENUCHARACTER),
     'rts': key_description('\x12'),
@@ -117,10 +118,10 @@ elif os.name == 'posix':
         console.cleanup()
 
     console.setup()
-    sys.exitfunc = cleanup_console      #terminal modes have to be restored on exit...
+    sys.exitfunc = cleanup_console      # terminal modes have to be restored on exit...
 
 else:
-    raise "Sorry no implementation for your platform (%s) available." % sys.platform
+    raise NotImplementedError("Sorry no implementation for your platform (%s) available." % sys.platform)
 
 
 CONVERT_CRLF = 2
@@ -131,7 +132,7 @@ LF_MODES = ('LF', 'CR', 'CR/LF')
 
 REPR_MODES = ('raw', 'some control', 'all control', 'hex')
 
-class Miniterm:
+class Miniterm(object):
     def __init__(self, port, baudrate, parity, rtscts, xonxoff, echo=False, convert_outgoing=CONVERT_CRLF, repr_mode=0):
         try:
             self.serial = serial.serial_for_url(port, baudrate, parity=parity, rtscts=rtscts, xonxoff=xonxoff, timeout=1)
@@ -147,15 +148,26 @@ class Miniterm:
         self.rts_state = True
         self.break_state = False
 
-    def start(self):
-        self.alive = True
+    def _start_reader(self):
+        """Start reader thread"""
+        self._reader_alive = True
         # start serial->console thread
         self.receiver_thread = threading.Thread(target=self.reader)
-        self.receiver_thread.setDaemon(1)
+        self.receiver_thread.setDaemon(True)
         self.receiver_thread.start()
+
+    def _stop_reader(self):
+        """Stop reader thread only, wait for clean exit of thread"""
+        self._reader_alive = False
+        self.receiver_thread.join()
+
+
+    def start(self):
+        self.alive = True
+        self._start_reader()
         # enter console->serial loop
         self.transmitter_thread = threading.Thread(target=self.writer)
-        self.transmitter_thread.setDaemon(1)
+        self.transmitter_thread.setDaemon(True)
         self.transmitter_thread.start()
 
     def stop(self):
@@ -196,7 +208,7 @@ class Miniterm:
     def reader(self):
         """loop and copy serial->console"""
         try:
-            while self.alive:
+            while self.alive and self._reader_alive:
                 data = self.serial.read(1)
 
                 if self.repr_mode == 0:
@@ -234,9 +246,10 @@ class Miniterm:
 
 
     def writer(self):
-        """loop and copy console->serial until EXITCHARCTER character is
-           found. when MENUCHARACTER is found, interpret the next key
-           locally.
+        """\
+        Loop and copy console->serial until EXITCHARCTER character is
+        found. When MENUCHARACTER is found, interpret the next key
+        locally.
         """
         menu_active = False
         try:
@@ -306,7 +319,30 @@ class Miniterm:
                         sys.stderr.write('--- line feed %s ---\n' % (
                             LF_MODES[self.convert_outgoing],
                         ))
-                    #~ elif c in 'pP':                         # P -> change port XXX reader thread would exit
+                    elif c in 'pP':                         # P -> change port
+                        sys.stderr.write('\n--- Enter port name: ')
+                        sys.stderr.flush()
+                        console.cleanup()
+                        port = sys.stdin.readline().strip()
+                        console.setup()
+                        if port:
+                            # reader thread needs to be shut down
+                            self._stop_reader()
+                            # save settings
+                            settings = self.serial.getSettingsDict()
+                            self.serial.close()
+                            try:
+                                self.serial = serial.serial_for_url(port, timeout=1, do_not_open=True)
+                            except AttributeError:
+                                # happens when the installed pyserial is older than 2.5. use the
+                                # Serial class directly then.
+                                self.serial = serial.Serial(timeout=1)
+                                self.serial.port = port
+                            # restore settings and open
+                            self.serial.applySettingsDict(settings)
+                            self.serial.open()
+                            # and restarted
+                            self._start_reader()
                     elif c in 'bB':                         # B -> change baudrate
                         sys.stderr.write('\n--- Baudrate: ')
                         sys.stderr.flush()
