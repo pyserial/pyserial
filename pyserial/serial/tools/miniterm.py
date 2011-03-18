@@ -22,6 +22,7 @@ def key_description(character):
     else:
         return repr(character)
 
+
 # help text, starts with blank line! it's a function so that the current values
 # for the shortcut keys is used and not the value at program start
 def get_help_text():
@@ -69,7 +70,7 @@ global console
 
 if os.name == 'nt':
     import msvcrt
-    class Console:
+    class Console(object):
         def __init__(self):
             pass
 
@@ -80,7 +81,7 @@ if os.name == 'nt':
             pass    # Do nothing for 'nt'
 
         def getkey(self):
-            while 1:
+            while True:
                 z = msvcrt.getch()
                 if z == '\0' or z == '\xe0':    # functions keys
                     msvcrt.getch()
@@ -93,7 +94,7 @@ if os.name == 'nt':
 
 elif os.name == 'posix':
     import termios, sys, os
-    class Console:
+    class Console(object):
         def __init__(self):
             self.fd = sys.stdin.fileno()
 
@@ -332,16 +333,19 @@ class Miniterm(object):
                             settings = self.serial.getSettingsDict()
                             self.serial.close()
                             try:
-                                self.serial = serial.serial_for_url(port, timeout=1, do_not_open=True)
+                                self.serial = serial.serial_for_url(port, do_not_open=True)
                             except AttributeError:
                                 # happens when the installed pyserial is older than 2.5. use the
                                 # Serial class directly then.
-                                self.serial = serial.Serial(timeout=1)
+                                self.serial = serial.Serial()
                                 self.serial.port = port
                             # restore settings and open
                             self.serial.applySettingsDict(settings)
                             self.serial.open()
-                            # and restarted
+                            self.serial.setRTS(self.rts_state)
+                            self.serial.setDTR(self.dtr_state)
+                            self.serial.setBreak(self.break_state)
+                            # and restart the reader thread
                             self._start_reader()
                     elif c in 'bB':                         # B -> change baudrate
                         sys.stderr.write('\n--- Baudrate: ')
@@ -424,7 +428,7 @@ def main():
 
     parser.add_option("-p", "--port",
         dest = "port",
-        help = "port, a number (default 0) or a device name (deprecated option)",
+        help = "port, a number or a device name. (deprecated option, use parameter instead)",
         default = None
     )
 
