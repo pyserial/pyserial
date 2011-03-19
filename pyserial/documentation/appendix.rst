@@ -61,6 +61,18 @@ with that:
   'serial.urlhandler.protocol_rfc2217', etc.)
 
 
+FAQ
+===
+Example works in miniterm but not in script.
+    The RTS and DTR lines are switched when the port is opened. This may cause
+    some processing or reset on the connected device. In such a cases an
+    immediately following call to :meth:`write` may not be received by the
+    device.
+
+    A delay after opening the port, before the first :meth:`write`, is
+    recommended in this situation. E.g. a ``time.sleep(1)``
+
+
 Related software
 ================
 
