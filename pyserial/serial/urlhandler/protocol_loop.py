@@ -38,6 +38,8 @@ class LoopbackSerial(SerialBase):
     def open(self):
         """Open port with current settings. This may throw a SerialException
            if the port cannot be opened."""
+        if self._isOpen:
+            raise SerialException("Port is already open.")
         self.logger = None
         self.buffer_lock = threading.Lock()
         self.loop_buffer = bytearray()

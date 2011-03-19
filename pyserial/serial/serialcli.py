@@ -34,6 +34,8 @@ class IronSerial(SerialBase):
            if the port cannot be opened."""
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
+        if self._isOpen:
+            raise SerialException("Port is already open.")
         try:
             self._port_handle = System.IO.Ports.SerialPort(self.portstr)
         except Exception, msg:

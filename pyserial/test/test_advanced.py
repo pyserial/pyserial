@@ -67,6 +67,13 @@ class Test_ChangeAttributes(unittest.TestCase):
             self.failUnlessEqual(self.s.port, 1)
             self.failUnlessEqual(self.s.portstr, serial.device(1))
 
+    def test_DoubleOpen(self):
+        self.s.port = PORT
+        self.s.open()
+        # calling open for a second time is an error
+        self.failUnlessRaises(serial.SerialException, self.s.open)
+
+
     def test_BaudrateSetting(self):
         self.s.port = PORT
         self.s.open()

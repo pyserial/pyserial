@@ -408,3 +408,7 @@ New Features:
   to add protocols w/o editing files. The list
   ``serial.protocol_handler_packages`` can be used to add or remove user
   packages with protocol handlers (see docs for details).
+
+Bugfixes:
+
+- [SF 3093882] calling open() on an already open port now raises an exception

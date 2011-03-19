@@ -296,6 +296,8 @@ class PosixSerial(SerialBase):
         """Set communication parameters on opened port."""
         if self.fd is None:
             raise SerialException("Can only operate on a valid file descriptor")
+        if self._isOpen:
+            raise SerialException("Port is already open.")
         custom_baud = None
 
         vmin = vtime = 0                # timeout is done via select

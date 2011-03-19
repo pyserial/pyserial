@@ -43,6 +43,8 @@ class SocketSerial(SerialBase):
         self.logger = None
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
+        if self._isOpen:
+            raise SerialException("Port is already open.")
         try:
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._socket.connect(self.fromURL(self.portstr))

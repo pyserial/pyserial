@@ -58,6 +58,8 @@ class JavaSerial(SerialBase):
            if the port cannot be opened."""
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
+        if self._isOpen:
+            raise SerialException("Port is already open.")
         if type(self._port) == type(''):      # strings are taken directly
             portId = comm.CommPortIdentifier.getPortIdentifier(self._port)
         else:
