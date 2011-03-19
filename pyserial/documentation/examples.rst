@@ -23,7 +23,7 @@ miniterm::
 Command line options can be given so that binary data including escapes for
 terminals are escaped or output as hex.
 
-miniterm supports :rfc:`2217` remote serial ports and raw sockets using URLs
+miniterm supports :rfc:`2217` remote serial ports and raw sockets using :ref:`URLs`
 such as ``rfc2217:://<host>:<port>`` respectively ``socket://<host>:<port>`` as
 *port* argument when invoking.
 
@@ -61,7 +61,7 @@ Command line options ``python -m serial.tools.miniterm -h``::
                             control miniterm (menu)
 
 
-miniterm supports some control functions. Typing :kbd:`Control+t Control+h` when it is
+miniterm supports some control functions. Typing :kbd:`Ctrl+T Ctrl+H` when it is
 running shows the help text::
 
     --- pySerial - miniterm - help
@@ -79,6 +79,7 @@ running shows the help text::
     ---       Ctrl+L  line feed    Ctrl+A  Cycle repr mode
     ---
     --- Port settings (Ctrl+T followed by the following):
+    --- p             change port
     --- 7 8           set data bits
     --- n e o s m     change parity (None, Even, Odd, Space, Mark)
     --- 1 2 3         set stop bits (1, 2, 1.5)
@@ -87,7 +88,9 @@ running shows the help text::
     --- r R           disable/enable hardware flow control
 
 .. versionchanged:: 2.5
-    Added :kbd:`Control+t` menu and added support for opening URLs.
+    Added :kbd:`Ctrl+T` menu and added support for opening URLs.
+.. versionchanged:: 2.6
+    File moved from the examples to :mod:`serial.tools.miniterm`.
 
 miniterm.py_
     The miniterm program.
@@ -347,9 +350,13 @@ test_iolib.py_
     Tests involving the :mod:`io` library. Only available for Python 2.6 and
     newer.
 
+test_url.py_
+    Tests involving the :ref:`URL <URLs>` feature.
+
 .. _run_all_tests.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/run_all_tests.py
 .. _test.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test.py
 .. _test_advanced.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_advanced.py
 .. _test_high_load.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_high_load.py
 .. _test_readline.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_readline.py
 .. _test_iolib.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_iolib.py
+.. _test_url.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_url.py

@@ -34,36 +34,9 @@ Test your setup.
     though).
 
 
-URL handlers
-============
-``serial_for_url`` can be used to access "virtual" serial ports identified by
-an URL scheme. E.g. for the RFC 2217, ``rfc2217:://``.
-
-Custom URL handlers can be added in the ``serial.urlhandler`` directory.
-Modules must be named ``protocol_xxx.py`` where ``xxx`` is the part that is
-used in the URL (``xxx://``).
-
-This is possible starting from pySerial V2.6.
-
-
-py2exe
-======
-py2exe and similar packaging programs scan the sources for import statements
-and create a list of modules that they package. pySerial may create two issues
-with that:
-
-- implementations for other modules are found. On Windows, it's safe to exclude
-  'serialposix', 'serialjava' and 'serialcli' as these are not used.
-
-- ``serial_for_url`` does a dynamic lookup of protocol handlers at runtime.
-  If this function is used, the desired handlers have to be included manually
-  (e.g. 'serial.urlhandler.protocol_socket',
-  'serial.urlhandler.protocol_rfc2217', etc.)
-
-
 FAQ
 ===
-Example works in miniterm but not in script.
+Example works in :ref:`miniterm` but not in script.
     The RTS and DTR lines are switched when the port is opened. This may cause
     some processing or reset on the connected device. In such a cases an
     immediately following call to :meth:`write` may not be received by the
@@ -71,6 +44,32 @@ Example works in miniterm but not in script.
 
     A delay after opening the port, before the first :meth:`write`, is
     recommended in this situation. E.g. a ``time.sleep(1)``
+
+
+Application works when .py file is run, but fails when packaged (py2exe etc.)
+    py2exe and similar packaging programs scan the sources for import
+    statements and create a list of modules that they package. pySerial may
+    create two issues with that:
+
+    - implementations for other modules are found. On Windows, it's safe to
+      exclude 'serialposix', 'serialjava' and 'serialcli' as these are not
+      used.
+
+    - :func:`serial.serial_for_url` does a dynamic lookup of protocol handlers
+      at runtime.  If this function is used, the desired handlers have to be
+      included manually (e.g. 'serial.urlhandler.protocol_socket',
+      'serial.urlhandler.protocol_rfc2217', etc.). This can be done either with
+      the "includes" option in ``setup.py`` or by a dummy import in one of the
+      packaged modules.
+
+User supplied URL handlers
+    :func:`serial.serial_for_url` can be used to access "virtual" serial ports
+    identified by an :ref:`URL <URLs>` scheme. E.g. for the :rfc:`2217`:
+    ``rfc2217:://``.
+
+    Custom :ref:`URL <URLs>` handlers can be added by extending the module
+    search path in :data:`serial.protocol_handler_packages`. This is possible
+    starting from pySerial V2.6.
 
 
 Related software
@@ -83,7 +82,7 @@ com0com - http://com0com.sourceforge.net/
 License
 =======
 
-Copyright (C) 2001-2010 Chris Liechti <cliechti(at)gmx.net>;
+Copyright (C) 2001-2011 Chris Liechti <cliechti(at)gmx.net>;
 All Rights Reserved.
 
 This is the Python license. In short, you can use this product in commercial
