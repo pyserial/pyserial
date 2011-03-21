@@ -698,6 +698,7 @@ Module version:
 
     .. versionadded:: 2.3
 
+
 Module functions and attributes
 ===============================
 

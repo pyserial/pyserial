@@ -9,13 +9,13 @@
 Miniterm
 ========
 This is a console application that provides a small terminal application.
-miniterm itself does not implement any terminal features such as VT102
+Miniterm itself does not implement any terminal features such as VT102
 compatibility. However it inherits these features from the terminal it is run.
 For example on GNU/Linux running from an xterm it will support the escape
 sequences of the xterm. On Windows the typical console window is dumb and does
 not support any escapes. When ANSI.sys is loaded it supports some escapes.
 
-miniterm::
+Miniterm::
 
     --- Miniterm on /dev/ttyS0: 9600,8,N,1 ---
     --- Quit: Ctrl+]  |  Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H ---
@@ -23,7 +23,7 @@ miniterm::
 Command line options can be given so that binary data including escapes for
 terminals are escaped or output as hex.
 
-miniterm supports :rfc:`2217` remote serial ports and raw sockets using :ref:`URLs`
+Miniterm supports :rfc:`2217` remote serial ports and raw sockets using :ref:`URLs`
 such as ``rfc2217:://<host>:<port>`` respectively ``socket://<host>:<port>`` as
 *port* argument when invoking.
 
@@ -61,7 +61,7 @@ Command line options ``python -m serial.tools.miniterm -h``::
                             control miniterm (menu)
 
 
-miniterm supports some control functions. Typing :kbd:`Ctrl+T Ctrl+H` when it is
+Miniterm supports some control functions. Typing :kbd:`Ctrl+T Ctrl+H` when it is
 running shows the help text::
 
     --- pySerial - miniterm - help
@@ -69,10 +69,10 @@ running shows the help text::
     --- Ctrl+]   Exit program
     --- Ctrl+T   Menu escape key, followed by:
     --- Menu keys:
-    ---       Ctrl+T   Send the menu character itself to remote
-    ---       Ctrl+]   Send the exit character to remote
-    ---       Ctrl+I   Show info
-    ---       Ctrl+U   Upload file (prompt will be shown)
+    ---       Ctrl+T  Send the menu character itself to remote
+    ---       Ctrl+]  Send the exit character to remote
+    ---       Ctrl+I  Show info
+    ---       Ctrl+U  Upload file (prompt will be shown)
     --- Toggles:
     ---       Ctrl+R  RTS          Ctrl+E  local echo
     ---       Ctrl+D  DTR          Ctrl+B  BREAK
