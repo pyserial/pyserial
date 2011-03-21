@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Very simple serial terminal
-# (C)2002-2009 Chris Liechti <cliechti@gmx.net>
+# (C)2002-2011 Chris Liechti <cliechti@gmx.net>
 
 # Input characters are sent directly (only LF -> CR/LF/CRLF translation is
 # done), received characters are displayed as is (or escaped trough pythons
@@ -32,23 +32,23 @@ def get_help_text():
 --- %(exit)-8s Exit program
 --- %(menu)-8s Menu escape key, followed by:
 --- Menu keys:
----       %(itself)-8s Send the menu character itself to remote
----       %(exchar)-8s Send the exit character to remote
----       %(info)-8s Show info
----       %(upload)-8s Upload file (prompt will be shown)
+---    %(itself)-7s Send the menu character itself to remote
+---    %(exchar)-7s Send the exit character itself to remote
+---    %(info)-7s Show info
+---    %(upload)-7s Upload file (prompt will be shown)
 --- Toggles:
----       %(rts)s  RTS          %(echo)s  local echo
----       %(dtr)s  DTR          %(break)s  BREAK
----       %(lfm)s  line feed    %(repr)s  Cycle repr mode
+---    %(rts)-7s RTS          %(echo)-7s local echo
+---    %(dtr)-7s DTR          %(break)-7s BREAK
+---    %(lfm)-7s line feed    %(repr)-7s Cycle repr mode
 ---
 --- Port settings (%(menu)s followed by the following):
---- p             change port
---- 7 8           set data bits
---- n e o s m     change parity (None, Even, Odd, Space, Mark)
---- 1 2 3         set stop bits (1, 2, 1.5)
---- b             change baud rate
---- x X           disable/enable software flow control
---- r R           disable/enable hardware flow control
+---    p          change port
+---    7 8        set data bits
+---    n e o s m  change parity (None, Even, Odd, Space, Mark)
+---    1 2 3      set stop bits (1, 2, 1.5)
+---    b          change baud rate
+---    x X        disable/enable software flow control
+---    r R        disable/enable hardware flow control
 """ % {
     'version': getattr(serial, 'VERSION', 'unknown version'),
     'exit': key_description(EXITCHARCTER),
@@ -181,30 +181,30 @@ class Miniterm(object):
 
     def dump_port_settings(self):
         sys.stderr.write("\n--- Settings: %s  %s,%s,%s,%s\n" % (
-            self.serial.portstr,
-            self.serial.baudrate,
-            self.serial.bytesize,
-            self.serial.parity,
-            self.serial.stopbits,
-        ))
-        sys.stderr.write('--- RTS %s\n' % (self.rts_state and 'active' or 'inactive'))
-        sys.stderr.write('--- DTR %s\n' % (self.dtr_state and 'active' or 'inactive'))
-        sys.stderr.write('--- BREAK %s\n' % (self.break_state and 'active' or 'inactive'))
-        sys.stderr.write('--- software flow control %s\n' % (self.serial.xonxoff and 'active' or 'inactive'))
-        sys.stderr.write('--- hardware flow control %s\n' % (self.serial.rtscts and 'active' or 'inactive'))
-        sys.stderr.write('--- data escaping: %s\n' % (REPR_MODES[self.repr_mode],))
-        sys.stderr.write('--- linefeed: %s\n' % (LF_MODES[self.convert_outgoing],))
+                self.serial.portstr,
+                self.serial.baudrate,
+                self.serial.bytesize,
+                self.serial.parity,
+                self.serial.stopbits))
+        sys.stderr.write('--- RTS: %-8s  DTR: %-8s  BREAK: %-8s\n' % (
+                (self.rts_state and 'active' or 'inactive'),
+                (self.dtr_state and 'active' or 'inactive'),
+                (self.break_state and 'active' or 'inactive')))
         try:
-            sys.stderr.write('--- CTS: %s  DSR: %s  RI: %s  CD: %s\n' % (
-                (self.serial.getCTS() and 'active' or 'inactive'),
-                (self.serial.getDSR() and 'active' or 'inactive'),
-                (self.serial.getRI() and 'active' or 'inactive'),
-                (self.serial.getCD() and 'active' or 'inactive'),
-                ))
+            sys.stderr.write('--- CTS: %-8s  DSR: %-8s  RI: %-8s  CD: %-8s\n' % (
+                    (self.serial.getCTS() and 'active' or 'inactive'),
+                    (self.serial.getDSR() and 'active' or 'inactive'),
+                    (self.serial.getRI() and 'active' or 'inactive'),
+                    (self.serial.getCD() and 'active' or 'inactive')))
         except serial.SerialException:
             # on RFC 2217 ports it can happen to no modem state notification was
             # yet received. ignore this error.
             pass
+        sys.stderr.write('--- software flow control: %s\n' % (self.serial.xonxoff and 'active' or 'inactive'))
+        sys.stderr.write('--- hardware flow control: %s\n' % (self.serial.rtscts and 'active' or 'inactive'))
+        sys.stderr.write('--- data escaping: %s  linefeed: %s\n' % (
+                REPR_MODES[self.repr_mode],
+                LF_MODES[self.convert_outgoing]))
 
     def reader(self):
         """loop and copy serial->console"""
@@ -324,27 +324,37 @@ class Miniterm(object):
                         sys.stderr.write('\n--- Enter port name: ')
                         sys.stderr.flush()
                         console.cleanup()
-                        port = sys.stdin.readline().strip()
+                        try:
+                            port = sys.stdin.readline().strip()
+                        except KeyboardInterrupt:
+                            port = None
                         console.setup()
-                        if port:
+                        if port and port != self.serial.port:
                             # reader thread needs to be shut down
                             self._stop_reader()
                             # save settings
                             settings = self.serial.getSettingsDict()
-                            self.serial.close()
                             try:
-                                self.serial = serial.serial_for_url(port, do_not_open=True)
-                            except AttributeError:
-                                # happens when the installed pyserial is older than 2.5. use the
-                                # Serial class directly then.
-                                self.serial = serial.Serial()
-                                self.serial.port = port
-                            # restore settings and open
-                            self.serial.applySettingsDict(settings)
-                            self.serial.open()
-                            self.serial.setRTS(self.rts_state)
-                            self.serial.setDTR(self.dtr_state)
-                            self.serial.setBreak(self.break_state)
+                                try:
+                                    new_serial = serial.serial_for_url(port, do_not_open=True)
+                                except AttributeError:
+                                    # happens when the installed pyserial is older than 2.5. use the
+                                    # Serial class directly then.
+                                    new_serial = serial.Serial()
+                                    new_serial.port = port
+                                # restore settings and open
+                                new_serial.applySettingsDict(settings)
+                                new_serial.open()
+                                new_serial.setRTS(self.rts_state)
+                                new_serial.setDTR(self.dtr_state)
+                                new_serial.setBreak(self.break_state)
+                            except Exception, e:
+                                sys.stderr.write('--- ERROR opening new port: %s ---\n' % (e,))
+                                new_serial.close()
+                            else:
+                                self.serial.close()
+                                self.serial = new_serial
+                                sys.stderr.write('--- Port changed to: %s ---\n' % (self.serial.port,))
                             # and restart the reader thread
                             self._start_reader()
                     elif c in 'bB':                         # B -> change baudrate
@@ -614,7 +624,10 @@ def main():
         miniterm.rts_state = options.rts_state
 
     miniterm.start()
-    miniterm.join(True)
+    try:
+        miniterm.join(True)
+    except KeyboardInterrupt:
+        pass
     if not options.quiet:
         sys.stderr.write("\n--- exit ---\n")
     miniterm.join()
