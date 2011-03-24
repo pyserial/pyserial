@@ -265,9 +265,11 @@ class PosixSerial(SerialBase):
     def open(self):
         """Open port with current settings. This may throw a SerialException
            if the port cannot be opened."""
-        self.fd = None
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
+        if self._isOpen:
+            raise SerialException("Port is already open.")
+        self.fd = None
         # open
         try:
             self.fd = os.open(self.portstr, os.O_RDWR|os.O_NOCTTY|os.O_NONBLOCK)
@@ -296,8 +298,6 @@ class PosixSerial(SerialBase):
         """Set communication parameters on opened port."""
         if self.fd is None:
             raise SerialException("Can only operate on a valid file descriptor")
-        if self._isOpen:
-            raise SerialException("Port is already open.")
         custom_baud = None
 
         vmin = vtime = 0                # timeout is done via select
