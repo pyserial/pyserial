@@ -412,3 +412,4 @@ New Features:
 Bugfixes:
 
 - [SF 3093882] calling open() on an already open port now raises an exception
+- [SF 3245627] connection-lost let rfc2217 hangs in closed loop
