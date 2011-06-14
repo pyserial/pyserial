@@ -438,7 +438,7 @@ class PosixSerial(SerialBase):
         """Read size bytes from the serial port. If a timeout is set it may
            return less characters as requested. With no timeout it will block
            until the requested number of bytes is read."""
-        if self.fd is None: raise portNotOpenError
+        if not self._isOpen: raise portNotOpenError
         read = bytearray()
         while len(read) < size:
             ready,_,_ = select.select([self.fd],[],[], self._timeout)
@@ -461,7 +461,7 @@ class PosixSerial(SerialBase):
 
     def write(self, data):
         """Output the given string over the serial port."""
-        if self.fd is None: raise portNotOpenError
+        if not self._isOpen: raise portNotOpenError
         t = len(data)
         d = data
         if self._writeTimeout is not None and self._writeTimeout > 0:
@@ -494,21 +494,18 @@ class PosixSerial(SerialBase):
 
     def flushInput(self):
         """Clear input buffer, discarding all that is in the buffer."""
-        if self.fd is None:
-            raise portNotOpenError
+        if not self._isOpen: raise portNotOpenError
         termios.tcflush(self.fd, TERMIOS.TCIFLUSH)
 
     def flushOutput(self):
         """Clear output buffer, aborting the current output and
         discarding all that is in the buffer."""
-        if self.fd is None:
-            raise portNotOpenError
+        if not self._isOpen: raise portNotOpenError
         termios.tcflush(self.fd, TERMIOS.TCOFLUSH)
 
     def sendBreak(self, duration=0.25):
         """Send break condition. Timed, returns to idle state after given duration."""
-        if self.fd is None:
-            raise portNotOpenError
+        if not self._isOpen: raise portNotOpenError
         termios.tcsendbreak(self.fd, int(duration/0.25))
 
     def setBreak(self, level=1):
@@ -521,7 +518,7 @@ class PosixSerial(SerialBase):
 
     def setRTS(self, level=1):
         """Set terminal status line: Request To Send"""
-        if self.fd is None: raise portNotOpenError
+        if not self._isOpen: raise portNotOpenError
         if level:
             fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_RTS_str)
         else:
@@ -529,7 +526,7 @@ class PosixSerial(SerialBase):
 
     def setDTR(self, level=1):
         """Set terminal status line: Data Terminal Ready"""
-        if self.fd is None: raise portNotOpenError
+        if not self._isOpen: raise portNotOpenError
         if level:
             fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_DTR_str)
         else:
@@ -537,25 +534,25 @@ class PosixSerial(SerialBase):
 
     def getCTS(self):
         """Read terminal status line: Clear To Send"""
-        if self.fd is None: raise portNotOpenError
+        if not self._isOpen: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_CTS != 0
 
     def getDSR(self):
         """Read terminal status line: Data Set Ready"""
-        if self.fd is None: raise portNotOpenError
+        if not self._isOpen: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_DSR != 0
 
     def getRI(self):
         """Read terminal status line: Ring Indicator"""
-        if self.fd is None: raise portNotOpenError
+        if not self._isOpen: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_RI != 0
 
     def getCD(self):
         """Read terminal status line: Carrier Detect"""
-        if self.fd is None: raise portNotOpenError
+        if not self._isOpen: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_CD != 0
 
@@ -563,24 +560,24 @@ class PosixSerial(SerialBase):
 
     def drainOutput(self):
         """internal - not portable!"""
-        if self.fd is None: raise portNotOpenError
+        if not self._isOpen: raise portNotOpenError
         termios.tcdrain(self.fd)
 
     def nonblocking(self):
         """internal - not portable!"""
-        if self.fd is None:
-            raise portNotOpenError
+        if not self._isOpen: raise portNotOpenError
         fcntl.fcntl(self.fd, FCNTL.F_SETFL, os.O_NONBLOCK)
 
     def fileno(self):
         """For easier use of the serial port instance with select.
            WARNING: this function is not portable to different platforms!"""
-        if self.fd is None: raise portNotOpenError
+        if not self._isOpen: raise portNotOpenError
         return self.fd
 
     def flowControl(self, enable):
         """manually control flow - when hardware or software flow control is
         enabled"""
+        if not self._isOpen: raise portNotOpenError
         if enable:
             termios.tcflow(self.fd, TERMIOS.TCION)
         else:
