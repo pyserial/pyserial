@@ -404,6 +404,7 @@ New Features:
 
 - Moved some of the examples to serial.tools so that they can be used
   with ``python -m``
+- serial port enumeration now included as ``serial.tools.list_ports``
 - URL handers for ``serial_for_url`` are now imported dynamically. This allows
   to add protocols w/o editing files. The list
   ``serial.protocol_handler_packages`` can be used to add or remove user
@@ -418,6 +419,7 @@ Bugfixes:
 Bugfixes (posix):
 
 - [Patch 3316943] Avoid unneeded termios.tcsetattr calls in serialposix.py
+- [Patch 2912349] Serial Scan as a Module with Mac Support
 
 Bugfixes (win32):
 

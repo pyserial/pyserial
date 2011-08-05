@@ -79,3 +79,26 @@ mode, it is advised to use io.TextIOWrapper_::
 
 
 .. _io.TextIOWrapper: http://docs.python.org/library/io.html#io.TextIOWrapper
+
+
+Testing ports
+=============
+Listing ports
+-------------
+``python -m serial.tools.list_ports`` will print a list of available ports. It
+is also possible to add a regexp as first argument and the list will only
+include entries that matched.
+
+.. note::
+
+    The enumeration may not work on all operating systems. It may be
+    incomplete, list unavailable ports or may lack detailed descriptions of the
+    ports.
+
+.. versionadded: 2.6
+
+Accessing ports
+---------------
+pySerial includes a small terminal console based terminal program called
+:ref:`miniterm`.  It ca be started with ``python -m serial.tools.miniterm <port name>``
+(use option ``-h`` to get a listing of all options).

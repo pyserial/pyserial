@@ -179,7 +179,7 @@ def comports():
     SetupDiDestroyDeviceInfoList(g_hdi)
 
 
-
+# test
 if __name__ == '__main__':
     import serial
 
