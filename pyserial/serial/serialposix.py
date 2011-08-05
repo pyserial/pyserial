@@ -305,7 +305,8 @@ class PosixSerial(SerialBase):
             vmin = 1
             vtime = int(self._interCharTimeout * 10)
         try:
-            iflag, oflag, cflag, lflag, ispeed, ospeed, cc = termios.tcgetattr(self.fd)
+            orig_attr = termios.tcgetattr(self.fd)
+            iflag, oflag, cflag, lflag, ispeed, ospeed, cc = orig_attr
         except termios.error, msg:      # if a port is nonexistent but has a /dev file, it'll fail here
             raise SerialException("Could not configure port: %s" % msg)
         # set up raw mode / no echo / binary
@@ -408,7 +409,8 @@ class PosixSerial(SerialBase):
             raise ValueError('Invalid vtime: %r' % vtime)
         cc[TERMIOS.VTIME] = vtime
         # activate settings
-        termios.tcsetattr(self.fd, TERMIOS.TCSANOW, [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
+        if [iflag, oflag, cflag, lflag, ispeed, ospeed, cc] != orig_attr:
+            termios.tcsetattr(self.fd, TERMIOS.TCSANOW, [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
 
         # apply custom baud rate, if any
         if custom_baud is not None:
