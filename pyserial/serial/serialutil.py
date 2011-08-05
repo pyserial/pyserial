@@ -160,12 +160,13 @@ class FileLike(object):
         sizehint is ignored."""
         if self.timeout is None:
             raise ValueError("Serial port MUST have enabled timeout for this function!")
+        leneol = len(eol)
         lines = []
         while True:
             line = self.readline(eol=eol)
             if line:
                 lines.append(line)
-                if line[-1] != eol:    # was the line received with a timeout?
+                if line[-leneol:] != eol:    # was the line received with a timeout?
                     break
             else:
                 break

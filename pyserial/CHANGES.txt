@@ -413,6 +413,7 @@ Bugfixes:
 
 - [Bug 3093882] calling open() on an already open port now raises an exception
 - [Bug 3245627] connection-lost let rfc2217 hangs in closed loop
+- [Patch 3147043] readlines() to support multi-character eol
 
 Bugfixes (posix):
 
