@@ -14,15 +14,30 @@ class _SECURITY_ATTRIBUTES(Structure):
     pass
 LPSECURITY_ATTRIBUTES = POINTER(_SECURITY_ATTRIBUTES)
 
-CreateEventW = _stdcall_libraries['kernel32'].CreateEventW
-CreateEventW.restype = HANDLE
-CreateEventW.argtypes = [LPSECURITY_ATTRIBUTES, BOOL, BOOL, LPCWSTR]
-CreateEvent = CreateEventW # alias
 
-CreateFileW = _stdcall_libraries['kernel32'].CreateFileW
-CreateFileW.restype = HANDLE
-CreateFileW.argtypes = [LPCWSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE]
-CreateFile = CreateFileW # alias
+try:
+    CreateEventW = _stdcall_libraries['kernel32'].CreateEventW
+except AttributeError:
+    # Fallback to non wide char version for old OS...
+    from ctypes.wintypes import LPCSTR
+    CreateEventA = _stdcall_libraries['kernel32'].CreateEventA
+    CreateEventA.restype = HANDLE
+    CreateEventA.argtypes = [LPSECURITY_ATTRIBUTES, BOOL, BOOL, LPCSTR]
+    CreateEvent=CreateEventA
+
+    CreateFileA = _stdcall_libraries['kernel32'].CreateFileA
+    CreateFileA.restype = HANDLE
+    CreateFileA.argtypes = [LPCSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE]
+    CreateFile = CreateFileA
+else:
+    CreateEventW.restype = HANDLE
+    CreateEventW.argtypes = [LPSECURITY_ATTRIBUTES, BOOL, BOOL, LPCWSTR]
+    CreateEvent = CreateEventW # alias
+
+    CreateFileW = _stdcall_libraries['kernel32'].CreateFileW
+    CreateFileW.restype = HANDLE
+    CreateFileW.argtypes = [LPCWSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE]
+    CreateFile = CreateFileW # alias
 
 class _OVERLAPPED(Structure):
     pass

@@ -421,4 +421,4 @@ Bugfixes (posix):
 Bugfixes (win32):
 
 - [SF 3057499] writeTimeoutError when write Timeout is 0
-
+- [SF 3036175] Windows 98 Support fix
