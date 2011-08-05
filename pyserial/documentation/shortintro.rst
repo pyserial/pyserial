@@ -47,11 +47,35 @@ Get a Serial instance and configure/open it later::
 
 Readline
 ========
-Be carefully when using "readline". Do specify a timeout when opening the
+Be carefully when using :meth:`readline`. Do specify a timeout when opening the
 serial port otherwise it could block forever if no newline character is
-received. Also note that "readlines" only works with a timeout. "readlines"
-depends on having a timeout and interprets that as EOF (end of file). It raises
-an exception if the port is not opened correctly.
+received. Also note that :meth:`readlines` only works with a timeout.
+:meth:`readlines` depends on having a timeout and interprets that as EOF (end
+of file). It raises an exception if the port is not opened correctly.
 
 Do also have a look at the example files in the examples directory in the
 source distribution or online.
+
+.. note::
+
+    The ``eol`` parameter for :meth:`readline` is no longer supported when
+    pySerial is run with newer Python versions (V2.6+) where the module
+    :mod:`io` is available.
+
+EOL
+---
+To specify the EOL character for :meth:`readline` or to use universal newline
+mode, it is advised to use io.TextIOWrapper_::
+
+        import serial
+        import io
+        ser = serial.serial_for_url('loop://', timeout=1)
+        sio = io.TextIOWrapper(io.BufferedRWPair(ser, ser))
+
+        sio.write(unicode("hello\n"))
+        sio.flush() # it is buffering. required to get the data out *now*
+        hello = sio.readline()
+        print hello == unicode("hello\n")
+
+
+.. _io.TextIOWrapper: http://docs.python.org/library/io.html#io.TextIOWrapper
