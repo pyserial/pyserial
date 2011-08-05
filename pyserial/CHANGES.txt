@@ -151,7 +151,7 @@ Transition to the Python 2.0 series:
   This dictionary can be used to convert parity constants to meaningful
   strings.
 - Each Serial class and instance has a list of supported values:
-  ``BAUDRATES``, ``BYTESIZES``, ``PARITIES``, ``STOPBITS``
+  ``BAUDRATES``, ``BYTESIZES``, ``PARITIES``, ``STOPBITS``Ggg
   (i.e. ``serial.Serial.BAUDRATES or s = serial.Serial; s.BAUDRATES``)
   these values can be used to fill in value sin GUI dialogs etc.
 - Creating a ``Serial()`` object without port spec returns an unconfigured,
@@ -413,3 +413,8 @@ Bugfixes:
 
 - [SF 3093882] calling open() on an already open port now raises an exception
 - [SF 3245627] connection-lost let rfc2217 hangs in closed loop
+
+Bugfixes (win32):
+
+- [SF 3057499] writeTimeoutError when write Timeout is 0
+

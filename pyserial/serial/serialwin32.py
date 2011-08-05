@@ -255,11 +255,12 @@ class Win32Serial(SerialBase):
             err = win32.WriteFile(self.hComPort, data, len(data), ctypes.byref(n), self._overlappedWrite)
             if not err and win32.GetLastError() != win32.ERROR_IO_PENDING:
                 raise SerialException("WriteFile failed (%s)" % ctypes.WinError())
-            # Wait for the write to complete.
-            #~ win32.WaitForSingleObject(self._overlappedWrite.hEvent, win32.INFINITE)
-            err = win32.GetOverlappedResult(self.hComPort, self._overlappedWrite, ctypes.byref(n), True)
-            if n.value != len(data):
-                raise writeTimeoutError
+            if self._writeTimeout != 0: # if blocking (None) or w/ write timeout (>0)
+                # Wait for the write to complete.
+                #~ win32.WaitForSingleObject(self._overlappedWrite.hEvent, win32.INFINITE)
+                err = win32.GetOverlappedResult(self.hComPort, self._overlappedWrite, ctypes.byref(n), True)
+                if n.value != len(data):
+                    raise writeTimeoutError
             return n.value
         else:
             return 0
