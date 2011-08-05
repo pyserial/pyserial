@@ -411,14 +411,15 @@ New Features:
 
 Bugfixes:
 
-- [SF 3093882] calling open() on an already open port now raises an exception
-- [SF 3245627] connection-lost let rfc2217 hangs in closed loop
+- [Bug 3093882] calling open() on an already open port now raises an exception
+- [Bug 3245627] connection-lost let rfc2217 hangs in closed loop
 
 Bugfixes (posix):
 
-- [SF 3316943] Avoid unneeded termios.tcsetattr calls in serialposix.py
+- [Patch 3316943] Avoid unneeded termios.tcsetattr calls in serialposix.py
 
 Bugfixes (win32):
 
-- [SF 3057499] writeTimeoutError when write Timeout is 0
-- [SF 3036175] Windows 98 Support fix
+- [Bug 3057499] writeTimeoutError when write Timeout is 0
+- [Patch 3036175] Windows 98 Support fix
+- [Patch 3054352] RTS automatic toggle, for RS485 functionality.

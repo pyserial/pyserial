@@ -3,7 +3,7 @@
 # serial driver for win32
 # see __init__.py
 #
-# (C) 2001-2009 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2011 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 #
 # Initial patch to use ctypes by Giovanni Bajo <rasky@develer.com>
@@ -27,6 +27,7 @@ class Win32Serial(SerialBase):
 
     def __init__(self, *args, **kwargs):
         self.hComPort = None
+        self._rtsToggle = False
         SerialBase.__init__(self, *args, **kwargs)
 
     def open(self):
@@ -159,13 +160,19 @@ class Win32Serial(SerialBase):
         # Char. w/ Parity-Err are replaced with 0xff (if fErrorChar is set to TRUE)
         if self._rtscts:
             comDCB.fRtsControl  = win32.RTS_CONTROL_HANDSHAKE
+        elif self._rtsToggle:
+            comDCB.fRtsControl  = win32.RTS_CONTROL_TOGGLE
         else:
             comDCB.fRtsControl  = self._rtsState
         if self._dsrdtr:
             comDCB.fDtrControl  = win32.DTR_CONTROL_HANDSHAKE
         else:
             comDCB.fDtrControl  = self._dtrState
-        comDCB.fOutxCtsFlow     = self._rtscts
+
+        if self._rtsToggle:
+            comDCB.fOutxCtsFlow     = 0
+        else:
+            comDCB.fOutxCtsFlow     = self._rtscts
         comDCB.fOutxDsrFlow     = self._dsrdtr
         comDCB.fOutX            = self._xonxoff
         comDCB.fInX             = self._xonxoff
@@ -355,6 +362,18 @@ class Win32Serial(SerialBase):
         if not win32.ClearCommError(self.hComPort, ctypes.byref(flags), ctypes.byref(comstat)):
             raise SerialException('call to ClearCommError failed')
         return comstat.cbOutQue
+
+    # functions useful for RS-485 adapters
+    def setRtsToggle(self, rtsToggle):
+        """Change RTS toggle control setting."""
+        self._rtsToggle = rtsToggle
+        if self._isOpen: self._reconfigurePort()
+
+    def getRtsToggle(self):
+        """Get the current RTS toggle control setting."""
+        return self._rtsToggle
+
+    rtsToggle = property(getRtsToggle, setRtsToggle, doc="RTS toggle control setting")
 
 
 # assemble Serial class with the platform specific implementation and the base
