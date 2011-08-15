@@ -107,10 +107,10 @@ class SendEvent(threading.Thread):
 
     def run(self):
         time.sleep(self.delay)
+        self.x.set()
         if not self.stopped:
             self.serial.write(data("E"))
             self.serial.flush()
-        self.x.set()
 
     def isSet(self):
         return self.x.isSet()
@@ -136,7 +136,7 @@ class Test1_Forever(unittest.TestCase):
         a character is sent after some time to terminate the test (SendEvent)."""
         c = self.s.read(1)
         if not (self.event.isSet() and c == data('E')):
-            self.fail("expected marker")
+            self.fail("expected marker (evt=%r, c=%r)" % (self.event.isSet(), c))
 
 
 class Test2_Forever(unittest.TestCase):
