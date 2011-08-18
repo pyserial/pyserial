@@ -7,26 +7,30 @@ def ValidHandle(value):
     return value
 
 NULL = 0
-HANDLE = ctypes.c_int
+from serial.win32 import ULONG_PTR
+from ctypes.wintypes import HANDLE
+from ctypes.wintypes import BOOL
+from ctypes.wintypes import CHAR
+from ctypes.wintypes import HWND
+from ctypes.wintypes import DWORD
+from ctypes.wintypes import WORD
+from ctypes.wintypes import LONG
+from ctypes.wintypes import ULONG
+from ctypes.wintypes import PDWORD
+from ctypes.wintypes import LPDWORD
+from ctypes.wintypes import PBYTE
+from ctypes.wintypes import LPBYTE
+from ctypes.wintypes import LPCSTR
+from ctypes.wintypes import PHKEY
+from ctypes.wintypes import HKEY
+
+
 HDEVINFO = ctypes.c_int
-BOOL = ctypes.c_int
-CHAR = ctypes.c_char
 PCTSTR = ctypes.c_char_p
-HWND = ctypes.c_uint
-DWORD = ctypes.c_ulong
-PDWORD = ctypes.POINTER(DWORD)
-LPDWORD = ctypes.POINTER(DWORD)
-LONG = ctypes.c_long
-ULONG = ctypes.c_ulong
-ULONG_PTR = ctypes.POINTER(ULONG)
-#~ PBYTE = ctypes.c_char_p
-PBYTE = ctypes.c_void_p
-LPBYTE = ctypes.c_void_p
+
 ACCESS_MASK = DWORD
 REGSAM = ACCESS_MASK
-HKEY = HANDLE
-PHKEY = ctypes.POINTER(HKEY)
-LPCSTR = ctypes.c_char_p
+
 
 class GUID(ctypes.Structure):
     _fields_ = [

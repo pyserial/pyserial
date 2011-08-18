@@ -1,4 +1,4 @@
-Copyright (c) 2001-2010 Chris Liechti <cliechti@gmx.net>;
+Copyright (c) 2001-2011 Chris Liechti <cliechti@gmx.net>;
 All Rights Reserved.
 
 This is the Python license. In short, you can use this product in

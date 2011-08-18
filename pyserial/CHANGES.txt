@@ -426,3 +426,4 @@ Bugfixes (win32):
 - [Bug 3057499] writeTimeoutError when write Timeout is 0
 - [Patch 3036175] Windows 98 Support fix
 - [Patch 3054352] RTS automatic toggle, for RS485 functionality.
+- Fix type definitions for 64 bit Windows compatibility

@@ -10,6 +10,17 @@ from ctypes.wintypes import BYTE
 
 INVALID_HANDLE_VALUE = HANDLE(-1).value
 
+# ULONG_PTR is a an ordinary number, not a pointer and contrary to the name it
+# is either 32 or 64 bits, depending on the type of windows...
+# so test if this a 32 bit windows...
+if sizeof(c_ulong) == sizeof(c_void_p):
+    # 32 bits
+    ULONG_PTR = c_ulong
+else:
+    # assume 64 bits
+    ULONG_PTR = c_int64
+
+
 class _SECURITY_ATTRIBUTES(Structure):
     pass
 LPSECURITY_ATTRIBUTES = POINTER(_SECURITY_ATTRIBUTES)
@@ -197,8 +208,8 @@ EV_EVENT2 = 4096 # Variable c_int
 EV_CTS = 8 # Variable c_int
 EV_BREAK = 64 # Variable c_int
 PURGE_RXCLEAR = 8 # Variable c_int
-ULONG_PTR = c_ulong
 INFINITE = 0xFFFFFFFFL
+
 
 class N11_OVERLAPPED4DOLLAR_48E(Union):
     pass
