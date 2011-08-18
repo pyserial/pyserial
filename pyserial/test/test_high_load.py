@@ -30,7 +30,7 @@ PORT = 0
 BAUDRATE = 115200
 #~ BAUDRATE=9600
 
-if sys.version_info >= (2, 6):
+if sys.version_info >= (3, 0):
     bytes_0to255 = bytes(range(256))
 else:
     bytes_0to255 = ''.join([chr(x) for x in range(256)])
