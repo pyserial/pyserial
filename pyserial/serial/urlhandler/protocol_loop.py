@@ -124,7 +124,7 @@ class LoopbackSerial(SerialBase):
         else:
             timeout = None
         data = bytearray()
-        while len(data) < size:
+        while size > 0:
             self.buffer_lock.acquire()
             try:
                 block = to_bytes(self.loop_buffer[:size])
@@ -132,6 +132,7 @@ class LoopbackSerial(SerialBase):
             finally:
                 self.buffer_lock.release()
             data += block
+            size -= len(block)
             # check for timeout now, after data has been read.
             # useful for timeout = 0 (non blocking) read
             if timeout and time.time() > timeout:
@@ -143,6 +144,8 @@ class LoopbackSerial(SerialBase):
         connection is blocked. May raise SerialException if the connection is
         closed."""
         if not self._isOpen: raise portNotOpenError
+        # ensure we're working with bytes
+        data = bytes(data)
         # calculate aprox time that would be used to send the data
         time_used_to_send = 10.0*len(data) / self._baudrate
         # when a write timeout is configured check if we would be successful
@@ -152,7 +155,7 @@ class LoopbackSerial(SerialBase):
             raise writeTimeoutError
         self.buffer_lock.acquire()
         try:
-            self.loop_buffer += bytes(data)
+            self.loop_buffer += data
         finally:
             self.buffer_lock.release()
         return len(data)
