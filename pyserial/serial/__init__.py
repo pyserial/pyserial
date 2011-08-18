@@ -22,7 +22,8 @@ else:
     elif os.name == 'java':
         from serialjava import *
     else:
-        raise Exception("Sorry: no implementation for your platform ('%s') available" % os.name)
+        raise ImportError("Sorry: no implementation for your platform ('%s') available" % (os.name,))
+
 
 protocol_handler_packages = [
         'serial.urlhandler',
@@ -30,12 +31,13 @@ protocol_handler_packages = [
 
 def serial_for_url(url, *args, **kwargs):
     """\
-    Get a native, a RFC2217 or socket implementation of the Serial class,
-    depending on port/url. The port is not opened when the keyword parameter
-    'do_not_open' is true, by default it is.
+    Get an instance of the Serial class, depending on port/url. The port is not
+    opened when the keyword parameter 'do_not_open' is true, by default it
+    is. All other parameters are directly passed to the __init__ method when
+    the port is instantiated.
 
     The list of package names that is searched for protocol handlers is kept in
-    ``protocol_handler_packages``
+    ``protocol_handler_packages``.
 
     e.g. we want to support a URL ``foobar://``. A module
     ``my_handlers.protocol_foobar`` is provided by the user. Then
