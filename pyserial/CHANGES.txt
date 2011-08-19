@@ -409,6 +409,8 @@ New Features:
   to add protocols w/o editing files. The list
   ``serial.protocol_handler_packages`` can be used to add or remove user
   packages with protocol handlers (see docs for details).
+- new URL type: hwgrep://<regexp> uses list_ports module to search for ports
+  by their description
 
 Bugfixes:
 
