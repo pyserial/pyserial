@@ -19,7 +19,7 @@ class Serial(serial.Serial):
 
     def setPort(self, value):
         """translate port name before storing it"""
-        if isinstance(value, basestring):
+        if isinstance(value, basestring) and value.startswith('hwgrep://'):
             serial.Serial.setPort(self, self.fromURL(value))
         else:
             serial.Serial.setPort(self, value)
@@ -31,7 +31,7 @@ class Serial(serial.Serial):
         for port, desc, hwid in serial.tools.list_ports.grep(url):
             return port
         else:
-            raise SerialException('no ports found matching regexp %r' % (url,))
+            raise serial.SerialException('no ports found matching regexp %r' % (url,))
 
     # override property
     port = property(serial.Serial.getPort, setPort, doc="Port setting")
