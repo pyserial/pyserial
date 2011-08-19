@@ -8,14 +8,14 @@ try:
 except ImportError:
     def popen(argv):
         try:
-            si, so =  os.popen2(' '.join(argv))
+            si, so =  os.popen4(' '.join(argv))
             return so.read().strip()
         except:
             raise IOError('lsusb failed')
 else:
     def popen(argv):
         try:
-            return subprocess.check_output(argv).strip()
+            return subprocess.check_output(argv, stderr=subprocess.STDOUT).strip()
         except:
             raise IOError('lsusb failed')
 
