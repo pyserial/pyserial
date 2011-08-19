@@ -30,7 +30,7 @@ LOGGER_LEVELS = {
 
 
 class LoopbackSerial(SerialBase):
-    """Serial port implementation for plain sockets."""
+    """Serial port implementation that simulates a loop back connection in plain software."""
 
     BAUDRATES = (50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
                  9600, 19200, 38400, 57600, 115200)
@@ -254,7 +254,7 @@ else:
 # simple client test
 if __name__ == '__main__':
     import sys
-    s = Serial('socket://localhost:7000')
+    s = Serial('loop://')
     sys.stdout.write('%s\n' % s)
 
     sys.stdout.write("write...\n")
