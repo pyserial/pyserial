@@ -10,7 +10,6 @@ NULL = 0
 from serial.win32 import ULONG_PTR
 from ctypes.wintypes import HANDLE
 from ctypes.wintypes import BOOL
-from ctypes.wintypes import CHAR
 from ctypes.wintypes import HWND
 from ctypes.wintypes import DWORD
 from ctypes.wintypes import WORD
@@ -27,6 +26,7 @@ from ctypes.wintypes import HKEY
 
 HDEVINFO = ctypes.c_int
 PCTSTR = ctypes.c_char_p
+CHAR = ctypes.c_char
 
 ACCESS_MASK = DWORD
 REGSAM = ACCESS_MASK
