@@ -39,7 +39,7 @@ def grep(regexp):
     same tuples as comport() would do.
     """
     for port, desc, hwid in comports():
-        if re.search(regexp, port) or re.search(regexp, desc) or re.search(regexp, hwid):
+        if re.search(regexp, port, re.I) or re.search(regexp, desc) or re.search(regexp, hwid):
             yield port, desc, hwid
 
 # test
