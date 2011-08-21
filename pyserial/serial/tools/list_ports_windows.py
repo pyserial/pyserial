@@ -15,21 +15,25 @@ from ctypes.wintypes import DWORD
 from ctypes.wintypes import WORD
 from ctypes.wintypes import LONG
 from ctypes.wintypes import ULONG
-from ctypes.wintypes import PDWORD
-from ctypes.wintypes import LPDWORD
-from ctypes.wintypes import PBYTE
-from ctypes.wintypes import LPBYTE
 from ctypes.wintypes import LPCSTR
-from ctypes.wintypes import PHKEY
 from ctypes.wintypes import HKEY
-
+from ctypes.wintypes import BYTE
 
 HDEVINFO = ctypes.c_int
 PCTSTR = ctypes.c_char_p
 CHAR = ctypes.c_char
+LPDWORD = PDWORD = ctypes.POINTER(DWORD)
+#~ LPBYTE = PBYTE = ctypes.POINTER(BYTE)
+LPBYTE = PBYTE = ctypes.c_void_p        # XXX avoids error about types
+PHKEY = ctypes.POINTER(HKEY)
 
 ACCESS_MASK = DWORD
 REGSAM = ACCESS_MASK
+
+
+def byte_buffer(length):
+    """Get a buffer for a string"""
+    return (ctypes.c_char*length)()
 
 
 class GUID(ctypes.Structure):
@@ -122,6 +126,7 @@ DIREG_DEV = 0x00000001
 KEY_READ = 0x20019
 REG_SZ = 1
 
+
 def comports():
     """This generator scans the device registry for com ports and yields port, desc, hwid"""
     g_hdi = SetupDiGetClassDevs(ctypes.byref(GUID_CLASS_COMPORT), None, NULL, DIGCF_PRESENT|DIGCF_DEVICEINTERFACE);
@@ -157,14 +162,14 @@ def comports():
             raise ctypes.WinError()
 
         # hardware ID
-        szHardwareID = ctypes.create_string_buffer('\0' * 250)
+        szHardwareID = byte_buffer(250)
         if not SetupDiGetDeviceRegistryProperty(g_hdi, ctypes.byref(devinfo), SPDRP_HARDWAREID, None, ctypes.byref(szHardwareID), ctypes.sizeof(szHardwareID) - 1, None):
             # Ignore ERROR_INSUFFICIENT_BUFFER
             if GetLastError() != ERROR_INSUFFICIENT_BUFFER:
                 raise ctypes.WinError()
 
         # friendly name
-        szFriendlyName = ctypes.create_string_buffer('\0' * 250)
+        szFriendlyName = byte_buffer(250)
         if not SetupDiGetDeviceRegistryProperty(g_hdi, ctypes.byref(devinfo), SPDRP_FRIENDLYNAME, None, ctypes.byref(szFriendlyName), ctypes.sizeof(szFriendlyName) - 1, None):
             # Ignore ERROR_INSUFFICIENT_BUFFER
             if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
@@ -173,7 +178,7 @@ def comports():
         else:
             # the real com port name has to read differently...
             hkey = SetupDiOpenDevRegKey(g_hdi, ctypes.byref(devinfo), DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_READ)
-            port_name_buffer = ctypes.create_string_buffer('\0' * 250)
+            port_name_buffer = byte_buffer(250)
             port_name_length = ULONG(ctypes.sizeof(port_name_buffer))
             RegQueryValueEx(hkey, "PortName", None, None, ctypes.byref(port_name_buffer), ctypes.byref(port_name_length))
             RegCloseKey(hkey)
