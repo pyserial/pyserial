@@ -6,7 +6,7 @@ def ValidHandle(value):
         raise ctypes.WinError()
     return value
 
-NULL = 0
+import serial
 from serial.win32 import ULONG_PTR
 from ctypes.wintypes import HANDLE
 from ctypes.wintypes import BOOL
@@ -19,6 +19,7 @@ from ctypes.wintypes import LPCSTR
 from ctypes.wintypes import HKEY
 from ctypes.wintypes import BYTE
 
+NULL = 0
 HDEVINFO = ctypes.c_int
 PCTSTR = ctypes.c_char_p
 CHAR = ctypes.c_char
@@ -126,6 +127,8 @@ DIREG_DEV = 0x00000001
 KEY_READ = 0x20019
 REG_SZ = 1
 
+# workaround for compatibility between Python 2.x and 3.x
+PortName = serial.to_bytes([80, 111, 114, 116, 78, 97, 109, 101]) # "PortName"
 
 def comports():
     """This generator scans the device registry for com ports and yields port, desc, hwid"""
@@ -180,7 +183,7 @@ def comports():
             hkey = SetupDiOpenDevRegKey(g_hdi, ctypes.byref(devinfo), DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_READ)
             port_name_buffer = byte_buffer(250)
             port_name_length = ULONG(ctypes.sizeof(port_name_buffer))
-            RegQueryValueEx(hkey, "PortName", None, None, ctypes.byref(port_name_buffer), ctypes.byref(port_name_length))
+            RegQueryValueEx(hkey, PortName, None, None, ctypes.byref(port_name_buffer), ctypes.byref(port_name_length))
             RegCloseKey(hkey)
             port_name = str(port_name_buffer.value)
             yield port_name, szFriendlyName.value, szHardwareID.value
