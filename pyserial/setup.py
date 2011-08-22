@@ -33,12 +33,21 @@ if sys.version < '2.3':
                      "supported - check http://pyserial.sf.net for older "
                      "releases or upgrade your Python installation.")
 
-import serial
+# importing version does not work with Python 3 as files have not yet been
+# converted.
+#~ import serial
+#~ version = serial.VERSION
+
+import re, os
+version = re.search(
+        "VERSION.*'(.+)'",
+        open(os.path.join('serial', '__init__.py')).read()).group(1)
+
 
 setup(
     name = "pyserial" + suffix,
     description = "Python Serial Port Extension",
-    version = serial.VERSION,
+    version = version,
     author = "Chris Liechti",
     author_email = "cliechti@gmx.net",
     url = "http://pyserial.sourceforge.net/",
