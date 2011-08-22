@@ -59,7 +59,7 @@
 #   RFC).
 # the order of the options is not relevant
 
-from serialutil import *
+from serial.serialutil import *
 import time
 import struct
 import socket

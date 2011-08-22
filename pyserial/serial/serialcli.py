@@ -9,7 +9,7 @@
 import clr
 import System
 import System.IO.Ports
-from serialutil import *
+from serial.serialutil import *
 
 
 def device(portnum):

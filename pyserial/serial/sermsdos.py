@@ -38,7 +38,7 @@
 import os
 import sys
 import string
-import serialutil
+import serial.serialutil
 
 BAUD_RATES = {
                 110: "11",
