@@ -411,6 +411,8 @@ New Features:
   packages with protocol handlers (see docs for details).
 - new URL type: hwgrep://<regexp> uses list_ports module to search for ports
   by their description
+- serveral internal changes to improve Python 3.x compatibility (setup.py,
+  use of absolute imports and more)
 
 Bugfixes:
 
