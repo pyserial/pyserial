@@ -13,17 +13,17 @@ import sys
 
 from distutils.core import setup
 
-try:
-    from distutils.command.build_py import build_py_2to3 as build_py
-    from distutils.command.build_scripts import build_scripts_2to3 as build_scripts
-except ImportError:
-    if sys.version_info >= (3, 0):
+if sys.version_info >= (3, 0):
+    try:
+        from distutils.command.build_py import build_py_2to3 as build_py
+        from distutils.command.build_scripts import build_scripts_2to3 as build_scripts
+    except ImportError:
         raise ImportError("build_py_2to3 not found in distutils - it is required for Python 3.x")
+    suffix = "-py3k"
+else:
     from distutils.command.build_py import build_py
     from distutils.command.build_scripts import build_scripts
     suffix = ""
-else:
-    suffix = "-py3k"
 
 
 if sys.version < '2.3':
@@ -73,6 +73,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.0',
         'Programming Language :: Python :: 3.1',
+        'Programming Language :: Python :: 3.2',
         'Topic :: Communications',
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
