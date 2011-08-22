@@ -34,7 +34,14 @@ REGSAM = ACCESS_MASK
 
 def byte_buffer(length):
     """Get a buffer for a string"""
-    return (ctypes.c_char*length)()
+    return (BYTE*length)()
+
+def string(buffer):
+    s = []
+    for c in buffer:
+        if c == 0: break
+        s.append(chr(c))
+    return ''.join(s)
 
 
 class GUID(ctypes.Structure):
@@ -185,8 +192,7 @@ def comports():
             port_name_length = ULONG(ctypes.sizeof(port_name_buffer))
             RegQueryValueEx(hkey, PortName, None, None, ctypes.byref(port_name_buffer), ctypes.byref(port_name_length))
             RegCloseKey(hkey)
-            port_name = str(port_name_buffer.value)
-            yield port_name, szFriendlyName.value, szHardwareID.value
+            yield string(port_name_buffer), string(szFriendlyName), string(szHardwareID)
 
     SetupDiDestroyDeviceInfoList(g_hdi)
 
