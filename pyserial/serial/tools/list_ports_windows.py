@@ -20,7 +20,7 @@ from ctypes.wintypes import HKEY
 from ctypes.wintypes import BYTE
 
 NULL = 0
-HDEVINFO = ctypes.c_int
+HDEVINFO = ctypes.c_void_p
 PCTSTR = ctypes.c_char_p
 CHAR = ctypes.c_char
 LPDWORD = PDWORD = ctypes.POINTER(DWORD)
