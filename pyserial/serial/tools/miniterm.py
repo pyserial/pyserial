@@ -65,6 +65,13 @@ def get_help_text():
     'exchar': key_description(EXITCHARCTER),
 }
 
+if sys.version_info >= (3, 0):
+    def character(b):
+        return b.decode('latin1')
+else:
+    def character(b):
+        return b
+
 # first choose a platform dependant way to read single characters from the console
 global console
 
@@ -83,7 +90,7 @@ if os.name == 'nt':
         def getkey(self):
             while True:
                 z = msvcrt.getch()
-                if z == '\0' or z == '\xe0':    # functions keys
+                if z == '\0' or z == '\xe0':    # functions keys, ignore
                     msvcrt.getch()
                 else:
                     if z == '\r':
@@ -210,7 +217,7 @@ class Miniterm(object):
         """loop and copy serial->console"""
         try:
             while self.alive and self._reader_alive:
-                data = self.serial.read(1)
+                data = character(self.serial.read(1))
 
                 if self.repr_mode == 0:
                     # direct output, just have to care about newline setting
@@ -236,8 +243,8 @@ class Miniterm(object):
                     sys.stdout.write(repr(data)[1:-1])
                 elif self.repr_mode == 3:
                     # escape everything (hexdump)
-                    for character in data:
-                        sys.stdout.write("%s " % character.encode('hex'))
+                    for c in data:
+                        sys.stdout.write("%s " % c.encode('hex'))
                 sys.stdout.flush()
         except serial.SerialException, e:
             self.alive = False
@@ -256,12 +263,13 @@ class Miniterm(object):
         try:
             while self.alive:
                 try:
-                    c = console.getkey()
+                    b = console.getkey()
                 except KeyboardInterrupt:
-                    c = '\x03'
+                    b = serial.to_bytes([3])
+                c = character(b)
                 if menu_active:
                     if c == MENUCHARACTER or c == EXITCHARCTER: # Menu character again/exit char -> send itself
-                        self.serial.write(c)                    # send character
+                        self.serial.write(b)                    # send character
                         if self.echo:
                             sys.stdout.write(c)
                     elif c == '\x15':                       # CTRL+U -> upload file
@@ -420,7 +428,7 @@ class Miniterm(object):
                         sys.stdout.write(c)                 # local echo is a real newline in any case
                         sys.stdout.flush()
                 else:
-                    self.serial.write(c)                    # send character
+                    self.serial.write(b)                    # send byte
                     if self.echo:
                         sys.stdout.write(c)
                         sys.stdout.flush()
