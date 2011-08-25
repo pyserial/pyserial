@@ -78,7 +78,7 @@ Native ports
         1500000, 2000000, 2500000, 3000000, 3500000, 4000000 also work on many
         platforms.
 
-        Non-standard values are also suported on some platforms (GNU/Linux, MAC
+        Non-standard values are also supported on some platforms (GNU/Linux, MAC
         OSX >= Tiger, Windows). Though, even on these platforms some serial
         ports may reject non-standard values.
 
@@ -102,7 +102,7 @@ Native ports
         creating Serial instances directly.
 
         .. versionchanged:: 2.5
-            *dsrdtr* now defaults fo False (instead of *None*)
+            *dsrdtr* now defaults to ``False`` (instead of *None*)
 
     .. method:: open()
 
@@ -581,7 +581,7 @@ others by the base class mentioned above.
         the class should be instantiated in the moment the client connects.
 
         The *serial_port* can be controlled by :rfc:`2217` commands. This
-        object will modify the port settings (baud rate etc) and control lines
+        object will modify the port settings (baud rate etc.) and control lines
         (RTS/DTR) send BREAK etc. when the corresponding commands are found by
         the :meth:`filter` method.
 
@@ -671,7 +671,7 @@ Constants
 .. data:: STOPBITS_ONE_POINT_FIVE
 .. data:: STOPBITS_TWO
 
-Note that 1.5 stop bits are not supported on Posix. It will fall back to 2 stop
+Note that 1.5 stop bits are not supported on POSIX. It will fall back to 2 stop
 bits.
 
 *Byte size*
@@ -860,8 +860,8 @@ serial.tools.list_ports
 .. module:: serial.tools.list_ports
 .. versionadded:: 2.6
 
-This module can be executed (``python -m serial.tools.list_ports``) to get a
-list of ports. It also contains the following functions.
+This module can be executed to get a list of ports (``python -m
+serial.tools.list_ports``). It also contains the following functions.
 
 
 .. function:: comports()
@@ -870,16 +870,17 @@ list of ports. It also contains the following functions.
 
     The function returns an iterable that yields tuples of three strings:
 
-    - port name: as it can be passed to :class:`serial.Serial` or
+    - port name as it can be passed to :class:`serial.Serial` or
       :func:`serial.serial_for_url`
-    - description: human readable text identifying the port
-    - hardware id: some sort of hardware identification. E.g. may contain
-      VID:PID of USB-serial adapters.
+    - description in human readable form
+    - sort of hardware ID. E.g. may contain VID:PID of USB-serial adapters.
 
-    Items are returned in no particular order. It may make sense to sort the items.
+    Items are returned in no particular order. It may make sense to sort the
+    items. Also note that the reported strings are different across platforms
+    and operating systems, even for the same device.
 
     .. note:: Support is limited to a number of operating systems. On some
-              systems description and hardware id will not be available
+              systems description and hardware ID will not be available
               (``None``).
 
     :platform: Posix (/dev files)
@@ -890,11 +891,12 @@ list of ports. It also contains the following functions.
 .. function:: grep(regexp)
 
     :param regexp: regular expression (see stdlib :mod:`re`)
-    :return: see :func:`comports`.
+    :return: filtered sequence, see :func:`comports`.
 
     Search for ports using a regular expression. Port name, description and
-    hardware ID are searched. The function returns an iterable that returns the
-    same tuples as comport() would do.
+    hardware ID are searched (case insensitive). The function returns an
+    iterable that contains the same tuples that :func:`comport` generates but
+    only those that match the regexp.
 
 
 serial.tools.miniterm
