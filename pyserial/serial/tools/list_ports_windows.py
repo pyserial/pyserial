@@ -1,13 +1,13 @@
 import ctypes
 import re
 
-def ValidHandle(value):
+def ValidHandle(value, func, arguments):
     if value == 0:
         raise ctypes.WinError()
     return value
 
 import serial
-from serial.win32 import ULONG_PTR
+from serial.win32 import ULONG_PTR, is_64bit
 from ctypes.wintypes import HANDLE
 from ctypes.wintypes import BOOL
 from ctypes.wintypes import HWND
@@ -46,10 +46,11 @@ def string(buffer):
 
 class GUID(ctypes.Structure):
     _fields_ = [
-        ('Data1', ctypes.c_ulong),
-        ('Data2', ctypes.c_ushort),
-        ('Data3', ctypes.c_ushort),
-        ('Data4', ctypes.c_ubyte*8),
+        ('Data1', DWORD),
+        ('Data2', WORD),
+        ('Data3', WORD),
+        ('Data4', BYTE*8),
+),
     ]
     def __str__(self):
         return "{%08x-%04x-%04x-%s-%s}" % (
@@ -91,7 +92,8 @@ SetupDiDestroyDeviceInfoList.restype = BOOL
 
 SetupDiGetClassDevs = setupapi.SetupDiGetClassDevsA
 SetupDiGetClassDevs.argtypes = [ctypes.POINTER(GUID), PCTSTR, HWND, DWORD]
-SetupDiGetClassDevs.restype = ValidHandle #HDEVINFO
+SetupDiGetClassDevs.restype = HDEVINFO
+SetupDiGetClassDevs.errcheck = ValidHandle
 
 SetupDiEnumDeviceInterfaces = setupapi.SetupDiEnumDeviceInterfaces
 SetupDiEnumDeviceInterfaces.argtypes = [HDEVINFO, PSP_DEVINFO_DATA, ctypes.POINTER(GUID), DWORD, PSP_DEVICE_INTERFACE_DATA]
@@ -120,7 +122,7 @@ RegQueryValueEx.restype = LONG
 
 
 GUID_CLASS_COMPORT = GUID(0x86e0d1e0L, 0x8089, 0x11d0,
-    (ctypes.c_ubyte*8)(0x9c, 0xe4, 0x08, 0x00, 0x3e, 0x30, 0x1f, 0x73))
+    (BYTE*8)(0x9c, 0xe4, 0x08, 0x00, 0x3e, 0x30, 0x1f, 0x73))
 
 DIGCF_PRESENT = 2
 DIGCF_DEVICEINTERFACE = 16
@@ -165,7 +167,10 @@ def comports():
             def __str__(self):
                 return "DevicePath:%s" % (self.DevicePath,)
         idd = SP_DEVICE_INTERFACE_DETAIL_DATA_A()
-        idd.cbSize = 5
+        if is_64bit():
+            idd.cbSize = 8
+        else:
+            idd.cbSize = 5
         devinfo = SP_DEVINFO_DATA()
         devinfo.cbSize = ctypes.sizeof(devinfo)
         if not SetupDiGetDeviceInterfaceDetail(g_hdi, ctypes.byref(did), ctypes.byref(idd), dwNeeded, None, ctypes.byref(devinfo)):

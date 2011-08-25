@@ -10,15 +10,20 @@ from ctypes.wintypes import BYTE
 
 INVALID_HANDLE_VALUE = HANDLE(-1).value
 
+# some details of the windows API differ between 32 and 64 bit systems..
+def is_64bit():
+    """Returns true when running on a 64 bit system"""
+    return sizeof(c_ulong) != sizeof(c_void_p)
+
 # ULONG_PTR is a an ordinary number, not a pointer and contrary to the name it
 # is either 32 or 64 bits, depending on the type of windows...
 # so test if this a 32 bit windows...
-if sizeof(c_ulong) == sizeof(c_void_p):
-    # 32 bits
-    ULONG_PTR = c_ulong
-else:
+if is_64bit():
     # assume 64 bits
     ULONG_PTR = c_int64
+else:
+    # 32 bits
+    ULONG_PTR = c_ulong
 
 
 class _SECURITY_ATTRIBUTES(Structure):
