@@ -300,27 +300,6 @@ enhancedserial.py_
 .. _enhancedserial.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/enhancedserial.py
 
 
-Finding serial ports
-====================
-scan.py_
-    A simple loop that probes serial ports by number.
-
-scanlinux.py_
-    A Linux only version looking at the entries in ``/dev``. It works best with
-    on systems with devfs or udev that only create those entries that represent
-    devices. On older installations a lot of pre-created device files are found
-    and an additional open check should be added to ensure that the device is
-    real.
-
-scanwin32.py_
-    A Windows only version that returns a list of serial ports with information
-    from the registry.
-
-.. _scan.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/scan.py
-.. _scanlinux.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/scanlinux.py
-.. _scanwin32.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/scanwin32.py
-
-
 Unit tests
 ==========
 The project uses a number of unit test to verify the functionality. They all

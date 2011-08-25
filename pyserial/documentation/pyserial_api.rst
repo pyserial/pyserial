@@ -384,18 +384,18 @@ Native ports
 
 .. note::
 
-    For systems that provide the :mod:`io` library (Python 2.6 and newer), the
-    class :class:`Serial` will derive from :class:`io.RawIOBase`. For all
+    For systems that provide the :py:mod:`io` library (Python 2.6 and newer), the
+    class :class:`Serial` will derive from :py:class:`io.RawIOBase`. For all
     others from :class:`FileLike`.
 
-    Implementation detail: some attributes and functions are provided by the
-    class :class:`SerialBase` and some by the platform specific class and
-    others by the base class mentioned above.
+Implementation detail: some attributes and functions are provided by the
+class :class:`SerialBase` and some by the platform specific class and
+others by the base class mentioned above.
 
 .. class:: FileLike
 
     An abstract file like class. It is used as base class for :class:`Serial`
-    when no :mod:`io` module is available.
+    when no :py:mod:`io` module is available.
 
     This class implements :meth:`readline` and :meth:`readlines` based on
     :meth:`read` and :meth:`writelines` based on :meth:`write`.
@@ -475,7 +475,7 @@ Native ports
 
     .. method:: readlines(sizehint=None, eol='\\n')
 
-        :param size: Ignored parameter.
+        :param sizehint: Ignored parameter.
         :param eol: The end of line character.
 
         Read a list of lines, until timeout. *sizehint* is ignored and only
@@ -850,3 +850,58 @@ Examples:
 - ``rfc2217://localhost:7000/ign_set_control/timeout=5.5``
 - ``socket://localhost:7777``
 - ``loop://logging=debug``
+
+Tools
+=====
+
+
+serial.tools.list_ports
+-----------------------
+.. module:: serial.tools.list_ports
+.. versionadded:: 2.6
+
+This module can be executed (``python -m serial.tools.list_ports``) to get a
+list of ports. It also contains the following functions.
+
+
+.. function:: comports()
+
+    :return: an iterable.
+
+    The function returns an iterable that yields tuples of three strings:
+
+    - port name: as it can be passed to :class:`serial.Serial` or
+      :func:`serial.serial_for_url`
+    - description: human readable text identifying the port
+    - hardware id: some sort of hardware identification. E.g. may contain
+      VID:PID of USB-serial adapters.
+
+    Items are returned in no particular order. It may make sense to sort the items.
+
+    .. note:: Support is limited to a number of operating systems. On some
+              systems description and hardware id will not be available
+              (``None``).
+
+    :platform: Posix (/dev files)
+    :platform: Linux (/dev files, sysfs and lsusb)
+    :platform: Windows (setupapi, registry)
+
+
+.. function:: grep(regexp)
+
+    :param regexp: regular expression (see stdlib :mod:`re`)
+    :return: see :func:`comports`.
+
+    Search for ports using a regular expression. Port name, description and
+    hardware ID are searched. The function returns an iterable that returns the
+    same tuples as comport() would do.
+
+
+serial.tools.miniterm
+-----------------------
+.. module:: serial.tools.miniterm
+.. versionadded:: 2.6
+
+Miniterm is now available as module instead of example.
+see :ref:`miniterm` for details.
+
