@@ -42,19 +42,58 @@ def grep(regexp):
         if re.search(regexp, port, re.I) or re.search(regexp, desc) or re.search(regexp, hwid):
             yield port, desc, hwid
 
+
+def main():
+    import optparse
+
+    parser = optparse.OptionParser(
+        usage = "%prog [options] [<regexp>]",
+        description = "Miniterm - A simple terminal program for the serial port."
+    )
+    
+    parser.add_option("--debug",
+            help="print debug messages and tracebacks (development mode)",
+            dest="debug",
+            default=False,
+            action='store_true')
+
+    parser.add_option("-v", "--verbose",
+            help="show more messages (can be given multiple times)",
+            dest="verbose",
+            default=1,
+            action='count')
+
+    parser.add_option("-q", "--quiet",
+            help="suppress all messages",
+            dest="verbose",
+            action='store_const',
+            const=0)
+
+    (options, args) = parser.parse_args()
+
+
+    hits = 0
+    # get iteraror w/ or w/o filter
+    if args:
+        if len(args) > 1:
+            parser.error('more than one regexp not supported')
+        print "Filtered list with regexp: %r" % (args[0],)
+        iterator = sorted(grep(args[0]))
+    else:
+        iterator = sorted(comports())
+    # list them
+    for port, desc, hwid in iterator:
+        print "%-20s" % (port,)
+        if options.verbose > 1:
+            print "    desc: %s" % (desc,)
+            print "    hwid: %s" % (hwid,)
+        hits += 1
+    if options.verbose:
+        if hits:
+            print "%d ports found" % (hits,)
+        else:
+            print "no ports found"
+
 # test
 if __name__ == '__main__':
-    hits = 0
-    if len(sys.argv) > 1:
-        print "Filtered list with regexp: %r" % (sys.argv[1],)
-        for port, desc, hwid in sorted(grep(sys.argv[1])):
-            print "%-20s: %s [%s]" % (port, desc, hwid)
-            hits += 1
-    else:
-        for port, desc, hwid in sorted(comports()):
-            print "%-20s: %s [%s]" % (port, desc, hwid)
-            hits += 1
-    if hits:
-        print "%d ports found" % (hits,)
-    else:
-        print "no ports found"
+    main()
