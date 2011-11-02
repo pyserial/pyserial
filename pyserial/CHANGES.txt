@@ -398,7 +398,7 @@ Bugfixes (win32):
   (bug introduced in 2.5-rc1)
 
 
-Version 2.6      2011-nn-nn
+Version 2.6      2011-11-02
 ---------------------------
 New Features:
 
@@ -428,6 +428,7 @@ Bugfixes (posix):
 Bugfixes (win32):
 
 - [Bug 3057499] writeTimeoutError when write Timeout is 0
+- [Bug 3414327] Character out of range in list_ports_windows
 - [Patch 3036175] Windows 98 Support fix
 - [Patch 3054352] RTS automatic toggle, for RS485 functionality.
 - Fix type definitions for 64 bit Windows compatibility
