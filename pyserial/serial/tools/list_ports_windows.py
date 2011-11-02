@@ -40,7 +40,7 @@ def string(buffer):
     s = []
     for c in buffer:
         if c == 0: break
-        s.append(chr(c))
+        s.append(chr(c & 0xff)) # "& 0xff": hack to convert signed to unsigned
     return ''.join(s)
 
 
