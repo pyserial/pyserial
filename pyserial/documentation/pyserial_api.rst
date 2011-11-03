@@ -842,6 +842,20 @@ possible for the user to add protocol handlers using
       etc. It will call :meth:`logging.basicConfig` which initializes for
       output on ``sys.stderr`` (if no logging was set up already).
 
+``hwgrep://``
+    This type uses :mod:`serial.tools.list_ports` to obtain a list of ports and
+    searches the list for matches by a regexp (see :py:mod:`re`) that follows
+    the slashes.
+
+    Depending on the capabilities of the list_ports module on the system, it is
+    possible to search for the description or hardware ID of a device, e.g. USB
+    VID:PID or texts.
+
+    Unfortunately, on some systems list_ports only lists a subset of the port
+    names with no additional information. Currently, on Windows and Linux it
+    should find additional information.
+
+
 
 Examples:
 
@@ -850,6 +864,7 @@ Examples:
 - ``rfc2217://localhost:7000/ign_set_control/timeout=5.5``
 - ``socket://localhost:7777``
 - ``loop://logging=debug``
+- ``hwgrep://0451:f432`` (USB VID:PID)
 
 Tools
 =====
