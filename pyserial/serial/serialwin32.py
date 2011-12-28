@@ -356,7 +356,11 @@ class Win32Serial(SerialBase):
         win32.SetupComm(self.hComPort, rx_size, tx_size)
 
     def setXON(self, level=True):
-        """Platform specific - set flow state."""
+        """\
+        Manually control flow - when software flow control is enabled.
+        This will send XON (true) and XOFF (false) to the other device.
+        WARNING: this function is not portable to different platforms!
+        """
         if not self.hComPort: raise portNotOpenError
         if level:
             win32.EscapeCommFunction(self.hComPort, win32.SETXON)

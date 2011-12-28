@@ -388,9 +388,27 @@ Native ports
     .. method:: setXON(level=True)
 
         :platform: Windows
+        :platform: Posix
         :param level: Set flow control state.
 
-        Set software flow control state.
+        Manually control flow - when software flow control is enabled.
+
+        This will send XON (true) and XOFF (false) to the other device.
+
+        .. versionchanged:: 2.7 (renamed on Posix, function was called ``flowControl``)
+
+    .. method:: flowControlOut(enable)
+
+        :platform: Posix
+        :param enable: Set flow control state.
+
+        Manually control flow of outgoing data - when hardware or software flow
+        control is enabled.
+
+        Sending will be suspended when called with ``False`` and enabled when
+        called with ``True``.
+
+        .. versionadded:: 2.7 (Posix support added)
 
 .. note::
 

@@ -581,19 +581,35 @@ class PosixSerial(SerialBase):
         fcntl.fcntl(self.fd, FCNTL.F_SETFL, os.O_NONBLOCK)
 
     def fileno(self):
-        """For easier use of the serial port instance with select.
-           WARNING: this function is not portable to different platforms!"""
+        """\
+        For easier use of the serial port instance with select.
+        WARNING: this function is not portable to different platforms!
+        """
         if not self._isOpen: raise portNotOpenError
         return self.fd
 
-    def flowControl(self, enable):
-        """manually control flow - when hardware or software flow control is
-        enabled"""
-        if not self._isOpen: raise portNotOpenError
-        if enable:
+    def setXON(self, level=True):
+        """\
+        Manually control flow - when software flow control is enabled.
+        This will send XON (true) and XOFF (false) to the other device.
+        WARNING: this function is not portable to different platforms!
+        """
+        if not self.hComPort: raise portNotOpenError
             termios.tcflow(self.fd, TERMIOS.TCION)
         else:
             termios.tcflow(self.fd, TERMIOS.TCIOFF)
+
+    def flowControlOut(self, enable):
+        """\
+        Manually control flow of outgoing data - when hardware or software flow
+        control is enabled.
+        WARNING: this function is not portable to different platforms!
+        """
+        if not self._isOpen: raise portNotOpenError
+        if enable:
+            termios.tcflow(self.fd, TERMIOS.TCOON)
+        else:
+            termios.tcflow(self.fd, TERMIOS.TCOOFF)
 
 
 # assemble Serial class with the platform specifc implementation and the base
