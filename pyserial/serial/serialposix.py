@@ -247,7 +247,11 @@ TIOCM_CD  = hasattr(TERMIOS, 'TIOCM_CD') and TERMIOS.TIOCM_CD or TIOCM_CAR
 TIOCM_RI  = hasattr(TERMIOS, 'TIOCM_RI') and TERMIOS.TIOCM_RI or TIOCM_RNG
 #TIOCM_OUT1 = hasattr(TERMIOS, 'TIOCM_OUT1') and TERMIOS.TIOCM_OUT1 or 0x2000
 #TIOCM_OUT2 = hasattr(TERMIOS, 'TIOCM_OUT2') and TERMIOS.TIOCM_OUT2 or 0x4000
-TIOCINQ   = hasattr(TERMIOS, 'FIONREAD') and TERMIOS.FIONREAD or 0x541B
+if hasattr(TERMIOS, 'TIOCINQ'):
+    TIOCINQ = TERMIOS.TIOCINQ
+else:
+    TIOCINQ = hasattr(TERMIOS, 'FIONREAD') and TERMIOS.FIONREAD or 0x541B
+TIOCOUTQ   = hasattr(TERMIOS, 'TIOCOUTQ') and TERMIOS.TIOCOUTQ or 0x5411
 
 TIOCM_zero_str = struct.pack('I', 0)
 TIOCM_RTS_str = struct.pack('I', TIOCM_RTS)
@@ -559,6 +563,12 @@ class PosixSerial(SerialBase):
         return struct.unpack('I',s)[0] & TIOCM_CD != 0
 
     # - - platform specific - - - -
+
+    def outWaiting(self):
+        """Return the number of characters currently in the output buffer."""
+        #~ s = fcntl.ioctl(self.fd, TERMIOS.FIONREAD, TIOCM_zero_str)
+        s = fcntl.ioctl(self.fd, TIOCOUTQ, TIOCM_zero_str)
+        return struct.unpack('I',s)[0]
 
     def drainOutput(self):
         """internal - not portable!"""
