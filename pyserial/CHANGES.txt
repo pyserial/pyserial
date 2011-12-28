@@ -434,5 +434,10 @@ Bugfixes (win32):
 - Fix type definitions for 64 bit Windows compatibility
 
 
-Version 2.7      2010-nn-nn
+Version 2.7      2012-nn-nn
 ---------------------------
+
+Bugfixes (posix):
+
+- [Patch 3462364] Fix: NameError: global name 'base' is not defined
+
