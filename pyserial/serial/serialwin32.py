@@ -56,7 +56,7 @@ class Win32Serial(SerialBase):
                0)
         if self.hComPort == win32.INVALID_HANDLE_VALUE:
             self.hComPort = None    # 'cause __del__ is called anyway
-            raise SerialException("could not open port %s: %s" % (self.portstr, ctypes.WinError()))
+            raise SerialException("could not open port %r: %r" % (self.portstr, ctypes.WinError()))
 
         # Setup a 4k buffer
         win32.SetupComm(self.hComPort, 4096, 4096)
@@ -183,7 +183,7 @@ class Win32Serial(SerialBase):
         comDCB.XoffChar         = XOFF
 
         if not win32.SetCommState(self.hComPort, ctypes.byref(comDCB)):
-            raise ValueError("Cannot configure port, some setting was wrong. Original message: %s" % ctypes.WinError())
+            raise ValueError("Cannot configure port, some setting was wrong. Original message: %r" % ctypes.WinError())
 
     #~ def __del__(self):
         #~ self.close()
@@ -232,7 +232,7 @@ class Win32Serial(SerialBase):
                     rc = win32.DWORD()
                     err = win32.ReadFile(self.hComPort, buf, n, ctypes.byref(rc), ctypes.byref(self._overlappedRead))
                     if not err and win32.GetLastError() != win32.ERROR_IO_PENDING:
-                        raise SerialException("ReadFile failed (%s)" % ctypes.WinError())
+                        raise SerialException("ReadFile failed (%r)" % ctypes.WinError())
                     err = win32.WaitForSingleObject(self._overlappedRead.hEvent, win32.INFINITE)
                     read = buf.raw[:rc.value]
                 else:
@@ -242,7 +242,7 @@ class Win32Serial(SerialBase):
                 rc = win32.DWORD()
                 err = win32.ReadFile(self.hComPort, buf, size, ctypes.byref(rc), ctypes.byref(self._overlappedRead))
                 if not err and win32.GetLastError() != win32.ERROR_IO_PENDING:
-                    raise SerialException("ReadFile failed (%s)" % ctypes.WinError())
+                    raise SerialException("ReadFile failed (%r)" % ctypes.WinError())
                 err = win32.GetOverlappedResult(self.hComPort, ctypes.byref(self._overlappedRead), ctypes.byref(rc), True)
                 read = buf.raw[:rc.value]
         else:
@@ -261,7 +261,7 @@ class Win32Serial(SerialBase):
             n = win32.DWORD()
             err = win32.WriteFile(self.hComPort, data, len(data), ctypes.byref(n), self._overlappedWrite)
             if not err and win32.GetLastError() != win32.ERROR_IO_PENDING:
-                raise SerialException("WriteFile failed (%s)" % ctypes.WinError())
+                raise SerialException("WriteFile failed (%r)" % ctypes.WinError())
             if self._writeTimeout != 0: # if blocking (None) or w/ write timeout (>0)
                 # Wait for the write to complete.
                 #~ win32.WaitForSingleObject(self._overlappedWrite.hEvent, win32.INFINITE)

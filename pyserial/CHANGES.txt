@@ -441,3 +441,6 @@ Bugfixes (posix):
 
 - [Patch 3462364] Fix: NameError: global name 'base' is not defined
 
+Bugfixes (win32):
+
+- [Bug 3444941] ctypes.WinError() unicode error
