@@ -347,6 +347,14 @@ class Win32Serial(SerialBase):
 
     # - - platform specific - - - -
 
+    def setBufferSize(self, rx_size=4096, tx_size=None):
+        """\
+        Recommend a buffer size to the driver (device driver can ignore this
+        vlaue). Must be called before the port is opended.
+        """
+        if tx_size is None: tx_size = rx_size
+        win32.SetupComm(self.hComPort, rx_size, tx_size)
+
     def setXON(self, level=True):
         """Platform specific - set flow state."""
         if not self.hComPort: raise portNotOpenError
