@@ -103,10 +103,10 @@ elif plat == 'cygwin':       # cygwin/win32 (confirmed)
 
     baudrate_constants = {}
 
-elif plat == 'openbsd3':    # BSD (confirmed)
+elif plat[:7] == 'openbsd':    # OpenBSD
 
     def device(port):
-        return '/dev/ttyp%d' % port
+        return '/dev/cua%02d' % port
 
     def set_special_baudrate(port, baudrate):
         raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
@@ -114,8 +114,7 @@ elif plat == 'openbsd3':    # BSD (confirmed)
     baudrate_constants = {}
 
 elif plat[:3] == 'bsd' or  \
-     plat[:7] == 'freebsd' or \
-     plat[:7] == 'openbsd':  # BSD (confirmed for freebsd4: cuaa%d)
+    plat[:7] == 'freebsd':
 
     def device(port):
         return '/dev/cuad%d' % port
@@ -595,6 +594,7 @@ class PosixSerial(SerialBase):
         WARNING: this function is not portable to different platforms!
         """
         if not self.hComPort: raise portNotOpenError
+        if enable:
             termios.tcflow(self.fd, TERMIOS.TCION)
         else:
             termios.tcflow(self.fd, TERMIOS.TCIOFF)

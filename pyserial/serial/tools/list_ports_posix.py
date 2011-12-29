@@ -127,14 +127,13 @@ elif plat == 'cygwin':       # cygwin/win32
         devices = glob.glob('/dev/com*')
         return [(d, d, d) for d in devices]
 
-elif plat == 'openbsd3':    # BSD
+elif plat[:7] == 'openbsd':    # OpenBSD
     def comports():
-        devices = glob.glob('/dev/ttyp*')
+        devices = glob.glob('/dev/cua*')
         return [(d, d, d) for d in devices]
 
 elif plat[:3] == 'bsd' or  \
-     plat[:7] == 'freebsd' or \
-     plat[:7] == 'openbsd':  # BSD
+        plat[:7] == 'freebsd':
 
     def comports():
         devices = glob.glob('/dev/cuad*')

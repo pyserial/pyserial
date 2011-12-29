@@ -445,6 +445,7 @@ Version 2.7      2012-nn-nn
 Bugfixes (posix):
 
 - [Patch 3462364] Fix: NameError: global name 'base' is not defined
+- list_ports and device() for BSD updated (Anders Langworthy)
 
 Bugfixes (win32):
 
