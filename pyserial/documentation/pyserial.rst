@@ -76,7 +76,7 @@ From PyPI
 Alternatively it can be installed from PyPI, either manually downloading the
 files and installing as described above or using::
 
-    pip pyserial
+    pip install pyserial
 
 or::
 
