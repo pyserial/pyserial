@@ -28,6 +28,10 @@ class Win32Serial(SerialBase):
     def __init__(self, *args, **kwargs):
         self.hComPort = None
         self._rtsToggle = False
+
+        self._rtsState = win32.RTS_CONTROL_ENABLE
+        self._dtrState = win32.DTR_CONTROL_ENABLE
+
         SerialBase.__init__(self, *args, **kwargs)
 
     def open(self):
@@ -64,9 +68,6 @@ class Win32Serial(SerialBase):
         # Save original timeout values:
         self._orgTimeouts = win32.COMMTIMEOUTS()
         win32.GetCommTimeouts(self.hComPort, ctypes.byref(self._orgTimeouts))
-
-        self._rtsState = win32.RTS_CONTROL_ENABLE
-        self._dtrState = win32.DTR_CONTROL_ENABLE
 
         self._reconfigurePort()
 
@@ -302,23 +303,31 @@ class Win32Serial(SerialBase):
 
     def setRTS(self, level=1):
         """Set terminal status line: Request To Send"""
-        if not self.hComPort: raise portNotOpenError
+        # remember level for reconfigure
         if level:
             self._rtsState = win32.RTS_CONTROL_ENABLE
-            win32.EscapeCommFunction(self.hComPort, win32.SETRTS)
         else:
             self._rtsState = win32.RTS_CONTROL_DISABLE
-            win32.EscapeCommFunction(self.hComPort, win32.CLRRTS)
+        # also apply now if port is open
+        if self.hComPort:
+            if level:
+                win32.EscapeCommFunction(self.hComPort, win32.SETRTS)
+            else:
+                win32.EscapeCommFunction(self.hComPort, win32.CLRRTS)
 
     def setDTR(self, level=1):
         """Set terminal status line: Data Terminal Ready"""
-        if not self.hComPort: raise portNotOpenError
+        # remember level for reconfigure
         if level:
             self._dtrState = win32.DTR_CONTROL_ENABLE
-            win32.EscapeCommFunction(self.hComPort, win32.SETDTR)
         else:
             self._dtrState = win32.DTR_CONTROL_DISABLE
-            win32.EscapeCommFunction(self.hComPort, win32.CLRDTR)
+        # also apply now if port is open
+        if self.hComPort:
+            if level:
+                win32.EscapeCommFunction(self.hComPort, win32.SETDTR)
+            else:
+                win32.EscapeCommFunction(self.hComPort, win32.CLRDTR)
 
     def _GetCommModemStatus(self):
         stat = win32.DWORD()

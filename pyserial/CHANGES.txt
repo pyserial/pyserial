@@ -436,11 +436,15 @@ Bugfixes (win32):
 
 Version 2.7      2012-nn-nn
 ---------------------------
+- Win32: setRTS and setDTR can be called before the port is opened and it will
+  set the initial state on port open.
+- Posix: add platform specific method: outWaiting (already pesent for Win32)
+- Posix: rename flowControl to setXON to match name on Win32, add
+  flowControlOut function
 
 Bugfixes (posix):
 
 - [Patch 3462364] Fix: NameError: global name 'base' is not defined
-- add platform specific method: outWaiting
 
 Bugfixes (win32):
 
