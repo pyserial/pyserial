@@ -359,7 +359,8 @@ Native ports
 
     Platform specific methods.
 
-    .. warning:: Programs using the following methods are not portable to other platforms!
+    .. warning:: Programs using the following methods and attributes are not
+                 portable to other platforms!
 
     .. method:: outWaiting()
 
@@ -409,6 +410,17 @@ Native ports
         called with ``True``.
 
         .. versionadded:: 2.7 (Posix support added)
+
+    .. attribute:: rtsToggle
+
+        :platform: Windows
+
+        Attribute to configure RTS toggle control setting. When enabled and
+        supported by OS, RTS will be active when data is available and inactive
+        if no data is available.
+
+        .. versionadded:: 2.6
+
 
 .. note::
 
