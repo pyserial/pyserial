@@ -13,6 +13,11 @@ import sys, os, serial, threading
 EXITCHARCTER = '\x1d'   # GS/CTRL+]
 MENUCHARACTER = '\x14'  # Menu: CTRL+T
 
+DEFAULT_PORT = None
+DEFAULT_BAUDRATE = 9600
+DEFAULT_RTS = None
+DEFAULT_DTR = None
+
 
 def key_description(character):
     """generate a readable description for a key"""
@@ -447,7 +452,7 @@ def main():
     parser.add_option("-p", "--port",
         dest = "port",
         help = "port, a number or a device name. (deprecated option, use parameter instead)",
-        default = None
+        default = DEFAULT_PORT
     )
 
     parser.add_option("-b", "--baud",
@@ -455,7 +460,7 @@ def main():
         action = "store",
         type = 'int',
         help = "set baud rate, default %default",
-        default = 9600
+        default = DEFAULT_BAUDRATE
     )
 
     parser.add_option("--parity",
@@ -517,7 +522,7 @@ def main():
         action = "store",
         type = 'int',
         help = "set initial RTS line state (possible values: 0, 1)",
-        default = None
+        default = DEFAULT_RTS
     )
 
     parser.add_option("--dtr",
@@ -525,7 +530,7 @@ def main():
         action = "store",
         type = 'int',
         help = "set initial DTR line state (possible values: 0, 1)",
-        default = None
+        default = DEFAULT_DTR
     )
 
     parser.add_option("-q", "--quiet",
