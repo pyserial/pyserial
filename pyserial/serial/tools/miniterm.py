@@ -9,6 +9,10 @@
 
 
 import sys, os, serial, threading
+try:
+    from serial.tools.list_ports import comports
+except ImportError:
+    comports = None
 
 EXITCHARCTER = '\x1d'   # GS/CTRL+]
 MENUCHARACTER = '\x14'  # Menu: CTRL+T
@@ -218,6 +222,13 @@ class Miniterm(object):
                 REPR_MODES[self.repr_mode],
                 LF_MODES[self.convert_outgoing]))
 
+    def dump_port_list(self):
+        if comports:
+            sys.stderr.write('\n--- Available ports:\n')
+            for port, desc, hwid in sorted(comports()):
+                #~ sys.stderr.write('--- %-20s %s [%s]\n' % (port, desc, hwid))
+                sys.stderr.write('--- %-20s %s\n' % (port, desc))
+
     def reader(self):
         """loop and copy serial->console"""
         try:
@@ -334,7 +345,8 @@ class Miniterm(object):
                             LF_MODES[self.convert_outgoing],
                         ))
                     elif c in 'pP':                         # P -> change port
-                        sys.stderr.write('\n--- Enter port name: ')
+                        self.dump_port_list()
+                        sys.stderr.write('--- Enter port name: ')
                         sys.stderr.flush()
                         console.cleanup()
                         try:
