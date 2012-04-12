@@ -4,7 +4,7 @@
 from distutils.core import setup
 import glob, sys, py2exe, os
 
-sys.path.append('..')
+sys.path.insert(0, '..')
 
 sys.argv.extend("py2exe --bundle 1".split())
 

@@ -141,6 +141,14 @@ else:
     raise NotImplementedError("Sorry no implementation for your platform (%s) available." % sys.platform)
 
 
+def dump_port_list():
+    if comports:
+        sys.stderr.write('\n--- Available ports:\n')
+        for port, desc, hwid in sorted(comports()):
+            #~ sys.stderr.write('--- %-20s %s [%s]\n' % (port, desc, hwid))
+            sys.stderr.write('--- %-20s %s\n' % (port, desc))
+
+
 CONVERT_CRLF = 2
 CONVERT_CR   = 1
 CONVERT_LF   = 0
@@ -221,13 +229,6 @@ class Miniterm(object):
         sys.stderr.write('--- data escaping: %s  linefeed: %s\n' % (
                 REPR_MODES[self.repr_mode],
                 LF_MODES[self.convert_outgoing]))
-
-    def dump_port_list(self):
-        if comports:
-            sys.stderr.write('\n--- Available ports:\n')
-            for port, desc, hwid in sorted(comports()):
-                #~ sys.stderr.write('--- %-20s %s [%s]\n' % (port, desc, hwid))
-                sys.stderr.write('--- %-20s %s\n' % (port, desc))
 
     def reader(self):
         """loop and copy serial->console"""
@@ -345,7 +346,7 @@ class Miniterm(object):
                             LF_MODES[self.convert_outgoing],
                         ))
                     elif c in 'pP':                         # P -> change port
-                        self.dump_port_list()
+                        dump_port_list()
                         sys.stderr.write('--- Enter port name: ')
                         sys.stderr.flush()
                         console.cleanup()
@@ -599,7 +600,9 @@ def main():
         if args:
             parser.error("too many arguments")
     else:
-        if port is None: port = 0
+        if port is None:
+            dump_port_list()
+            port = raw_input('Enter port name:')
 
     convert_outgoing = CONVERT_CRLF
     if options.cr:
