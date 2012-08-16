@@ -84,8 +84,8 @@ class SerialTimeoutException(SerialException):
     """Write timeouts give an exception"""
 
 
-writeTimeoutError = SerialTimeoutException("Write timeout")
-portNotOpenError = ValueError('Attempting to use a port that is not open')
+writeTimeoutError = SerialTimeoutException('Write timeout')
+portNotOpenError = SerialException('Attempting to use a port that is not open')
 
 
 class FileLike(object):

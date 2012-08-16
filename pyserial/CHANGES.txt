@@ -442,6 +442,10 @@ Version 2.7      2012-nn-nn
 - Posix: rename flowControl to setXON to match name on Win32, add
   flowControlOut function
 
+Bugfixes:
+
+- [Bug 3540332] SerialException not returned
+
 Bugfixes (posix):
 
 - [Patch 3462364] Fix: NameError: global name 'base' is not defined
