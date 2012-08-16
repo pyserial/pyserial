@@ -450,3 +450,5 @@ Bugfixes (posix):
 Bugfixes (win32):
 
 - [Bug 3444941] ctypes.WinError() unicode error
+- [Bug 3550043] on Window in tools global name 'GetLastError' is not defined
+

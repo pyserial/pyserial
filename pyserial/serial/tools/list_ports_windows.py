@@ -179,7 +179,7 @@ def comports():
         szHardwareID = byte_buffer(250)
         if not SetupDiGetDeviceRegistryProperty(g_hdi, ctypes.byref(devinfo), SPDRP_HARDWAREID, None, ctypes.byref(szHardwareID), ctypes.sizeof(szHardwareID) - 1, None):
             # Ignore ERROR_INSUFFICIENT_BUFFER
-            if GetLastError() != ERROR_INSUFFICIENT_BUFFER:
+            if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
                 raise ctypes.WinError()
 
         # friendly name
