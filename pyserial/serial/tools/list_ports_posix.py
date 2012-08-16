@@ -41,7 +41,11 @@ def read_line(filename):
 
 def re_group(regexp, text):
     """search for regexp in text, return 1st group on match"""
-    m = re.search(regexp, text)
+    if sys.version < '3':
+        m = re.search(regexp, text)
+    else:
+        # text is bytes-like
+        m = re.search(regexp, text.decode('ascii', 'replace'))
     if m: return m.group(1)
 
 
