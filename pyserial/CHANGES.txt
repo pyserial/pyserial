@@ -445,7 +445,7 @@ Version 2.7      2012-nn-nn
 Bugfixes:
 
 - [Bug 3540332] SerialException not returned
-- [Bug pyserial:45] Error in socket_connection.py
+- [Bug pyserial:145] Error in socket_connection.py
 
 Bugfixes (posix):
 
@@ -458,5 +458,5 @@ Bugfixes (win32):
 - [Bug 3444941] ctypes.WinError() unicode error
 - [Bug 3550043] on Window in tools global name 'GetLastError' is not defined
 - [Bug pyserial:146] flush() does nothing in windows (despite docs)
-
+- [Bug pyserial:144] com0com ports ignored due to missing "friendly name"
 

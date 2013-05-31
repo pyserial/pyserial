@@ -186,9 +186,10 @@ def comports():
         szFriendlyName = byte_buffer(250)
         if not SetupDiGetDeviceRegistryProperty(g_hdi, ctypes.byref(devinfo), SPDRP_FRIENDLYNAME, None, ctypes.byref(szFriendlyName), ctypes.sizeof(szFriendlyName) - 1, None):
             # Ignore ERROR_INSUFFICIENT_BUFFER
-            if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
+            #~ if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
                 #~ raise IOError("failed to get details for %s (%s)" % (devinfo, szHardwareID.value))
-                port_name = None
+            # ignore errors and still include the port in the list, friendly name will be same as port name
+            yield string(port_name_buffer), string(port_name_buffer), string(szHardwareID)
         else:
             # the real com port name has to read differently...
             hkey = SetupDiOpenDevRegKey(g_hdi, ctypes.byref(devinfo), DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_READ)
