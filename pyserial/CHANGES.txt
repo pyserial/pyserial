@@ -452,6 +452,7 @@ Bugfixes (posix):
 - [Patch 3462364] Fix: NameError: global name 'base' is not defined
 - list_ports and device() for BSD updated (Anders Langworthy)
 - [Bug 3518380] python3.2 -m serial.tools.list_ports error
+- [Bug pyserial:137] Patch to add non-standard baudrates to Cygwin
 
 Bugfixes (win32):
 

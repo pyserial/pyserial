@@ -101,7 +101,19 @@ elif plat == 'cygwin':       # cygwin/win32 (confirmed)
     def set_special_baudrate(port, baudrate):
         raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
 
-    baudrate_constants = {}
+    baudrate_constants = {
+        128000: 0x01003,
+        256000: 0x01005,
+        500000: 0x01007,
+        576000: 0x01008,
+        921600: 0x01009,
+        1000000: 0x0100a,
+        1152000: 0x0100b,
+        1500000: 0x0100c,
+        2000000: 0x0100d,
+        2500000: 0x0100e,
+        3000000: 0x0100f
+    }
 
 elif plat[:7] == 'openbsd':    # OpenBSD
 
