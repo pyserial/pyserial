@@ -445,6 +445,7 @@ Version 2.7      2012-nn-nn
 Bugfixes:
 
 - [Bug 3540332] SerialException not returned
+- [Bug pyserial:45] Error in socket_connection.py
 
 Bugfixes (posix):
 

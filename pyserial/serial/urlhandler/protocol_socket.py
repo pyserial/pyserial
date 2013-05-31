@@ -140,7 +140,9 @@ class SocketSerial(SerialBase):
             try:
                 # an implementation with internal buffer would be better
                 # performing...
-                data = self._socket.recv(size - len(data))
+                block = self._socket.recv(size - len(data))
+                if block:
+                    data.append(block)
             except socket.timeout:
                 # just need to get out of recv form time to time to check if
                 # still alive
