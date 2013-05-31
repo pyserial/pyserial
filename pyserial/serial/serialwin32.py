@@ -273,6 +273,14 @@ class Win32Serial(SerialBase):
         else:
             return 0
 
+    def flush(self):
+        """Flush of file like objects. In this case, wait until all data
+           is written."""
+        while self.outWaiting():
+            time.sleep(0.05)
+        # XXX could also use WaitCommEvent with mask EV_TXEMPTY, but it would
+        # require overlapped IO and its also only possible to set a single mask
+        # on the port---
 
     def flushInput(self):
         """Clear input buffer, discarding all that is in the buffer."""
