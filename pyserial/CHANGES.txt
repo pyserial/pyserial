@@ -446,6 +446,7 @@ Bugfixes:
 
 - [Bug 3540332] SerialException not returned
 - [Bug pyserial:145] Error in socket_connection.py
+- [Bug pyserial:135] reading from socket with timeout=None causes TypeError
 
 Bugfixes (posix):
 

@@ -135,8 +135,11 @@ class SocketSerial(SerialBase):
         until the requested number of bytes is read."""
         if not self._isOpen: raise portNotOpenError
         data = bytearray()
-        timeout = time.time() + self._timeout
-        while len(data) < size and time.time() < timeout:
+        if self._timeout is not None:
+            timeout = time.time() + self._timeout
+        else:
+            timeout = None
+        while len(data) < size and (timeout is None or time.time() < timeout):
             try:
                 # an implementation with internal buffer would be better
                 # performing...
