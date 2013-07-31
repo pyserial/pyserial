@@ -441,6 +441,8 @@ Version 2.7      2012-nn-nn
 - Posix: add platform specific method: outWaiting (already pesent for Win32)
 - Posix: rename flowControl to setXON to match name on Win32, add
   flowControlOut function
+- rfc2217: zero polls value (baudrate, data size, stop bits, parity) (Erik
+  Lundh)
 
 Bugfixes:
 

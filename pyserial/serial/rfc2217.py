@@ -7,7 +7,7 @@
 # protocol to access serial ports over TCP/IP and allows setting the baud rate,
 # modem control lines etc.
 #
-# (C) 2001-2009 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2013 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
 # TODO:
@@ -226,7 +226,8 @@ class TelnetOption(object):
     """Manage a single telnet option, keeps track of DO/DONT WILL/WONT."""
 
     def __init__(self, connection, name, option, send_yes, send_no, ack_yes, ack_no, initial_state, activation_callback=None):
-        """Init option.
+        """\
+        Initialize option.
         :param connection: connection used to transmit answers
         :param name: a readable name for debug outputs
         :param send_yes: what to send when option is to be enabled.
@@ -289,8 +290,10 @@ class TelnetOption(object):
 
 
 class TelnetSubnegotiation(object):
-    """A object to handle subnegotiation of options. In this case actually
-    sub-sub options for RFC 2217. It is used to track com port options."""
+    """\
+    A object to handle subnegotiation of options. In this case actually
+    sub-sub options for RFC 2217. It is used to track com port options.
+    """
 
     def __init__(self, connection, name, option, ack_option=None):
         if ack_option is None: ack_option = option
@@ -306,9 +309,11 @@ class TelnetSubnegotiation(object):
         return "%s:%s" % (self.name, self.state)
 
     def set(self, value):
-        """request a change of the value. a request is sent to the server. if
+        """\
+        request a change of the value. a request is sent to the server. if
         the client needs to know if the change is performed he has to check the
-        state of this object."""
+        state of this object.
+        """
         self.value = value
         self.state = REQUESTED
         self.connection.rfc2217SendSubnegotiation(self.option, self.value)
@@ -316,8 +321,10 @@ class TelnetSubnegotiation(object):
             self.connection.logger.debug("SB Requesting %s -> %r" % (self.name, self.value))
 
     def isReady(self):
-        """check if answer from server has been received. when server rejects
-        the change, raise a ValueError."""
+        """\
+        check if answer from server has been received. when server rejects
+        the change, raise a ValueError.
+        """
         if self.state == REALLY_INACTIVE:
             raise ValueError("remote rejected value for option %r" % (self.name))
         return self.state == ACTIVE
@@ -325,9 +332,11 @@ class TelnetSubnegotiation(object):
     active = property(isReady)
 
     def wait(self, timeout=3):
-        """wait until the subnegotiation has been acknowledged or timeout. It
+        """\
+        wait until the subnegotiation has been acknowledged or timeout. It
         can also throw a value error when the answer from the server does not
-        match the value sent."""
+        match the value sent.
+        """
         timeout_time = time.time() + timeout
         while time.time() < timeout_time:
             time.sleep(0.05)    # prevent 100% CPU load
@@ -337,8 +346,10 @@ class TelnetSubnegotiation(object):
             raise SerialException("timeout while waiting for option %r" % (self.name))
 
     def checkAnswer(self, suboption):
-        """check an incoming subnegotiation block. the parameter already has
-        cut off the header like sub option number and com port option value."""
+        """\
+        check an incoming subnegotiation block. the parameter already has
+        cut off the header like sub option number and com port option value.
+        """
         if self.value == suboption[:len(self.value)]:
             self.state = ACTIVE
         else:
@@ -355,8 +366,10 @@ class RFC2217Serial(SerialBase):
                  9600, 19200, 38400, 57600, 115200)
 
     def open(self):
-        """Open port with current settings. This may throw a SerialException
-           if the port cannot be opened."""
+        """\
+        Open port with current settings. This may throw a SerialException
+        if the port cannot be opened.
+        """
         self.logger = None
         self._ignore_set_control_answer = False
         self._poll_modem_state = False
@@ -553,9 +566,11 @@ class RFC2217Serial(SerialBase):
         return self._read_buffer.qsize()
 
     def read(self, size=1):
-        """Read size bytes from the serial port. If a timeout is set it may
+        """\
+        Read size bytes from the serial port. If a timeout is set it may
         return less characters as requested. With no timeout it will block
-        until the requested number of bytes is read."""
+        until the requested number of bytes is read.
+        """
         if not self._isOpen: raise portNotOpenError
         data = bytearray()
         try:
@@ -568,9 +583,11 @@ class RFC2217Serial(SerialBase):
         return bytes(data)
 
     def write(self, data):
-        """Output the given string over the serial port. Can block if the
+        """\
+        Output the given string over the serial port. Can block if the
         connection is blocked. May raise SerialException if the connection is
-        closed."""
+        closed.
+        """
         if not self._isOpen: raise portNotOpenError
         self._write_lock.acquire()
         try:
@@ -591,8 +608,10 @@ class RFC2217Serial(SerialBase):
             self._read_buffer.get(False)
 
     def flushOutput(self):
-        """Clear output buffer, aborting the current output and
-        discarding all that is in the buffer."""
+        """\
+        Clear output buffer, aborting the current output and
+        discarding all that is in the buffer.
+        """
         if not self._isOpen: raise portNotOpenError
         self.rfc2217SendPurge(PURGE_TRANSMIT_BUFFER)
 
@@ -605,8 +624,10 @@ class RFC2217Serial(SerialBase):
         self.setBreak(False)
 
     def setBreak(self, level=True):
-        """Set break: Controls TXD. When active, to transmitting is
-        possible."""
+        """\
+        Set break: Controls TXD. When active, to transmitting is
+        possible.
+        """
         if not self._isOpen: raise portNotOpenError
         if self.logger:
             self.logger.info('set BREAK to %s' % ('inactive', 'active')[bool(level)])
@@ -818,16 +839,20 @@ class RFC2217Serial(SerialBase):
             item.wait(self._network_timeout)  # wait for acknowledge from the server
 
     def rfc2217FlowServerReady(self):
-        """check if server is ready to receive data. block for some time when
-        not."""
+        """\
+        check if server is ready to receive data. block for some time when
+        not.
+        """
         #~ if self._remote_suspend_flow:
             #~ wait---
 
     def getModemState(self):
-        """get last modem state (cached value. if value is "old", request a new
+        """\
+        get last modem state (cached value. if value is "old", request a new
         one. this cache helps that we don't issue to many requests when e.g. all
         status lines, one after the other is queried by te user (getCTS, getDSR
-        etc.)"""
+        etc.)
+        """
         # active modem state polling enabled? is the value fresh enough?
         if self._poll_modem_state and self._modemstate_expires < time.time():
             if self.logger:
@@ -875,9 +900,11 @@ else:
 # The following is code that helps implementing an RFC 2217 server.
 
 class PortManager(object):
-    """This class manages the state of Telnet and RFC 2217. It needs a serial
+    """\
+    This class manages the state of Telnet and RFC 2217. It needs a serial
     instance and a connection to work with. Connection is expected to implement
-    a (thread safe) write function, that writes the string to the network."""
+    a (thread safe) write function, that writes the string to the network.
+    """
 
     def __init__(self, serial_port, connection, logger=None):
         self.serial = serial_port
@@ -915,10 +942,12 @@ class PortManager(object):
         # issue 1st modem state notification
 
     def _client_ok(self):
-        """callback of telnet option. it gets called when option is activated.
+        """\
+        callback of telnet option. it gets called when option is activated.
         this one here is used to detect when the client agrees on RFC 2217. a
         flag is set so that other functions like check_modem_lines know if the
-        client is ok."""
+        client is ok.
+        """
         # The callback is used for we and they so if one party agrees, we're
         # already happy. it seems not all servers do the negotiation correctly
         # and i guess there are incorrect clients too.. so be happy if client
@@ -979,7 +1008,8 @@ class PortManager(object):
     # - outgoing data escaping
 
     def escape(self, data):
-        """this generator function is for the user. all outgoing data has to be
+        """\
+        this generator function is for the user. all outgoing data has to be
         properly escaped, so that no IAC character in the data stream messes up
         the Telnet state machine in the server.
 
@@ -995,7 +1025,8 @@ class PortManager(object):
     # - incoming data filter
 
     def filter(self, data):
-        """handle a bunch of incoming bytes. this is a generator. it will yield
+        """\
+        handle a bunch of incoming bytes. this is a generator. it will yield
         all characters not of interest for Telnet/RFC 2217.
 
         The idea is that the reader thread pushes data from the socket through
@@ -1086,38 +1117,44 @@ class PortManager(object):
             if suboption[1:2] == SET_BAUDRATE:
                 backup = self.serial.baudrate
                 try:
-                    (self.serial.baudrate,) = struct.unpack("!I", suboption[2:6])
+                    (baudrate,) = struct.unpack("!I", suboption[2:6])
+                    if baudrate != 0:
+                        self.serial.baudrate = baudrate
                 except ValueError, e:
                     if self.logger:
                         self.logger.error("failed to set baud rate: %s" % (e,))
                     self.serial.baudrate = backup
                 else:
                     if self.logger:
-                        self.logger.info("changed baud rate: %s" % (self.serial.baudrate,))
+                        self.logger.info("%s baud rate: %s" % (baudrate and 'set' or 'get', self.serial.baudrate))
                 self.rfc2217SendSubnegotiation(SERVER_SET_BAUDRATE, struct.pack("!I", self.serial.baudrate))
             elif suboption[1:2] == SET_DATASIZE:
                 backup = self.serial.bytesize
                 try:
-                    (self.serial.bytesize,) = struct.unpack("!B", suboption[2:3])
+                    (datasize,) = struct.unpack("!B", suboption[2:3])
+                    if datasize != 0:
+                        self.serial.bytesize = datasize
                 except ValueError, e:
                     if self.logger:
                         self.logger.error("failed to set data size: %s" % (e,))
                     self.serial.bytesize = backup
                 else:
                     if self.logger:
-                        self.logger.info("changed data size: %s" % (self.serial.bytesize,))
+                        self.logger.info("%s data size: %s" % (datasize and 'set' or 'get', self.serial.bytesize))
                 self.rfc2217SendSubnegotiation(SERVER_SET_DATASIZE, struct.pack("!B", self.serial.bytesize))
             elif suboption[1:2] == SET_PARITY:
                 backup = self.serial.parity
                 try:
-                    self.serial.parity = RFC2217_REVERSE_PARITY_MAP[struct.unpack("!B", suboption[2:3])[0]]
+                    parity = struct.unpack("!B", suboption[2:3])[0]
+                    if parity != 0:
+                            self.serial.parity = RFC2217_REVERSE_PARITY_MAP[parity]
                 except ValueError, e:
                     if self.logger:
                         self.logger.error("failed to set parity: %s" % (e,))
                     self.serial.parity = backup
                 else:
                     if self.logger:
-                        self.logger.info("changed parity: %s" % (self.serial.parity,))
+                        self.logger.info("%s parity: %s" % (parity and 'set' or 'get', self.serial.parity))
                 self.rfc2217SendSubnegotiation(
                     SERVER_SET_PARITY,
                     struct.pack("!B", RFC2217_PARITY_MAP[self.serial.parity])
@@ -1125,14 +1162,16 @@ class PortManager(object):
             elif suboption[1:2] == SET_STOPSIZE:
                 backup = self.serial.stopbits
                 try:
-                    self.serial.stopbits = RFC2217_REVERSE_STOPBIT_MAP[struct.unpack("!B", suboption[2:3])[0]]
+                    stopbits = struct.unpack("!B", suboption[2:3])[0]
+                    if stopbits != 0:
+                        self.serial.stopbits = RFC2217_REVERSE_STOPBIT_MAP[stopbits]
                 except ValueError, e:
                     if self.logger:
                         self.logger.error("failed to set stop bits: %s" % (e,))
                     self.serial.stopbits = backup
                 else:
                     if self.logger:
-                        self.logger.info("changed stop bits: %s" % (self.serial.stopbits,))
+                        self.logger.info("%s stop bits: %s" % (stopbits and 'set' or 'get', self.serial.stopbits))
                 self.rfc2217SendSubnegotiation(
                     SERVER_SET_STOPSIZE,
                     struct.pack("!B", RFC2217_STOPBIT_MAP[self.serial.stopbits])
