@@ -61,6 +61,7 @@ class Win32Serial(SerialBase):
         if self.hComPort == win32.INVALID_HANDLE_VALUE:
             self.hComPort = None    # 'cause __del__ is called anyway
             raise SerialException("could not open port %r: %r" % (self.portstr, ctypes.WinError()))
+        self._isOpen = True
 
         # Setup a 4k buffer
         win32.SetupComm(self.hComPort, 4096, 4096)
@@ -82,7 +83,6 @@ class Win32Serial(SerialBase):
         self._overlappedWrite = win32.OVERLAPPED()
         #~ self._overlappedWrite.hEvent = win32.CreateEvent(None, 1, 0, None)
         self._overlappedWrite.hEvent = win32.CreateEvent(None, 0, 0, None)
-        self._isOpen = True
 
     def _reconfigurePort(self):
         """Set communication parameters on opened port."""
