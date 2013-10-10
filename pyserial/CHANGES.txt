@@ -456,6 +456,7 @@ Bugfixes (posix):
 - list_ports and device() for BSD updated (Anders Langworthy)
 - [Bug 3518380] python3.2 -m serial.tools.list_ports error
 - [Bug pyserial:137] Patch to add non-standard baudrates to Cygwin
+- [Bug pyserial:141] open: Pass errno from IOError to SerialException
 
 Bugfixes (win32):
 
