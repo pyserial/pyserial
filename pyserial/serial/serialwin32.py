@@ -27,10 +27,13 @@ class Win32Serial(SerialBase):
 
     def __init__(self, *args, **kwargs):
         self.hComPort = None
+        self._overlappedRead = None
+        self._overlappedWrite = None
         self._rtsToggle = False
 
         self._rtsState = win32.RTS_CONTROL_ENABLE
         self._dtrState = win32.DTR_CONTROL_ENABLE
+
 
         SerialBase.__init__(self, *args, **kwargs)
 
@@ -61,28 +64,40 @@ class Win32Serial(SerialBase):
         if self.hComPort == win32.INVALID_HANDLE_VALUE:
             self.hComPort = None    # 'cause __del__ is called anyway
             raise SerialException("could not open port %r: %r" % (self.portstr, ctypes.WinError()))
-        self._isOpen = True
 
-        # Setup a 4k buffer
-        win32.SetupComm(self.hComPort, 4096, 4096)
+        try:
+            self._overlappedRead = win32.OVERLAPPED()
+            self._overlappedRead.hEvent = win32.CreateEvent(None, 1, 0, None)
+            self._overlappedWrite = win32.OVERLAPPED()
+            #~ self._overlappedWrite.hEvent = win32.CreateEvent(None, 1, 0, None)
+            self._overlappedWrite.hEvent = win32.CreateEvent(None, 0, 0, None)
 
-        # Save original timeout values:
-        self._orgTimeouts = win32.COMMTIMEOUTS()
-        win32.GetCommTimeouts(self.hComPort, ctypes.byref(self._orgTimeouts))
+            # Setup a 4k buffer
+            win32.SetupComm(self.hComPort, 4096, 4096)
 
-        self._reconfigurePort()
+            # Save original timeout values:
+            self._orgTimeouts = win32.COMMTIMEOUTS()
+            win32.GetCommTimeouts(self.hComPort, ctypes.byref(self._orgTimeouts))
 
-        # Clear buffers:
-        # Remove anything that was there
-        win32.PurgeComm(self.hComPort,
-                            win32.PURGE_TXCLEAR | win32.PURGE_TXABORT |
-                            win32.PURGE_RXCLEAR | win32.PURGE_RXABORT)
+            self._reconfigurePort()
 
-        self._overlappedRead = win32.OVERLAPPED()
-        self._overlappedRead.hEvent = win32.CreateEvent(None, 1, 0, None)
-        self._overlappedWrite = win32.OVERLAPPED()
-        #~ self._overlappedWrite.hEvent = win32.CreateEvent(None, 1, 0, None)
-        self._overlappedWrite.hEvent = win32.CreateEvent(None, 0, 0, None)
+            # Clear buffers:
+            # Remove anything that was there
+            win32.PurgeComm(self.hComPort,
+                    win32.PURGE_TXCLEAR | win32.PURGE_TXABORT |
+                    win32.PURGE_RXCLEAR | win32.PURGE_RXABORT)
+        except:
+            try:
+                self._close()
+            except:
+                # ignore any exception when closing the port
+                # also to keep original exception that happened when setting up
+                pass
+            self.hComPort = None
+            raise
+        else:
+            self._isOpen = True
+
 
     def _reconfigurePort(self):
         """Set communication parameters on opened port."""
@@ -189,17 +204,26 @@ class Win32Serial(SerialBase):
     #~ def __del__(self):
         #~ self.close()
 
+
+    def _close(self):
+        """internal close port helper"""
+        if self.hComPort:
+            # Restore original timeout values:
+            win32.SetCommTimeouts(self.hComPort, self._orgTimeouts)
+            # Close COM-Port:
+            win32.CloseHandle(self.hComPort)
+            if self._overlappedRead is not None:
+                win32.CloseHandle(self._overlappedRead.hEvent)
+                self._overlappedRead = None
+            if self._overlappedWrite is not None:
+                win32.CloseHandle(self._overlappedWrite.hEvent)
+                self._overlappedWrite = None
+            self.hComPort = None
+
     def close(self):
         """Close port"""
         if self._isOpen:
-            if self.hComPort:
-                # Restore original timeout values:
-                win32.SetCommTimeouts(self.hComPort, self._orgTimeouts)
-                # Close COM-Port:
-                win32.CloseHandle(self.hComPort)
-                win32.CloseHandle(self._overlappedRead.hEvent)
-                win32.CloseHandle(self._overlappedWrite.hEvent)
-                self.hComPort = None
+            self._close()
             self._isOpen = False
 
     def makeDeviceName(self, port):
