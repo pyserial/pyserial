@@ -68,9 +68,10 @@ if   plat[:5] == 'linux':    # Linux (confirmed)
                 )
 
     def usb_lsusb_string(sysfs_path):
-        base = os.path.basename(os.path.realpath(sysfs_path))
-        bus, dev = base.split('-')
+        base = os.path.basename(os.path.realpath(sysfs_path))
+        bus = base.split('-')[0]
         try:
+            dev = int(open(os.path.join(sysfs_path, 'devnum')).readline().strip())
             desc = popen(['lsusb', '-v', '-s', '%s:%s' % (bus, dev)])
             # descriptions from device
             iManufacturer = re_group('iManufacturer\s+\w+ (.+)', desc)

@@ -458,6 +458,7 @@ Bugfixes (posix):
 - [Bug 3518380] python3.2 -m serial.tools.list_ports error
 - [Bug pyserial:137] Patch to add non-standard baudrates to Cygwin
 - [Bug pyserial:141] open: Pass errno from IOError to SerialException
+- [Bug pyserial:125] Undefined 'base' on list_ports_posix.py, function usb_lsusb
 
 Bugfixes (win32):
 
