@@ -462,6 +462,7 @@ Bugfixes (posix):
 - [Bug pyserial:137] Patch to add non-standard baudrates to Cygwin
 - [Bug pyserial:141] open: Pass errno from IOError to SerialException
 - [Bug pyserial:125] Undefined 'base' on list_ports_posix.py, function usb_lsusb
+- [Patch pyserial:30] [PATCH 1/1] serial.Serial() should not raise IOError.
 
 Bugfixes (win32):
 

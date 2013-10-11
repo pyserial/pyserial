@@ -45,18 +45,18 @@ if   plat[:5] == 'linux':    # Linux (confirmed)
         import array
         buf = array.array('i', [0] * 64)
 
-        # get serial_struct
-        FCNTL.ioctl(port.fd, TCGETS2, buf)
-        # set custom speed
-        buf[2] &= ~TERMIOS.CBAUD
-        buf[2] |= BOTHER
-        buf[9] = buf[10] = baudrate
-
-        # set serial_struct
         try:
+            # get serial_struct
+            FCNTL.ioctl(port.fd, TCGETS2, buf)
+            # set custom speed
+            buf[2] &= ~TERMIOS.CBAUD
+            buf[2] |= BOTHER
+            buf[9] = buf[10] = baudrate
+
+            # set serial_struct
             res = FCNTL.ioctl(port.fd, TCSETS2, buf)
-        except IOError:
-            raise ValueError('Failed to set custom baud rate: %r' % baudrate)
+        except IOError, e:
+            raise ValueError('Failed to set custom baud rate (%s): %s' % (baudrate, e))
 
     baudrate_constants = {
         0:       0000000,  # hang up
