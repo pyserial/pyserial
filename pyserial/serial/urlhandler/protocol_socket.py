@@ -30,6 +30,7 @@ LOGGER_LEVELS = {
     'error': logging.ERROR,
     }
 
+POLL_TIMEOUT = 2
 
 class SocketSerial(SerialBase):
     """Serial port implementation for plain sockets."""
@@ -46,13 +47,14 @@ class SocketSerial(SerialBase):
         if self._isOpen:
             raise SerialException("Port is already open.")
         try:
+            # XXX in future replace with create_connection (py >=2.6)
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._socket.connect(self.fromURL(self.portstr))
         except Exception, msg:
             self._socket = None
             raise SerialException("Could not open port %s: %s" % (self.portstr, msg))
 
-        self._socket.settimeout(2) # used for write timeout support :/
+        self._socket.settimeout(POLL_TIMEOUT) # used for write timeout support :/
 
         # not that there anything to configure...
         self._reconfigurePort()
@@ -143,11 +145,16 @@ class SocketSerial(SerialBase):
             try:
                 # an implementation with internal buffer would be better
                 # performing...
+                t = time.time()
                 block = self._socket.recv(size - len(data))
+                duration = time.time() - t
                 if block:
-                    data.append(block)
+                    data.extend(block)
+                else:
+                    # no data -> EOF (connection probably closed)
+                    break
             except socket.timeout:
-                # just need to get out of recv form time to time to check if
+                # just need to get out of recv from time to time to check if
                 # still alive
                 continue
             except socket.error, e:
@@ -163,7 +170,8 @@ class SocketSerial(SerialBase):
         try:
             self._socket.sendall(data)
         except socket.error, e:
-            raise SerialException("socket connection failed: %s" % e) # XXX what exception if socket connection fails
+            # XXX what exception if socket connection fails
+            raise SerialException("socket connection failed: %s" % e)
         return len(data)
 
     def flushInput(self):

@@ -450,6 +450,7 @@ Bugfixes:
 - [Bug pyserial:145] Error in socket_connection.py
 - [Bug pyserial:135] reading from socket with timeout=None causes TypeError
 - [Bug pyserial:130] setup.py should not append py3k to package name
+- [Bug pyserial:117] no error on lost conn w/socket://
 
 Bugfixes (posix):
 
