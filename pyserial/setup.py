@@ -19,11 +19,9 @@ if sys.version_info >= (3, 0):
         from distutils.command.build_scripts import build_scripts_2to3 as build_scripts
     except ImportError:
         raise ImportError("build_py_2to3 not found in distutils - it is required for Python 3.x")
-    suffix = "-py3k"
 else:
     from distutils.command.build_py import build_py
     from distutils.command.build_scripts import build_scripts
-    suffix = ""
 
 
 if sys.version < '2.3':
@@ -45,7 +43,7 @@ version = re.search(
 
 
 setup(
-    name = "pyserial" + suffix,
+    name = "pyserial"
     description = "Python Serial Port Extension",
     version = version,
     author = "Chris Liechti",
