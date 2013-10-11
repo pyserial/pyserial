@@ -443,6 +443,7 @@ Version 2.7      2012-nn-nn
   flowControlOut function
 - rfc2217: zero polls value (baudrate, data size, stop bits, parity) (Erik
   Lundh)
+- Posix: [Patch pyserial:28] Accept any speed on Linux
 
 Bugfixes:
 

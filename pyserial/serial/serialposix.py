@@ -36,26 +36,25 @@ if   plat[:5] == 'linux':    # Linux (confirmed)
     def device(port):
         return '/dev/ttyS%d' % port
 
-    ASYNC_SPD_MASK = 0x1030
-    ASYNC_SPD_CUST = 0x0030
+    TCGETS2 = 0x802C542A
+    TCSETS2 = 0x402C542B
+    BOTHER = 0o010000
 
     def set_special_baudrate(port, baudrate):
+        # right size is 44 on x86_64, allow for some growth
         import array
-        buf = array.array('i', [0] * 32)
+        buf = array.array('i', [0] * 64)
 
         # get serial_struct
-        FCNTL.ioctl(port.fd, TERMIOS.TIOCGSERIAL, buf)
-
-        # set custom divisor
-        buf[6] = buf[7] / baudrate
-
-        # update flags
-        buf[4] &= ~ASYNC_SPD_MASK
-        buf[4] |= ASYNC_SPD_CUST
+        FCNTL.ioctl(port.fd, TCGETS2, buf)
+        # set custom speed
+        buf[2] &= ~TERMIOS.CBAUD
+        buf[2] |= BOTHER
+        buf[9] = buf[10] = baudrate
 
         # set serial_struct
         try:
-            res = FCNTL.ioctl(port.fd, TERMIOS.TIOCSSERIAL, buf)
+            res = FCNTL.ioctl(port.fd, TCSETS2, buf)
         except IOError:
             raise ValueError('Failed to set custom baud rate: %r' % baudrate)
 
