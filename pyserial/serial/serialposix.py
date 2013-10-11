@@ -457,22 +457,32 @@ class PosixSerial(SerialBase):
         if not self._isOpen: raise portNotOpenError
         read = bytearray()
         while len(read) < size:
-            ready,_,_ = select.select([self.fd],[],[], self._timeout)
-            # If select was used with a timeout, and the timeout occurs, it
-            # returns with empty lists -> thus abort read operation.
-            # For timeout == 0 (non-blocking operation) also abort when there
-            # is nothing to read.
-            if not ready:
-                break   # timeout
-            buf = os.read(self.fd, size-len(read))
-            # read should always return some data as select reported it was
-            # ready to read when we get to this point.
-            if not buf:
-                # Disconnected devices, at least on Linux, show the
-                # behavior that they are always ready to read immediately
-                # but reading returns nothing.
-                raise SerialException('device reports readiness to read but returned no data (device disconnected?)')
-            read.extend(buf)
+            try:
+                ready,_,_ = select.select([self.fd],[],[], self._timeout)
+                # If select was used with a timeout, and the timeout occurs, it
+                # returns with empty lists -> thus abort read operation.
+                # For timeout == 0 (non-blocking operation) also abort when there
+                # is nothing to read.
+                if not ready:
+                    break   # timeout
+                buf = os.read(self.fd, size-len(read))
+                # read should always return some data as select reported it was
+                # ready to read when we get to this point.
+                if not buf:
+                    # Disconnected devices, at least on Linux, show the
+                    # behavior that they are always ready to read immediately
+                    # but reading returns nothing.
+                    raise SerialException('device reports readiness to read but returned no data (device disconnected or multiple access on port?)')
+                read.extend(buf)
+            except select.error, e:
+                # ignore EAGAIN errors. all other errors are shown
+                # see also http://www.python.org/dev/peps/pep-3151/#select
+                if e[0] != errno.EAGAIN:
+                    raise SerialException('read failed: %s' % (e,))
+            except OSError, e:
+                # ignore EAGAIN errors. all other errors are shown
+                if e.errno != errno.EAGAIN:
+                    raise SerialException('read failed: %s' % (e,))
         return bytes(read)
 
     def write(self, data):
