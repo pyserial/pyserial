@@ -506,6 +506,11 @@ class PosixSerial(SerialBase):
                     _, ready, _ = select.select([], [self.fd], [], timeleft)
                     if not ready:
                         raise writeTimeoutError
+                else:
+                    # wait for write operation
+                    _, ready, _ = select.select([], [self.fd], [], None)
+                    if not ready:
+                        raise SerialException('write failed (select)')
                 d = d[n:]
                 tx_len -= n
             except OSError, v:
