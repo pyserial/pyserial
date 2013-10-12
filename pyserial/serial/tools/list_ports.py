@@ -4,7 +4,7 @@
 # this is a wrapper module for different platform implementations of the
 # port enumeration feature
 #
-# (C) 2011 Chris Liechti <cliechti@gmx.net>
+# (C) 2011-2013 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
 """\
@@ -50,7 +50,7 @@ def main():
         usage = "%prog [options] [<regexp>]",
         description = "Miniterm - A simple terminal program for the serial port."
     )
-    
+
     parser.add_option("--debug",
             help="print debug messages and tracebacks (development mode)",
             dest="debug",
