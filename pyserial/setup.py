@@ -19,6 +19,8 @@ if sys.version_info >= (3, 0):
         from distutils.command.build_scripts import build_scripts_2to3 as build_scripts
     except ImportError:
         raise ImportError("build_py_2to3 not found in distutils - it is required for Python 3.x")
+    else:
+        sys.stderr.write('Detected Python 3, using 2to3\n')
 else:
     from distutils.command.build_py import build_py
     from distutils.command.build_scripts import build_scripts
@@ -43,7 +45,7 @@ version = re.search(
 
 
 setup(
-    name = "pyserial"
+    name = "pyserial",
     description = "Python Serial Port Extension",
     version = version,
     author = "Chris Liechti",
@@ -72,6 +74,7 @@ setup(
         'Programming Language :: Python :: 3.0',
         'Programming Language :: Python :: 3.1',
         'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
         'Topic :: Communications',
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
@@ -79,6 +82,7 @@ setup(
     ],
     platforms = 'any',
     cmdclass = {'build_py': build_py, 'build_scripts': build_scripts},
+    use_2to3 = sys.version_info >= (3, 0), # for distribute
 
     scripts = ['serial/tools/miniterm.py'],
 )
