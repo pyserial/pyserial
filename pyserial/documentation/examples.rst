@@ -35,30 +35,39 @@ Command line options ``python -m serial.tools.miniterm -h``::
 
     Options:
       -h, --help            show this help message and exit
-      -p PORT, --port=PORT  port, a number (default 0) or a device name
-                            (deprecated option)
-      -b BAUDRATE, --baud=BAUDRATE
+
+      Port settings:
+        -p PORT, --port=PORT
+                            port, a number or a device name. (deprecated option,
+                            use parameter instead)
+        -b BAUDRATE, --baud=BAUDRATE
                             set baud rate, default 9600
-      --parity=PARITY       set parity, one of [N, E, O, S, M], default=N
-      -e, --echo            enable local echo (default off)
-      --rtscts              enable RTS/CTS flow control (default off)
-      --xonxoff             enable software flow control (default off)
-      --cr                  do not send CR+LF, send CR only
-      --lf                  do not send CR+LF, send LF only
-      -D, --debug           debug received data (escape non-printable chars)
+        --parity=PARITY     set parity, one of [N, E, O, S, M], default=N
+        --rtscts            enable RTS/CTS flow control (default off)
+        --xonxoff           enable software flow control (default off)
+        --rts=RTS_STATE     set initial RTS line state (possible values: 0, 1)
+        --dtr=DTR_STATE     set initial DTR line state (possible values: 0, 1)
+
+      Data handling:
+        -e, --echo          enable local echo (default off)
+        --cr                do not send CR+LF, send CR only
+        --lf                do not send CR+LF, send LF only
+        -D, --debug         debug received data (escape non-printable chars)
                             --debug can be given multiple times: 0: just print
                             what is received 1: escape non-printable characters,
                             do newlines as unusual 2: escape non-printable
                             characters, newlines too 3: hex dump everything
-      --rts=RTS_STATE       set initial RTS line state (possible values: 0, 1)
-      --dtr=DTR_STATE       set initial DTR line state (possible values: 0, 1)
-      -q, --quiet           suppress non error messages
-      --exit-char=EXIT_CHAR
+
+      Hotkeys:
+        --exit-char=EXIT_CHAR
                             ASCII code of special character that is used to exit
                             the application
-      --menu-char=MENU_CHAR
+        --menu-char=MENU_CHAR
                             ASCII code of special character that is used to
                             control miniterm (menu)
+
+      Diagnostics:
+        -q, --quiet         suppress non-error messages
 
 
 Miniterm supports some control functions. Typing :kbd:`Ctrl+T Ctrl+H` when it is
