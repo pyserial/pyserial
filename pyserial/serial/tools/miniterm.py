@@ -14,8 +14,8 @@ try:
 except ImportError:
     comports = None
 
-EXITCHARCTER = '\x1d'   # GS/CTRL+]
-MENUCHARACTER = '\x14'  # Menu: CTRL+T
+EXITCHARCTER = serial.to_bytes([0x1d])   # GS/CTRL+]
+MENUCHARACTER = serial.to_bytes([0x14])  # Menu: CTRL+T
 
 DEFAULT_PORT = None
 DEFAULT_BAUDRATE = 9600
@@ -81,6 +81,13 @@ else:
     def character(b):
         return b
 
+LF = serial.to_bytes([10])
+CR = serial.to_bytes([13])
+CRLF = serial.to_bytes([13, 10])
+
+X00 = serial.to_bytes([0])
+X0E = serial.to_bytes([0x0e])
+
 # first choose a platform dependant way to read single characters from the console
 global console
 
@@ -99,11 +106,11 @@ if os.name == 'nt':
         def getkey(self):
             while True:
                 z = msvcrt.getch()
-                if z == '\0' or z == '\xe0':    # functions keys, ignore
+                if z == X00 or z == X0E:    # functions keys, ignore
                     msvcrt.getch()
                 else:
-                    if z == '\r':
-                        return '\n'
+                    if z == CR:
+                        return LF
                     return z
 
     console = Console()
@@ -153,7 +160,7 @@ def dump_port_list():
 CONVERT_CRLF = 2
 CONVERT_CR   = 1
 CONVERT_LF   = 0
-NEWLINE_CONVERISON_MAP = ('\n', '\r', '\r\n')
+NEWLINE_CONVERISON_MAP = (LF, CR, CRLF)
 LF_MODES = ('LF', 'CR', 'CR/LF')
 
 REPR_MODES = ('raw', 'some control', 'all control', 'hex')
