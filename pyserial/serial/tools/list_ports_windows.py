@@ -137,6 +137,7 @@ REG_SZ = 1
 
 # workaround for compatibility between Python 2.x and 3.x
 PortName = serial.to_bytes([80, 111, 114, 116, 78, 97, 109, 101]) # "PortName"
+NA = serial.to_bytes([110, 47, 97]) # "n/a"
 
 def comports():
     """This generator scans the device registry for com ports and yields port, desc, hwid"""
@@ -175,6 +176,13 @@ def comports():
         if not SetupDiGetDeviceInterfaceDetail(g_hdi, ctypes.byref(did), ctypes.byref(idd), dwNeeded, None, ctypes.byref(devinfo)):
             raise ctypes.WinError()
 
+        # the real com port name has to read differently...
+        hkey = SetupDiOpenDevRegKey(g_hdi, ctypes.byref(devinfo), DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_READ)
+        port_name_buffer = byte_buffer(250)
+        port_name_length = ULONG(ctypes.sizeof(port_name_buffer))
+        RegQueryValueEx(hkey, PortName, None, None, ctypes.byref(port_name_buffer), ctypes.byref(port_name_length))
+        RegCloseKey(hkey)
+
         # hardware ID
         szHardwareID = byte_buffer(250)
         if not SetupDiGetDeviceRegistryProperty(g_hdi, ctypes.byref(devinfo), SPDRP_HARDWAREID, None, ctypes.byref(szHardwareID), ctypes.sizeof(szHardwareID) - 1, None):
@@ -189,14 +197,8 @@ def comports():
             #~ if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
                 #~ raise IOError("failed to get details for %s (%s)" % (devinfo, szHardwareID.value))
             # ignore errors and still include the port in the list, friendly name will be same as port name
-            yield string(port_name_buffer), string(port_name_buffer), string(szHardwareID)
+            yield string(port_name_buffer), NA, string(szHardwareID)
         else:
-            # the real com port name has to read differently...
-            hkey = SetupDiOpenDevRegKey(g_hdi, ctypes.byref(devinfo), DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_READ)
-            port_name_buffer = byte_buffer(250)
-            port_name_length = ULONG(ctypes.sizeof(port_name_buffer))
-            RegQueryValueEx(hkey, PortName, None, None, ctypes.byref(port_name_buffer), ctypes.byref(port_name_length))
-            RegCloseKey(hkey)
             yield string(port_name_buffer), string(szFriendlyName), string(szHardwareID)
 
     SetupDiDestroyDeviceInfoList(g_hdi)
