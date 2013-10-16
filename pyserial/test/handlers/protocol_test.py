@@ -72,7 +72,7 @@ class DummySerial(SerialBase):
                         self.logger.debug('enabled logging')
                     else:
                         raise ValueError('unknown option: %r' % (option,))
-        except ValueError, e:
+        except ValueError as e:
             raise SerialException('expected a string in the form "[test://][option[/option...]]": %s' % e)
         return (host, port)
 

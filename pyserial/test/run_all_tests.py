@@ -12,11 +12,13 @@ import os
 import time
 
 # inject local copy to avoid testing the installed version instead of the
-# working copy
-sys.path.insert(0, '..')
+# working copy (only for 2.x as the sources would need to be translated with
+# 2to3 for Python 3, use installed module instead for Python 3).
+if sys.version_info < (3, 0):
+    sys.path.insert(0, '..')
 
 import serial
-print "Patching sys.path to test local version. Testing Version: %s" % (serial.VERSION,)
+print("Patching sys.path to test local version. Testing Version: %s" % (serial.VERSION,))
 
 PORT = 'loop://'
 if len(sys.argv) > 1:
@@ -31,11 +33,11 @@ for modulename in [os.path.splitext(x)[0]
     try:
         module = __import__(modulename)
     except ImportError:
-        print "skipping %s" % modulename
+        print("skipping %s" % (modulename,))
     else:
         module.PORT = PORT
         testsuite = unittest.findTestCases(module)
-        print "found %s tests in %r" % (testsuite.countTestCases(), modulename)
+        print("found %s tests in %r" % (testsuite.countTestCases(), modulename))
         mainsuite.addTest(testsuite)
 
 verbosity = 1

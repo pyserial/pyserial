@@ -73,7 +73,7 @@ def to_bytes(seq):
     else:
         b = bytearray()
         for item in seq:
-            b.append(item)  # this one handles int and str
+            b.append(item)  # this one handles int and str for our emulation and ints for Python 3.x
         return bytes(b)
 
 # create control bytes
@@ -335,10 +335,13 @@ class SerialBase(object):
         baud rate is not possible. If the port is closed, then the value is
         accepted and the exception is raised when the port is opened."""
         try:
-            self._baudrate = int(baudrate)
+            b = int(baudrate)
         except TypeError:
             raise ValueError("Not a valid baudrate: %r" % (baudrate,))
         else:
+            if b <= 0:
+                raise ValueError("Not a valid baudrate: %r" % (baudrate,))
+            self._baudrate = b
             if self._isOpen:  self._reconfigurePort()
 
     def getBaudrate(self):
