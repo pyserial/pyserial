@@ -446,6 +446,7 @@ Version 2.7      2012-nn-nn
 - Posix: [Patch pyserial:28] Accept any speed on Linux
 - Posix: [Patch pyserial:29] PosixSerial.read() should "ignore" errno.EINTR
 - OSX: [Patch pyserial:27] Scan by VendorID/Product ID for USB Serial devices
+- Ensure working with bytes in write() calls
 
 Bugfixes:
 

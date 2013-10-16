@@ -145,7 +145,7 @@ class LoopbackSerial(SerialBase):
         closed."""
         if not self._isOpen: raise portNotOpenError
         # ensure we're working with bytes
-        data = bytes(data)
+        data = to_bytes(data)
         # calculate aprox time that would be used to send the data
         time_used_to_send = 10.0*len(data) / self._baudrate
         # when a write timeout is configured check if we would be successful

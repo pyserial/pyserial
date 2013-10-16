@@ -168,7 +168,7 @@ class SocketSerial(SerialBase):
         closed."""
         if not self._isOpen: raise portNotOpenError
         try:
-            self._socket.sendall(data)
+            self._socket.sendall(to_bytes(data))
         except socket.error, e:
             # XXX what exception if socket connection fails
             raise SerialException("socket connection failed: %s" % e)

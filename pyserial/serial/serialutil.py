@@ -46,14 +46,35 @@ except (NameError, AttributeError):
                 other = bytearray(other)
             return list.__eq__(self, other)
 
-# all Python versions prior 3.x convert str([17]) to '[17]' instead of '\x11'
-# so a simple bytes(sequence) doesn't work for all versions
+# ``memoryview`` was introduced in Python 2.7 and ``bytes(some_memoryview)``
+# isn't returning the contents (very unfortunate). Therefore we need special
+# cases and test for it. Ensure that there is a ``memoryview`` object for older
+# Python versions. This is easier than making every test dependent on its
+# existence.
+try:
+    memoryview
+except (NameError, AttributeError):
+    # implementation does not matter as we do not realy use it.
+    # it just must not inherit from something else we might care for.
+    class memoryview:
+        pass
+
+
+# all Python versions prior 3.x convert ``str([17])`` to '[17]' instead of '\x11'
+# so a simple ``bytes(sequence)`` doesn't work for all versions
 def to_bytes(seq):
     """convert a sequence to a bytes type"""
-    b = bytearray()
-    for item in seq:
-        b.append(item)  # this one handles int and str
-    return bytes(b)
+    if isinstance(seq, bytes):
+        return seq
+    elif isinstance(seq, bytearray):
+        return bytes(seq)
+    elif isinstance(seq, memoryview):
+        return seq.tobytes()
+    else:
+        b = bytearray()
+        for item in seq:
+            b.append(item)  # this one handles int and str
+        return bytes(b)
 
 # create control bytes
 XON  = to_bytes([17])

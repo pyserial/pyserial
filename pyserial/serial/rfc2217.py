@@ -592,7 +592,7 @@ class RFC2217Serial(SerialBase):
         self._write_lock.acquire()
         try:
             try:
-                self._socket.sendall(data.replace(IAC, IAC_DOUBLED))
+                self._socket.sendall(to_bytes(data).replace(IAC, IAC_DOUBLED))
             except socket.error, e:
                 raise SerialException("connection failed (socket error): %s" % e) # XXX what exception if socket connection fails
         finally:

@@ -56,6 +56,7 @@ class Test_SerialAndIO(unittest.TestCase):
 
     def setUp(self):
         self.s = serial.serial_for_url(PORT, timeout=1)
+        #~ self.io = io.TextIOWrapper(self.s)
         self.io = io.TextIOWrapper(io.BufferedRWPair(self.s, self.s))
 
     def tearDown(self):
@@ -67,7 +68,7 @@ class Test_SerialAndIO(unittest.TestCase):
         hello = self.io.readline()
         self.failUnlessEqual(hello, unicode("hello\n"))
 
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __name__ == '__main__':
     import sys
     sys.stdout.write(__doc__)
