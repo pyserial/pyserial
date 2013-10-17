@@ -305,7 +305,7 @@ class PosixSerial(SerialBase):
             raise
         else:
             self._isOpen = True
-        #~ self.flushInput()
+        self.flushInput()
 
 
     def _reconfigurePort(self):
