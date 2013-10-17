@@ -108,8 +108,8 @@ setup-miniterm-py2exe.py_
     This is a py2exe setup script for Windows. It can be used to create a
     standalone ``miniterm.exe``.
 
-.. _miniterm.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/serial/tools/miniterm.py
-.. _setup-miniterm-py2exe.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/setup-miniterm-py2exe.py
+.. _miniterm.py: http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/serial/tools/miniterm.py
+.. _setup-miniterm-py2exe.py: http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/setup-miniterm-py2exe.py
 
 
 TCP/IP - serial bridge
@@ -177,7 +177,8 @@ below gives the client much more control over the remote serial port.
 tcp_serial_redirect.py_
     Main program.
 
-.. _tcp_serial_redirect.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/tcp_serial_redirect.py
+.. _tcp_serial_redirect.py: http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/tcp_serial_redirect.py
+
 
 Single-port TCP/IP - serial bridge (RFC 2217)
 =============================================
@@ -217,8 +218,8 @@ setup-rfc2217_server-py2exe.py_
     This is a py2exe setup script for Windows. It can be used to create a
     standalone ``rfc2217_server.exe``.
 
-.. _rfc2217_server.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/rfc2217_server.py
-.. _setup-rfc2217_server-py2exe.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/setup-rfc2217_server-py2exe.py
+.. _rfc2217_server.py: http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/rfc2217_server.py
+.. _setup-rfc2217_server-py2exe.py: http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/setup-rfc2217_server-py2exe.py
 
 
 Multi-port TCP/IP - serial bridge (RFC 2217)
@@ -266,8 +267,8 @@ port_publisher.py_
 port_publisher.sh_
     Example init.d script.
 
-.. _port_publisher.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/port_publisher.py
-.. _port_publisher.sh: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/port_publisher.sh
+.. _port_publisher.py: http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/port_publisher.py
+.. _port_publisher.sh: http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/port_publisher.sh
 
 
 wxPython examples
@@ -291,11 +292,11 @@ wxSerialConfigDialog.wxg_
 setup-wxTerminal-py2exe.py_
     A py2exe setup script to package the terminal application.
 
-.. _wxTerminal.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/wxTerminal.py
-.. _wxTerminal.wxg: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/wxTerminal.wxg
-.. _wxSerialConfigDialog.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/wxSerialConfigDialog.py
-.. _wxSerialConfigDialog.wxg: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/wxSerialConfigDialog.wxg
-.. _setup-wxTerminal-py2exe.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/setup-wxTerminal-py2exe.py
+.. _wxTerminal.py: http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/wxTerminal.py
+.. _wxTerminal.wxg: http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/wxTerminal.wxg
+.. _wxSerialConfigDialog.py: http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/wxSerialConfigDialog.py
+.. _wxSerialConfigDialog.wxg: http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/wxSerialConfigDialog.wxg
+.. _setup-wxTerminal-py2exe.py: http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/setup-wxTerminal-py2exe.py
 
 
 Wrapper class
@@ -306,7 +307,7 @@ implementation of ``readline()``
 enhancedserial.py_
     A class with alternative ``readline()`` implementation.
 
-.. _enhancedserial.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/examples/enhancedserial.py
+.. _enhancedserial.py: http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/enhancedserial.py
 
 
 Unit tests
@@ -341,10 +342,10 @@ test_iolib.py_
 test_url.py_
     Tests involving the :ref:`URL <URLs>` feature.
 
-.. _run_all_tests.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/run_all_tests.py
-.. _test.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test.py
-.. _test_advanced.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_advanced.py
-.. _test_high_load.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_high_load.py
-.. _test_readline.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_readline.py
-.. _test_iolib.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_iolib.py
-.. _test_url.py: http://pyserial.svn.sourceforge.net/viewvc/*checkout*/pyserial/trunk/pyserial/test/test_url.py
+.. _run_all_tests.py:  http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/test/run_all_tests.py
+.. _test.py:           http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/test/test.py
+.. _test_advanced.py:  http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/test/test_advanced.py
+.. _test_high_load.py: http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/test/test_high_load.py
+.. _test_readline.py:  http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/test/test_readline.py
+.. _test_iolib.py:     http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/test/test_iolib.py
+.. _test_url.py:       http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/test/test_url.py

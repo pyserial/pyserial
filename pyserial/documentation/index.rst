@@ -16,7 +16,7 @@ Other pages (online)
 - This page, when viewed online, is at http://pyserial.sf.net.
 
 .. _`project page on SourceForge`: http://sourceforge.net/projects/pyserial/
-.. _`SVN repository`: http://sourceforge.net/svn/?group_id=46487
+.. _`SVN repository`: http://svn.code.sf.net/p/pyserial/code/trunk
 .. _`Download Page`: http://pypi.python.org/pypi/pyserial
 
 

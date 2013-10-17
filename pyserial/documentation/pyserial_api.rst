@@ -687,7 +687,7 @@ Exceptions
     Base class for serial port exceptions.
 
     .. versionchanged:: 2.5
-        Now derrives from :exc:`IOError` instead of :exc:`Exception`
+        Now derives from :exc:`IOError` instead of :exc:`Exception`
 
 .. exception:: SerialTimeoutException
 
@@ -940,6 +940,7 @@ serial.tools.list_ports``). It also contains the following functions.
 
     :platform: Posix (/dev files)
     :platform: Linux (/dev files, sysfs and lsusb)
+    :platform: OSX (iokit)
     :platform: Windows (setupapi, registry)
 
 

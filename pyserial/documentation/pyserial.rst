@@ -12,19 +12,19 @@ automatically selects the appropriate backend.
 It is released under a free software license, see LICENSE_ for more
 details.
 
-Copyright (C) 2001-2010 Chris Liechti <cliechti(at)gmx.net>
+Copyright (C) 2001-2013 Chris Liechti <cliechti(at)gmx.net>
 
 Other pages (online)
 
 - `project page on SourceForge`_
 - `SVN repository`_
-- `Download Page`_ with releases
+- `Download Page`_ with releases (PyPi)
 - This page, when viewed online is at http://pyserial.sf.net.
 
 .. _LICENSE: appendix.html#license
 .. _`project page on SourceForge`: http://sourceforge.net/projects/pyserial/
-.. _`SVN repository`: http://sourceforge.net/svn/?group_id=46487
-.. _`Download Page`: http://sourceforge.net/project/showfiles.php?group_id=46487
+.. _`SVN repository`: http://svn.code.sf.net/p/pyserial/code/trunk
+.. _`Download Page`: http://pypi.python.org/pypi/pyserial
 
 
 Features
@@ -46,7 +46,7 @@ Features
 Requirements
 ============
 - Python 2.3 or newer, including Python 3.x
-- ctypes extensions on Windows (is in standard library since Python 2.5+)
+- ctypes extension on Windows (is in standard library since Python 2.5+)
 - "Java Communications" (JavaComm) or compatible extension for Java/Jython
 
 
@@ -57,8 +57,19 @@ pyserial
 --------
 This installs a package that can be used from Python (``import serial``).
 
-To install the module for all users on the system, administrator rights (root)
-is required..
+To install for all users on the system, administrator rights (root)
+may be required.
+
+From PyPI
+~~~~~~~~~
+pySerial can be installed from PyPI, either manually downloading the
+files and installing as described below or using::
+
+    pip install pyserial
+
+or::
+
+    easy_install -U pyserial
 
 From source (tar.gz or checkout)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -71,29 +82,18 @@ For Python 3.x::
 
     python3 setup.py install
 
-From PyPI
-~~~~~~~~~
-Alternatively it can be installed from PyPI, either manually downloading the
-files and installing as described above or using::
-
-    pip install pyserial
-
-or::
-
-    easy_install -U pyserial
-
 Packages
 ~~~~~~~~
 There are also packaged versions for some Linux distributions and Windows:
 
 Debian/Ubuntu
     A package is available under the name "python-serial". Note that some
-    distributions package an older version of pySerial.
+    distributions may package an older version of pySerial.
 
 Windows
     There is also a Windows installer for end users. It is located in the
-    PyPi_.  Developers may be interested to get the source archive, because it
-    contains examples and the readme.
+    PyPi_.  Developers also may be interested to get the source archive,
+    because it contains examples, tests and the this documentation.
 
 .. _PyPi: http://pypi.python.org/pypi/pyserial
 
@@ -111,12 +111,12 @@ References
 
 Older Versions
 ==============
-Older versions are still available on the `Download Page`_. pySerial 1.21 is
-compatible with Python 2.0 on Windows, Linux and several un*x like systems,
+Older versions are still available in the old download_ page. pySerial 1.21
+is compatible with Python 2.0 on Windows, Linux and several un*x like systems,
 MacOSX and Jython.
 
 On windows releases older than 2.5 will depend on pywin32_ (previously known as
 win32all)
 
-.. _`Download Page`: http://sourceforge.net/project/showfiles.php?group_id=46487
+.. _download: http://sourceforge.net/projects/pyserial/files/pyserial/
 .. _pywin32: http://pypi.python.org/pypi/pywin32
