@@ -27,7 +27,6 @@ CHAR = ctypes.c_char
 LPDWORD = PDWORD = ctypes.POINTER(DWORD)
 #~ LPBYTE = PBYTE = ctypes.POINTER(BYTE)
 LPBYTE = PBYTE = ctypes.c_void_p        # XXX avoids error about types
-PHKEY = ctypes.POINTER(HKEY)
 
 ACCESS_MASK = DWORD
 REGSAM = ACCESS_MASK
@@ -72,17 +71,6 @@ class SP_DEVINFO_DATA(ctypes.Structure):
         return "ClassGuid:%s DevInst:%s" % (self.ClassGuid, self.DevInst)
 PSP_DEVINFO_DATA = ctypes.POINTER(SP_DEVINFO_DATA)
 
-class SP_DEVICE_INTERFACE_DATA(ctypes.Structure):
-    _fields_ = [
-        ('cbSize', DWORD),
-        ('InterfaceClassGuid', GUID),
-        ('Flags', DWORD),
-        ('Reserved', ULONG_PTR),
-    ]
-    def __str__(self):
-        return "InterfaceClassGuid:%s Flags:%s" % (self.InterfaceClassGuid, self.Flags)
-PSP_DEVICE_INTERFACE_DATA = ctypes.POINTER(SP_DEVICE_INTERFACE_DATA)
-
 PSP_DEVICE_INTERFACE_DETAIL_DATA = ctypes.c_void_p
 
 setupapi = ctypes.windll.LoadLibrary("setupapi")
@@ -102,14 +90,6 @@ SetupDiGetClassDevs = setupapi.SetupDiGetClassDevsA
 SetupDiGetClassDevs.argtypes = [ctypes.POINTER(GUID), PCTSTR, HWND, DWORD]
 SetupDiGetClassDevs.restype = HDEVINFO
 SetupDiGetClassDevs.errcheck = ValidHandle
-
-SetupDiEnumDeviceInterfaces = setupapi.SetupDiEnumDeviceInterfaces
-SetupDiEnumDeviceInterfaces.argtypes = [HDEVINFO, PSP_DEVINFO_DATA, ctypes.POINTER(GUID), DWORD, PSP_DEVICE_INTERFACE_DATA]
-SetupDiEnumDeviceInterfaces.restype = BOOL
-
-SetupDiGetDeviceInterfaceDetail = setupapi.SetupDiGetDeviceInterfaceDetailA
-SetupDiGetDeviceInterfaceDetail.argtypes = [HDEVINFO, PSP_DEVICE_INTERFACE_DATA, PSP_DEVICE_INTERFACE_DETAIL_DATA, DWORD, PDWORD, PSP_DEVINFO_DATA]
-SetupDiGetDeviceInterfaceDetail.restype = BOOL
 
 SetupDiGetDeviceRegistryProperty = setupapi.SetupDiGetDeviceRegistryPropertyA
 SetupDiGetDeviceRegistryProperty.argtypes = [HDEVINFO, PSP_DEVINFO_DATA, DWORD, PDWORD, PBYTE, DWORD, PDWORD]
@@ -137,14 +117,11 @@ DIGCF_PRESENT = 2
 DIGCF_DEVICEINTERFACE = 16
 INVALID_HANDLE_VALUE = 0
 ERROR_INSUFFICIENT_BUFFER = 122
-SPDRP_DEVICEDESC = 0
 SPDRP_HARDWAREID = 1
 SPDRP_FRIENDLYNAME = 12
-ERROR_NO_MORE_ITEMS = 259
 DICS_FLAG_GLOBAL = 1
 DIREG_DEV = 0x00000001
 KEY_READ = 0x20019
-REG_SZ = 1
 
 # workaround for compatibility between Python 2.x and 3.x
 Ports = serial.to_bytes([80, 111, 114, 116, 115]) # "Ports"
