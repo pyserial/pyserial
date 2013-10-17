@@ -31,6 +31,7 @@ elif os.name == 'posix':
 else:
     raise ImportError("Sorry: no implementation for your platform ('%s') available" % (os.name,))
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def grep(regexp):
     """\
@@ -38,11 +39,13 @@ def grep(regexp):
     hardware ID are searched. The function returns an iterable that returns the
     same tuples as comport() would do.
     """
+    r = re.compile(regexp, re.I)
     for port, desc, hwid in comports():
-        if re.search(regexp, port, re.I) or re.search(regexp, desc, re.I) or re.search(regexp, hwid, re.I):
+        if r.search(port) or r.search(regexp) or r.search(regexp):
             yield port, desc, hwid
 
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 def main():
     import optparse
 
@@ -83,17 +86,18 @@ def main():
         iterator = sorted(comports())
     # list them
     for port, desc, hwid in iterator:
-        print "%-20s" % (port,)
+        print("%-20s" % (port,))
         if options.verbose > 1:
-            print "    desc: %s" % (desc,)
-            print "    hwid: %s" % (hwid,)
+            print("    desc: %s" % (desc,))
+            print("    hwid: %s" % (hwid,))
         hits += 1
     if options.verbose:
         if hits:
-            print "%d ports found" % (hits,)
+            print("%d ports found" % (hits,))
         else:
-            print "no ports found"
+            print("no ports found")
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
 if __name__ == '__main__':
     main()

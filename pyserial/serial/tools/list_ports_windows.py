@@ -143,17 +143,24 @@ REG_SZ = 1
 # workaround for compatibility between Python 2.x and 3.x
 Ports = serial.to_bytes([80, 111, 114, 116, 115]) # "Ports"
 PortName = serial.to_bytes([80, 111, 114, 116, 78, 97, 109, 101]) # "PortName"
-NA = serial.to_bytes([110, 47, 97]) # "n/a"
 
 def comports():
-    GUIDs = (GUID*8)()
+    GUIDs = (GUID*8)() # so far only seen one used, so hope 8 are enough...
     guids_size = DWORD()
-    if not SetupDiClassGuidsFromName(Ports, GUIDs, ctypes.sizeof(GUIDs), ctypes.byref(guids_size)):
+    if not SetupDiClassGuidsFromName(
+            Ports,
+            GUIDs,
+            ctypes.sizeof(GUIDs),
+            ctypes.byref(guids_size)):
         raise ctypes.WinError()
 
+    # repeat for all possible GUIDs
     for index in range(guids_size.value):
-        #~ g_hdi = SetupDiGetClassDevs(ctypes.byref(guid), None, NULL, DIGCF_PRESENT|DIGCF_DEVICEINTERFACE)
-        g_hdi = SetupDiGetClassDevs(ctypes.byref(GUIDs[index]), None, NULL, DIGCF_PRESENT)
+        g_hdi = SetupDiGetClassDevs(
+                ctypes.byref(GUIDs[index]),
+                None,
+                NULL,
+                DIGCF_PRESENT) # was DIGCF_PRESENT|DIGCF_DEVICEINTERFACE which misses CDC ports
 
         devinfo = SP_DEVINFO_DATA()
         devinfo.cbSize = ctypes.sizeof(devinfo)
@@ -162,13 +169,24 @@ def comports():
             index += 1
 
             # get the real com port name
-            hkey = SetupDiOpenDevRegKey(g_hdi, ctypes.byref(devinfo), DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_READ)
-            #~ hkey = SetupDiOpenDevRegKey(g_hdi, ctypes.byref(devinfo), DICS_FLAG_GLOBAL, 0, DIREG_DRV, KEY_READ)
+            hkey = SetupDiOpenDevRegKey(
+                    g_hdi,
+                    ctypes.byref(devinfo),
+                    DICS_FLAG_GLOBAL,
+                    0,
+                    DIREG_DEV,  # DIREG_DRV for SW info
+                    KEY_READ)
             port_name_buffer = byte_buffer(250)
             port_name_length = ULONG(ctypes.sizeof(port_name_buffer))
-            RegQueryValueEx(hkey, PortName, None, None, ctypes.byref(port_name_buffer), ctypes.byref(port_name_length))
+            RegQueryValueEx(
+                    hkey,
+                    PortName,
+                    None,
+                    None,
+                    ctypes.byref(port_name_buffer),
+                    ctypes.byref(port_name_length))
             RegCloseKey(hkey)
-            
+
             # unfortunately does this method also include parallel ports.
             # we could check for names starting with COM or just exclude LPT
             # and hope that other "unknown" names are serial ports...
@@ -177,24 +195,39 @@ def comports():
 
             # hardware ID
             szHardwareID = byte_buffer(250)
-            if not SetupDiGetDeviceRegistryProperty(g_hdi, ctypes.byref(devinfo), SPDRP_HARDWAREID, None, ctypes.byref(szHardwareID), ctypes.sizeof(szHardwareID) - 1, None):
+            if not SetupDiGetDeviceRegistryProperty(
+                    g_hdi,
+                    ctypes.byref(devinfo),
+                    SPDRP_HARDWAREID,
+                    None,
+                    ctypes.byref(szHardwareID),
+                    ctypes.sizeof(szHardwareID) - 1,
+                    None):
                 # Ignore ERROR_INSUFFICIENT_BUFFER
                 if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
                     raise ctypes.WinError()
 
             # friendly name
             szFriendlyName = byte_buffer(250)
-            if not SetupDiGetDeviceRegistryProperty(g_hdi, ctypes.byref(devinfo), SPDRP_FRIENDLYNAME, None, ctypes.byref(szFriendlyName), ctypes.sizeof(szFriendlyName) - 1, None):
+            if not SetupDiGetDeviceRegistryProperty(
+                    g_hdi,
+                    ctypes.byref(devinfo),
+                    SPDRP_FRIENDLYNAME,
+                    None,
+                    ctypes.byref(szFriendlyName),
+                    ctypes.sizeof(szFriendlyName) - 1,
+                    None):
                 # Ignore ERROR_INSUFFICIENT_BUFFER
                 #~ if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
                     #~ raise IOError("failed to get details for %s (%s)" % (devinfo, szHardwareID.value))
                 # ignore errors and still include the port in the list, friendly name will be same as port name
-                yield string(port_name_buffer), NA, string(szHardwareID)
+                yield string(port_name_buffer), 'n/a', string(szHardwareID)
             else:
                 yield string(port_name_buffer), string(szFriendlyName), string(szHardwareID)
 
         SetupDiDestroyDeviceInfoList(g_hdi)
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
 if __name__ == '__main__':
     import serial

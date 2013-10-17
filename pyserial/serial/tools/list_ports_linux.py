@@ -80,7 +80,7 @@ def usb_lsusb_string(sysfs_path):
     base = os.path.basename(os.path.realpath(sysfs_path))
     bus = base.split('-')[0]
     try:
-        dev = int(open(os.path.join(sysfs_path, 'devnum')).readline().strip())
+        dev = int(read_line(os.path.join(sysfs_path, 'devnum')))
         desc = popen(['lsusb', '-v', '-s', '%s:%s' % (bus, dev)])
         # descriptions from device
         iManufacturer = re_group('iManufacturer\s+\w+ (.+)', desc)
@@ -136,6 +136,7 @@ def comports():
     devices = glob.glob('/dev/ttyS*') + glob.glob('/dev/ttyUSB*') + glob.glob('/dev/ttyACM*')
     return [(d, describe(d), hwinfo(d)) for d in devices]
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
 if __name__ == '__main__':
     for port, desc, hwid in sorted(comports()):
