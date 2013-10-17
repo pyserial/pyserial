@@ -41,7 +41,7 @@ def grep(regexp):
     """
     r = re.compile(regexp, re.I)
     for port, desc, hwid in comports():
-        if r.search(port) or r.search(regexp) or r.search(regexp):
+        if r.search(port) or r.search(desc) or r.search(hwid):
             yield port, desc, hwid
 
 
