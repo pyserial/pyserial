@@ -434,11 +434,11 @@ Bugfixes (win32):
 - Fix type definitions for 64 bit Windows compatibility
 
 
-Version 2.7      2012-nn-nn
+Version 2.7      2013-nn-nn
 ---------------------------
 - Win32: setRTS and setDTR can be called before the port is opened and it will
   set the initial state on port open.
-- Posix: add platform specific method: outWaiting (already pesent for Win32)
+- Posix: add platform specific method: outWaiting (already present for Win32)
 - Posix: rename flowControl to setXON to match name on Win32, add
   flowControlOut function
 - rfc2217: zero polls value (baudrate, data size, stop bits, parity) (Erik
@@ -470,7 +470,7 @@ Bugfixes (posix):
 Bugfixes (win32):
 
 - [Bug 3444941] ctypes.WinError() unicode error
-- [Bug 3550043] on Window in tools global name 'GetLastError' is not defined
+- [Bug 3550043] on Windows in tools global name 'GetLastError' is not defined
 - [Bug pyserial:146] flush() does nothing in windows (despite docs)
 - [Bug pyserial:144] com0com ports ignored due to missing "friendly name"
 - [Bug pyserial:152] Cannot configure port, some setting was wrong. Can leave

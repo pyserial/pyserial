@@ -14,7 +14,7 @@ automatically selects the appropriate backend.
 - SVN repository: http://sourceforge.net/svn/?group_id=46487
 - Download Page: http://sourceforge.net/project/showfiles.php?group_id=46487
 
-BSD license, (C) 2001-2012 Chris Liechti <cliechti@gmx.net>
+BSD license, (C) 2001-2013 Chris Liechti <cliechti@gmx.net>
 
 
 Documentation
