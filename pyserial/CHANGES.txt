@@ -434,7 +434,7 @@ Bugfixes (win32):
 - Fix type definitions for 64 bit Windows compatibility
 
 
-Version 2.7      2013-nn-nn
+Version 2.7      2013-10-17
 ---------------------------
 - Win32: setRTS and setDTR can be called before the port is opened and it will
   set the initial state on port open.
@@ -443,7 +443,7 @@ Version 2.7      2013-nn-nn
   flowControlOut function
 - rfc2217: zero polls value (baudrate, data size, stop bits, parity) (Erik
   Lundh)
-- Posix: [Patch pyserial:28] Accept any speed on Linux
+- Posix: [Patch pyserial:28] Accept any speed on Linux [update]
 - Posix: [Patch pyserial:29] PosixSerial.read() should "ignore" errno.EINTR
 - OSX: [Patch pyserial:27] Scan by VendorID/Product ID for USB Serial devices
 - Ensure working with bytes in write() calls
