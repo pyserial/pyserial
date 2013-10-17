@@ -22,6 +22,7 @@ from ctypes.wintypes import BYTE
 NULL = 0
 HDEVINFO = ctypes.c_void_p
 PCTSTR = ctypes.c_char_p
+PTSTR = ctypes.c_void_p
 CHAR = ctypes.c_char
 LPDWORD = PDWORD = ctypes.POINTER(DWORD)
 #~ LPBYTE = PBYTE = ctypes.POINTER(BYTE)
@@ -114,6 +115,10 @@ SetupDiGetDeviceRegistryProperty = setupapi.SetupDiGetDeviceRegistryPropertyA
 SetupDiGetDeviceRegistryProperty.argtypes = [HDEVINFO, PSP_DEVINFO_DATA, DWORD, PDWORD, PBYTE, DWORD, PDWORD]
 SetupDiGetDeviceRegistryProperty.restype = BOOL
 
+SetupDiGetDeviceInstanceId = setupapi.SetupDiGetDeviceInstanceIdA
+SetupDiGetDeviceInstanceId.argtypes = [HDEVINFO, PSP_DEVINFO_DATA, PTSTR, DWORD, PDWORD]
+SetupDiGetDeviceInstanceId.restype = BOOL
+
 SetupDiOpenDevRegKey = setupapi.SetupDiOpenDevRegKey
 SetupDiOpenDevRegKey.argtypes = [HDEVINFO, PSP_DEVINFO_DATA, DWORD, DWORD, DWORD, REGSAM]
 SetupDiOpenDevRegKey.restype = HKEY
@@ -132,6 +137,7 @@ DIGCF_PRESENT = 2
 DIGCF_DEVICEINTERFACE = 16
 INVALID_HANDLE_VALUE = 0
 ERROR_INSUFFICIENT_BUFFER = 122
+SPDRP_DEVICEDESC = 0
 SPDRP_HARDWAREID = 1
 SPDRP_FRIENDLYNAME = 12
 ERROR_NO_MORE_ITEMS = 259
@@ -195,17 +201,37 @@ def comports():
 
             # hardware ID
             szHardwareID = byte_buffer(250)
-            if not SetupDiGetDeviceRegistryProperty(
+            # try to get ID that includes serial number
+            if not SetupDiGetDeviceInstanceId(
                     g_hdi,
                     ctypes.byref(devinfo),
-                    SPDRP_HARDWAREID,
-                    None,
                     ctypes.byref(szHardwareID),
                     ctypes.sizeof(szHardwareID) - 1,
                     None):
-                # Ignore ERROR_INSUFFICIENT_BUFFER
-                if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
-                    raise ctypes.WinError()
+                # fall back to more generic hardware ID if that would fail
+                if not SetupDiGetDeviceRegistryProperty(
+                        g_hdi,
+                        ctypes.byref(devinfo),
+                        SPDRP_HARDWAREID,
+                        None,
+                        ctypes.byref(szHardwareID),
+                        ctypes.sizeof(szHardwareID) - 1,
+                        None):
+                    # Ignore ERROR_INSUFFICIENT_BUFFER
+                    if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
+                        raise ctypes.WinError()
+            # stringify
+            szHardwareID_str = string(szHardwareID)
+
+            # in case of USB, make a more readable string, similar to that form
+            # that we also generate on other platforms
+            if szHardwareID_str.startswith('USB'):
+                m = re.search(r'VID_([0-9a-f]{4})&PID_([0-9a-f]{4})(\\(\w+))?', szHardwareID_str, re.I)
+                if m:
+                    if m.group(4):
+                        szHardwareID_str = 'USB VID:PID=%s:%s SNR=%s' % (m.group(1), m.group(2), m.group(4))
+                    else:
+                        szHardwareID_str = 'USB VID:PID=%s:%s' % (m.group(1), m.group(2))
 
             # friendly name
             szFriendlyName = byte_buffer(250)
@@ -213,6 +239,7 @@ def comports():
                     g_hdi,
                     ctypes.byref(devinfo),
                     SPDRP_FRIENDLYNAME,
+                    #~ SPDRP_DEVICEDESC,
                     None,
                     ctypes.byref(szFriendlyName),
                     ctypes.sizeof(szFriendlyName) - 1,
@@ -221,9 +248,9 @@ def comports():
                 #~ if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
                     #~ raise IOError("failed to get details for %s (%s)" % (devinfo, szHardwareID.value))
                 # ignore errors and still include the port in the list, friendly name will be same as port name
-                yield string(port_name_buffer), 'n/a', string(szHardwareID)
+                yield string(port_name_buffer), 'n/a', szHardwareID_str
             else:
-                yield string(port_name_buffer), string(szFriendlyName), string(szHardwareID)
+                yield string(port_name_buffer), string(szFriendlyName), szHardwareID_str
 
         SetupDiDestroyDeviceInfoList(g_hdi)
 
