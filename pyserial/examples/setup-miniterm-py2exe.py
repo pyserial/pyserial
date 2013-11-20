@@ -13,11 +13,14 @@ import serial.tools.miniterm
 setup(
     name = 'miniterm',
     zipfile = None,
-    options = {"py2exe":
-        {
-            'dist_dir': 'bin',
-            'excludes': ['serialjava', 'serialposix', 'serialcli'],
-            'compressed': 1,
+    options = {"py2exe": {
+        'dll_excludes': [],
+        'includes': [
+                'serial.urlhandler.protocol_hwgrep', 'serial.urlhandler.protocol_rfc2217',
+                'serial.urlhandler.protocol_socket', 'serial.urlhandler.protocol_loop',],
+        'dist_dir': 'bin',
+        'excludes': ['serialjava', 'serialposix', 'serialcli'],
+        'compressed': 1,
         }
     },
     console = [
