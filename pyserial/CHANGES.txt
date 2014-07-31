@@ -476,3 +476,9 @@ Bugfixes (win32):
 - [Bug pyserial:152] Cannot configure port, some setting was wrong. Can leave
   port handle open but port not accessible
 
+Version 2.8      2014-xx-xx
+---------------------------
+
+Bugfixes:
+
+- [Bug pyserial:166] RFC2217 connections always fail

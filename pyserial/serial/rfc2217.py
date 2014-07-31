@@ -442,7 +442,7 @@ class RFC2217Serial(SerialBase):
         timeout_time = time.time() + self._network_timeout
         while time.time() < timeout_time:
             time.sleep(0.05)    # prevent 100% CPU load
-            if sum(o.active for o in mandadory_options) == len(mandadory_options):
+            if sum(o.active for o in mandadory_options) == sum(o.state != INACTIVE for o in mandadory_options):
                 break
         else:
             raise SerialException("Remote does not seem to support RFC2217 or BINARY mode %r" % mandadory_options)
