@@ -242,7 +242,11 @@ class SocketSerial(SerialBase):
         return True
 
     # - - - platform specific - - -
-    # None so far
+
+    # works on Linux and probably all the other POSIX systems
+    def fileno(self):
+        """Get the file handle of the underlying socket for use with select"""
+        return self._socket.fileno()
 
 
 # assemble Serial class with the platform specific implementation and the base
