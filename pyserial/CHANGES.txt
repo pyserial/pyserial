@@ -479,6 +479,7 @@ Bugfixes (win32):
 Version 2.8      2014-xx-xx
 ---------------------------
 - [FTR pyserial:37] Support fileno() function in the socket protocol
+- Posix: [Patch pyserial:31] Mark/space parity on Linux
 
 Bugfixes:
 

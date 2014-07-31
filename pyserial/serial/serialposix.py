@@ -270,6 +270,8 @@ TIOCM_DTR_str = struct.pack('I', TIOCM_DTR)
 TIOCSBRK  = hasattr(TERMIOS, 'TIOCSBRK') and TERMIOS.TIOCSBRK or 0x5427
 TIOCCBRK  = hasattr(TERMIOS, 'TIOCCBRK') and TERMIOS.TIOCCBRK or 0x5428
 
+CMSPAR = 010000000000 # Use "stick" (mark/space) parity
+
 
 class PosixSerial(SerialBase):
     """Serial port class POSIX implementation. Serial port configuration is 
@@ -386,6 +388,11 @@ class PosixSerial(SerialBase):
             cflag |=  (TERMIOS.PARENB)
         elif self._parity == PARITY_ODD:
             cflag |=  (TERMIOS.PARENB|TERMIOS.PARODD)
+        elif self._parity == PARITY_MARK and plat[:5] == 'linux':
+            cflag |=  (TERMIOS.PARENB|CMSPAR|TERMIOS.PARODD)
+        elif self._parity == PARITY_SPACE and plat[:5] == 'linux':
+            cflag |=  (TERMIOS.PARENB|CMSPAR)
+            cflag &= ~(TERMIOS.PARODD)
         else:
             raise ValueError('Invalid parity: %r' % self._parity)
         # setup flow control
