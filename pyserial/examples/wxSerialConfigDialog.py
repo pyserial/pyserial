@@ -4,6 +4,7 @@
 #from wxPython.wx import *
 import wx
 import serial
+import serial.tools.list_ports
 
 SHOW_BAUDRATE   = 1<<0
 SHOW_FORMAT     = 1<<1
@@ -18,14 +19,14 @@ except NameError:
         return zip(range(len(sequence)), sequence)
 
 class SerialConfigDialog(wx.Dialog):
-    """Serial Port confiuration dialog, to be used with pyserial 2.0+
+    """Serial Port configuration dialog, to be used with pySerial 2.0+
        When instantiating a class of this dialog, then the "serial" keyword
        argument is mandatory. It is a reference to a serial.Serial instance.
        the optional "show" keyword argument can be used to show/hide different
-       settings. The default is SHOW_ALL which coresponds to 
+       settings. The default is SHOW_ALL which corresponds to 
        SHOW_BAUDRATE|SHOW_FORMAT|SHOW_FLOW|SHOW_TIMEOUT. All constants can be
-       found in ths module (not the class)."""
-    
+       found in this module (not the class)."""
+
     def __init__(self, *args, **kwds):
         #grab the serial keyword and remove it from the dict
         self.serial = kwds['serial']
@@ -62,20 +63,18 @@ class SerialConfigDialog(wx.Dialog):
 
         self.__set_properties()
         self.__do_layout()
-        #fill in ports and select current setting
-        index = 0
+        # fill in ports and select current setting
+        preferred_index = 0
         self.combo_box_port.Clear()
-        for n in range(4):
-            portname = serial.device(n)
-            self.combo_box_port.Append(portname)
+        self.ports = []
+        for portname, desc, hwid in serial.tools.list_ports.comports():
+            self.combo_box_port.Append('%s  (%s [%s])' % (portname, desc, hwid))
+            self.ports.append(portname)
             if self.serial.portstr == portname:
-                index = n
-        if self.serial.portstr is not None:
-            self.combo_box_port.SetValue(str(self.serial.portstr))
-        else:
-            self.combo_box_port.SetSelection(index)
+                preferred_index = n
+        self.combo_box_port.SetSelection(preferred_index)
         if self.show & SHOW_BAUDRATE:
-            #fill in badrates and select current setting
+            #fill in baud rates and select current setting
             self.choice_baudrate.Clear()
             for n, baudrate in enumerate(self.serial.BAUDRATES):
                 self.choice_baudrate.Append(str(baudrate))
@@ -83,14 +82,14 @@ class SerialConfigDialog(wx.Dialog):
                     index = n
             self.choice_baudrate.SetSelection(index)
         if self.show & SHOW_FORMAT:
-            #fill in databits and select current setting
+            #fill in data bits and select current setting
             self.choice_databits.Clear()
             for n, bytesize in enumerate(self.serial.BYTESIZES):
                 self.choice_databits.Append(str(bytesize))
                 if self.serial.bytesize == bytesize:
                     index = n
             self.choice_databits.SetSelection(index)
-            #fill in stopbits and select current setting
+            #fill in stop bits and select current setting
             self.choice_stopbits.Clear()
             for n, stopbits in enumerate(self.serial.STOPBITS):
                 self.choice_stopbits.Append(str(stopbits))
@@ -189,7 +188,7 @@ class SerialConfigDialog(wx.Dialog):
 
     def OnOK(self, events):
         success = True
-        self.serial.port     = str(self.combo_box_port.GetValue())
+        self.serial.port     = self.ports[self.combo_box_port.GetSelection()]
         if self.show & SHOW_BAUDRATE:
             self.serial.baudrate = self.serial.BAUDRATES[self.choice_baudrate.GetSelection()]
         if self.show & SHOW_FORMAT:
@@ -230,7 +229,7 @@ class MyApp(wx.App):
     """Test code"""
     def OnInit(self):
         wx.InitAllImageHandlers()
-        
+
         ser = serial.Serial()
         print ser
         #loop until cancel is pressed, old values are used as start for the next run

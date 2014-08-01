@@ -484,6 +484,7 @@ Version 2.8      2014-xx-xx
   product information as description.
 - Java: fix 2 bugs (stop bits if/else and non-integer timeouts) (Torsten
   Roemer)
+- update wxSerialConfigDialog.py to use serial.tools.list_ports
 
 Bugfixes:
 
