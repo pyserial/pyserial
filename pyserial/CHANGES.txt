@@ -485,3 +485,8 @@ Version 2.8      2014-xx-xx
 Bugfixes:
 
 - [Bug pyserial:166] RFC2217 connections always fail
+
+Bugfixes (posix):
+
+- [Bug pyserial:163] serial.tools.list_ports.grep() fails if it encounters None type
+

@@ -180,24 +180,26 @@ def comports():
         info = []
 
         # First, add the callout device file.
-        info.append(get_string_property(service, "IOCalloutDevice"))
+        device = get_string_property(service, "IOCalloutDevice")
+        if device:
+            info.append(device)
 
-        # If the serial port is implemented by a
-        usb_device = GetParentDeviceByType(service, "IOUSBDevice")
-        if usb_device != None:
-            info.append(get_string_property(usb_device, "USB Product Name"))
+            # If the serial port is implemented by a
+            usb_device = GetParentDeviceByType(service, "IOUSBDevice")
+            if usb_device is not None:
+                info.append(get_string_property(usb_device, "USB Product Name") or 'n/a')
 
-            info.append(
-                "USB VID:PID=%x:%x SNR=%s"%(
-                get_int_property(usb_device, "idVendor"),
-                get_int_property(usb_device, "idProduct"),
-                get_string_property(usb_device, "USB Serial Number"))
-            )
-        else:
-           info.append('n/a')
-           info.append('n/a')
+                info.append(
+                    "USB VID:PID=%x:%x SNR=%s"%(
+                    get_int_property(usb_device, "idVendor"),
+                    get_int_property(usb_device, "idProduct"),
+                    get_string_property(usb_device, "USB Serial Number"))
+                )
+            else:
+               info.append('n/a')
+               info.append('n/a')
 
-        ports.append(info)
+            ports.append(info)
 
     return ports
 
