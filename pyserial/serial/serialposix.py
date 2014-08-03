@@ -481,14 +481,16 @@ class PosixSerial(SerialBase):
                     # but reading returns nothing.
                     raise SerialException('device reports readiness to read but returned no data (device disconnected or multiple access on port?)')
                 read.extend(buf)
+            except OSError, e:
+                # this is for Python 3.x where select.error is a subclass of OSError
+                # ignore EAGAIN errors. all other errors are shown
+                if e.errno != errno.EAGAIN:
+                    raise SerialException('read failed: %s' % (e,))
             except select.error, e:
+                # this is for Python 2.x
                 # ignore EAGAIN errors. all other errors are shown
                 # see also http://www.python.org/dev/peps/pep-3151/#select
                 if e[0] != errno.EAGAIN:
-                    raise SerialException('read failed: %s' % (e,))
-            except OSError, e:
-                # ignore EAGAIN errors. all other errors are shown
-                if e.errno != errno.EAGAIN:
                     raise SerialException('read failed: %s' % (e,))
         return bytes(read)
 
