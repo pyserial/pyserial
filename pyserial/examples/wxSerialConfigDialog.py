@@ -67,7 +67,7 @@ class SerialConfigDialog(wx.Dialog):
         preferred_index = 0
         self.combo_box_port.Clear()
         self.ports = []
-        for portname, desc, hwid in serial.tools.list_ports.comports():
+        for n, (portname, desc, hwid) in enumerate(sorted(serial.tools.list_ports.comports())):
             self.combo_box_port.Append('%s  (%s [%s])' % (portname, desc, hwid))
             self.ports.append(portname)
             if self.serial.portstr == portname:
