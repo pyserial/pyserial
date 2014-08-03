@@ -39,8 +39,10 @@ class SocketSerial(SerialBase):
                  9600, 19200, 38400, 57600, 115200)
 
     def open(self):
-        """Open port with current settings. This may throw a SerialException
-           if the port cannot be opened."""
+        """\
+        Open port with current settings. This may throw a SerialException
+        if the port cannot be opened.
+        """
         self.logger = None
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
@@ -67,8 +69,10 @@ class SocketSerial(SerialBase):
         self.flushOutput()
 
     def _reconfigurePort(self):
-        """Set communication parameters on opened port. for the socket://
-        protocol all settings are ignored!"""
+        """\
+        Set communication parameters on opened port. For the socket://
+        protocol all settings are ignored!
+        """
         if self._socket is None:
             raise SerialException("Can only operate on open ports")
         if self.logger:
@@ -132,9 +136,11 @@ class SocketSerial(SerialBase):
         return 0 # hmmm, see comment in read()
 
     def read(self, size=1):
-        """Read size bytes from the serial port. If a timeout is set it may
+        """\
+        Read size bytes from the serial port. If a timeout is set it may
         return less characters as requested. With no timeout it will block
-        until the requested number of bytes is read."""
+        until the requested number of bytes is read.
+        """
         if not self._isOpen: raise portNotOpenError
         data = bytearray()
         if self._timeout is not None:
@@ -163,9 +169,11 @@ class SocketSerial(SerialBase):
         return bytes(data)
 
     def write(self, data):
-        """Output the given string over the serial port. Can block if the
+        """\
+        Output the given string over the serial port. Can block if the
         connection is blocked. May raise SerialException if the connection is
-        closed."""
+        closed.
+        """
         if not self._isOpen: raise portNotOpenError
         try:
             self._socket.sendall(to_bytes(data))
@@ -181,15 +189,19 @@ class SocketSerial(SerialBase):
             self.logger.info('ignored flushInput')
 
     def flushOutput(self):
-        """Clear output buffer, aborting the current output and
-        discarding all that is in the buffer."""
+        """\
+        Clear output buffer, aborting the current output and
+        discarding all that is in the buffer.
+        """
         if not self._isOpen: raise portNotOpenError
         if self.logger:
             self.logger.info('ignored flushOutput')
 
     def sendBreak(self, duration=0.25):
-        """Send break condition. Timed, returns to idle state after given
-        duration."""
+        """\
+        Send break condition. Timed, returns to idle state after given
+        duration.
+        """
         if not self._isOpen: raise portNotOpenError
         if self.logger:
             self.logger.info('ignored sendBreak(%r)' % (duration,))

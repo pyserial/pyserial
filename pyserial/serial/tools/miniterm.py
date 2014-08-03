@@ -626,7 +626,7 @@ def main():
         if args:
             parser.error("too many arguments")
     else:
-        # noport given on command line -> ask user now
+        # no port given on command line -> ask user now
         if port is None:
             dump_port_list()
             port = raw_input('Enter port name:')

@@ -50,12 +50,16 @@ def device(portnumber):
 
 
 class JavaSerial(SerialBase):
-    """Serial port class, implemented with Java Communications API and
-       thus usable with jython and the appropriate java extension."""
+    """\
+    Serial port class, implemented with Java Communications API and
+    thus usable with jython and the appropriate java extension.
+    """
 
     def open(self):
-        """Open port with current settings. This may throw a SerialException
-           if the port cannot be opened."""
+        """\
+        Open port with current settings. This may throw a SerialException
+        if the port cannot be opened.
+        """
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
         if self._isOpen:
@@ -150,9 +154,11 @@ class JavaSerial(SerialBase):
         return self._instream.available()
 
     def read(self, size=1):
-        """Read size bytes from the serial port. If a timeout is set it may
-           return less characters as requested. With no timeout it will block
-           until the requested number of bytes is read."""
+        """\
+        Read size bytes from the serial port. If a timeout is set it may
+        return less characters as requested. With no timeout it will block
+        until the requested number of bytes is read.
+        """
         if not self.sPort: raise portNotOpenError
         read = bytearray()
         if size > 0:
@@ -179,8 +185,10 @@ class JavaSerial(SerialBase):
         self._instream.skip(self._instream.available())
 
     def flushOutput(self):
-        """Clear output buffer, aborting the current output and
-        discarding all that is in the buffer."""
+        """\
+        Clear output buffer, aborting the current output and
+        discarding all that is in the buffer.
+        """
         if not self.sPort: raise portNotOpenError
         self._outstream.flush()
 

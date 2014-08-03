@@ -38,8 +38,10 @@ class Win32Serial(SerialBase):
         SerialBase.__init__(self, *args, **kwargs)
 
     def open(self):
-        """Open port with current settings. This may throw a SerialException
-           if the port cannot be opened."""
+        """\
+        Open port with current settings. This may throw a SerialException
+        if the port cannot be opened.
+        """
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
         if self._isOpen:
@@ -240,9 +242,10 @@ class Win32Serial(SerialBase):
         return comstat.cbInQue
 
     def read(self, size=1):
-        """Read size bytes from the serial port. If a timeout is set it may
-           return less characters as requested. With no timeout it will block
-           until the requested number of bytes is read."""
+        """\
+        Read size bytes from the serial port. If a timeout is set it may
+        return less characters as requested. With no timeout it will block
+        until the requested number of bytes is read."""
         if not self.hComPort: raise portNotOpenError
         if size > 0:
             win32.ResetEvent(self._overlappedRead.hEvent)
@@ -298,8 +301,10 @@ class Win32Serial(SerialBase):
             return 0
 
     def flush(self):
-        """Flush of file like objects. In this case, wait until all data
-           is written."""
+        """\
+        Flush of file like objects. In this case, wait until all data
+        is written.
+        """
         while self.outWaiting():
             time.sleep(0.05)
         # XXX could also use WaitCommEvent with mask EV_TXEMPTY, but it would
@@ -312,13 +317,17 @@ class Win32Serial(SerialBase):
         win32.PurgeComm(self.hComPort, win32.PURGE_RXCLEAR | win32.PURGE_RXABORT)
 
     def flushOutput(self):
-        """Clear output buffer, aborting the current output and
-        discarding all that is in the buffer."""
+        """\
+        Clear output buffer, aborting the current output and discarding all
+        that is in the buffer.
+        """
         if not self.hComPort: raise portNotOpenError
         win32.PurgeComm(self.hComPort, win32.PURGE_TXCLEAR | win32.PURGE_TXABORT)
 
     def sendBreak(self, duration=0.25):
-        """Send break condition. Timed, returns to idle state after given duration."""
+        """\
+        Send break condition. Timed, returns to idle state after given duration.
+        """
         if not self.hComPort: raise portNotOpenError
         import time
         win32.SetCommBreak(self.hComPort)
@@ -409,7 +418,7 @@ class Win32Serial(SerialBase):
             win32.EscapeCommFunction(self.hComPort, win32.SETXOFF)
 
     def outWaiting(self):
-        """return how many characters the in the outgoing buffer"""
+        """Return how many characters the in the outgoing buffer"""
         flags = win32.DWORD()
         comstat = win32.COMSTAT()
         if not win32.ClearCommError(self.hComPort, ctypes.byref(flags), ctypes.byref(comstat)):

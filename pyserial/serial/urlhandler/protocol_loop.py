@@ -36,8 +36,10 @@ class LoopbackSerial(SerialBase):
                  9600, 19200, 38400, 57600, 115200)
 
     def open(self):
-        """Open port with current settings. This may throw a SerialException
-           if the port cannot be opened."""
+        """\
+        Open port with current settings. This may throw a SerialException
+        if the port cannot be opened.
+        """
         if self._isOpen:
             raise SerialException("Port is already open.")
         self.logger = None
@@ -63,8 +65,10 @@ class LoopbackSerial(SerialBase):
         self.flushOutput()
 
     def _reconfigurePort(self):
-        """Set communication parameters on opened port. for the loop://
-        protocol all settings are ignored!"""
+        """\
+        Set communication parameters on opened port. For the loop://
+        protocol all settings are ignored!
+        """
         # not that's it of any real use, but it helps in the unit tests
         if not isinstance(self._baudrate, (int, long)) or not 0 < self._baudrate < 2**32:
             raise ValueError("invalid baudrate: %r" % (self._baudrate))
@@ -115,9 +119,11 @@ class LoopbackSerial(SerialBase):
         return len(self.loop_buffer)
 
     def read(self, size=1):
-        """Read size bytes from the serial port. If a timeout is set it may
+        """\
+        Read size bytes from the serial port. If a timeout is set it may
         return less characters as requested. With no timeout it will block
-        until the requested number of bytes is read."""
+        until the requested number of bytes is read.
+        """
         if not self._isOpen: raise portNotOpenError
         if self._timeout is not None:
             timeout = time.time() + self._timeout
@@ -140,9 +146,11 @@ class LoopbackSerial(SerialBase):
         return bytes(data)
 
     def write(self, data):
-        """Output the given string over the serial port. Can block if the
+        """\
+        Output the given string over the serial port. Can block if the
         connection is blocked. May raise SerialException if the connection is
-        closed."""
+        closed.
+        """
         if not self._isOpen: raise portNotOpenError
         # ensure we're working with bytes
         data = to_bytes(data)
@@ -172,20 +180,26 @@ class LoopbackSerial(SerialBase):
             self.buffer_lock.release()
 
     def flushOutput(self):
-        """Clear output buffer, aborting the current output and
-        discarding all that is in the buffer."""
+        """\
+        Clear output buffer, aborting the current output and
+        discarding all that is in the buffer.
+        """
         if not self._isOpen: raise portNotOpenError
         if self.logger:
             self.logger.info('flushOutput()')
 
     def sendBreak(self, duration=0.25):
-        """Send break condition. Timed, returns to idle state after given
-        duration."""
+        """\
+        Send break condition. Timed, returns to idle state after given
+        duration.
+        """
         if not self._isOpen: raise portNotOpenError
 
     def setBreak(self, level=True):
-        """Set break: Controls TXD. When active, to transmitting is
-        possible."""
+        """\
+        Set break: Controls TXD. When active, to transmitting is
+        possible.
+        """
         if not self._isOpen: raise portNotOpenError
         if self.logger:
             self.logger.info('setBreak(%r)' % (level,))

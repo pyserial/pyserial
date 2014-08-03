@@ -274,13 +274,15 @@ CMSPAR = 010000000000 # Use "stick" (mark/space) parity
 
 
 class PosixSerial(SerialBase):
-    """Serial port class POSIX implementation. Serial port configuration is 
+    """\
+    Serial port class POSIX implementation. Serial port configuration is 
     done with termios and fcntl. Runs on Linux and many other Un*x like
     systems."""
 
     def open(self):
-        """Open port with current settings. This may throw a SerialException
-           if the port cannot be opened."""
+        """\
+        Open port with current settings. This may throw a SerialException
+        if the port cannot be opened."""
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
         if self._isOpen:
@@ -458,9 +460,11 @@ class PosixSerial(SerialBase):
 
     # select based implementation, proved to work on many systems
     def read(self, size=1):
-        """Read size bytes from the serial port. If a timeout is set it may
-           return less characters as requested. With no timeout it will block
-           until the requested number of bytes is read."""
+        """\
+        Read size bytes from the serial port. If a timeout is set it may
+        return less characters as requested. With no timeout it will block
+        until the requested number of bytes is read.
+        """
         if not self._isOpen: raise portNotOpenError
         read = bytearray()
         while len(read) < size:
@@ -528,8 +532,10 @@ class PosixSerial(SerialBase):
         return len(data)
 
     def flush(self):
-        """Flush of file like objects. In this case, wait until all data
-           is written."""
+        """\
+        Flush of file like objects. In this case, wait until all data
+        is written.
+        """
         self.drainOutput()
 
     def flushInput(self):
@@ -538,18 +544,25 @@ class PosixSerial(SerialBase):
         termios.tcflush(self.fd, TERMIOS.TCIFLUSH)
 
     def flushOutput(self):
-        """Clear output buffer, aborting the current output and
-        discarding all that is in the buffer."""
+        """\
+        Clear output buffer, aborting the current output and discarding all
+        that is in the buffer.
+        """
         if not self._isOpen: raise portNotOpenError
         termios.tcflush(self.fd, TERMIOS.TCOFLUSH)
 
     def sendBreak(self, duration=0.25):
-        """Send break condition. Timed, returns to idle state after given duration."""
+        """\
+        Send break condition. Timed, returns to idle state after given
+        duration.
+        """
         if not self._isOpen: raise portNotOpenError
         termios.tcsendbreak(self.fd, int(duration/0.25))
 
     def setBreak(self, level=1):
-        """Set break: Controls TXD. When active, no transmitting is possible."""
+        """\
+        Set break: Controls TXD. When active, no transmitting is possible.
+        """
         if self.fd is None: raise portNotOpenError
         if level:
             fcntl.ioctl(self.fd, TIOCSBRK)
@@ -662,14 +675,18 @@ else:
         pass
 
 class PosixPollSerial(Serial):
-    """poll based read implementation. not all systems support poll properly.
+    """\
+    Poll based read implementation. not all systems support poll properly.
     however this one has better handling of errors, such as a device
-    disconnecting while it's in use (e.g. USB-serial unplugged)"""
+    disconnecting while it's in use (e.g. USB-serial unplugged).
+    """
 
     def read(self, size=1):
-        """Read size bytes from the serial port. If a timeout is set it may
-           return less characters as requested. With no timeout it will block
-           until the requested number of bytes is read."""
+        """\
+        Read size bytes from the serial port. If a timeout is set it may
+        return less characters as requested. With no timeout it will block
+        until the requested number of bytes is read.
+        """
         if self.fd is None: raise portNotOpenError
         read = bytearray()
         poll = select.poll()

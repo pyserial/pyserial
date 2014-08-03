@@ -253,8 +253,10 @@ class TelnetOption(object):
         return "%s:%s(%s)" % (self.name, self.active, self.state)
 
     def process_incoming(self, command):
-        """A DO/DONT/WILL/WONT was received for this option, update state and
-        answer when needed."""
+        """\
+        A DO/DONT/WILL/WONT was received for this option, update state and
+        answer when needed.
+        """
         if command == self.ack_yes:
             if self.state is REQUESTED:
                 self.state = ACTIVE
@@ -310,7 +312,7 @@ class TelnetSubnegotiation(object):
 
     def set(self, value):
         """\
-        request a change of the value. a request is sent to the server. if
+        Request a change of the value. a request is sent to the server. if
         the client needs to know if the change is performed he has to check the
         state of this object.
         """
@@ -322,7 +324,7 @@ class TelnetSubnegotiation(object):
 
     def isReady(self):
         """\
-        check if answer from server has been received. when server rejects
+        Check if answer from server has been received. when server rejects
         the change, raise a ValueError.
         """
         if self.state == REALLY_INACTIVE:
@@ -333,7 +335,7 @@ class TelnetSubnegotiation(object):
 
     def wait(self, timeout=3):
         """\
-        wait until the subnegotiation has been acknowledged or timeout. It
+        Wait until the subnegotiation has been acknowledged or timeout. It
         can also throw a value error when the answer from the server does not
         match the value sent.
         """
@@ -347,7 +349,7 @@ class TelnetSubnegotiation(object):
 
     def checkAnswer(self, suboption):
         """\
-        check an incoming subnegotiation block. the parameter already has
+        Check an incoming subnegotiation block. The parameter already has
         cut off the header like sub option number and com port option value.
         """
         if self.value == suboption[:len(self.value)]:
@@ -616,8 +618,10 @@ class RFC2217Serial(SerialBase):
         self.rfc2217SendPurge(PURGE_TRANSMIT_BUFFER)
 
     def sendBreak(self, duration=0.25):
-        """Send break condition. Timed, returns to idle state after given
-        duration."""
+        """\
+        Send break condition. Timed, returns to idle state after given
+        duration.
+        """
         if not self._isOpen: raise portNotOpenError
         self.setBreak(True)
         time.sleep(duration)
@@ -682,7 +686,7 @@ class RFC2217Serial(SerialBase):
     # - - - RFC2217 specific - - -
 
     def _telnetReadLoop(self):
-        """read loop for the socket."""
+        """Read loop for the socket."""
         mode = M_NORMAL
         suboption = None
         try:
@@ -848,9 +852,9 @@ class RFC2217Serial(SerialBase):
 
     def getModemState(self):
         """\
-        get last modem state (cached value. if value is "old", request a new
-        one. this cache helps that we don't issue to many requests when e.g. all
-        status lines, one after the other is queried by te user (getCTS, getDSR
+        get last modem state (cached value. If value is "old", request a new
+        one. This cache helps that we don't issue to many requests when e.g. all
+        status lines, one after the other is queried by the user (getCTS, getDSR
         etc.)
         """
         # active modem state polling enabled? is the value fresh enough?
@@ -943,10 +947,10 @@ class PortManager(object):
 
     def _client_ok(self):
         """\
-        callback of telnet option. it gets called when option is activated.
-        this one here is used to detect when the client agrees on RFC 2217. a
+        callback of telnet option. It gets called when option is activated.
+        This one here is used to detect when the client agrees on RFC 2217. A
         flag is set so that other functions like check_modem_lines know if the
-        client is ok.
+        client is OK.
         """
         # The callback is used for we and they so if one party agrees, we're
         # already happy. it seems not all servers do the negotiation correctly
@@ -1009,7 +1013,7 @@ class PortManager(object):
 
     def escape(self, data):
         """\
-        this generator function is for the user. all outgoing data has to be
+        This generator function is for the user. All outgoing data has to be
         properly escaped, so that no IAC character in the data stream messes up
         the Telnet state machine in the server.
 
@@ -1026,7 +1030,7 @@ class PortManager(object):
 
     def filter(self, data):
         """\
-        handle a bunch of incoming bytes. this is a generator. it will yield
+        Handle a bunch of incoming bytes. This is a generator. It will yield
         all characters not of interest for Telnet/RFC 2217.
 
         The idea is that the reader thread pushes data from the socket through

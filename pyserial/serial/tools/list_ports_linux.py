@@ -40,7 +40,10 @@ else:
 plat = sys.platform.lower()
 
 def read_line(filename):
-    """help function to read a single line from a file. returns none"""
+    """\
+    Helper function to read a single line from a file.
+    Returns None on errors..
+    """
     try:
         f = open(filename)
         line = f.readline().strip()
