@@ -30,8 +30,10 @@ class IronSerial(SerialBase):
                 9600, 19200, 38400, 57600, 115200)
 
     def open(self):
-        """Open port with current settings. This may throw a SerialException
-           if the port cannot be opened."""
+        """\
+        Open port with current settings. This may throw a SerialException
+        if the port cannot be opened.
+        """
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
         if self._isOpen:
@@ -150,9 +152,11 @@ class IronSerial(SerialBase):
         return self._port_handle.BytesToRead
 
     def read(self, size=1):
-        """Read size bytes from the serial port. If a timeout is set it may
-           return less characters as requested. With no timeout it will block
-           until the requested number of bytes is read."""
+        """\
+        Read size bytes from the serial port. If a timeout is set it may
+        return less characters as requested. With no timeout it will block
+        until the requested number of bytes is read.
+        """
         if not self._port_handle: raise portNotOpenError
         # must use single byte reads as this is the only way to read
         # without applying encodings
@@ -169,8 +173,8 @@ class IronSerial(SerialBase):
     def write(self, data):
         """Output the given string over the serial port."""
         if not self._port_handle: raise portNotOpenError
-        if not isinstance(data, (bytes, bytearray)):
-            raise TypeError('expected %s or bytearray, got %s' % (bytes, type(data)))
+        #~ if not isinstance(data, (bytes, bytearray)):
+            #~ raise TypeError('expected %s or bytearray, got %s' % (bytes, type(data)))
         try:
             # must call overloaded method with byte array argument
             # as this is the only one not applying encodings
@@ -185,13 +189,18 @@ class IronSerial(SerialBase):
         self._port_handle.DiscardInBuffer()
 
     def flushOutput(self):
-        """Clear output buffer, aborting the current output and
-        discarding all that is in the buffer."""
+        """\
+        Clear output buffer, aborting the current output and
+        discarding all that is in the buffer.
+        """
         if not self._port_handle: raise portNotOpenError
         self._port_handle.DiscardOutBuffer()
 
     def sendBreak(self, duration=0.25):
-        """Send break condition. Timed, returns to idle state after given duration."""
+        """\
+        Send break condition. Timed, returns to idle state after given
+        duration.
+        """
         if not self._port_handle: raise portNotOpenError
         import time
         self._port_handle.BreakState = True
@@ -199,7 +208,9 @@ class IronSerial(SerialBase):
         self._port_handle.BreakState = False
 
     def setBreak(self, level=True):
-        """Set break: Controls TXD. When active, to transmitting is possible."""
+        """
+        Set break: Controls TXD. When active, to transmitting is possible.
+        """
         if not self._port_handle: raise portNotOpenError
         self._port_handle.BreakState = bool(level)
 

@@ -476,6 +476,7 @@ Bugfixes (win32):
 - [Bug pyserial:152] Cannot configure port, some setting was wrong. Can leave
   port handle open but port not accessible
 
+
 Version 2.8      2014-xx-xx
 ---------------------------
 - [FTR pyserial:37] Support fileno() function in the socket protocol
@@ -493,4 +494,8 @@ Bugfixes:
 Bugfixes (posix):
 
 - [Bug pyserial:163] serial.tools.list_ports.grep() fails if it encounters None type
+
+Bugfixes (cli):
+
+- [Bug pyserial:159] write() in serialcli.py not working with IronPython 2.7.4
 
