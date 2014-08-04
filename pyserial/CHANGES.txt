@@ -494,6 +494,8 @@ Bugfixes:
 
 Bugfixes (posix):
 
+- [Bug pyserial:156] PosixSerial.open raises OSError rather than
+  SerialException when port open fails
 - [Bug pyserial:163] serial.tools.list_ports.grep() fails if it encounters None type
 
 Bugfixes (cli):
