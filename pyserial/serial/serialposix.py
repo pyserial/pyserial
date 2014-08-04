@@ -277,7 +277,8 @@ class PosixSerial(SerialBase):
     """\
     Serial port class POSIX implementation. Serial port configuration is 
     done with termios and fcntl. Runs on Linux and many other Un*x like
-    systems."""
+    systems.
+    """
 
     def open(self):
         """\
@@ -372,7 +373,7 @@ class PosixSerial(SerialBase):
             cflag |= TERMIOS.CS5
         else:
             raise ValueError('Invalid char len: %r' % self._bytesize)
-        # setup stopbits
+        # setup stop bits
         if self._stopbits == STOPBITS_ONE:
             cflag &= ~(TERMIOS.CSTOPB)
         elif self._stopbits == STOPBITS_ONE_POINT_FIVE:
@@ -423,7 +424,7 @@ class PosixSerial(SerialBase):
         # XXX should there be a warning if setting up rtscts (and xonxoff etc) fails??
 
         # buffer
-        # vmin "minimal number of characters to be read. = for non blocking"
+        # vmin "minimal number of characters to be read. 0 for non blocking"
         if vmin < 0 or vmin > 255:
             raise ValueError('Invalid vmin: %r ' % vmin)
         cc[TERMIOS.VMIN] = vmin
@@ -660,9 +661,9 @@ class PosixSerial(SerialBase):
             termios.tcflow(self.fd, TERMIOS.TCOOFF)
 
 
-# assemble Serial class with the platform specifc implementation and the base
+# assemble Serial class with the platform specific implementation and the base
 # for file-like behavior. for Python 2.6 and newer, that provide the new I/O
-# library, derrive from io.RawIOBase
+# library, derive from io.RawIOBase
 try:
     import io
 except ImportError:
@@ -676,8 +677,8 @@ else:
 
 class PosixPollSerial(Serial):
     """\
-    Poll based read implementation. not all systems support poll properly.
-    however this one has better handling of errors, such as a device
+    Poll based read implementation. Not all systems support poll properly.
+    However this one has better handling of errors, such as a device
     disconnecting while it's in use (e.g. USB-serial unplugged).
     """
 
