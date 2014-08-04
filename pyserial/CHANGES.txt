@@ -489,6 +489,7 @@ Version 2.8      2014-xx-xx
 
 Bugfixes:
 
+- [Bug pyserial:157] Implement inWaiting in protocol_socket
 - [Bug pyserial:166] RFC2217 connections always fail
 
 Bugfixes (posix):

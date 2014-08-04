@@ -20,6 +20,7 @@
 from serial.serialutil import *
 import time
 import socket
+import select
 import logging
 
 # map log level names to constants. used in fromURL()
@@ -130,10 +131,10 @@ class SocketSerial(SerialBase):
     def inWaiting(self):
         """Return the number of characters currently in the input buffer."""
         if not self._isOpen: raise portNotOpenError
-        if self.logger:
-            # set this one to debug as the function could be called often...
-            self.logger.debug('WARNING: inWaiting returns dummy value')
-        return 0 # hmmm, see comment in read()
+        # Poll the socket to see if it is ready for reading.
+        # If ready, at least one byte will be to read.
+        lr, lw, lx = select.select([self._socket], [], [], 0)
+        return len(lr)
 
     def read(self, size=1):
         """\
