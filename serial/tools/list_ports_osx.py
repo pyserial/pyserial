@@ -64,6 +64,19 @@ cf.CFStringGetCStringPtr.restype = ctypes.c_char_p
 cf.CFNumberGetValue.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_void_p]
 cf.CFNumberGetValue.restype = ctypes.c_void_p
 
+
+class HexInt(int):
+
+    """Class to pretty print a integer in a hex representation."""
+
+    #_UPPER_HEX = str.maketrans('abcdef', 'ABCDEF')
+    # Generated dictionary to make compatible with python 2.7
+    _UPPER_HEX = {97: 65, 98: 66, 99: 67, 100: 68, 101: 69, 102: 70}
+
+    def __repr__(self):
+        return hex(self).translate(self._UPPER_HEX)
+
+
 def get_string_property(device_t, property):
     """ Search the given device for the specified string property
 
