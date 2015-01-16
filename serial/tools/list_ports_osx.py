@@ -126,8 +126,39 @@ def get_int_property(device_t, property):
 
     if CFContainer:
         output = cf.CFNumberGetValue(CFContainer, 2, ctypes.byref(number))
+        # The Number 2 is defined as kCFNumberSInt16Type in MacTypes.h
 
-    return number.value
+    return HexInt(number.value)
+
+
+def get_int32_property(device_t, property):
+    """ Search the given device for the specified string property
+
+    @param device_t Device to search
+    @param property String to search for.
+    @return Python string containing the value, or None if not found.
+    """
+    key = cf.CFStringCreateWithCString(
+        kCFAllocatorDefault,
+        property.encode("mac_roman"),
+        kCFStringEncodingMacRoman
+    )
+
+    CFContainer = iokit.IORegistryEntryCreateCFProperty(
+        device_t,
+        key,
+        kCFAllocatorDefault,
+        0
+    )
+
+    number = ctypes.c_uint32()
+
+    if CFContainer:
+        output = cf.CFNumberGetValue(CFContainer, 3, ctypes.byref(number))
+        # The Number 3 is defined as kCFNumberSInt32Type in MacTypes.h
+
+    return HexInt(number.value)
+
 
 def IORegistryEntryGetName(device):
     pathname = ctypes.create_string_buffer(100) # TODO: Is this ok?
