@@ -1,9 +1,0 @@
-Version 0.1     29 Jul 2002
-    added to CVS
-
-Version 0.2     27 Jan 2005
-    Windows version now using ctypes
-
-Version ...     ...
-    add setDataDir to Windows backend
-    [SF 2785532] add getData for ppdev backend
