@@ -13,6 +13,7 @@
 # references: http://www.easysw.com/~mike/serial/serial.html
 
 import sys, os, fcntl, termios, struct, select, errno, time
+import io
 from serial.serialutil import *
 
 # Do check the Python version as some constants have moved.
@@ -273,7 +274,7 @@ TIOCCBRK  = hasattr(TERMIOS, 'TIOCCBRK') and TERMIOS.TIOCCBRK or 0x5428
 CMSPAR = 0o10000000000 # Use "stick" (mark/space) parity
 
 
-class PosixSerial(SerialBase):
+class Serial(SerialBase, io.RawIOBase):
     """\
     Serial port class POSIX implementation. Serial port configuration is 
     done with termios and fcntl. Runs on Linux and many other Un*x like
@@ -663,19 +664,6 @@ class PosixSerial(SerialBase):
             termios.tcflow(self.fd, TERMIOS.TCOOFF)
 
 
-# assemble Serial class with the platform specific implementation and the base
-# for file-like behavior. for Python 2.6 and newer, that provide the new I/O
-# library, derive from io.RawIOBase
-try:
-    import io
-except ImportError:
-    # classic version with our own file-like emulation
-    class Serial(PosixSerial, FileLike):
-        pass
-else:
-    # io library present
-    class Serial(PosixSerial, io.RawIOBase):
-        pass
 
 class PosixPollSerial(Serial):
     """\

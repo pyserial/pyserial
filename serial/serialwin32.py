@@ -9,6 +9,7 @@
 # Initial patch to use ctypes by Giovanni Bajo <rasky@develer.com>
 
 import ctypes
+import io
 from serial import win32
 
 from serial.serialutil import *
@@ -19,7 +20,7 @@ def device(portnum):
     return 'COM%d' % (portnum+1) # numbers are transformed to a string
 
 
-class Win32Serial(SerialBase):
+class Serial(SerialBase, io.RawIOBase):
     """Serial port implementation for Win32 based on ctypes."""
 
     BAUDRATES = (50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
@@ -438,21 +439,7 @@ class Win32Serial(SerialBase):
     rtsToggle = property(getRtsToggle, setRtsToggle, doc="RTS toggle control setting")
 
 
-# assemble Serial class with the platform specific implementation and the base
-# for file-like behavior. for Python 2.6 and newer, that provide the new I/O
-# library, derive from io.RawIOBase
-try:
-    import io
-except ImportError:
-    # classic version with our own file-like emulation
-    class Serial(Win32Serial, FileLike):
-        pass
-else:
-    # io library present
-    class Serial(Win32Serial, io.RawIOBase):
-        pass
-
-
+t
 # Nur Testfunktion!!
 if __name__ == '__main__':
     s = Serial(0)
