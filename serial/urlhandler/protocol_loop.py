@@ -104,7 +104,7 @@ class LoopbackSerial(SerialBase):
                     self.logger.debug('enabled logging')
                 else:
                     raise ValueError('unknown option: %r' % (option,))
-        except ValueError, e:
+        except ValueError as e:
             raise SerialException('expected a string in the form "[loop://][option[/option...]]": %s' % e)
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -

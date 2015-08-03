@@ -4,7 +4,7 @@
 # this is a wrapper module for different platform implementations of the
 # port enumeration feature
 #
-# (C) 2011-2013 Chris Liechti <cliechti@gmx.net>
+# (C) 2011-2015 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
 """\
@@ -80,7 +80,7 @@ def main():
     if args:
         if len(args) > 1:
             parser.error('more than one regexp not supported')
-        print "Filtered list with regexp: %r" % (args[0],)
+        print("Filtered list with regexp: %r" % (args[0],))
         iterator = sorted(grep(args[0]))
     else:
         iterator = sorted(comports())

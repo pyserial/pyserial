@@ -69,6 +69,7 @@ class SP_DEVINFO_DATA(ctypes.Structure):
     ]
     def __str__(self):
         return "ClassGuid:%s DevInst:%s" % (self.ClassGuid, self.DevInst)
+
 PSP_DEVINFO_DATA = ctypes.POINTER(SP_DEVINFO_DATA)
 
 PSP_DEVICE_INTERFACE_DETAIL_DATA = ctypes.c_void_p
@@ -237,4 +238,4 @@ if __name__ == '__main__':
     import serial
 
     for port, desc, hwid in sorted(comports()):
-        print "%s: %s [%s]" % (port, desc, hwid)
+        print("%s: %s [%s]" % (port, desc, hwid))

@@ -193,7 +193,7 @@ GENERIC_WRITE = 1073741824 # Variable c_long
 PURGE_TXCLEAR = 4 # Variable c_int
 FILE_FLAG_OVERLAPPED = 1073741824 # Variable c_int
 EV_DSR = 16 # Variable c_int
-MAXDWORD = 4294967295L # Variable c_uint
+MAXDWORD = 4294967295 # Variable c_uint
 EV_RLSD = 32 # Variable c_int
 ERROR_IO_PENDING = 997 # Variable c_long
 MS_CTS_ON = 16 # Variable c_ulong
@@ -208,12 +208,12 @@ MS_RING_ON = 64 # Variable c_ulong
 EV_TXEMPTY = 4 # Variable c_int
 EV_RXFLAG = 2 # Variable c_int
 MS_RLSD_ON = 128 # Variable c_ulong
-GENERIC_READ = 2147483648L # Variable c_ulong
+GENERIC_READ = 2147483648 # Variable c_ulong
 EV_EVENT2 = 4096 # Variable c_int
 EV_CTS = 8 # Variable c_int
 EV_BREAK = 64 # Variable c_int
 PURGE_RXCLEAR = 8 # Variable c_int
-INFINITE = 0xFFFFFFFFL
+INFINITE = 0xFFFFFFFF
 
 
 class N11_OVERLAPPED4DOLLAR_48E(Union):

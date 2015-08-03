@@ -4,7 +4,7 @@
 # module for serial IO for POSIX compatible systems, like Linux
 # see __init__.py
 #
-# (C) 2001-2010 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 #
 # parts based on code from Grant B. Edwards  <grante@visi.com>:
@@ -55,41 +55,41 @@ if   plat[:5] == 'linux':    # Linux (confirmed)
 
             # set serial_struct
             res = FCNTL.ioctl(port.fd, TCSETS2, buf)
-        except IOError, e:
+        except IOError as e:
             raise ValueError('Failed to set custom baud rate (%s): %s' % (baudrate, e))
 
     baudrate_constants = {
-        0:       0000000,  # hang up
-        50:      0000001,
-        75:      0000002,
-        110:     0000003,
-        134:     0000004,
-        150:     0000005,
-        200:     0000006,
-        300:     0000007,
-        600:     0000010,
-        1200:    0000011,
-        1800:    0000012,
-        2400:    0000013,
-        4800:    0000014,
-        9600:    0000015,
-        19200:   0000016,
-        38400:   0000017,
-        57600:   0010001,
-        115200:  0010002,
-        230400:  0010003,
-        460800:  0010004,
-        500000:  0010005,
-        576000:  0010006,
-        921600:  0010007,
-        1000000: 0010010,
-        1152000: 0010011,
-        1500000: 0010012,
-        2000000: 0010013,
-        2500000: 0010014,
-        3000000: 0010015,
-        3500000: 0010016,
-        4000000: 0010017
+        0:       0o000000,  # hang up
+        50:      0o000001,
+        75:      0o000002,
+        110:     0o000003,
+        134:     0o000004,
+        150:     0o000005,
+        200:     0o000006,
+        300:     0o000007,
+        600:     0o000010,
+        1200:    0o000011,
+        1800:    0o000012,
+        2400:    0o000013,
+        4800:    0o000014,
+        9600:    0o000015,
+        19200:   0o000016,
+        38400:   0o000017,
+        57600:   0o010001,
+        115200:  0o010002,
+        230400:  0o010003,
+        460800:  0o010004,
+        500000:  0o010005,
+        576000:  0o010006,
+        921600:  0o010007,
+        1000000: 0o010010,
+        1152000: 0o010011,
+        1500000: 0o010012,
+        2000000: 0o010013,
+        2500000: 0o010014,
+        3000000: 0o010015,
+        3500000: 0o010016,
+        4000000: 0o010017
     }
 
 elif plat == 'cygwin':       # cygwin/win32 (confirmed)
@@ -270,7 +270,7 @@ TIOCM_DTR_str = struct.pack('I', TIOCM_DTR)
 TIOCSBRK  = hasattr(TERMIOS, 'TIOCSBRK') and TERMIOS.TIOCSBRK or 0x5427
 TIOCCBRK  = hasattr(TERMIOS, 'TIOCCBRK') and TERMIOS.TIOCCBRK or 0x5428
 
-CMSPAR = 010000000000 # Use "stick" (mark/space) parity
+CMSPAR = 0o10000000000 # Use "stick" (mark/space) parity
 
 
 class PosixSerial(SerialBase):
@@ -292,7 +292,7 @@ class PosixSerial(SerialBase):
         # open
         try:
             self.fd = os.open(self.portstr, os.O_RDWR|os.O_NOCTTY|os.O_NONBLOCK)
-        except OSError, msg:
+        except OSError as msg:
             self.fd = None
             raise SerialException(msg.errno, "could not open port %s: %s" % (self._port, msg))
         #~ fcntl.fcntl(self.fd, FCNTL.F_SETFL, 0)  # set blocking
@@ -326,7 +326,7 @@ class PosixSerial(SerialBase):
         try:
             orig_attr = termios.tcgetattr(self.fd)
             iflag, oflag, cflag, lflag, ispeed, ospeed, cc = orig_attr
-        except termios.error, msg:      # if a port is nonexistent but has a /dev file, it'll fail here
+        except termios.error as msg:      # if a port is nonexistent but has a /dev file, it'll fail here
             raise SerialException("Could not configure port: %s" % msg)
         # set up raw mode / no echo / binary
         cflag |=  (TERMIOS.CLOCAL|TERMIOS.CREAD)
@@ -486,12 +486,12 @@ class PosixSerial(SerialBase):
                     # but reading returns nothing.
                     raise SerialException('device reports readiness to read but returned no data (device disconnected or multiple access on port?)')
                 read.extend(buf)
-            except OSError, e:
+            except OSError as e:
                 # this is for Python 3.x where select.error is a subclass of OSError
                 # ignore EAGAIN errors. all other errors are shown
                 if e.errno != errno.EAGAIN:
                     raise SerialException('read failed: %s' % (e,))
-            except select.error, e:
+            except select.error as e:
                 # this is for Python 2.x
                 # ignore EAGAIN errors. all other errors are shown
                 # see also http://www.python.org/dev/peps/pep-3151/#select
@@ -527,7 +527,7 @@ class PosixSerial(SerialBase):
                         raise SerialException('write failed (select)')
                 d = d[n:]
                 tx_len -= n
-            except OSError, v:
+            except OSError as v:
                 if v.errno != errno.EAGAIN:
                     raise SerialException('write failed: %s' % (v,))
         return len(data)

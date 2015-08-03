@@ -3,7 +3,7 @@
 # serial driver for win32
 # see __init__.py
 #
-# (C) 2001-2011 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 #
 # Initial patch to use ctypes by Giovanni Bajo <rasky@develer.com>

@@ -41,5 +41,5 @@ if __name__ == '__main__':
     #~ s = Serial('hwgrep://ttyS0')
     s = Serial(None)
     s.port = 'hwgrep://ttyS0'
-    print s
+    print(s)
 

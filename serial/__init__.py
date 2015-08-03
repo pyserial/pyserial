@@ -6,7 +6,7 @@
 # (C) 2001-2010 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
-VERSION = '2.7'
+VERSION = '3.x'
 
 import sys
 

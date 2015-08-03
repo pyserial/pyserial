@@ -2,7 +2,7 @@
 # Python Serial Port Extension for Win32, Linux, BSD, Jython
 # see __init__.py
 #
-# (C) 2001-2010 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
 # compatibility for older Python < 2.6
@@ -323,13 +323,7 @@ class SerialBase(object):
 
         was_open = self._isOpen
         if was_open: self.close()
-        if port is not None:
-            if isinstance(port, basestring):
-                self.portstr = port
-            else:
-                self.portstr = self.makeDeviceName(port)
-        else:
-            self.portstr = None
+        self.portstr = port
         self._port = port
         self.name = self.portstr
         if was_open: self.open()
@@ -553,7 +547,7 @@ class SerialBase(object):
         n = len(data)
         try:
             b[:n] = data
-        except TypeError, err:
+        except TypeError as err:
             import array
             if not isinstance(b, array.array):
                 raise err

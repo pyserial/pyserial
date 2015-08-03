@@ -384,7 +384,7 @@ class RFC2217Serial(SerialBase):
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._socket.connect(self.fromURL(self.portstr))
             self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        except Exception, msg:
+        except Exception as msg:
             self._socket = None
             raise SerialException("Could not open port %s: %s" % (self.portstr, msg))
 
@@ -556,7 +556,7 @@ class RFC2217Serial(SerialBase):
             host, port = url.split(':', 1) # may raise ValueError because of unpacking
             port = int(port)               # and this if it's not a number
             if not 0 <= port < 65536: raise ValueError("port not in range 0...65535")
-        except ValueError, e:
+        except ValueError as e:
             raise SerialException('expected a string in the form "[rfc2217://]<host>:<port>[/option[/option...]]": %s' % e)
         return (host, port)
 
@@ -595,7 +595,7 @@ class RFC2217Serial(SerialBase):
         try:
             try:
                 self._socket.sendall(to_bytes(data).replace(IAC, IAC_DOUBLED))
-            except socket.error, e:
+            except socket.error as e:
                 raise SerialException("connection failed (socket error): %s" % e) # XXX what exception if socket connection fails
         finally:
             self._write_lock.release()
@@ -697,7 +697,7 @@ class RFC2217Serial(SerialBase):
                     # just need to get out of recv form time to time to check if
                     # still alive
                     continue
-                except socket.error, e:
+                except socket.error as e:
                     # connection fails -> terminate loop
                     if self.logger:
                         self.logger.debug("socket error in reader thread: %s" % (e,))

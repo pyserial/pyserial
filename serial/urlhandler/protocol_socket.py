@@ -53,7 +53,7 @@ class SocketSerial(SerialBase):
             # XXX in future replace with create_connection (py >=2.6)
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._socket.connect(self.fromURL(self.portstr))
-        except Exception, msg:
+        except Exception as msg:
             self._socket = None
             raise SerialException("Could not open port %s: %s" % (self.portstr, msg))
 
@@ -122,7 +122,7 @@ class SocketSerial(SerialBase):
             host, port = url.split(':', 1) # may raise ValueError because of unpacking
             port = int(port)               # and this if it's not a number
             if not 0 <= port < 65536: raise ValueError("port not in range 0...65535")
-        except ValueError, e:
+        except ValueError as e:
             raise SerialException('expected a string in the form "[rfc2217://]<host>:<port>[/option[/option...]]": %s' % e)
         return (host, port)
 
@@ -164,7 +164,7 @@ class SocketSerial(SerialBase):
                 # just need to get out of recv from time to time to check if
                 # still alive
                 continue
-            except socket.error, e:
+            except socket.error as e:
                 # connection fails -> terminate loop
                 raise SerialException('connection failed (%s)' % e)
         return bytes(data)
@@ -178,7 +178,7 @@ class SocketSerial(SerialBase):
         if not self._isOpen: raise portNotOpenError
         try:
             self._socket.sendall(to_bytes(data))
-        except socket.error, e:
+        except socket.error as e:
             # XXX what exception if socket connection fails
             raise SerialException("socket connection failed: %s" % e)
         return len(data)
