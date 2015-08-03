@@ -202,6 +202,8 @@ class Test_MoreTimeouts(unittest.TestCase):
         self.s = serial.serial_for_url(PORT, do_not_open=True)
 
     def tearDown(self):
+        #~ self.s.write(serial.XON)
+        self.s.flushInput()
         self.s.close()
 
     def test_WriteTimeout(self):

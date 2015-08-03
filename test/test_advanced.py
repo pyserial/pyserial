@@ -50,22 +50,22 @@ class Test_ChangeAttributes(unittest.TestCase):
         # test on the fly change
         self.s.open()
         self.failUnless(self.s.isOpen())
-        try:
-            self.s.port = 0
-        except serial.SerialException: # port not available on system
-            pass        # can't test on this machine...
-        else:
-            self.failUnless(self.s.isOpen())
-            self.failUnlessEqual(self.s.port, 0)
-            self.failUnlessEqual(self.s.portstr, serial.device(0))
-        try:
-            self.s.port = 1
-        except serial.SerialException: # port not available on system
-            pass        # can't test on this machine...
-        else:
-            self.failUnless(self.s.isOpen())
-            self.failUnlessEqual(self.s.port, 1)
-            self.failUnlessEqual(self.s.portstr, serial.device(1))
+        #~ try:
+            #~ self.s.port = 0
+        #~ except serial.SerialException: # port not available on system
+            #~ pass        # can't test on this machine...
+        #~ else:
+            #~ self.failUnless(self.s.isOpen())
+            #~ self.failUnlessEqual(self.s.port, 0)
+            #~ self.failUnlessEqual(self.s.portstr, serial.device(0))
+        #~ try:
+            #~ self.s.port = 1
+        #~ except serial.SerialException: # port not available on system
+            #~ pass        # can't test on this machine...
+        #~ else:
+            #~ self.failUnless(self.s.isOpen())
+            #~ self.failUnlessEqual(self.s.port, 1)
+            #~ self.failUnlessEqual(self.s.portstr, serial.device(1))
 
     def test_DoubleOpen(self):
         self.s.port = PORT
