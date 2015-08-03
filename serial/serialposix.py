@@ -645,7 +645,7 @@ class Serial(SerialBase, io.RawIOBase):
         This will send XON (true) and XOFF (false) to the other device.
         WARNING: this function is not portable to different platforms!
         """
-        if not self.hComPort: raise portNotOpenError
+        if not self._isOpen: raise portNotOpenError
         if enable:
             termios.tcflow(self.fd, TERMIOS.TCION)
         else:
