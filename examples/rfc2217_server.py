@@ -5,16 +5,16 @@
 # using RFC 2217
 
 
-import sys
+import logging
 import os
-import threading
-import time
 import socket
+import sys
+import time
+import threading
 import serial
 import serial.rfc2217
-import logging
 
-class Redirector:
+class Redirector(object):
     def __init__(self, serial_instance, socket, debug=None):
         self.serial = serial_instance
         self.socket = socket
@@ -59,12 +59,9 @@ class Redirector:
                 if data:
                     # escape outgoing data when needed (Telnet IAC (0xff) character)
                     data = serial.to_bytes(self.rfc2217.escape(data))
-                    self._write_lock.acquire()
-                    try:
+                    with self._write_lock:
                         self.socket.sendall(data)       # send it over TCP
-                    finally:
-                        self._write_lock.release()
-            except socket.error, msg:
+            except socket.error as msg:
                 self.log.error('%s' % (msg,))
                 # probably got disconnected
                 break
@@ -73,11 +70,8 @@ class Redirector:
 
     def write(self, data):
         """thread safe socket write with no data escaping. used to send telnet stuff"""
-        self._write_lock.acquire()
-        try:
+        with self._write_lock:
             self.socket.sendall(data)
-        finally:
-            self._write_lock.release()
 
     def writer(self):
         """loop forever and copy socket->serial"""
@@ -87,7 +81,7 @@ class Redirector:
                 if not data:
                     break
                 self.serial.write(serial.to_bytes(self.rfc2217.filter(data)))
-            except socket.error, msg:
+            except socket.error as msg:
                 self.log.error('%s' % (msg,))
                 # probably got disconnected
                 break
@@ -198,7 +192,7 @@ it waits for the next connect.
             ser.applySettingsDict(settings)
         except KeyboardInterrupt:
             break
-        except socket.error, msg:
+        except socket.error as msg:
             logging.error('%s' % (msg,))
 
     logging.info('--- exit ---')

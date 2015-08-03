@@ -1,8 +1,10 @@
-# setup script for py2exe to create the miniterm.exe
-# $Id$
+# setup script for py2exe to create the rfc2217_server.exe
 
 from distutils.core import setup
-import glob, sys, py2exe, os
+import glob
+import os
+import sys
+import py2exe
 
 sys.path.insert(0, '..')
 

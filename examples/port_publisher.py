@@ -9,10 +9,12 @@ Multi-port serial<->TCP/IP forwarder.
   does not influence serial port
 - only one client per connection
 """
-import sys, os, time
-import traceback
-import socket
+import os
 import select
+import socket
+import sys
+import time
+import traceback
 
 import serial
 import serial.rfc2217
@@ -108,7 +110,7 @@ class Forwarder(ZeroconfService):
         try:
             self.serial.open()
             self.serial.setRTS(False)
-        except Exception, msg:
+        except Exception as msg:
             self.handle_serial_error(msg)
 
         self.serial_settings_backup = self.serial.getSettingsDict()
@@ -127,7 +129,7 @@ class Forwarder(ZeroconfService):
         try:
             self.server_socket.bind( ('', self.network_port) )
             self.server_socket.listen(1)
-        except socket.error, msg:
+        except socket.error as msg:
             self.handle_server_error()
             #~ raise
         if not options.quiet:
@@ -142,7 +144,7 @@ class Forwarder(ZeroconfService):
     def close(self):
         """Close all resources and unpublish service"""
         if not options.quiet:
-            print "%s: closing..." % (self.device, )
+            print("%s: closing..." % (self.device, ))
         self.alive = False
         self.unpublish()
         if self.server_socket: self.server_socket.close()
@@ -201,7 +203,7 @@ class Forwarder(ZeroconfService):
                     self.buffer_ser2net += data
             else:
                 self.handle_serial_error()
-        except Exception, msg:
+        except Exception as msg:
             self.handle_serial_error(msg)
 
     def handle_serial_write(self):
@@ -211,7 +213,7 @@ class Forwarder(ZeroconfService):
             n = os.write(self.serial.fileno(), self.buffer_net2ser)
             # and see how large that chunk was, remove that from buffer
             self.buffer_net2ser = self.buffer_net2ser[n:]
-        except Exception, msg:
+        except Exception as msg:
             self.handle_serial_error(msg)
 
     def handle_serial_error(self, error=None):
@@ -260,7 +262,7 @@ class Forwarder(ZeroconfService):
             self.socket.setblocking(0)
             self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             if not options.quiet:
-                print '%s: Connected by %s:%s' % (self.device, addr[0], addr[1])
+                print('%s: Connected by %s:%s' % (self.device, addr[0], addr[1]))
             self.serial.setRTS(True)
             self.serial.setDTR(True)
             self.rfc2217 = serial.rfc2217.PortManager(self.serial, self)
@@ -268,7 +270,7 @@ class Forwarder(ZeroconfService):
             # reject connection if there is already one
             connection.close()
             if not options.quiet:
-                print '%s: Rejecting connect from %s:%s' % (self.device, addr[0], addr[1])
+                print('%s: Rejecting connect from %s:%s' % (self.device, addr[0], addr[1]))
 
     def handle_server_error(self):
         """Socket server fails"""
@@ -292,7 +294,7 @@ class Forwarder(ZeroconfService):
                 self.socket.close()
                 self.socket = None
                 if not options.quiet:
-                    print '%s: Disconnected' % self.device
+                    print('%s: Disconnected' % self.device)
 
 
 def test():
@@ -355,7 +357,7 @@ If running as daemon, write to syslog. Otherwise write to stdout.
             if pid > 0:
                 # exit first parent
                 sys.exit(0)
-        except OSError, e:
+        except OSError as e:
             sys.stderr.write("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
             sys.exit(1)
 
@@ -373,7 +375,7 @@ If running as daemon, write to syslog. Otherwise write to stdout.
                 if options.pid_file is not None:
                     open(options.pid_file,'w').write("%d"%pid)
                 sys.exit(0)
-        except OSError, e:
+        except OSError as e:
             sys.stderr.write("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
             sys.exit(1)
 
@@ -416,7 +418,7 @@ If running as daemon, write to syslog. Otherwise write to stdout.
         except KeyError:
             pass
         else:
-            if not options.quiet: print "unpublish: %s" % (forwarder)
+            if not options.quiet: print("unpublish: %s" % (forwarder))
 
     alive = True
     next_check = 0
@@ -439,12 +441,12 @@ If running as daemon, write to syslog. Otherwise write to stdout.
                                 7000+num,
                                 on_close=unpublish
                             )
-                            if not options.quiet: print "publish: %s" % (published[device])
+                            if not options.quiet: print("publish: %s" % (published[device]))
                             published[device].open()
                     else:
                         # or when it disappeared
                         if device in published:
-                            if not options.quiet: print "unpublish: %s" % (published[device])
+                            if not options.quiet: print("unpublish: %s" % (published[device]))
                             published[device].close()
                             try:
                                 del published[device]
@@ -464,7 +466,7 @@ If running as daemon, write to syslog. Otherwise write to stdout.
                     error_map.keys(),
                     5
                 )
-            except select.error, err:
+            except select.error as err:
                 if err[0] != EINTR:
                     raise
             # select_end = time.time()

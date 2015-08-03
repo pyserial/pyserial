@@ -12,11 +12,6 @@ SHOW_FLOW       = 1<<2
 SHOW_TIMEOUT    = 1<<3
 SHOW_ALL = SHOW_BAUDRATE|SHOW_FORMAT|SHOW_FLOW|SHOW_TIMEOUT
 
-try:
-    enumerate
-except NameError:
-    def enumerate(sequence):
-        return zip(range(len(sequence)), sequence)
 
 class SerialConfigDialog(wx.Dialog):
     """Serial Port configuration dialog, to be used with pySerial 2.0+
@@ -28,7 +23,7 @@ class SerialConfigDialog(wx.Dialog):
        found in this module (not the class)."""
 
     def __init__(self, *args, **kwds):
-        #grab the serial keyword and remove it from the dict
+        # grab the serial keyword and remove it from the dict
         self.serial = kwds['serial']
         del kwds['serial']
         self.show = SHOW_ALL
@@ -74,7 +69,7 @@ class SerialConfigDialog(wx.Dialog):
                 preferred_index = n
         self.combo_box_port.SetSelection(preferred_index)
         if self.show & SHOW_BAUDRATE:
-            #fill in baud rates and select current setting
+            # fill in baud rates and select current setting
             self.choice_baudrate.Clear()
             for n, baudrate in enumerate(self.serial.BAUDRATES):
                 self.choice_baudrate.Append(str(baudrate))
@@ -82,21 +77,21 @@ class SerialConfigDialog(wx.Dialog):
                     index = n
             self.choice_baudrate.SetSelection(index)
         if self.show & SHOW_FORMAT:
-            #fill in data bits and select current setting
+            # fill in data bits and select current setting
             self.choice_databits.Clear()
             for n, bytesize in enumerate(self.serial.BYTESIZES):
                 self.choice_databits.Append(str(bytesize))
                 if self.serial.bytesize == bytesize:
                     index = n
             self.choice_databits.SetSelection(index)
-            #fill in stop bits and select current setting
+            # fill in stop bits and select current setting
             self.choice_stopbits.Clear()
             for n, stopbits in enumerate(self.serial.STOPBITS):
                 self.choice_stopbits.Append(str(stopbits))
                 if self.serial.stopbits == stopbits:
                     index = n
             self.choice_stopbits.SetSelection(index)
-            #fill in parities and select current setting
+            # fill in parities and select current setting
             self.choice_parity.Clear()
             for n, parity in enumerate(self.serial.PARITIES):
                 self.choice_parity.Append(str(serial.PARITY_NAMES[parity]))
@@ -104,7 +99,7 @@ class SerialConfigDialog(wx.Dialog):
                     index = n
             self.choice_parity.SetSelection(index)
         if self.show & SHOW_TIMEOUT:
-            #set the timeout mode and value
+            # set the timeout mode and value
             if self.serial.timeout is None:
                 self.checkbox_timeout.SetValue(False)
                 self.text_ctrl_timeout.Enable(False)
@@ -113,11 +108,11 @@ class SerialConfigDialog(wx.Dialog):
                 self.text_ctrl_timeout.Enable(True)
                 self.text_ctrl_timeout.SetValue(str(self.serial.timeout))
         if self.show & SHOW_FLOW:
-            #set the rtscts mode
+            # set the rtscts mode
             self.checkbox_rtscts.SetValue(self.serial.rtscts)
-            #set the rtscts mode
+            # set the rtscts mode
             self.checkbox_xonxoff.SetValue(self.serial.xonxoff)
-        #attach the event handlers
+        # attach the event handlers
         self.__attach_events()
 
     def __set_properties(self):
@@ -231,23 +226,23 @@ class MyApp(wx.App):
         wx.InitAllImageHandlers()
 
         ser = serial.Serial()
-        print ser
-        #loop until cancel is pressed, old values are used as start for the next run
-        #show the different views, one after the other
-        #value are kept.
+        print(ser)
+        # loop until cancel is pressed, old values are used as start for the next run
+        # show the different views, one after the other
+        # value are kept.
         for flags in (SHOW_BAUDRATE, SHOW_FLOW, SHOW_FORMAT, SHOW_TIMEOUT, SHOW_ALL):
             dialog_serial_cfg = SerialConfigDialog(None, -1, "", serial=ser, show=flags)
             self.SetTopWindow(dialog_serial_cfg)
             result = dialog_serial_cfg.ShowModal()
-            print ser
+            print(ser)
             if result != wx.ID_OK:
                 break
-        #the user can play around with the values, CANCEL aborts the loop
+        # the user can play around with the values, CANCEL aborts the loop
         while 1:
             dialog_serial_cfg = SerialConfigDialog(None, -1, "", serial=ser)
             self.SetTopWindow(dialog_serial_cfg)
             result = dialog_serial_cfg.ShowModal()
-            print ser
+            print(ser)
             if result != wx.ID_OK:
                 break
         return 0

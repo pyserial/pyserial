@@ -12,13 +12,8 @@ import threading
 import socket
 import codecs
 import serial
-try:
-    True
-except NameError:
-    True = 1
-    False = 0
 
-class Redirector:
+class Redirector(object):
     def __init__(self, serial_instance, socket, ser_newline=None, net_newline=None, spy=False):
         self.serial = serial_instance
         self.socket = socket
@@ -55,12 +50,9 @@ class Redirector:
                         # XXX fails for CR+LF in input when it is cut in half at the begin or end of the string
                         data = net_newline.join(data.split(ser_newline))
                     # escape outgoing data when needed (Telnet IAC (0xff) character)
-                    self._write_lock.acquire()
-                    try:
+                    with self._write_lock:
                         self.socket.sendall(data)           # send it over TCP
-                    finally:
-                        self._write_lock.release()
-            except socket.error, msg:
+            except socket.error as msg:
                 sys.stderr.write('ERROR: %s\n' % msg)
                 # probably got disconnected
                 break
@@ -68,11 +60,8 @@ class Redirector:
 
     def write(self, data):
         """thread safe socket write with no data escaping. used to send telnet stuff"""
-        self._write_lock.acquire()
-        try:
+        with self._write_lock:
             self.socket.sendall(data)
-        finally:
-            self._write_lock.release()
 
     def writer(self):
         """loop forever and copy socket->serial"""
@@ -90,7 +79,7 @@ class Redirector:
                 if self.spy:
                     sys.stdout.write(codecs.escape_encode(data)[0])
                     sys.stdout.flush()
-            except socket.error, msg:
+            except socket.error as msg:
                 sys.stderr.write('ERROR: %s\n' % msg)
                 # probably got disconnected
                 break
@@ -287,7 +276,7 @@ it waits for the next connect.
 
     try:
         ser.open()
-    except serial.SerialException, e:
+    except serial.SerialException as e:
         sys.stderr.write("Could not open serial port %s: %s\n" % (ser.portstr, e))
         sys.exit(1)
 
@@ -319,7 +308,7 @@ it waits for the next connect.
             connection.close()
         except KeyboardInterrupt:
             break
-        except socket.error, msg:
+        except socket.error as msg:
             sys.stderr.write('ERROR: %s\n' % msg)
 
     sys.stderr.write('\n--- exit ---\n')

@@ -48,7 +48,7 @@ class TerminalSetup:
 
 class TerminalSettingsDialog(wx.Dialog):
     """Simple dialog with common terminal settings like echo, newline mode."""
-    
+
     def __init__(self, *args, **kwds):
         self.settings = kwds['settings']
         del kwds['settings']
@@ -98,14 +98,14 @@ class TerminalSettingsDialog(wx.Dialog):
     def __attach_events(self):
         self.Bind(wx.EVT_BUTTON, self.OnOK, id = self.button_ok.GetId())
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id = self.button_cancel.GetId())
-    
+
     def OnOK(self, events):
         """Update data wil new values and close dialog."""
         self.settings.echo = self.checkbox_echo.GetValue()
         self.settings.unprintable = self.checkbox_unprintable.GetValue()
         self.settings.newline = self.radio_box_newline.GetSelection()
         self.EndModal(wx.ID_OK)
-    
+
     def OnCancel(self, events):
         """Do not update data but close dialog."""
         self.EndModal(wx.ID_CANCEL)
@@ -115,18 +115,18 @@ class TerminalSettingsDialog(wx.Dialog):
 
 class TerminalFrame(wx.Frame):
     """Simple terminal program for wxPython"""
-    
+
     def __init__(self, *args, **kwds):
         self.serial = serial.Serial()
         self.serial.timeout = 0.5   #make sure that the alive event can be checked from time to time
         self.settings = TerminalSetup() #placeholder for the settings
         self.thread = None
-        self.alive = threading.Event()               
+        self.alive = threading.Event()
         # begin wxGlade: TerminalFrame.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
         self.text_ctrl_output = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY)
-        
+
         # Menu Bar
         self.frame_terminal_menubar = wx.MenuBar()
         self.SetMenuBar(self.frame_terminal_menubar)
@@ -162,7 +162,7 @@ class TerminalFrame(wx.Frame):
             self.alive.clear()          #clear alive event for thread
             self.thread.join()          #wait until thread has finished
             self.thread = None
-        
+
     def __set_properties(self):
         # begin wxGlade: TerminalFrame.__set_properties
         self.SetTitle("Serial Terminal")
@@ -237,7 +237,7 @@ class TerminalFrame(wx.Frame):
             if result == wx.ID_OK or event is not None:
                 try:
                     self.serial.open()
-                except serial.SerialException, e:
+                except serial.SerialException as e:
                     dlg = wx.MessageDialog(None, str(e), "Serial Port Error", wx.OK | wx.ICON_ERROR)
                     dlg.ShowModal()
                     dlg.Destroy()
@@ -265,7 +265,7 @@ class TerminalFrame(wx.Frame):
         dialog = TerminalSettingsDialog(None, -1, "", settings=self.settings)
         result = dialog.ShowModal()
         dialog.Destroy()
-        
+
     def OnKey(self, event):
         """Key event handler. if the key is in the ASCII range, write it to the serial port.
            Newline handling and local echo is also done here."""
@@ -286,7 +286,7 @@ class TerminalFrame(wx.Frame):
                     self.text_ctrl_output.WriteText(char)
                 self.serial.write(char)         #send the charcater
         else:
-            print "Extra Key:", code
+            print("Extra Key:", code)
 
     def OnSerialRead(self, event):
         """Handle input from the serial port."""
@@ -314,7 +314,7 @@ class TerminalFrame(wx.Frame):
                 event = SerialRxEvent(self.GetId(), text)
                 self.GetEventHandler().AddPendingEvent(event)
                 #~ self.OnSerialRead(text)         #output text in window
-            
+
 # end of class TerminalFrame
 
 

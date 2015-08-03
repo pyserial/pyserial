@@ -1,7 +1,8 @@
 # This is a setup.py example script for the use with py2exe
 from distutils.core import setup
+import os
+import sys
 import py2exe
-import sys, os
 
 #this script is only useful for py2exe so just run that distutils command.
 #that allows to run it with a simple double click.
@@ -31,5 +32,5 @@ setup(
     version = "0.1",
     author = "Chris Liechti",
     author_email = "cliechti@gmx.net",
-    url = "http://pyserial.sf.net",
+    url = "https://pyserial.github.io/pyserial/",
 )
