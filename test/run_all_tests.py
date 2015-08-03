@@ -12,10 +12,7 @@ import os
 import time
 
 # inject local copy to avoid testing the installed version instead of the
-# working copy (only for 2.x as the sources would need to be translated with
-# 2to3 for Python 3, use installed module instead for Python 3).
-if sys.version_info < (3, 0):
-    sys.path.insert(0, '..')
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import serial
 print("Patching sys.path to test local version. Testing Version: %s" % (serial.VERSION,))
@@ -26,8 +23,9 @@ if len(sys.argv) > 1:
 
 # find files and the tests in them
 mainsuite = unittest.TestSuite()
-for modulename in [os.path.splitext(x)[0]
-    for x in os.listdir('.')
+for modulename in [
+        os.path.splitext(x)[0]
+        for x in os.listdir(os.path.dirname(__file__))
         if x != __file__ and x.startswith("test") and x.endswith(".py")
 ]:
     try:
