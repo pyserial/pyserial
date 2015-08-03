@@ -527,6 +527,8 @@ class PosixSerial(SerialBase):
                         raise SerialException('write failed (select)')
                 d = d[n:]
                 tx_len -= n
+            except SerialException:
+                raise
             except OSError as v:
                 if v.errno != errno.EAGAIN:
                     raise SerialException('write failed: %s' % (v,))
