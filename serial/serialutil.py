@@ -33,7 +33,11 @@ def to_bytes(seq):
     else:
         b = bytearray()
         for item in seq:
-            b.append(item)  # this one handles int and str for our emulation and ints for Python 3.x
+            # this one handles int and bytes in Python 2.7
+            # add conversion in case of Python 3.x
+            if isinstance(item, bytes):
+                item = ord(item)
+            b.append(item)
         return bytes(b)
 
 # create control bytes
