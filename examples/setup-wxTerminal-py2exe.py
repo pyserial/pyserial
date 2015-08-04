@@ -32,5 +32,5 @@ setup(
     version = "0.1",
     author = "Chris Liechti",
     author_email = "cliechti@gmx.net",
-    url = "https://pyserial.github.io/pyserial/",
+    url = "https://github.com/pyserial/pyserial/",
 )

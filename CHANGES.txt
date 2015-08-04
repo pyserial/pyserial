@@ -502,3 +502,21 @@ Bugfixes (cli):
 
 - [Bug pyserial:159] write() in serialcli.py not working with IronPython 2.7.4
 
+
+Version 3.x     2015-xx-xx
+--------------------------
+
+- Starting from this release, only 2.7 and 3.4 (or newer) are supported. The
+  sourcecode is compatible to the 2.x and 3.x series without any changes. The
+  support for earlier Python versions than 2.7 is removed, please refer to the
+  pyserial-legacy (V2.x) series if older Python versions are a requirement).
+- remove file ``FileLike`` class, add ``read_until`` and ``iread_until`` to
+  ``SerialBase``
+- remove obsolete examples
+- finish update to BSD license
+- update links to point to github
+
+Bugfixes (posix):
+
+- fix setXON
+

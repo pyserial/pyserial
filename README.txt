@@ -9,12 +9,10 @@ for Python running on Windows, Linux, BSD (possibly any POSIX compliant
 system), Jython and IronPython (.NET and Mono). The module named "serial"
 automatically selects the appropriate backend.
 
-- Project Homepage: http://pyserial.sourceforge.net
-- Project page on SourceForge: http://sourceforge.net/projects/pyserial/
-- SVN repository: http://sourceforge.net/svn/?group_id=46487
-- Download Page: http://sourceforge.net/project/showfiles.php?group_id=46487
+- Project Homepage: https://github.com/pyserial/pyserial
+- Download Page: https://pypi.python.org/pypi/pyserial
 
-BSD license, (C) 2001-2013 Chris Liechti <cliechti@gmx.net>
+BSD license, (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 
 
 Documentation
@@ -22,8 +20,7 @@ Documentation
 For API documentation, usage and examples see files in the "documentation"
 directory.  The ".rst" files can be read in any text editor or being converted to
 HTML or PDF using Sphinx. An online HTML version is at
-http://pyserial.sourceforge.net.
-
+https://pythonhosted.org/pyserial/
 
 Examples
 ========
@@ -32,6 +29,8 @@ Examples and unit tests are in the directory "examples".
 
 Installation
 ============
+``pip install pyserial`` should work for most users.
+
 Detailed information can be found in "documentation/pyserial.rst".
 
 The usual setup.py for Python libraries is used for the source distribution.
