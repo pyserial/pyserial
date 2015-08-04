@@ -5,46 +5,6 @@
 # (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
-# compatibility for older Python < 2.6
-try:
-    bytes
-    bytearray
-except (NameError, AttributeError):
-    # Python older than 2.6 do not have these types. Like for Python 2.6 they
-    # should behave like str. For Python older than 3.0 we want to work with
-    # strings anyway, only later versions have a true bytes type.
-    bytes = str
-    # bytearray is a mutable type that is easily turned into an instance of
-    # bytes
-    class bytearray(list):
-        # for bytes(bytearray()) usage
-        def __str__(self): return ''.join(self)
-        def __repr__(self): return 'bytearray(%r)' % ''.join(self)
-        # append automatically converts integers to characters
-        def append(self, item):
-            if isinstance(item, str):
-                list.append(self, item)
-            else:
-                list.append(self, chr(item))
-        # +=
-        def __iadd__(self, other):
-            for byte in other:
-                self.append(byte)
-            return self
-
-        def __getslice__(self, i, j):
-            return bytearray(list.__getslice__(self, i, j))
-
-        def __getitem__(self, item):
-            if isinstance(item, slice):
-                return bytearray(list.__getitem__(self, item))
-            else:
-                return ord(list.__getitem__(self, item))
-
-        def __eq__(self, other):
-            if isinstance(other, basestring):
-                other = bytearray(other)
-            return list.__eq__(self, other)
 
 # ``memoryview`` was introduced in Python 2.7 and ``bytes(some_memoryview)``
 # isn't returning the contents (very unfortunate). Therefore we need special
@@ -56,7 +16,7 @@ try:
 except (NameError, AttributeError):
     # implementation does not matter as we do not realy use it.
     # it just must not inherit from something else we might care for.
-    class memoryview:
+    class memoryview(object):
         pass
 
 
@@ -107,122 +67,6 @@ class SerialTimeoutException(SerialException):
 
 writeTimeoutError = SerialTimeoutException('Write timeout')
 portNotOpenError = SerialException('Attempting to use a port that is not open')
-
-
-class FileLike(object):
-    """\
-    An abstract file like class.
-
-    This class implements readline and readlines based on read and
-    writelines based on write.
-    This class is used to provide the above functions for to Serial
-    port objects.
-
-    Note that when the serial port was opened with _NO_ timeout that
-    readline blocks until it sees a newline (or the specified size is
-    reached) and that readlines would never return and therefore
-    refuses to work (it raises an exception in this case)!
-    """
-
-    def __init__(self):
-        self.closed = True
-
-    def close(self):
-        self.closed = True
-
-    # so that ports are closed when objects are discarded
-    def __del__(self):
-        """Destructor.  Calls close()."""
-        # The try/except block is in case this is called at program
-        # exit time, when it's possible that globals have already been
-        # deleted, and then the close() call might fail.  Since
-        # there's nothing we can do about such failures and they annoy
-        # the end users, we suppress the traceback.
-        try:
-            self.close()
-        except:
-            pass
-
-    def writelines(self, sequence):
-        for line in sequence:
-            self.write(line)
-
-    def flush(self):
-        """flush of file like objects"""
-        pass
-
-    # iterator for e.g. "for line in Serial(0): ..." usage
-    def next(self):
-        line = self.readline()
-        if not line: raise StopIteration
-        return line
-
-    def __iter__(self):
-        return self
-
-    def readline(self, size=None, eol=LF):
-        """\
-        Read a line which is terminated with end-of-line (eol) character
-        ('\n' by default) or until timeout.
-        """
-        leneol = len(eol)
-        line = bytearray()
-        while True:
-            c = self.read(1)
-            if c:
-                line += c
-                if line[-leneol:] == eol:
-                    break
-                if size is not None and len(line) >= size:
-                    break
-            else:
-                break
-        return bytes(line)
-
-    def readlines(self, sizehint=None, eol=LF):
-        """\
-        Read a list of lines, until timeout.
-        sizehint is ignored.
-        """
-        if self.timeout is None:
-            raise ValueError("Serial port MUST have enabled timeout for this function!")
-        leneol = len(eol)
-        lines = []
-        while True:
-            line = self.readline(eol=eol)
-            if line:
-                lines.append(line)
-                if line[-leneol:] != eol:    # was the line received with a timeout?
-                    break
-            else:
-                break
-        return lines
-
-    def xreadlines(self, sizehint=None):
-        """\
-        Read lines, implemented as generator. It will raise StopIteration on
-        timeout (empty read). sizehint is ignored.
-        """
-        while True:
-            line = self.readline()
-            if not line: break
-            yield line
-
-    # other functions of file-likes - not used by pySerial
-
-    #~ readinto(b)
-
-    def seek(self, pos, whence=0):
-        raise IOError("file is not seekable")
-
-    def tell(self):
-        raise IOError("file is not seekable")
-
-    def truncate(self, n=None):
-        raise IOError("file is not seekable")
-
-    def isatty(self):
-        return False
 
 
 class SerialBase(object):
@@ -296,22 +140,6 @@ class SerialBase(object):
         """Check if the port is opened."""
         return self._isOpen
 
-    #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-    # TODO: these are not really needed as the is the BAUDRATES etc. attribute...
-    # maybe i remove them before the final release...
-
-    def getSupportedBaudrates(self):
-        return [(str(b), b) for b in self.BAUDRATES]
-
-    def getSupportedByteSizes(self):
-        return [(str(b), b) for b in self.BYTESIZES]
-
-    def getSupportedStopbits(self):
-        return [(str(b), b) for b in self.STOPBITS]
-
-    def getSupportedParities(self):
-        return [(PARITY_NAMES[b], b) for b in self.PARITIES]
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
@@ -554,6 +382,38 @@ class SerialBase(object):
             b[:n] = array.array('b', data)
         return n
 
+    #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+    # additional functionality
+
+    def read_until(self, terminator=LF, size=None):
+        """\
+        Read until a termination sequence is found ('\n' by default), the size
+        is exceeded or until timeout occurs.
+        """
+        lenterm = len(terminator)
+        line = bytearray()
+        while True:
+            c = self.read(1)
+            if c:
+                line += c
+                if line[-lenterm:] == terminator:
+                    break
+                if size is not None and len(line) >= size:
+                    break
+            else:
+                break
+        return bytes(line)
+
+
+    def iread_until(self, *args, **kwargs):
+        """\
+        Read lines, implemented as generator. It will raise StopIteration on
+        timeout (empty read).
+        """
+        while True:
+            line = self.read_until(*args, **kwargs)
+            if not line: break
+            yield line
 
 if __name__ == '__main__':
     import sys
