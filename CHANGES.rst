@@ -512,6 +512,7 @@ Version 3.x     2015-xx-xx
   pyserial-legacy (V2.x) series if older Python versions are a requirement).
 - remove file ``FileLike`` class, add ``read_until`` and ``iread_until`` to
   ``SerialBase``
+- remove set* functions, please use the properties instead
 - remove obsolete examples
 - finish update to BSD license
 - update links to point to github

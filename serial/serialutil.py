@@ -143,7 +143,17 @@ class SerialBase(object):
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-    def setPort(self, port):
+    @property
+    def port(self):
+        """\
+        Get the current port setting. The value that was passed on init or using
+        setPort() is passed back. See also the attribute portstr which contains
+        the name of the port as a string.
+        """
+        return self._port
+
+    @port.setter
+    def port(self, port):
         """\
         Change the port. The attribute portstr is set to a string that
         contains the name of the port.
@@ -156,18 +166,14 @@ class SerialBase(object):
         self.name = self.portstr
         if was_open: self.open()
 
-    def getPort(self):
-        """\
-        Get the current port setting. The value that was passed on init or using
-        setPort() is passed back. See also the attribute portstr which contains
-        the name of the port as a string.
-        """
-        return self._port
 
-    port = property(getPort, setPort, doc="Port setting")
+    @property
+    def baudrate(self):
+        """Get the current baud rate setting."""
+        return self._baudrate
 
-
-    def setBaudrate(self, baudrate):
+    @baudrate.setter
+    def baudrate(self, baudrate):
         """\
         Change baud rate. It raises a ValueError if the port is open and the
         baud rate is not possible. If the port is closed, then the value is
@@ -183,53 +189,55 @@ class SerialBase(object):
             self._baudrate = b
             if self._isOpen:  self._reconfigurePort()
 
-    def getBaudrate(self):
-        """Get the current baud rate setting."""
-        return self._baudrate
 
-    baudrate = property(getBaudrate, setBaudrate, doc="Baud rate setting")
+    @property
+    def bytesize(self):
+        """Get the current byte size setting."""
+        return self._bytesize
 
-
-    def setByteSize(self, bytesize):
+    @bytesize.setter
+    def bytesize(self, bytesize):
         """Change byte size."""
         if bytesize not in self.BYTESIZES: raise ValueError("Not a valid byte size: %r" % (bytesize,))
         self._bytesize = bytesize
         if self._isOpen: self._reconfigurePort()
 
-    def getByteSize(self):
-        """Get the current byte size setting."""
-        return self._bytesize
-
-    bytesize = property(getByteSize, setByteSize, doc="Byte size setting")
 
 
-    def setParity(self, parity):
+    @property
+    def parity(self):
+        """Get the current parity setting."""
+        return self._parity
+
+    @parity.setter
+    def parity(self, parity):
         """Change parity setting."""
         if parity not in self.PARITIES: raise ValueError("Not a valid parity: %r" % (parity,))
         self._parity = parity
         if self._isOpen: self._reconfigurePort()
 
-    def getParity(self):
-        """Get the current parity setting."""
-        return self._parity
-
-    parity = property(getParity, setParity, doc="Parity setting")
 
 
-    def setStopbits(self, stopbits):
+    @property
+    def stopbits(self):
+        """Get the current stop bits setting."""
+        return self._stopbits
+
+    @stopbits.setter
+    def stopbits(self, stopbits):
         """Change stop bits size."""
         if stopbits not in self.STOPBITS: raise ValueError("Not a valid stop bit size: %r" % (stopbits,))
         self._stopbits = stopbits
         if self._isOpen: self._reconfigurePort()
 
-    def getStopbits(self):
-        """Get the current stop bits setting."""
-        return self._stopbits
 
-    stopbits = property(getStopbits, setStopbits, doc="Stop bits setting")
+    @property
+    def timeout(self):
+        """Get the current timeout setting."""
+        return self._timeout
 
-
-    def setTimeout(self, timeout):
+    @timeout.setter
+    def timeout(self, timeout):
         """Change timeout setting."""
         if timeout is not None:
             try:
@@ -240,14 +248,14 @@ class SerialBase(object):
         self._timeout = timeout
         if self._isOpen: self._reconfigurePort()
 
-    def getTimeout(self):
+
+    @property
+    def writeTimeout(self):
         """Get the current timeout setting."""
-        return self._timeout
+        return self._writeTimeout
 
-    timeout = property(getTimeout, setTimeout, doc="Timeout setting for read()")
-
-
-    def setWriteTimeout(self, timeout):
+    @writeTimeout.setter
+    def writeTimeout(self, timeout):
         """Change timeout setting."""
         if timeout is not None:
             if timeout < 0: raise ValueError("Not a valid timeout: %r" % (timeout,))
@@ -259,36 +267,38 @@ class SerialBase(object):
         self._writeTimeout = timeout
         if self._isOpen: self._reconfigurePort()
 
-    def getWriteTimeout(self):
-        """Get the current timeout setting."""
-        return self._writeTimeout
 
-    writeTimeout = property(getWriteTimeout, setWriteTimeout, doc="Timeout setting for write()")
+    @property
+    def xonxoff(self):
+        """Get the current XON/XOFF setting."""
+        return self._xonxoff
 
-
-    def setXonXoff(self, xonxoff):
+    @xonxoff.setter
+    def xonxoff(self, xonxoff):
         """Change XON/XOFF setting."""
         self._xonxoff = xonxoff
         if self._isOpen: self._reconfigurePort()
 
-    def getXonXoff(self):
-        """Get the current XON/XOFF setting."""
-        return self._xonxoff
 
-    xonxoff = property(getXonXoff, setXonXoff, doc="XON/XOFF setting")
+    @property
+    def rtscts(self):
+        """Get the current RTS/CTS flow control setting."""
+        return self._rtscts
 
-    def setRtsCts(self, rtscts):
+    @rtscts.setter
+    def rtscts(self, rtscts):
         """Change RTS/CTS flow control setting."""
         self._rtscts = rtscts
         if self._isOpen: self._reconfigurePort()
 
-    def getRtsCts(self):
-        """Get the current RTS/CTS flow control setting."""
-        return self._rtscts
 
-    rtscts = property(getRtsCts, setRtsCts, doc="RTS/CTS flow control setting")
+    @property
+    def dsrdtr(self):
+        """Get the current DSR/DTR flow control setting."""
+        return self._dsrdtr
 
-    def setDsrDtr(self, dsrdtr=None):
+    @dsrdtr.setter
+    def dsrdtr(self, dsrdtr=None):
         """Change DsrDtr flow control setting."""
         if dsrdtr is None:
             # if not set, keep backwards compatibility and follow rtscts setting
@@ -298,13 +308,14 @@ class SerialBase(object):
             self._dsrdtr = dsrdtr
         if self._isOpen: self._reconfigurePort()
 
-    def getDsrDtr(self):
-        """Get the current DSR/DTR flow control setting."""
-        return self._dsrdtr
 
-    dsrdtr = property(getDsrDtr, setDsrDtr, "DSR/DTR flow control setting")
+    @property
+    def interCharTimeout(self):
+        """Get the current inter-character timeout setting."""
+        return self._interCharTimeout
 
-    def setInterCharTimeout(self, interCharTimeout):
+    @interCharTimeout.setter
+    def interCharTimeout(self, interCharTimeout):
         """Change inter-character timeout setting."""
         if interCharTimeout is not None:
             if interCharTimeout < 0: raise ValueError("Not a valid timeout: %r" % interCharTimeout)
@@ -316,11 +327,6 @@ class SerialBase(object):
         self._interCharTimeout = interCharTimeout
         if self._isOpen: self._reconfigurePort()
 
-    def getInterCharTimeout(self):
-        """Get the current inter-character timeout setting."""
-        return self._interCharTimeout
-
-    interCharTimeout = property(getInterCharTimeout, setInterCharTimeout, doc="Inter-character timeout setting for read()")
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
@@ -383,6 +389,15 @@ class SerialBase(object):
         return n
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+    # context manager
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        self.close()
+
+    #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     # additional functionality
 
     def read_until(self, terminator=LF, size=None):
@@ -415,12 +430,14 @@ class SerialBase(object):
             if not line: break
             yield line
 
+
+#  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 if __name__ == '__main__':
     import sys
     s = SerialBase()
-    sys.stdout.write('port name:  %s\n' % s.portstr)
-    sys.stdout.write('baud rates: %s\n' % s.getSupportedBaudrates())
-    sys.stdout.write('byte sizes: %s\n' % s.getSupportedByteSizes())
-    sys.stdout.write('parities:   %s\n' % s.getSupportedParities())
-    sys.stdout.write('stop bits:  %s\n' % s.getSupportedStopbits())
+    sys.stdout.write('port name:  %s\n' % s.name)
+    sys.stdout.write('baud rates: %s\n' % s.BAUDRATES)
+    sys.stdout.write('byte sizes: %s\n' % s.BYTESIZES)
+    sys.stdout.write('parities:   %s\n' % s.PARITIES)
+    sys.stdout.write('stop bits:  %s\n' % s.STOPBITS)
     sys.stdout.write('%s\n' % s)

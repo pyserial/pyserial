@@ -85,7 +85,7 @@ class Test_ChangeAttributes(unittest.TestCase):
             self.failUnlessEqual(self.s._baudrate, baudrate)
         # test illegal values
         for illegal_value in (-300, -1, 'a', None):
-            self.failUnlessRaises(ValueError, self.s.setBaudrate, illegal_value)
+            self.failUnlessRaises(ValueError, setattr, self.s, 'baudrate', illegal_value)
 
     # skip this test as pyserial now tries to set even non standard baud rates.
     # therefore the test can not choose a value that fails on any system.
@@ -94,7 +94,7 @@ class Test_ChangeAttributes(unittest.TestCase):
         self.s.port = PORT
         self.s.open()
         for illegal_value in (500000, 576000, 921600, 92160):
-            self.failUnlessRaises(ValueError, self.s.setBaudrate, illegal_value)
+            self.failUnlessRaises(ValueError, setattr, self.s, 'baudrate', illegal_value)
 
     def test_BytesizeSetting(self):
         for bytesize in (5,6,7,8):
@@ -105,7 +105,7 @@ class Test_ChangeAttributes(unittest.TestCase):
             self.failUnlessEqual(self.s._bytesize, bytesize)
         # test illegal values
         for illegal_value in (0, 1, 3, 4, 9, 10, 'a', None):
-            self.failUnlessRaises(ValueError, self.s.setByteSize, illegal_value)
+            self.failUnlessRaises(ValueError, setattr, self.s, 'bytesize', illegal_value)
 
     def test_ParitySetting(self):
         for parity in (serial.PARITY_NONE, serial.PARITY_EVEN, serial.PARITY_ODD):
@@ -116,7 +116,7 @@ class Test_ChangeAttributes(unittest.TestCase):
             self.failUnlessEqual(self.s._parity, parity)
         # test illegal values
         for illegal_value in (0, 57, 'a', None):
-            self.failUnlessRaises(ValueError, self.s.setParity, illegal_value)
+            self.failUnlessRaises(ValueError, setattr, self.s, 'parity', illegal_value)
 
     def test_StopbitsSetting(self):
         for stopbits in (1, 2):
@@ -127,7 +127,7 @@ class Test_ChangeAttributes(unittest.TestCase):
             self.failUnlessEqual(self.s._stopbits, stopbits)
         # test illegal values
         for illegal_value in (0, 3, 2.5, 57, 'a', None):
-            self.failUnlessRaises(ValueError, self.s.setStopbits, illegal_value)
+            self.failUnlessRaises(ValueError, setattr, self.s, 'stopbits', illegal_value)
 
     def test_TimeoutSetting(self):
         for timeout in (None, 0, 1, 3.14159, 10, 1000, 3600):
@@ -138,7 +138,7 @@ class Test_ChangeAttributes(unittest.TestCase):
             self.failUnlessEqual(self.s._timeout, timeout)
         # test illegal values
         for illegal_value in (-1, 'a'):
-            self.failUnlessRaises(ValueError, self.s.setTimeout, illegal_value)
+            self.failUnlessRaises(ValueError, setattr, self.s, 'timeout', illegal_value)
 
     def test_XonXoffSetting(self):
         for xonxoff in (True, False):
