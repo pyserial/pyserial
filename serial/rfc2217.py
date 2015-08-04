@@ -60,12 +60,17 @@
 # the order of the options is not relevant
 
 from serial.serialutil import *
+import io
 import time
 import struct
 import socket
 import threading
-import Queue
 import logging
+
+try:
+    import Queue
+except ImportError:
+    import queue as Queue
 
 # port string is expected to be something like this:
 # rfc2217://host:port
@@ -361,7 +366,7 @@ class TelnetSubnegotiation(object):
             self.connection.logger.debug("SB Answer %s -> %r -> %s" % (self.name, suboption, self.state))
 
 
-class RFC2217Serial(SerialBase):
+class Serial(SerialBase, io.RawIOBase):
     """Serial port implementation for RFC 2217 remote serial ports."""
 
     BAUDRATES = (50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
@@ -885,21 +890,6 @@ class RFC2217Serial(SerialBase):
             raise SerialException("remote sends no NOTIFY_MODEMSTATE")
 
 
-# assemble Serial class with the platform specific implementation and the base
-# for file-like behavior. for Python 2.6 and newer, that provide the new I/O
-# library, derive from io.RawIOBase
-try:
-    import io
-except ImportError:
-    # classic version with our own file-like emulation
-    class Serial(RFC2217Serial, FileLike):
-        pass
-else:
-    # io library present
-    class Serial(RFC2217Serial, io.RawIOBase):
-        pass
-
-
 #############################################################################
 # The following is code that helps implementing an RFC 2217 server.
 
@@ -1124,7 +1114,7 @@ class PortManager(object):
                     (baudrate,) = struct.unpack("!I", suboption[2:6])
                     if baudrate != 0:
                         self.serial.baudrate = baudrate
-                except ValueError, e:
+                except ValueError as e:
                     if self.logger:
                         self.logger.error("failed to set baud rate: %s" % (e,))
                     self.serial.baudrate = backup
@@ -1138,7 +1128,7 @@ class PortManager(object):
                     (datasize,) = struct.unpack("!B", suboption[2:3])
                     if datasize != 0:
                         self.serial.bytesize = datasize
-                except ValueError, e:
+                except ValueError as e:
                     if self.logger:
                         self.logger.error("failed to set data size: %s" % (e,))
                     self.serial.bytesize = backup
@@ -1152,7 +1142,7 @@ class PortManager(object):
                     parity = struct.unpack("!B", suboption[2:3])[0]
                     if parity != 0:
                             self.serial.parity = RFC2217_REVERSE_PARITY_MAP[parity]
-                except ValueError, e:
+                except ValueError as e:
                     if self.logger:
                         self.logger.error("failed to set parity: %s" % (e,))
                     self.serial.parity = backup
@@ -1169,7 +1159,7 @@ class PortManager(object):
                     stopbits = struct.unpack("!B", suboption[2:3])[0]
                     if stopbits != 0:
                         self.serial.stopbits = RFC2217_REVERSE_STOPBIT_MAP[stopbits]
-                except ValueError, e:
+                except ValueError as e:
                     if self.logger:
                         self.logger.error("failed to set stop bits: %s" % (e,))
                     self.serial.stopbits = backup
