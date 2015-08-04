@@ -347,7 +347,7 @@ class SerialBase(object):
         values will simply left unchanged.
         """
         for key in self._SETTINGS:
-            if d[key] != getattr(self, '_'+key):   # check against internal "_" value
+            if key in d and d[key] != getattr(self, '_'+key):   # check against internal "_" value
                 setattr(self, key, d[key])          # set non "_" value to use properties write function
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -

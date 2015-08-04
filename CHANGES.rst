@@ -517,6 +517,10 @@ Version 3.x     2015-xx-xx
 - finish update to BSD license
 - update links to point to github
 
+Bugfixes:
+
+- [Bug pyserial:172] applySettingsDict() throws an error if the settings dictionary is not complete
+
 Bugfixes (posix):
 
 - fix setXON
