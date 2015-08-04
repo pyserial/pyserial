@@ -516,6 +516,7 @@ Version 3.x     2015-xx-xx
 - remove obsolete examples
 - finish update to BSD license
 - update links to point to github
+- [Patch pyserial:34] Improvements to port_publisher.py example
 
 Bugfixes:
 

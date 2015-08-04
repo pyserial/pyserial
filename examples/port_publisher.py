@@ -18,9 +18,24 @@ import traceback
 
 import serial
 import serial.rfc2217
+import serial.tools.list_ports
 
-import avahi
 import dbus
+
+# Try to import the avahi service definitions properly. If the avahi module is
+# not available, fall back to a hard-coded solution that hopefully still works.
+try:
+    import avahi
+except ImportError:
+    class avahi:
+        DBUS_NAME = "org.freedesktop.Avahi"
+        DBUS_PATH_SERVER = "/"
+        DBUS_INTERFACE_SERVER = "org.freedesktop.Avahi.Server"
+        DBUS_INTERFACE_ENTRY_GROUP = DBUS_NAME + ".EntryGroup"
+        IF_UNSPEC = -1
+        PROTO_UNSPEC, PROTO_INET, PROTO_INET6  = -1, 0, 1
+
+
 
 class ZeroconfService:
     """\
@@ -133,7 +148,7 @@ class Forwarder(ZeroconfService):
             self.handle_server_error()
             #~ raise
         if not options.quiet:
-            print "%s: Waiting for connection on %s..." % (self.device, self.network_port)
+            print("%s: Waiting for connection on %s..." % (self.device, self.network_port))
 
         # zeroconfig
         self.publish()
@@ -259,6 +274,14 @@ class Forwarder(ZeroconfService):
         connection, addr = self.server_socket.accept()
         if self.socket is None:
             self.socket = connection
+            # More quickly detect bad clients who quit without closing the
+            # connection: After 1 second of idle, start sending TCP keep-alive
+            # packets every 1 second. If 3 consecutive keep-alive packets
+            # fail, assume the client is gone and close the connection.
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 1)
+            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 1)
+            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
             self.socket.setblocking(0)
             self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             if not options.quiet:
@@ -330,6 +353,10 @@ If running as daemon, write to syslog. Otherwise write to stdout.
 
     parser.add_option("", "--pidfile", dest="pid_file",
         help="specify a name for the PID file", default=None, metavar="FILE")
+
+    parser.add_option("", "--ports-regex", dest="ports_regex",
+        help="specify a regex to search against the serial devices and their descriptions",
+        default='/dev/ttyUSB[0-9]+', metavar="REGEX")
 
     (options, args) = parser.parse_args()
 
@@ -406,8 +433,6 @@ If running as daemon, write to syslog. Otherwise write to stdout.
 
     # keep the published stuff in a dictionary
     published = {}
-    # prepare list of device names (hard coded)
-    device_list = ['/dev/ttyUSB%d' % p for p in range(8)]
     # get a nice hostname
     hostname = socket.gethostname()
 
@@ -429,29 +454,26 @@ If running as daemon, write to syslog. Otherwise write to stdout.
             now = time.time()
             if now > next_check:
                 next_check = now + 5
-                # check each device
-                for device in device_list:
-                    # if it appeared
-                    if os.path.exists(device):
-                        if device not in published:
-                            num = int(device[-1])
-                            published[device] = Forwarder(
-                                device,
-                                "%s on %s" % (device, hostname),
-                                7000+num,
-                                on_close=unpublish
-                            )
-                            if not options.quiet: print("publish: %s" % (published[device]))
-                            published[device].open()
-                    else:
-                        # or when it disappeared
-                        if device in published:
-                            if not options.quiet: print("unpublish: %s" % (published[device]))
-                            published[device].close()
-                            try:
-                                del published[device]
-                            except KeyError:
-                                pass
+                connected = [d for d, p, i in serial.tools.list_ports.grep(options.ports_regex)]
+                # Handle devices that are published, but no longer connected
+                for device in set(published).difference(connected):
+                    if not options.quiet: print("unpublish: %s" % (published[device]))
+                    unpublish(published[device])
+                # Handle devices that are connected but not yet published
+                for device in set(connected).difference(published):
+                    # Find the first available port, starting from 7000
+                    port = 7000
+                    ports_in_use = [f.network_port for f in published.values()]
+                    while port in ports_in_use:
+                        port += 1
+                    published[device] = Forwarder(
+                        device,
+                        "%s on %s" % (device, hostname),
+                        port,
+                        on_close=unpublish
+                    )
+                    if not options.quiet: print("publish: %s" % (published[device]))
+                    published[device].open()
 
             # select_start = time.time()
             read_map = {}
