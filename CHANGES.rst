@@ -521,4 +521,5 @@ Bugfixes (posix):
 
 - fix setXON
 - [Patch pyserial:36 / 38] Make USB information work in python 3.4 and 2.7
+- clear OCRNL/ONLCR flags (CR/LF translation settings)
 

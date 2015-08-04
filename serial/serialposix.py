@@ -337,7 +337,7 @@ class Serial(SerialBase, io.RawIOBase):
             if hasattr(TERMIOS, flag):
                 lflag &= ~getattr(TERMIOS, flag)
 
-        oflag &= ~(TERMIOS.OPOST)
+        oflag &= ~(TERMIOS.OPOST|TERMIOS.ONLCR|TERMIOS.OCRNL)
         iflag &= ~(TERMIOS.INLCR|TERMIOS.IGNCR|TERMIOS.ICRNL|TERMIOS.IGNBRK)
         if hasattr(TERMIOS, 'IUCLC'):
             iflag &= ~TERMIOS.IUCLC
