@@ -16,16 +16,6 @@ import sys, os, fcntl, termios, struct, select, errno, time
 import io
 from serial.serialutil import *
 
-# Do check the Python version as some constants have moved.
-if (sys.hexversion < 0x020100f0):
-    import TERMIOS
-else:
-    TERMIOS = termios
-
-if (sys.hexversion < 0x020200f0):
-    import FCNTL
-else:
-    FCNTL = fcntl
 
 # try to detect the OS so that a device can be selected...
 # this code block should supply a device() and set_special_baudrate() function
@@ -48,14 +38,14 @@ if   plat[:5] == 'linux':    # Linux (confirmed)
 
         try:
             # get serial_struct
-            FCNTL.ioctl(port.fd, TCGETS2, buf)
+            fcntl.ioctl(port.fd, TCGETS2, buf)
             # set custom speed
-            buf[2] &= ~TERMIOS.CBAUD
+            buf[2] &= ~termios.CBAUD
             buf[2] |= BOTHER
             buf[9] = buf[10] = baudrate
 
             # set serial_struct
-            res = FCNTL.ioctl(port.fd, TCSETS2, buf)
+            res = fcntl.ioctl(port.fd, TCSETS2, buf)
         except IOError as e:
             raise ValueError('Failed to set custom baud rate (%s): %s' % (baudrate, e))
 
@@ -143,7 +133,7 @@ elif plat[:6] == 'darwin':   # OS X
     if int(version[0]) >= 8:
         def set_special_baudrate(port, baudrate):
             # use IOKit-specific call to set up high speeds
-            import array, fcntl
+            import array
             buf = array.array('i', [baudrate])
             IOSSIOSPEED = 0x80045402 #_IOW('T', 2, speed_t)
             fcntl.ioctl(port.fd, IOSSIOSPEED, buf, 1)
@@ -238,38 +228,38 @@ and with a bit luck you can get this module running...
 
 
 # load some constants for later use.
-# try to use values from TERMIOS, use defaults from linux otherwise
-TIOCMGET  = hasattr(TERMIOS, 'TIOCMGET') and TERMIOS.TIOCMGET or 0x5415
-TIOCMBIS  = hasattr(TERMIOS, 'TIOCMBIS') and TERMIOS.TIOCMBIS or 0x5416
-TIOCMBIC  = hasattr(TERMIOS, 'TIOCMBIC') and TERMIOS.TIOCMBIC or 0x5417
-TIOCMSET  = hasattr(TERMIOS, 'TIOCMSET') and TERMIOS.TIOCMSET or 0x5418
+# try to use values from termios, use defaults from linux otherwise
+TIOCMGET  = hasattr(termios, 'TIOCMGET') and termios.TIOCMGET or 0x5415
+TIOCMBIS  = hasattr(termios, 'TIOCMBIS') and termios.TIOCMBIS or 0x5416
+TIOCMBIC  = hasattr(termios, 'TIOCMBIC') and termios.TIOCMBIC or 0x5417
+TIOCMSET  = hasattr(termios, 'TIOCMSET') and termios.TIOCMSET or 0x5418
 
-#TIOCM_LE = hasattr(TERMIOS, 'TIOCM_LE') and TERMIOS.TIOCM_LE or 0x001
-TIOCM_DTR = hasattr(TERMIOS, 'TIOCM_DTR') and TERMIOS.TIOCM_DTR or 0x002
-TIOCM_RTS = hasattr(TERMIOS, 'TIOCM_RTS') and TERMIOS.TIOCM_RTS or 0x004
-#TIOCM_ST = hasattr(TERMIOS, 'TIOCM_ST') and TERMIOS.TIOCM_ST or 0x008
-#TIOCM_SR = hasattr(TERMIOS, 'TIOCM_SR') and TERMIOS.TIOCM_SR or 0x010
+#TIOCM_LE = hasattr(termios, 'TIOCM_LE') and termios.TIOCM_LE or 0x001
+TIOCM_DTR = hasattr(termios, 'TIOCM_DTR') and termios.TIOCM_DTR or 0x002
+TIOCM_RTS = hasattr(termios, 'TIOCM_RTS') and termios.TIOCM_RTS or 0x004
+#TIOCM_ST = hasattr(termios, 'TIOCM_ST') and termios.TIOCM_ST or 0x008
+#TIOCM_SR = hasattr(termios, 'TIOCM_SR') and termios.TIOCM_SR or 0x010
 
-TIOCM_CTS = hasattr(TERMIOS, 'TIOCM_CTS') and TERMIOS.TIOCM_CTS or 0x020
-TIOCM_CAR = hasattr(TERMIOS, 'TIOCM_CAR') and TERMIOS.TIOCM_CAR or 0x040
-TIOCM_RNG = hasattr(TERMIOS, 'TIOCM_RNG') and TERMIOS.TIOCM_RNG or 0x080
-TIOCM_DSR = hasattr(TERMIOS, 'TIOCM_DSR') and TERMIOS.TIOCM_DSR or 0x100
-TIOCM_CD  = hasattr(TERMIOS, 'TIOCM_CD') and TERMIOS.TIOCM_CD or TIOCM_CAR
-TIOCM_RI  = hasattr(TERMIOS, 'TIOCM_RI') and TERMIOS.TIOCM_RI or TIOCM_RNG
-#TIOCM_OUT1 = hasattr(TERMIOS, 'TIOCM_OUT1') and TERMIOS.TIOCM_OUT1 or 0x2000
-#TIOCM_OUT2 = hasattr(TERMIOS, 'TIOCM_OUT2') and TERMIOS.TIOCM_OUT2 or 0x4000
-if hasattr(TERMIOS, 'TIOCINQ'):
-    TIOCINQ = TERMIOS.TIOCINQ
+TIOCM_CTS = hasattr(termios, 'TIOCM_CTS') and termios.TIOCM_CTS or 0x020
+TIOCM_CAR = hasattr(termios, 'TIOCM_CAR') and termios.TIOCM_CAR or 0x040
+TIOCM_RNG = hasattr(termios, 'TIOCM_RNG') and termios.TIOCM_RNG or 0x080
+TIOCM_DSR = hasattr(termios, 'TIOCM_DSR') and termios.TIOCM_DSR or 0x100
+TIOCM_CD  = hasattr(termios, 'TIOCM_CD') and termios.TIOCM_CD or TIOCM_CAR
+TIOCM_RI  = hasattr(termios, 'TIOCM_RI') and termios.TIOCM_RI or TIOCM_RNG
+#TIOCM_OUT1 = hasattr(termios, 'TIOCM_OUT1') and termios.TIOCM_OUT1 or 0x2000
+#TIOCM_OUT2 = hasattr(termios, 'TIOCM_OUT2') and termios.TIOCM_OUT2 or 0x4000
+if hasattr(termios, 'TIOCINQ'):
+    TIOCINQ = termios.TIOCINQ
 else:
-    TIOCINQ = hasattr(TERMIOS, 'FIONREAD') and TERMIOS.FIONREAD or 0x541B
-TIOCOUTQ   = hasattr(TERMIOS, 'TIOCOUTQ') and TERMIOS.TIOCOUTQ or 0x5411
+    TIOCINQ = hasattr(termios, 'FIONREAD') and termios.FIONREAD or 0x541B
+TIOCOUTQ   = hasattr(termios, 'TIOCOUTQ') and termios.TIOCOUTQ or 0x5411
 
 TIOCM_zero_str = struct.pack('I', 0)
 TIOCM_RTS_str = struct.pack('I', TIOCM_RTS)
 TIOCM_DTR_str = struct.pack('I', TIOCM_DTR)
 
-TIOCSBRK  = hasattr(TERMIOS, 'TIOCSBRK') and TERMIOS.TIOCSBRK or 0x5427
-TIOCCBRK  = hasattr(TERMIOS, 'TIOCCBRK') and TERMIOS.TIOCCBRK or 0x5428
+TIOCSBRK  = hasattr(termios, 'TIOCSBRK') and termios.TIOCSBRK or 0x5427
+TIOCCBRK  = hasattr(termios, 'TIOCCBRK') and termios.TIOCCBRK or 0x5428
 
 CMSPAR = 0o10000000000 # Use "stick" (mark/space) parity
 
@@ -296,7 +286,7 @@ class Serial(SerialBase, io.RawIOBase):
         except OSError as msg:
             self.fd = None
             raise SerialException(msg.errno, "could not open port %s: %s" % (self._port, msg))
-        #~ fcntl.fcntl(self.fd, FCNTL.F_SETFL, 0)  # set blocking
+        #~ fcntl.fcntl(self.fd, fcntl.F_SETFL, 0)  # set blocking
 
         try:
             self._reconfigurePort()
@@ -330,30 +320,30 @@ class Serial(SerialBase, io.RawIOBase):
         except termios.error as msg:      # if a port is nonexistent but has a /dev file, it'll fail here
             raise SerialException("Could not configure port: %s" % msg)
         # set up raw mode / no echo / binary
-        cflag |=  (TERMIOS.CLOCAL|TERMIOS.CREAD)
-        lflag &= ~(TERMIOS.ICANON|TERMIOS.ECHO|TERMIOS.ECHOE|TERMIOS.ECHOK|TERMIOS.ECHONL|
-                     TERMIOS.ISIG|TERMIOS.IEXTEN) #|TERMIOS.ECHOPRT
+        cflag |=  (termios.CLOCAL|termios.CREAD)
+        lflag &= ~(termios.ICANON|termios.ECHO|termios.ECHOE|termios.ECHOK|termios.ECHONL|
+                     termios.ISIG|termios.IEXTEN) #|termios.ECHOPRT
         for flag in ('ECHOCTL', 'ECHOKE'): # netbsd workaround for Erk
-            if hasattr(TERMIOS, flag):
-                lflag &= ~getattr(TERMIOS, flag)
+            if hasattr(termios, flag):
+                lflag &= ~getattr(termios, flag)
 
-        oflag &= ~(TERMIOS.OPOST|TERMIOS.ONLCR|TERMIOS.OCRNL)
-        iflag &= ~(TERMIOS.INLCR|TERMIOS.IGNCR|TERMIOS.ICRNL|TERMIOS.IGNBRK)
-        if hasattr(TERMIOS, 'IUCLC'):
-            iflag &= ~TERMIOS.IUCLC
-        if hasattr(TERMIOS, 'PARMRK'):
-            iflag &= ~TERMIOS.PARMRK
+        oflag &= ~(termios.OPOST|termios.ONLCR|termios.OCRNL)
+        iflag &= ~(termios.INLCR|termios.IGNCR|termios.ICRNL|termios.IGNBRK)
+        if hasattr(termios, 'IUCLC'):
+            iflag &= ~termios.IUCLC
+        if hasattr(termios, 'PARMRK'):
+            iflag &= ~termios.PARMRK
 
         # setup baud rate
         try:
-            ispeed = ospeed = getattr(TERMIOS, 'B%s' % (self._baudrate))
+            ispeed = ospeed = getattr(termios, 'B%s' % (self._baudrate))
         except AttributeError:
             try:
                 ispeed = ospeed = baudrate_constants[self._baudrate]
             except KeyError:
                 #~ raise ValueError('Invalid baud rate: %r' % self._baudrate)
                 # may need custom baud rate, it isn't in our list.
-                ispeed = ospeed = getattr(TERMIOS, 'B38400')
+                ispeed = ospeed = getattr(termios, 'B38400')
                 try:
                     custom_baud = int(self._baudrate) # store for later
                 except ValueError:
@@ -363,79 +353,79 @@ class Serial(SerialBase, io.RawIOBase):
                         raise ValueError('Invalid baud rate: %r' % self._baudrate)
 
         # setup char len
-        cflag &= ~TERMIOS.CSIZE
+        cflag &= ~termios.CSIZE
         if self._bytesize == 8:
-            cflag |= TERMIOS.CS8
+            cflag |= termios.CS8
         elif self._bytesize == 7:
-            cflag |= TERMIOS.CS7
+            cflag |= termios.CS7
         elif self._bytesize == 6:
-            cflag |= TERMIOS.CS6
+            cflag |= termios.CS6
         elif self._bytesize == 5:
-            cflag |= TERMIOS.CS5
+            cflag |= termios.CS5
         else:
             raise ValueError('Invalid char len: %r' % self._bytesize)
         # setup stop bits
         if self._stopbits == STOPBITS_ONE:
-            cflag &= ~(TERMIOS.CSTOPB)
+            cflag &= ~(termios.CSTOPB)
         elif self._stopbits == STOPBITS_ONE_POINT_FIVE:
-            cflag |=  (TERMIOS.CSTOPB)  # XXX same as TWO.. there is no POSIX support for 1.5
+            cflag |=  (termios.CSTOPB)  # XXX same as TWO.. there is no POSIX support for 1.5
         elif self._stopbits == STOPBITS_TWO:
-            cflag |=  (TERMIOS.CSTOPB)
+            cflag |=  (termios.CSTOPB)
         else:
             raise ValueError('Invalid stop bit specification: %r' % self._stopbits)
         # setup parity
-        iflag &= ~(TERMIOS.INPCK|TERMIOS.ISTRIP)
+        iflag &= ~(termios.INPCK|termios.ISTRIP)
         if self._parity == PARITY_NONE:
-            cflag &= ~(TERMIOS.PARENB|TERMIOS.PARODD)
+            cflag &= ~(termios.PARENB|termios.PARODD)
         elif self._parity == PARITY_EVEN:
-            cflag &= ~(TERMIOS.PARODD)
-            cflag |=  (TERMIOS.PARENB)
+            cflag &= ~(termios.PARODD)
+            cflag |=  (termios.PARENB)
         elif self._parity == PARITY_ODD:
-            cflag |=  (TERMIOS.PARENB|TERMIOS.PARODD)
+            cflag |=  (termios.PARENB|termios.PARODD)
         elif self._parity == PARITY_MARK and plat[:5] == 'linux':
-            cflag |=  (TERMIOS.PARENB|CMSPAR|TERMIOS.PARODD)
+            cflag |=  (termios.PARENB|CMSPAR|termios.PARODD)
         elif self._parity == PARITY_SPACE and plat[:5] == 'linux':
-            cflag |=  (TERMIOS.PARENB|CMSPAR)
-            cflag &= ~(TERMIOS.PARODD)
+            cflag |=  (termios.PARENB|CMSPAR)
+            cflag &= ~(termios.PARODD)
         else:
             raise ValueError('Invalid parity: %r' % self._parity)
         # setup flow control
         # xonxoff
-        if hasattr(TERMIOS, 'IXANY'):
+        if hasattr(termios, 'IXANY'):
             if self._xonxoff:
-                iflag |=  (TERMIOS.IXON|TERMIOS.IXOFF) #|TERMIOS.IXANY)
+                iflag |=  (termios.IXON|termios.IXOFF) #|termios.IXANY)
             else:
-                iflag &= ~(TERMIOS.IXON|TERMIOS.IXOFF|TERMIOS.IXANY)
+                iflag &= ~(termios.IXON|termios.IXOFF|termios.IXANY)
         else:
             if self._xonxoff:
-                iflag |=  (TERMIOS.IXON|TERMIOS.IXOFF)
+                iflag |=  (termios.IXON|termios.IXOFF)
             else:
-                iflag &= ~(TERMIOS.IXON|TERMIOS.IXOFF)
+                iflag &= ~(termios.IXON|termios.IXOFF)
         # rtscts
-        if hasattr(TERMIOS, 'CRTSCTS'):
+        if hasattr(termios, 'CRTSCTS'):
             if self._rtscts:
-                cflag |=  (TERMIOS.CRTSCTS)
+                cflag |=  (termios.CRTSCTS)
             else:
-                cflag &= ~(TERMIOS.CRTSCTS)
-        elif hasattr(TERMIOS, 'CNEW_RTSCTS'):   # try it with alternate constant name
+                cflag &= ~(termios.CRTSCTS)
+        elif hasattr(termios, 'CNEW_RTSCTS'):   # try it with alternate constant name
             if self._rtscts:
-                cflag |=  (TERMIOS.CNEW_RTSCTS)
+                cflag |=  (termios.CNEW_RTSCTS)
             else:
-                cflag &= ~(TERMIOS.CNEW_RTSCTS)
+                cflag &= ~(termios.CNEW_RTSCTS)
         # XXX should there be a warning if setting up rtscts (and xonxoff etc) fails??
 
         # buffer
         # vmin "minimal number of characters to be read. 0 for non blocking"
         if vmin < 0 or vmin > 255:
             raise ValueError('Invalid vmin: %r ' % vmin)
-        cc[TERMIOS.VMIN] = vmin
+        cc[termios.VMIN] = vmin
         # vtime
         if vtime < 0 or vtime > 255:
             raise ValueError('Invalid vtime: %r' % vtime)
-        cc[TERMIOS.VTIME] = vtime
+        cc[termios.VTIME] = vtime
         # activate settings
         if [iflag, oflag, cflag, lflag, ispeed, ospeed, cc] != orig_attr:
-            termios.tcsetattr(self.fd, TERMIOS.TCSANOW, [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
+            termios.tcsetattr(self.fd, termios.TCSANOW, [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
 
         # apply custom baud rate, if any
         if custom_baud is not None:
@@ -456,7 +446,7 @@ class Serial(SerialBase, io.RawIOBase):
 
     def inWaiting(self):
         """Return the number of characters currently in the input buffer."""
-        #~ s = fcntl.ioctl(self.fd, TERMIOS.FIONREAD, TIOCM_zero_str)
+        #~ s = fcntl.ioctl(self.fd, termios.FIONREAD, TIOCM_zero_str)
         s = fcntl.ioctl(self.fd, TIOCINQ, TIOCM_zero_str)
         return struct.unpack('I',s)[0]
 
@@ -545,7 +535,7 @@ class Serial(SerialBase, io.RawIOBase):
     def flushInput(self):
         """Clear input buffer, discarding all that is in the buffer."""
         if not self._isOpen: raise portNotOpenError
-        termios.tcflush(self.fd, TERMIOS.TCIFLUSH)
+        termios.tcflush(self.fd, termios.TCIFLUSH)
 
     def flushOutput(self):
         """\
@@ -553,7 +543,7 @@ class Serial(SerialBase, io.RawIOBase):
         that is in the buffer.
         """
         if not self._isOpen: raise portNotOpenError
-        termios.tcflush(self.fd, TERMIOS.TCOFLUSH)
+        termios.tcflush(self.fd, termios.TCOFLUSH)
 
     def sendBreak(self, duration=0.25):
         """\
@@ -617,7 +607,7 @@ class Serial(SerialBase, io.RawIOBase):
 
     def outWaiting(self):
         """Return the number of characters currently in the output buffer."""
-        #~ s = fcntl.ioctl(self.fd, TERMIOS.FIONREAD, TIOCM_zero_str)
+        #~ s = fcntl.ioctl(self.fd, termios.FIONREAD, TIOCM_zero_str)
         s = fcntl.ioctl(self.fd, TIOCOUTQ, TIOCM_zero_str)
         return struct.unpack('I',s)[0]
 
@@ -629,7 +619,7 @@ class Serial(SerialBase, io.RawIOBase):
     def nonblocking(self):
         """internal - not portable!"""
         if not self._isOpen: raise portNotOpenError
-        fcntl.fcntl(self.fd, FCNTL.F_SETFL, os.O_NONBLOCK)
+        fcntl.fcntl(self.fd, fcntl.F_SETFL, os.O_NONBLOCK)
 
     def fileno(self):
         """\
@@ -647,9 +637,9 @@ class Serial(SerialBase, io.RawIOBase):
         """
         if not self._isOpen: raise portNotOpenError
         if enable:
-            termios.tcflow(self.fd, TERMIOS.TCION)
+            termios.tcflow(self.fd, termios.TCION)
         else:
-            termios.tcflow(self.fd, TERMIOS.TCIOFF)
+            termios.tcflow(self.fd, termios.TCIOFF)
 
     def flowControlOut(self, enable):
         """\
@@ -659,9 +649,9 @@ class Serial(SerialBase, io.RawIOBase):
         """
         if not self._isOpen: raise portNotOpenError
         if enable:
-            termios.tcflow(self.fd, TERMIOS.TCOON)
+            termios.tcflow(self.fd, termios.TCOON)
         else:
-            termios.tcflow(self.fd, TERMIOS.TCOOFF)
+            termios.tcflow(self.fd, termios.TCOOFF)
 
 
 
