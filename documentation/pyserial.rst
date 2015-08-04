@@ -12,18 +12,16 @@ automatically selects the appropriate backend.
 It is released under a free software license, see LICENSE_ for more
 details.
 
-Copyright (C) 2001-2013 Chris Liechti <cliechti(at)gmx.net>
+Copyright (C) 2001-2015 Chris Liechti <cliechti(at)gmx.net>
 
 Other pages (online)
 
-- `project page on SourceForge`_
-- `SVN repository`_
+- `project page on GitHub`_
 - `Download Page`_ with releases (PyPi)
-- This page, when viewed online is at http://pyserial.sf.net.
+- This page, when viewed online is at http://pythonhosted.org/pyserial/ .
 
 .. _LICENSE: appendix.html#license
-.. _`project page on SourceForge`: http://sourceforge.net/projects/pyserial/
-.. _`SVN repository`: http://svn.code.sf.net/p/pyserial/code/trunk
+.. _`project page on GitHub`: https://github.com/pyserial/pyserial/
 .. _`Download Page`: http://pypi.python.org/pypi/pyserial
 
 
@@ -39,14 +37,13 @@ Features
 - The port is set up for binary transmission. No NULL byte stripping, CR-LF
   translation etc. (which are many times enabled for POSIX.) This makes this
   module universally useful.
-- Compatible with :mod:`io` library (Python 2.6+)
+- Compatible with :mod:`io` library
 - RFC 2217 client (experimental), server provided in the examples.
 
 
 Requirements
 ============
-- Python 2.3 or newer, including Python 3.x
-- ctypes extension on Windows (is in standard library since Python 2.5+)
+- Python 2.7 or newer, including Python 3.4 and newer
 - "Java Communications" (JavaComm) or compatible extension for Java/Jython
 
 
@@ -118,5 +115,5 @@ MacOSX and Jython.
 On windows releases older than 2.5 will depend on pywin32_ (previously known as
 win32all)
 
-.. _download: http://sourceforge.net/projects/pyserial/files/pyserial/
+.. _download: https://pypi.python.org/pypi/pyserial
 .. _pywin32: http://pypi.python.org/pypi/pywin32

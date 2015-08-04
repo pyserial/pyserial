@@ -9,8 +9,8 @@ Open port 0 at "9600,8,N,1", no timeout::
 
     >>> import serial
     >>> ser = serial.Serial(0)  # open first serial port
-    >>> print ser.name          # check which port was really used
-    >>> ser.write("hello")      # write a string
+    >>> print(ser.name)         # check which port was really used
+    >>> ser.write(b"hello")     # write a string
     >>> ser.close()             # close port
 
 Open named port at "19200,8,N,1", 1s timeout::
@@ -75,7 +75,7 @@ mode, it is advised to use io.TextIOWrapper_::
         sio.write(unicode("hello\n"))
         sio.flush() # it is buffering. required to get the data out *now*
         hello = sio.readline()
-        print hello == unicode("hello\n")
+        print(hello == unicode("hello\n"))
 
 
 .. _io.TextIOWrapper: http://docs.python.org/library/io.html#io.TextIOWrapper
@@ -100,5 +100,5 @@ include entries that matched.
 Accessing ports
 ---------------
 pySerial includes a small console based terminal program called
-:ref:`miniterm`.  It ca be started with ``python -m serial.tools.miniterm <port name>``
+:ref:`miniterm`.  It ca be started with ``python -m serial.tools.miniterm <port_name>``
 (use option ``-h`` to get a listing of all options).

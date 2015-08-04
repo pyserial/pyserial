@@ -10,13 +10,11 @@ automatically selects the appropriate backend.
 
 Other pages (online)
 
-- `project page on SourceForge`_
-- `SVN repository`_
+- `project page on GitHub`_
 - `Download Page`_ with releases
-- This page, when viewed online, is at http://pyserial.sf.net.
+- This page, when viewed online, is at http://pythonhosted.org/pyserial/ .
 
-.. _`project page on SourceForge`: http://sourceforge.net/projects/pyserial/
-.. _`SVN repository`: http://svn.code.sf.net/p/pyserial/code/trunk
+.. _`project page on GitHub`: https://github.com/pyserial/
 .. _`Download Page`: http://pypi.python.org/pypi/pyserial
 
 
@@ -29,7 +27,6 @@ Contents:
     shortintro
     examples
     pyserial_api
-    pyparallel
     appendix
 
 Indices and tables
