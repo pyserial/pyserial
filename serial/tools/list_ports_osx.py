@@ -87,7 +87,7 @@ def get_string_property(device_t, property):
     output = None
 
     if CFContainer:
-        output = cf.CFStringGetCStringPtr(CFContainer, 0)
+        output = cf.CFStringGetCStringPtr(CFContainer, 0).decode('mac_roman')
 
     return output
 
@@ -133,6 +133,7 @@ def GetParentDeviceByType(device, parent_type):
         @return Pointer to the parent type, or None if it was not found.
     """
     # First, try to walk up the IOService tree to find a parent of this device that is a IOUSBDevice.
+    parent_type = parent_type.encode('mac_roman')
     while IORegistryEntryGetName(device) != parent_type:
         parent = ctypes.c_void_p()
         response = iokit.IORegistryEntryGetParentEntry(
@@ -156,7 +157,7 @@ def GetIOServicesByType(service_type):
 
     response = iokit.IOServiceGetMatchingServices(
         kIOMasterPortDefault,
-        iokit.IOServiceMatching(service_type),
+        iokit.IOServiceMatching(service_type.encode('mac_roman')),
         ctypes.byref(serial_port_iterator)
     )
 
