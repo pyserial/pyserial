@@ -31,7 +31,9 @@ Installation
 ============
 ``pip install pyserial`` should work for most users.
 
-Detailed information can be found in "documentation/pyserial.rst".
+Detailed information can be found in `documentation/pyserial.rst`_.
 
 The usual setup.py for Python libraries is used for the source distribution.
 Windows installers are also available (see download link above).
+
+.. _`documentation/pyserial.rst`: https://github.com/pyserial/pyserial/blob/master/documentation/pyserial.rst#installation
