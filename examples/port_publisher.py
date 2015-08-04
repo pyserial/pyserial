@@ -342,21 +342,42 @@ to it!
 If running as daemon, write to syslog. Otherwise write to stdout.
 """)
 
-    parser.add_option("-q", "--quiet", dest="quiet", action="store_true",
-        help="suppress non error messages", default=False)
+    parser.add_option("-q", "--quiet",
+            dest="quiet",
+            action="store_true",
+            help="suppress non error messages",
+            default=False)
 
-    parser.add_option("-o", "--logfile", dest="log_file",
-        help="write messages file instead of stdout", default=None, metavar="FILE")
+    parser.add_option("-o", "--logfile",
+            dest="log_file",
+            help="write messages file instead of stdout",
+            default=None,
+            metavar="FILE")
 
-    parser.add_option("-d", "--daemon", dest="daemonize", action="store_true",
-            help="start as daemon", default=False)
+    parser.add_option("-d", "--daemon",
+            dest="daemonize",
+            action="store_true",
+            help="start as daemon",
+            default=False)
 
-    parser.add_option("", "--pidfile", dest="pid_file",
-        help="specify a name for the PID file", default=None, metavar="FILE")
+    parser.add_option("", "--pidfile",
+            dest="pid_file",
+            help="specify a name for the PID file",
+            default=None,
+            metavar="FILE")
 
-    parser.add_option("", "--ports-regex", dest="ports_regex",
-        help="specify a regex to search against the serial devices and their descriptions",
-        default='/dev/ttyUSB[0-9]+', metavar="REGEX")
+    parser.add_option("-p", "--port",
+            dest="base_port",
+            help="specify lowest TCP port number (default: %default)",
+            default=7000,
+            type='int',
+            metavar="PORT")
+
+    parser.add_option("", "--ports-regex",
+            dest="ports_regex",
+            help="specify a regex to search against the serial devices and their descriptions (default: %default)",
+            default='/dev/ttyUSB[0-9]+',
+            metavar="REGEX")
 
     (options, args) = parser.parse_args()
 
@@ -462,7 +483,7 @@ If running as daemon, write to syslog. Otherwise write to stdout.
                 # Handle devices that are connected but not yet published
                 for device in set(connected).difference(published):
                     # Find the first available port, starting from 7000
-                    port = 7000
+                    port = options.base_port
                     ports_in_use = [f.network_port for f in published.values()]
                     while port in ports_in_use:
                         port += 1
@@ -502,6 +523,7 @@ If running as daemon, write to syslog. Otherwise write to stdout.
             # print "operation used %.3f s" % (time.time() - select_end)
         except KeyboardInterrupt:
             alive = False
+            sys.stdout.write('\n')
         except SystemExit:
             raise
         except:
