@@ -528,3 +528,7 @@ Bugfixes (posix):
 - [Patch pyserial:36 / 38] Make USB information work in python 3.4 and 2.7
 - clear OCRNL/ONLCR flags (CR/LF translation settings)
 
+Bugfixes (win32):
+
+- [Bug pyserial:169] missing "import time" in serialwin32.py
+

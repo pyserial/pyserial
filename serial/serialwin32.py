@@ -10,6 +10,7 @@
 
 import ctypes
 import io
+import time
 from serial import win32
 
 from serial.serialutil import *
@@ -330,7 +331,6 @@ class Serial(SerialBase, io.RawIOBase):
         Send break condition. Timed, returns to idle state after given duration.
         """
         if not self.hComPort: raise portNotOpenError
-        import time
         win32.SetCommBreak(self.hComPort)
         time.sleep(duration)
         win32.ClearCommBreak(self.hComPort)
