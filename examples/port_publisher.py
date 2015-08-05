@@ -354,49 +354,65 @@ to it!
 If running as daemon, write to syslog. Otherwise write to stdout.
 """)
 
-    parser.add_option("-q", "--quiet",
-            dest="verbosity",
-            action="store_const",
-            const=0,
-            help="suppress most diagnostic messages",
-            default=False)
+    group = optparse.OptionGroup(parser, "Serial Port Settings")
 
-    parser.add_option("-v", "--verbose",
-            dest="verbosity",
-            action="count",
-            help="increase diagnostic messages",
-            default=1)
+    group.add_option("", "--ports-regex",
+            dest="ports_regex",
+            help="specify a regex to search against the serial devices and their descriptions (default: %default)",
+            default='/dev/ttyUSB[0-9]+',
+            metavar="REGEX")
 
-    parser.add_option("-o", "--logfile",
-            dest="log_file",
-            help="write messages file instead of stdout",
-            default=None,
-            metavar="FILE")
+    parser.add_option_group(group)
 
-    parser.add_option("-d", "--daemon",
-            dest="daemonize",
-            action="store_true",
-            help="start as daemon",
-            default=False)
+    group = optparse.OptionGroup(parser, "Network Settings")
 
-    parser.add_option("", "--pidfile",
-            dest="pid_file",
-            help="specify a name for the PID file",
-            default=None,
-            metavar="FILE")
-
-    parser.add_option("-p", "--port",
+    group.add_option("", "--tcp-port",
             dest="base_port",
             help="specify lowest TCP port number (default: %default)",
             default=7000,
             type='int',
             metavar="PORT")
 
-    parser.add_option("", "--ports-regex",
-            dest="ports_regex",
-            help="specify a regex to search against the serial devices and their descriptions (default: %default)",
-            default='/dev/ttyUSB[0-9]+',
-            metavar="REGEX")
+    parser.add_option_group(group)
+
+    group = optparse.OptionGroup(parser, "Daemon")
+
+    group.add_option("-d", "--daemon",
+            dest="daemonize",
+            action="store_true",
+            help="start as daemon",
+            default=False)
+
+    group.add_option("", "--pidfile",
+            dest="pid_file",
+            help="specify a name for the PID file",
+            default=None,
+            metavar="FILE")
+
+    parser.add_option_group(group)
+
+    group = optparse.OptionGroup(parser, "Diagnostics")
+
+    group.add_option("-o", "--logfile",
+            dest="log_file",
+            help="write messages file instead of stdout",
+            default=None,
+            metavar="FILE")
+
+    group.add_option("-q", "--quiet",
+            dest="verbosity",
+            action="store_const",
+            const=0,
+            help="suppress most diagnostic messages",
+            default=False)
+
+    group.add_option("-v", "--verbose",
+            dest="verbosity",
+            action="count",
+            help="increase diagnostic messages",
+            default=1)
+
+    parser.add_option_group(group)
 
     (options, args) = parser.parse_args()
 
@@ -441,10 +457,9 @@ If running as daemon, write to syslog. Otherwise write to stdout.
         try:
             pid = os.fork()
             if pid > 0:
-                # exit from second parent, print eventual PID before
-                # print "Daemon PID %d" % pid
+                # exit from second parent, save eventual PID before
                 if options.pid_file is not None:
-                    open(options.pid_file,'w').write("%d"%pid)
+                    open(options.pid_file, 'w').write("%d" % pid)
                 sys.exit(0)
         except OSError as e:
             log.critical("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
@@ -511,11 +526,11 @@ If running as daemon, write to syslog. Otherwise write to stdout.
                     while port in ports_in_use:
                         port += 1
                     published[device] = Forwarder(
-                        device,
-                        "%s on %s" % (device, hostname),
-                        port,
-                        on_close=unpublish,
-                        log=log
+                            device,
+                            "%s on %s" % (device, hostname),
+                            port,
+                            on_close=unpublish,
+                            log=log
                     )
                     log.warning("publish: %s" % (published[device]))
                     published[device].open()
@@ -528,10 +543,10 @@ If running as daemon, write to syslog. Otherwise write to stdout.
                 publisher.update_select_maps(read_map, write_map, error_map)
             try:
                 readers, writers, errors = select.select(
-                    read_map.keys(),
-                    write_map.keys(),
-                    error_map.keys(),
-                    5
+                        read_map.keys(),
+                        write_map.keys(),
+                        error_map.keys(),
+                        5
                 )
             except select.error as err:
                 if err[0] != EINTR:
