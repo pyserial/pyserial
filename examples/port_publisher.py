@@ -118,8 +118,8 @@ class Forwarder(ZeroconfService):
 
     def open(self):
         """open serial port, start network server and publish service"""
-        self.buffer_net2ser = ''
-        self.buffer_ser2net = ''
+        self.buffer_net2ser = bytearray()
+        self.buffer_ser2net = bytearray()
 
         # open serial port
         try:
@@ -199,7 +199,7 @@ class Forwarder(ZeroconfService):
                 error_map[self.socket] = self.handle_socket_error
             else:
                 # no connection, ensure clear buffer
-                self.buffer_ser2net = ''
+                self.buffer_ser2net = bytearray()
             # check the server socket
             read_map[self.server_socket] = self.handle_connect
             error_map[self.server_socket] = self.handle_server_error
@@ -225,7 +225,7 @@ class Forwarder(ZeroconfService):
         """Writing to serial port"""
         try:
             # write a chunk
-            n = os.write(self.serial.fileno(), self.buffer_net2ser)
+            n = os.write(self.serial.fileno(), bytes(self.buffer_net2ser))
             # and see how large that chunk was, remove that from buffer
             self.buffer_net2ser = self.buffer_net2ser[n:]
         except Exception as msg:
@@ -257,7 +257,7 @@ class Forwarder(ZeroconfService):
         """Write to socket"""
         try:
             # write a chunk
-            count = self.socket.send(self.buffer_ser2net)
+            count = self.socket.send(bytes(self.buffer_ser2net))
             # and remove the sent data from the buffer
             self.buffer_ser2net = self.buffer_ser2net[count:]
         except socket.error:
@@ -288,6 +288,8 @@ class Forwarder(ZeroconfService):
                 print('%s: Connected by %s:%s' % (self.device, addr[0], addr[1]))
             self.serial.setRTS(True)
             self.serial.setDTR(True)
+            # XXX set logger only optionally
+            #~ self.rfc2217 = serial.rfc2217.PortManager(self.serial, self, logger=logging.getLogger('rfc2217.%s' % self.device))
             self.rfc2217 = serial.rfc2217.PortManager(self.serial, self)
         else:
             # reject connection if there is already one
@@ -311,7 +313,7 @@ class Forwarder(ZeroconfService):
             # stop RFC 2217 state machine
             self.rfc2217 = None
             # clear send buffer
-            self.buffer_ser2net = ''
+            self.buffer_ser2net = bytearray()
             # close network connection
             if self.socket is not None:
                 self.socket.close()
@@ -328,6 +330,7 @@ def test():
 
 
 if __name__ == '__main__':
+    import logging
     import optparse
 
     parser = optparse.OptionParser(usage="""\
@@ -380,6 +383,9 @@ If running as daemon, write to syslog. Otherwise write to stdout.
             metavar="REGEX")
 
     (options, args) = parser.parse_args()
+
+    # XXX make it depend on command line option
+    #~ logging.basicConfig(level=logging.DEBUG)
 
     # redirect output if specified
     if options.log_file is not None:

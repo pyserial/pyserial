@@ -7,7 +7,7 @@
 # protocol to access serial ports over TCP/IP and allows setting the baud rate,
 # modem control lines etc.
 #
-# (C) 2001-2013 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
 # TODO:
@@ -51,7 +51,7 @@
 #    rfc2217://<host>:<port>[/option[/option...]]
 #
 # options:
-# - "debug" print diagnostic messages
+# - "logging" set log level print diagnostic messages (e.g. "logging=debug")
 # - "ign_set_control": do not look at the answers to SET_CONTROL
 # - "poll_modem": issue NOTIFY_MODEMSTATE requests when CTS/DTR/RI/CD is read.
 #   Without this option it expects that the server sends notifications
@@ -480,12 +480,12 @@ class Serial(SerialBase, io.RawIOBase):
 
         # Setup the connection
         # to get good performance, all parameter changes are sent first...
-        if not isinstance(self._baudrate, (int, long)) or not 0 < self._baudrate < 2**32:
+        if not 0 < self._baudrate < 2**32:
             raise ValueError("invalid baudrate: %r" % (self._baudrate))
-        self._rfc2217_port_settings['baudrate'].set(struct.pack('!I', self._baudrate))
-        self._rfc2217_port_settings['datasize'].set(struct.pack('!B', self._bytesize))
-        self._rfc2217_port_settings['parity'].set(struct.pack('!B', RFC2217_PARITY_MAP[self._parity]))
-        self._rfc2217_port_settings['stopsize'].set(struct.pack('!B', RFC2217_STOPBIT_MAP[self._stopbits]))
+        self._rfc2217_port_settings['baudrate'].set(struct.pack(b'!I', self._baudrate))
+        self._rfc2217_port_settings['datasize'].set(struct.pack(b'!B', self._bytesize))
+        self._rfc2217_port_settings['parity'].set(struct.pack(b'!B', RFC2217_PARITY_MAP[self._parity]))
+        self._rfc2217_port_settings['stopsize'].set(struct.pack(b'!B', RFC2217_STOPBIT_MAP[self._stopbits]))
 
         # and now wait until parameters are active
         items = self._rfc2217_port_settings.values()
@@ -584,7 +584,7 @@ class Serial(SerialBase, io.RawIOBase):
             while len(data) < size:
                 if self._thread is None:
                     raise SerialException('connection failed (reader thread died)')
-                data.append(self._read_buffer.get(True, self._timeout))
+                data += self._read_buffer.get(True, self._timeout)
         except Queue.Empty: # -> timeout
             pass
         return bytes(data)
@@ -596,14 +596,11 @@ class Serial(SerialBase, io.RawIOBase):
         closed.
         """
         if not self._isOpen: raise portNotOpenError
-        self._write_lock.acquire()
-        try:
+        with self._write_lock:
             try:
                 self._socket.sendall(to_bytes(data).replace(IAC, IAC_DOUBLED))
             except socket.error as e:
                 raise SerialException("connection failed (socket error): %s" % e) # XXX what exception if socket connection fails
-        finally:
-            self._write_lock.release()
         return len(data)
 
     def flushInput(self):
@@ -708,7 +705,9 @@ class Serial(SerialBase, io.RawIOBase):
                         self.logger.debug("socket error in reader thread: %s" % (e,))
                     break
                 if not data: break # lost connection
-                for byte in data:
+                #~ for byte in data:    # fails for python3 as it returns ints instead of b''
+                for x in range(len(data)):
+                    byte = data[x:x+1]
                     if mode == M_NORMAL:
                         # interpret as command or as data
                         if byte == IAC:
@@ -717,7 +716,7 @@ class Serial(SerialBase, io.RawIOBase):
                             # store data in read buffer or sub option buffer
                             # depending on state
                             if suboption is not None:
-                                suboption.append(byte)
+                                suboption += byte
                             else:
                                 self._read_buffer.put(byte)
                     elif mode == M_IAC_SEEN:
@@ -725,7 +724,7 @@ class Serial(SerialBase, io.RawIOBase):
                             # interpret as command doubled -> insert character
                             # itself
                             if suboption is not None:
-                                suboption.append(IAC)
+                                suboption += IAC
                             else:
                                 self._read_buffer.put(IAC)
                             mode = M_NORMAL
@@ -816,11 +815,8 @@ class Serial(SerialBase, io.RawIOBase):
 
     def _internal_raw_write(self, data):
         """internal socket write with no data escaping. used to send telnet stuff."""
-        self._write_lock.acquire()
-        try:
+        with self._write_lock:
             self._socket.sendall(data)
-        finally:
-            self._write_lock.release()
 
     def telnetSendOption(self, action, option):
         """Send DO, DONT, WILL, WONT."""
@@ -874,9 +870,10 @@ class Serial(SerialBase, io.RawIOBase):
                 # when expiration time is updated, it means that there is a new
                 # value
                 if self._modemstate_expires > time.time():
-                    if self.logger:
-                        self.logger.warning('poll for modem state failed')
                     break
+            else:
+                if self.logger:
+                    self.logger.warning('poll for modem state failed')
             # even when there is a timeout, do not generate an error just
             # return the last known value. this way we can support buggy
             # servers that do not respond to polls, but send automatic
@@ -1033,7 +1030,9 @@ class PortManager(object):
 
         (socket error handling code left as exercise for the reader)
         """
-        for byte in data:
+        #~ for byte in data:    # XXX fails for python3 as it returns ints instead of bytes
+        for x in range(len(data)):
+            byte = data[x:x+1]
             if self.mode == M_NORMAL:
                 # interpret as command or as data
                 if byte == IAC:
@@ -1042,7 +1041,7 @@ class PortManager(object):
                     # store data in sub option buffer or pass it to our
                     # consumer depending on state
                     if self.suboption is not None:
-                        self.suboption.append(byte)
+                        self.suboption += byte
                     else:
                         yield byte
             elif self.mode == M_IAC_SEEN:
@@ -1050,7 +1049,7 @@ class PortManager(object):
                     # interpret as command doubled -> insert character
                     # itself
                     if self.suboption is not None:
-                        self.suboption.append(byte)
+                        self.suboption += byte
                     else:
                         yield byte
                     self.mode = M_NORMAL
@@ -1111,7 +1110,7 @@ class PortManager(object):
             if suboption[1:2] == SET_BAUDRATE:
                 backup = self.serial.baudrate
                 try:
-                    (baudrate,) = struct.unpack("!I", suboption[2:6])
+                    (baudrate,) = struct.unpack(b"!I", suboption[2:6])
                     if baudrate != 0:
                         self.serial.baudrate = baudrate
                 except ValueError as e:
@@ -1121,7 +1120,7 @@ class PortManager(object):
                 else:
                     if self.logger:
                         self.logger.info("%s baud rate: %s" % (baudrate and 'set' or 'get', self.serial.baudrate))
-                self.rfc2217SendSubnegotiation(SERVER_SET_BAUDRATE, struct.pack("!I", self.serial.baudrate))
+                self.rfc2217SendSubnegotiation(SERVER_SET_BAUDRATE, struct.pack(b"!I", self.serial.baudrate))
             elif suboption[1:2] == SET_DATASIZE:
                 backup = self.serial.bytesize
                 try:
@@ -1135,11 +1134,11 @@ class PortManager(object):
                 else:
                     if self.logger:
                         self.logger.info("%s data size: %s" % (datasize and 'set' or 'get', self.serial.bytesize))
-                self.rfc2217SendSubnegotiation(SERVER_SET_DATASIZE, struct.pack("!B", self.serial.bytesize))
+                self.rfc2217SendSubnegotiation(SERVER_SET_DATASIZE, struct.pack(b"!B", self.serial.bytesize))
             elif suboption[1:2] == SET_PARITY:
                 backup = self.serial.parity
                 try:
-                    parity = struct.unpack("!B", suboption[2:3])[0]
+                    parity = struct.unpack(b"!B", suboption[2:3])[0]
                     if parity != 0:
                             self.serial.parity = RFC2217_REVERSE_PARITY_MAP[parity]
                 except ValueError as e:
@@ -1156,7 +1155,7 @@ class PortManager(object):
             elif suboption[1:2] == SET_STOPSIZE:
                 backup = self.serial.stopbits
                 try:
-                    stopbits = struct.unpack("!B", suboption[2:3])[0]
+                    stopbits = struct.unpack(b"!B", suboption[2:3])[0]
                     if stopbits != 0:
                         self.serial.stopbits = RFC2217_REVERSE_STOPBIT_MAP[stopbits]
                 except ValueError as e:
@@ -1168,7 +1167,7 @@ class PortManager(object):
                         self.logger.info("%s stop bits: %s" % (stopbits and 'set' or 'get', self.serial.stopbits))
                 self.rfc2217SendSubnegotiation(
                     SERVER_SET_STOPSIZE,
-                    struct.pack("!B", RFC2217_STOPBIT_MAP[self.serial.stopbits])
+                    struct.pack(b"!B", RFC2217_STOPBIT_MAP[self.serial.stopbits])
                     )
             elif suboption[1:2] == SET_CONTROL:
                 if suboption[2:3] == SET_CONTROL_REQ_FLOW_SETTING:
