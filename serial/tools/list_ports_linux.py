@@ -142,7 +142,10 @@ def hwinfo(device):
     return 'n/a'    # XXX directly remove these from the list?
 
 def comports():
-    devices = glob.glob('/dev/ttyS*') + glob.glob('/dev/ttyUSB*') + glob.glob('/dev/ttyACM*')
+    devices = glob.glob('/dev/ttyS*')           # built-in serial ports
+    devices.extend(glob.glob('/dev/ttyUSB*'))   # usb-serial with own driver
+    devices.extend(glob.glob('/dev/ttyACM*'))   # usb-serial with CDC-ACM profile
+    devices.extend(glob.glob('/dev/rfcomm*'))   # BT serial devices
     return [(d, describe(d), hwinfo(d)) for d in devices]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
