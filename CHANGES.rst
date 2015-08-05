@@ -521,6 +521,7 @@ Version 3.x     2015-xx-xx
 Bugfixes:
 
 - [Bug pyserial:172] applySettingsDict() throws an error if the settings dictionary is not complete
+- [Bug pyserial:185] SocketSerial.read() never returns data when timeout==0
 
 Bugfixes (posix):
 

@@ -148,13 +148,11 @@ class SocketSerial(SerialBase):
             timeout = time.time() + self._timeout
         else:
             timeout = None
-        while len(data) < size and (timeout is None or time.time() < timeout):
+        while len(data) < size:
             try:
                 # an implementation with internal buffer would be better
                 # performing...
-                t = time.time()
                 block = self._socket.recv(size - len(data))
-                duration = time.time() - t
                 if block:
                     data.extend(block)
                 else:
@@ -167,6 +165,8 @@ class SocketSerial(SerialBase):
             except socket.error as e:
                 # connection fails -> terminate loop
                 raise SerialException('connection failed (%s)' % e)
+            if timeout is not None and time.time() > timeout:
+                break
         return bytes(data)
 
     def write(self, data):
