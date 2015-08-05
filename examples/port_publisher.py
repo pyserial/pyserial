@@ -541,16 +541,12 @@ If running as daemon, write to syslog. Otherwise write to stdout.
             error_map = {}
             for publisher in published.values():
                 publisher.update_select_maps(read_map, write_map, error_map)
-            try:
-                readers, writers, errors = select.select(
-                        read_map.keys(),
-                        write_map.keys(),
-                        error_map.keys(),
-                        5
-                )
-            except select.error as err:
-                if err[0] != EINTR:
-                    raise
+            readers, writers, errors = select.select(
+                    read_map.keys(),
+                    write_map.keys(),
+                    error_map.keys(),
+                    5
+            )
             # select_end = time.time()
             # print "select used %.3f s" % (select_end - select_start)
             for reader in readers:
