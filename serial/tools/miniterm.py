@@ -597,6 +597,15 @@ def main():
         default = False
     )
 
+    group.add_option("", "--develop",
+        dest = "develop",
+        action = "store_true",
+        help = "show Python traceback on error",
+        default = False
+    )
+
+
+
     parser.add_option_group(group)
 
 
@@ -655,6 +664,8 @@ def main():
         )
     except serial.SerialException as e:
         sys.stderr.write("could not open port %r: %s\n" % (port, e))
+        if options.develop:
+            raise
         sys.exit(1)
 
     if not options.quiet:
