@@ -96,11 +96,12 @@ class Forwarder(ZeroconfService):
     - Zeroconf publish/unpublish on open/close.
     """
 
-    def __init__(self, device, name, network_port, on_close=None):
+    def __init__(self, device, name, network_port, on_close=None, log=None):
         ZeroconfService.__init__(self, name, network_port, stype='_serial_port._tcp')
         self.alive = False
         self.network_port = network_port
         self.on_close = on_close
+        self.log = log
         self.device = device
         self.serial = serial.Serial()
         self.serial.port = device
@@ -147,8 +148,8 @@ class Forwarder(ZeroconfService):
         except socket.error as msg:
             self.handle_server_error()
             #~ raise
-        if not options.quiet:
-            print("%s: Waiting for connection on %s..." % (self.device, self.network_port))
+        if self.log is not None:
+            self.log.info("%s: Waiting for connection on %s..." % (self.device, self.network_port))
 
         # zeroconfig
         self.publish()
@@ -158,8 +159,8 @@ class Forwarder(ZeroconfService):
 
     def close(self):
         """Close all resources and unpublish service"""
-        if not options.quiet:
-            print("%s: closing..." % (self.device, ))
+        if self.log is not None:
+            self.log.info("%s: closing..." % (self.device, ))
         self.alive = False
         self.unpublish()
         if self.server_socket: self.server_socket.close()
@@ -284,18 +285,19 @@ class Forwarder(ZeroconfService):
             self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
             self.socket.setblocking(0)
             self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-            if not options.quiet:
-                print('%s: Connected by %s:%s' % (self.device, addr[0], addr[1]))
+            if self.log is not None:
+                self.log.info('%s: Connected by %s:%s' % (self.device, addr[0], addr[1]))
             self.serial.setRTS(True)
             self.serial.setDTR(True)
-            # XXX set logger only optionally
-            #~ self.rfc2217 = serial.rfc2217.PortManager(self.serial, self, logger=logging.getLogger('rfc2217.%s' % self.device))
-            self.rfc2217 = serial.rfc2217.PortManager(self.serial, self)
+            if self.log is not None:
+                self.rfc2217 = serial.rfc2217.PortManager(self.serial, self, logger=log.getChild(self.device))
+            else:
+                self.rfc2217 = serial.rfc2217.PortManager(self.serial, self)
         else:
             # reject connection if there is already one
             connection.close()
-            if not options.quiet:
-                print('%s: Rejecting connect from %s:%s' % (self.device, addr[0], addr[1]))
+            if self.log is not None:
+                self.log.info('%s: Rejecting connect from %s:%s' % (self.device, addr[0], addr[1]))
 
     def handle_server_error(self):
         """Socket server fails"""
@@ -318,8 +320,8 @@ class Forwarder(ZeroconfService):
             if self.socket is not None:
                 self.socket.close()
                 self.socket = None
-                if not options.quiet:
-                    print('%s: Disconnected' % self.device)
+                if self.log is not None:
+                    self.log.info('%s: Disconnected' % self.device)
 
 
 def test():
@@ -332,6 +334,13 @@ def test():
 if __name__ == '__main__':
     import logging
     import optparse
+
+    VERBOSTIY = [
+            logging.ERROR,      # 0
+            logging.WARNING,    # 1 (default)
+            logging.INFO,       # 2
+            logging.DEBUG,      # 3
+            ]
 
     parser = optparse.OptionParser(usage="""\
 %prog [options]
@@ -346,10 +355,17 @@ If running as daemon, write to syslog. Otherwise write to stdout.
 """)
 
     parser.add_option("-q", "--quiet",
-            dest="quiet",
-            action="store_true",
-            help="suppress non error messages",
+            dest="verbosity",
+            action="store_const",
+            const=0,
+            help="suppress most diagnostic messages",
             default=False)
+
+    parser.add_option("-v", "--verbose",
+            dest="verbosity",
+            action="count",
+            help="increase diagnostic messages",
+            default=1)
 
     parser.add_option("-o", "--logfile",
             dest="log_file",
@@ -384,8 +400,9 @@ If running as daemon, write to syslog. Otherwise write to stdout.
 
     (options, args) = parser.parse_args()
 
-    # XXX make it depend on command line option
-    #~ logging.basicConfig(level=logging.DEBUG)
+    # set up logging
+    logging.basicConfig(level=VERBOSTIY[min(options.verbosity, len(VERBOSTIY) - 1)])
+    log = logging.getLogger('port_publisher')
 
     # redirect output if specified
     if options.log_file is not None:
@@ -397,7 +414,7 @@ If running as daemon, write to syslog. Otherwise write to stdout.
                 self.fileobj.flush()
             def close(self):
                 self.fileobj.close()
-                sys.stdout = sys.stderr = WriteFlushed(open(options.log_file, 'a'))
+        sys.stdout = sys.stderr = WriteFlushed(open(options.log_file, 'a'))
         # atexit.register(lambda: sys.stdout.close())
 
     if options.daemonize:
@@ -412,7 +429,7 @@ If running as daemon, write to syslog. Otherwise write to stdout.
                 # exit first parent
                 sys.exit(0)
         except OSError as e:
-            sys.stderr.write("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
+            log.critical("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
             sys.exit(1)
 
         # decouple from parent environment
@@ -430,7 +447,7 @@ If running as daemon, write to syslog. Otherwise write to stdout.
                     open(options.pid_file,'w').write("%d"%pid)
                 sys.exit(0)
         except OSError as e:
-            sys.stderr.write("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
+            log.critical("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
             sys.exit(1)
 
         if options.log_file is None:
@@ -470,7 +487,7 @@ If running as daemon, write to syslog. Otherwise write to stdout.
         except KeyError:
             pass
         else:
-            if not options.quiet: print("unpublish: %s" % (forwarder))
+            log.info("unpublish: %s" % (forwarder))
 
     alive = True
     next_check = 0
@@ -484,7 +501,7 @@ If running as daemon, write to syslog. Otherwise write to stdout.
                 connected = [d for d, p, i in serial.tools.list_ports.grep(options.ports_regex)]
                 # Handle devices that are published, but no longer connected
                 for device in set(published).difference(connected):
-                    if not options.quiet: print("unpublish: %s" % (published[device]))
+                    log.info("unpublish: %s" % (published[device]))
                     unpublish(published[device])
                 # Handle devices that are connected but not yet published
                 for device in set(connected).difference(published):
@@ -497,9 +514,10 @@ If running as daemon, write to syslog. Otherwise write to stdout.
                         device,
                         "%s on %s" % (device, hostname),
                         port,
-                        on_close=unpublish
+                        on_close=unpublish,
+                        log=log
                     )
-                    if not options.quiet: print("publish: %s" % (published[device]))
+                    log.warning("publish: %s" % (published[device]))
                     published[device].open()
 
             # select_start = time.time()
