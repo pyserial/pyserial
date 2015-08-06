@@ -24,224 +24,11 @@ import time
 from serial.serialutil import *
 
 
-# try to detect the OS so that a device can be selected...
-# this code block should supply a device() and set_special_baudrate() function
-# for the platform
-plat = sys.platform.lower()
+class PlatformSpecificBase(object):
+    BAUDRATE_CONSTANTS = {}
 
-if   plat[:5] == 'linux':    # Linux (confirmed)
-    import array
-
-    def device(port):
-        return '/dev/ttyS%d' % port
-
-    TCGETS2 = 0x802C542A
-    TCSETS2 = 0x402C542B
-    BOTHER = 0o010000
-
-    def set_special_baudrate(port, baudrate):
-        # right size is 44 on x86_64, allow for some growth
-        buf = array.array('i', [0] * 64)
-
-        try:
-            # get serial_struct
-            fcntl.ioctl(port.fd, TCGETS2, buf)
-            # set custom speed
-            buf[2] &= ~termios.CBAUD
-            buf[2] |= BOTHER
-            buf[9] = buf[10] = baudrate
-
-            # set serial_struct
-            res = fcntl.ioctl(port.fd, TCSETS2, buf)
-        except IOError as e:
-            raise ValueError('Failed to set custom baud rate (%s): %s' % (baudrate, e))
-
-    baudrate_constants = {
-        0:       0o000000,  # hang up
-        50:      0o000001,
-        75:      0o000002,
-        110:     0o000003,
-        134:     0o000004,
-        150:     0o000005,
-        200:     0o000006,
-        300:     0o000007,
-        600:     0o000010,
-        1200:    0o000011,
-        1800:    0o000012,
-        2400:    0o000013,
-        4800:    0o000014,
-        9600:    0o000015,
-        19200:   0o000016,
-        38400:   0o000017,
-        57600:   0o010001,
-        115200:  0o010002,
-        230400:  0o010003,
-        460800:  0o010004,
-        500000:  0o010005,
-        576000:  0o010006,
-        921600:  0o010007,
-        1000000: 0o010010,
-        1152000: 0o010011,
-        1500000: 0o010012,
-        2000000: 0o010013,
-        2500000: 0o010014,
-        3000000: 0o010015,
-        3500000: 0o010016,
-        4000000: 0o010017
-    }
-
-    # RS485 ioctls
-    TIOCGRS485 = 0x542E
-    TIOCSRS485 = 0x542F
-    SER_RS485_ENABLED        = 0b00000001
-    SER_RS485_RTS_ON_SEND    = 0b00000010
-    SER_RS485_RTS_AFTER_SEND = 0b00000100
-    SER_RS485_RX_DURING_TX   = 0b00010000
-
-    def set_rs485_mode(port, rs485_settings):
-        buf = array.array('i', [0] * 8) # flags, delaytx, delayrx, padding
-
-        try:
-            fcntl.ioctl(port.fd, TIOCGRS485, buf)
-            if rs485_settings is not None:
-                if rs485_settings.loopback:
-                    buf[0] |= SER_RS485_RX_DURING_TX
-                else:
-                    buf[0] &= ~SER_RS485_RX_DURING_TX
-                if rs485_settings.rts_level_for_tx:
-                    buf[0] |= SER_RS485_RTS_ON_SEND
-                else:
-                    buf[0] &= ~SER_RS485_RTS_ON_SEND
-                if rs485_settings.rts_level_for_rx:
-                    buf[0] |= SER_RS485_RTS_AFTER_SEND
-                else:
-                    buf[0] &= ~SER_RS485_RTS_AFTER_SEND
-                buf[1] = int(rs485_settings.delay_rts_before_send * 1000)
-                buf[2] = int(rs485_settings.delay_rts_after_send * 1000)
-            else:
-                buf[0] = 0  # clear SER_RS485_ENABLED
-            res = fcntl.ioctl(port.fd, TIOCSRS485, buf)
-        except IOError as e:
-            raise ValueError('Failed to set RS485 mode: %s' % (e,))
-
-
-elif plat == 'cygwin':       # cygwin/win32 (confirmed)
-
-    def device(port):
-        return '/dev/com%d' % (port + 1)
-
-    def set_special_baudrate(port, baudrate):
-        raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
-
-    baudrate_constants = {
-        128000: 0x01003,
-        256000: 0x01005,
-        500000: 0x01007,
-        576000: 0x01008,
-        921600: 0x01009,
-        1000000: 0x0100a,
-        1152000: 0x0100b,
-        1500000: 0x0100c,
-        2000000: 0x0100d,
-        2500000: 0x0100e,
-        3000000: 0x0100f
-    }
-
-elif plat[:7] == 'openbsd':    # OpenBSD
-
-    def device(port):
-        return '/dev/cua%02d' % port
-
-    def set_special_baudrate(port, baudrate):
-        raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
-
-    baudrate_constants = {}
-
-elif plat[:3] == 'bsd' or  \
-    plat[:7] == 'freebsd':
-
-    def device(port):
-        return '/dev/cuad%d' % port
-
-    def set_special_baudrate(port, baudrate):
-        raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
-
-    baudrate_constants = {}
-
-elif plat[:6] == 'darwin':   # OS X
-    import array
-
-    version = os.uname()[2].split('.')
-    # Tiger or above can support arbitrary serial speeds
-    if int(version[0]) >= 8:
-        def set_special_baudrate(port, baudrate):
-            # use IOKit-specific call to set up high speeds
-            buf = array.array('i', [baudrate])
-            IOSSIOSPEED = 0x80045402 #_IOW('T', 2, speed_t)
-            fcntl.ioctl(port.fd, IOSSIOSPEED, buf, 1)
-    else: # version < 8
-        def set_special_baudrate(port, baudrate):
-            raise ValueError("baud rate not supported")
-
-    def device(port):
-        return '/dev/cuad%d' % port
-
-    baudrate_constants = {}
-
-
-elif plat[:6] == 'netbsd':   # NetBSD 1.6 testing by Erk
-
-    def device(port):
-        return '/dev/dty%02d' % port
-
-    def set_special_baudrate(port, baudrate):
-        raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
-
-    baudrate_constants = {}
-
-elif plat[:4] == 'irix':     # IRIX (partially tested)
-
-    def device(port):
-        return '/dev/ttyf%d' % (port+1) #XXX different device names depending on flow control
-
-    def set_special_baudrate(port, baudrate):
-        raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
-
-    baudrate_constants = {}
-
-elif plat[:2] == 'hp':       # HP-UX (not tested)
-
-    def device(port):
-        return '/dev/tty%dp0' % (port+1)
-
-    def set_special_baudrate(port, baudrate):
-        raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
-
-    baudrate_constants = {}
-
-elif plat[:5] == 'sunos':    # Solaris/SunOS (confirmed)
-
-    def device(port):
-        return '/dev/tty%c' % (ord('a')+port)
-
-    def set_special_baudrate(port, baudrate):
-        raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
-
-    baudrate_constants = {}
-
-elif plat[:3] == 'aix':      # AIX
-
-    def device(port):
-        return '/dev/tty%d' % (port)
-
-    def set_special_baudrate(port, baudrate):
-        raise ValueError("sorry don't know how to handle non standard baud rate on this platform")
-
-    baudrate_constants = {}
-
-else:
-    # platform detection has failed...
-    sys.stderr.write("""\
+    def number_to_device(self, port_number):
+        sys.stderr.write("""\
 don't know how to number ttys on this system.
 ! Use an explicit path (eg /dev/ttyS1) or send this information to
 ! the author of this module:
@@ -255,15 +42,192 @@ counting starts for the first serial port.
 e.g. 'first serial port: /dev/ttyS0'
 and with a bit luck you can get this module running...
 """ % (sys.platform, os.name, VERSION))
-    # no exception, just continue with a brave attempt to build a device name
-    # even if the device name is not correct for the platform it has chances
-    # to work using a string with the real device name as port parameter.
-    def device(portum):
-        return '/dev/ttyS%d' % portnum
-    def set_special_baudrate(port, baudrate):
-        raise SerialException("sorry don't know how to handle non standard baud rate on this platform")
-    baudrate_constants = {}
-    #~ raise Exception, "this module does not run on this platform, sorry."
+        raise NotImplementedError('no number-to-device mapping defined on this platform')
+
+    def _set_special_baudrate(self, baudrate):
+        raise NotImplementedError('non-standard baudrates are not supported on this platform')
+
+    def _set_rs485_mode(self, rs485_settings):
+        raise NotImplementedError('RS485 not supported on this platform')
+
+# try to detect the OS so that a device can be selected...
+# this code block should supply a device() and set_special_baudrate() function
+# for the platform
+plat = sys.platform.lower()
+
+if   plat[:5] == 'linux':    # Linux (confirmed)
+    import array
+
+    # baudrate ioctls
+    TCGETS2 = 0x802C542A
+    TCSETS2 = 0x402C542B
+    BOTHER = 0o010000
+
+    # RS485 ioctls
+    TIOCGRS485 = 0x542E
+    TIOCSRS485 = 0x542F
+    SER_RS485_ENABLED        = 0b00000001
+    SER_RS485_RTS_ON_SEND    = 0b00000010
+    SER_RS485_RTS_AFTER_SEND = 0b00000100
+    SER_RS485_RX_DURING_TX   = 0b00010000
+
+
+    class PlatformSpecific(PlatformSpecificBase):
+        BAUDRATE_CONSTANTS = {
+            0:       0o000000,  # hang up
+            50:      0o000001,
+            75:      0o000002,
+            110:     0o000003,
+            134:     0o000004,
+            150:     0o000005,
+            200:     0o000006,
+            300:     0o000007,
+            600:     0o000010,
+            1200:    0o000011,
+            1800:    0o000012,
+            2400:    0o000013,
+            4800:    0o000014,
+            9600:    0o000015,
+            19200:   0o000016,
+            38400:   0o000017,
+            57600:   0o010001,
+            115200:  0o010002,
+            230400:  0o010003,
+            460800:  0o010004,
+            500000:  0o010005,
+            576000:  0o010006,
+            921600:  0o010007,
+            1000000: 0o010010,
+            1152000: 0o010011,
+            1500000: 0o010012,
+            2000000: 0o010013,
+            2500000: 0o010014,
+            3000000: 0o010015,
+            3500000: 0o010016,
+            4000000: 0o010017
+        }
+
+        def number_to_device(self, port_number):
+            return '/dev/ttyS%d' % (port_number,)
+
+        def _set_special_baudrate(self, baudrate):
+            # right size is 44 on x86_64, allow for some growth
+            buf = array.array('i', [0] * 64)
+            try:
+                # get serial_struct
+                fcntl.ioctl(self.fd, TCGETS2, buf)
+                # set custom speed
+                buf[2] &= ~termios.CBAUD
+                buf[2] |= BOTHER
+                buf[9] = buf[10] = baudrate
+
+                # set serial_struct
+                res = fcntl.ioctl(self.fd, TCSETS2, buf)
+            except IOError as e:
+                raise ValueError('Failed to set custom baud rate (%s): %s' % (baudrate, e))
+
+        def _set_rs485_mode(self, rs485_settings):
+            buf = array.array('i', [0] * 8) # flags, delaytx, delayrx, padding
+            try:
+                fcntl.ioctl(self.fd, TIOCGRS485, buf)
+                if rs485_settings is not None:
+                    if rs485_settings.loopback:
+                        buf[0] |= SER_RS485_RX_DURING_TX
+                    else:
+                        buf[0] &= ~SER_RS485_RX_DURING_TX
+                    if rs485_settings.rts_level_for_tx:
+                        buf[0] |= SER_RS485_RTS_ON_SEND
+                    else:
+                        buf[0] &= ~SER_RS485_RTS_ON_SEND
+                    if rs485_settings.rts_level_for_rx:
+                        buf[0] |= SER_RS485_RTS_AFTER_SEND
+                    else:
+                        buf[0] &= ~SER_RS485_RTS_AFTER_SEND
+                    buf[1] = int(rs485_settings.delay_rts_before_send * 1000)
+                    buf[2] = int(rs485_settings.delay_rts_after_send * 1000)
+                else:
+                    buf[0] = 0  # clear SER_RS485_ENABLED
+                res = fcntl.ioctl(self.fd, TIOCSRS485, buf)
+            except IOError as e:
+                raise ValueError('Failed to set RS485 mode: %s' % (e,))
+
+
+elif plat == 'cygwin':       # cygwin/win32 (confirmed)
+
+    class PlatformSpecific(PlatformSpecificBase):
+        BAUDRATE_CONSTANTS = {
+            128000: 0x01003,
+            256000: 0x01005,
+            500000: 0x01007,
+            576000: 0x01008,
+            921600: 0x01009,
+            1000000: 0x0100a,
+            1152000: 0x0100b,
+            1500000: 0x0100c,
+            2000000: 0x0100d,
+            2500000: 0x0100e,
+            3000000: 0x0100f
+        }
+
+        def number_to_device(self, port_number):
+            return '/dev/com%d' % (port_number + 1,)
+
+
+elif plat[:7] == 'openbsd':    # OpenBSD
+    class PlatformSpecific(PlatformSpecificBase):
+        def number_to_device(self, port_number):
+            return '/dev/cua%02d' % (port_number,)
+
+elif plat[:3] == 'bsd' or plat[:7] == 'freebsd':
+    class PlatformSpecific(PlatformSpecificBase):
+        def number_to_device(self, port_number):
+            return '/dev/cuad%d' % (port_number,)
+
+elif plat[:6] == 'darwin':   # OS X
+    import array
+    IOSSIOSPEED = 0x80045402 #_IOW('T', 2, speed_t)
+
+    class PlatformSpecific(PlatformSpecificBase):
+        def number_to_device(self, port_number):
+            return '/dev/cuad%d' % (port_number,)
+
+        osx_version = os.uname()[2].split('.')
+        # Tiger or above can support arbitrary serial speeds
+        if int(osx_version[0]) >= 8:
+            def _set_special_baudrate(self, baudrate):
+                # use IOKit-specific call to set up high speeds
+                buf = array.array('i', [baudrate])
+                fcntl.ioctl(self.fd, IOSSIOSPEED, buf, 1)
+
+
+elif plat[:6] == 'netbsd':   # NetBSD 1.6 testing by Erk
+    class PlatformSpecific(PlatformSpecificBase):
+        def number_to_device(self, port_number):
+            return '/dev/dty%02d' % (port_number,)
+
+elif plat[:4] == 'irix':     # IRIX (partially tested)
+    class PlatformSpecific(PlatformSpecificBase):
+        def number_to_device(self, port_number):
+            return '/dev/ttyf%d' % (port_number + 1,) #XXX different device names depending on flow control
+
+elif plat[:2] == 'hp':       # HP-UX (not tested)
+    class PlatformSpecific(PlatformSpecificBase):
+        def number_to_device(self, port_number):
+            return '/dev/tty%dp0' % (port_number + 1,)
+
+elif plat[:5] == 'sunos':    # Solaris/SunOS (confirmed)
+    class PlatformSpecific(PlatformSpecificBase):
+        def number_to_device(self, port_number):
+            return '/dev/tty%c' % (ord('a') + port_number,)
+
+elif plat[:3] == 'aix':      # AIX
+    class PlatformSpecific(PlatformSpecificBase):
+        def number_to_device(self, port_number):
+            return '/dev/tty%d' % (port_number,)
+
+else:
+    class PlatformSpecific(PlatformSpecificBase):
+        pass
 
 # whats up with "aix", "beos", ....
 # they should work, just need to know the device names.
@@ -271,42 +235,42 @@ and with a bit luck you can get this module running...
 
 # load some constants for later use.
 # try to use values from termios, use defaults from linux otherwise
-TIOCMGET  = hasattr(termios, 'TIOCMGET') and termios.TIOCMGET or 0x5415
-TIOCMBIS  = hasattr(termios, 'TIOCMBIS') and termios.TIOCMBIS or 0x5416
-TIOCMBIC  = hasattr(termios, 'TIOCMBIC') and termios.TIOCMBIC or 0x5417
-TIOCMSET  = hasattr(termios, 'TIOCMSET') and termios.TIOCMSET or 0x5418
+TIOCMGET  = getattr(termios, 'TIOCMGET', 0x5415)
+TIOCMBIS  = getattr(termios, 'TIOCMBIS', 0x5416)
+TIOCMBIC  = getattr(termios, 'TIOCMBIC', 0x5417)
+TIOCMSET  = getattr(termios, 'TIOCMSET', 0x5418)
 
-#TIOCM_LE = hasattr(termios, 'TIOCM_LE') and termios.TIOCM_LE or 0x001
-TIOCM_DTR = hasattr(termios, 'TIOCM_DTR') and termios.TIOCM_DTR or 0x002
-TIOCM_RTS = hasattr(termios, 'TIOCM_RTS') and termios.TIOCM_RTS or 0x004
-#TIOCM_ST = hasattr(termios, 'TIOCM_ST') and termios.TIOCM_ST or 0x008
-#TIOCM_SR = hasattr(termios, 'TIOCM_SR') and termios.TIOCM_SR or 0x010
+#TIOCM_LE = getattr(termios, 'TIOCM_LE', 0x001)
+TIOCM_DTR = getattr(termios, 'TIOCM_DTR', 0x002)
+TIOCM_RTS = getattr(termios, 'TIOCM_RTS', 0x004)
+#TIOCM_ST = getattr(termios, 'TIOCM_ST', 0x008)
+#TIOCM_SR = getattr(termios, 'TIOCM_SR', 0x010)
 
-TIOCM_CTS = hasattr(termios, 'TIOCM_CTS') and termios.TIOCM_CTS or 0x020
-TIOCM_CAR = hasattr(termios, 'TIOCM_CAR') and termios.TIOCM_CAR or 0x040
-TIOCM_RNG = hasattr(termios, 'TIOCM_RNG') and termios.TIOCM_RNG or 0x080
-TIOCM_DSR = hasattr(termios, 'TIOCM_DSR') and termios.TIOCM_DSR or 0x100
-TIOCM_CD  = hasattr(termios, 'TIOCM_CD') and termios.TIOCM_CD or TIOCM_CAR
-TIOCM_RI  = hasattr(termios, 'TIOCM_RI') and termios.TIOCM_RI or TIOCM_RNG
-#TIOCM_OUT1 = hasattr(termios, 'TIOCM_OUT1') and termios.TIOCM_OUT1 or 0x2000
-#TIOCM_OUT2 = hasattr(termios, 'TIOCM_OUT2') and termios.TIOCM_OUT2 or 0x4000
+TIOCM_CTS = getattr(termios, 'TIOCM_CTS', 0x020)
+TIOCM_CAR = getattr(termios, 'TIOCM_CAR', 0x040)
+TIOCM_RNG = getattr(termios, 'TIOCM_RNG', 0x080)
+TIOCM_DSR = getattr(termios, 'TIOCM_DSR', 0x100)
+TIOCM_CD  = getattr(termios, 'TIOCM_CD', TIOCM_CAR)
+TIOCM_RI  = getattr(termios, 'TIOCM_RI', TIOCM_RNG)
+#TIOCM_OUT1 = getattr(termios, 'TIOCM_OUT1', 0x2000)
+#TIOCM_OUT2 = getattr(termios, 'TIOCM_OUT2', 0x4000)
 if hasattr(termios, 'TIOCINQ'):
     TIOCINQ = termios.TIOCINQ
 else:
-    TIOCINQ = hasattr(termios, 'FIONREAD') and termios.FIONREAD or 0x541B
-TIOCOUTQ   = hasattr(termios, 'TIOCOUTQ') and termios.TIOCOUTQ or 0x5411
+    TIOCINQ = getattr(termios, 'FIONREAD', 0x541B)
+TIOCOUTQ   = getattr(termios, 'TIOCOUTQ', 0x5411)
 
 TIOCM_zero_str = struct.pack('I', 0)
 TIOCM_RTS_str = struct.pack('I', TIOCM_RTS)
 TIOCM_DTR_str = struct.pack('I', TIOCM_DTR)
 
-TIOCSBRK  = hasattr(termios, 'TIOCSBRK') and termios.TIOCSBRK or 0x5427
-TIOCCBRK  = hasattr(termios, 'TIOCCBRK') and termios.TIOCCBRK or 0x5428
+TIOCSBRK  = getattr(termios, 'TIOCSBRK', 0x5427)
+TIOCCBRK  = getattr(termios, 'TIOCCBRK', 0x5428)
 
 CMSPAR = 0o10000000000 # Use "stick" (mark/space) parity
 
 
-class Serial(SerialBase, io.RawIOBase):
+class Serial(SerialBase, io.RawIOBase, PlatformSpecific):
     """\
     Serial port class POSIX implementation. Serial port configuration is 
     done with termios and fcntl. Runs on Linux and many other Un*x like
@@ -381,7 +345,7 @@ class Serial(SerialBase, io.RawIOBase):
             ispeed = ospeed = getattr(termios, 'B%s' % (self._baudrate))
         except AttributeError:
             try:
-                ispeed = ospeed = baudrate_constants[self._baudrate]
+                ispeed = ospeed = self.BAUDRATE_CONSTANTS[self._baudrate]
             except KeyError:
                 #~ raise ValueError('Invalid baud rate: %r' % self._baudrate)
                 # may need custom baud rate, it isn't in our list.
@@ -456,10 +420,6 @@ class Serial(SerialBase, io.RawIOBase):
                 cflag &= ~(termios.CNEW_RTSCTS)
         # XXX should there be a warning if setting up rtscts (and xonxoff etc) fails??
 
-        # XXX linux only
-        if self._rs485_mode is not None:
-            set_rs485_mode(self, self._rs485_mode)
-
         # buffer
         # vmin "minimal number of characters to be read. 0 for non blocking"
         if vmin < 0 or vmin > 255:
@@ -475,7 +435,10 @@ class Serial(SerialBase, io.RawIOBase):
 
         # apply custom baud rate, if any
         if custom_baud is not None:
-            set_special_baudrate(self, custom_baud)
+            self._set_special_baudrate(custom_baud)
+
+        if self._rs485_mode is not None:
+            self._set_rs485_mode(self._rs485_mode)
 
     def close(self):
         """Close port"""
@@ -486,7 +449,7 @@ class Serial(SerialBase, io.RawIOBase):
             self._isOpen = False
 
     def makeDeviceName(self, port):
-        return device(port)
+        return self.number_to_device(port)
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
