@@ -123,6 +123,7 @@ class SerialBase(object):
         self._rtscts   = None           # correct value is assigned below through properties
         self._dsrdtr   = None           # correct value is assigned below through properties
         self._interCharTimeout = None   # correct value is assigned below through properties
+        self._rs485_mode = None         # disabled by default
 
         # assign values using get/set methods using the properties feature
         self.port     = port
@@ -331,6 +332,22 @@ class SerialBase(object):
         self._interCharTimeout = interCharTimeout
         if self._isOpen: self._reconfigurePort()
 
+
+    #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+    # functions useful for RS-485 adapters
+
+    @property
+    def rs485_mode(self):
+        """\
+        Enable RS485 mode and apply new settings, set to None to disable.
+        See serial.rs485.RS485Settings for more info about the value.
+        """
+        return self._rs485_mode
+
+    @rs485_mode.setter
+    def rs485_mode(self, rs485_settings):
+        self._rs485_mode = rs485_settings
+        if self._isOpen: self._reconfigurePort()
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 

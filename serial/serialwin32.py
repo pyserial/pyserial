@@ -178,21 +178,42 @@ class Serial(SerialBase, io.RawIOBase):
 
         comDCB.fBinary          = 1 # Enable Binary Transmission
         # Char. w/ Parity-Err are replaced with 0xff (if fErrorChar is set to TRUE)
-        if self._rtscts:
-            comDCB.fRtsControl  = win32.RTS_CONTROL_HANDSHAKE
-        elif self._rtsToggle:
-            comDCB.fRtsControl  = win32.RTS_CONTROL_TOGGLE
+        if self._rs485_mode is None:
+            if self._rtscts:
+                comDCB.fRtsControl = win32.RTS_CONTROL_HANDSHAKE
+            else:
+                comDCB.fRtsControl = self._rtsState
+            comDCB.fOutxCtsFlow = self._rtscts
         else:
-            comDCB.fRtsControl  = self._rtsState
+            # checks for unsupported settings
+            # XXX verify if platform really does not have a setting for those
+            if not self._rs485_mode.rts_level_for_tx:
+                raise ValueError(
+                        'Unsupported value for RS485Settings.rts_level_for_tx: %r' % (
+                        self._rs485_mode.rts_level_for_tx,))
+            if self._rs485_mode.rts_level_for_rx:
+                raise ValueError(
+                        'Unsupported value for RS485Settings.rts_level_for_rx: %r' % (
+                        self._rs485_mode.rts_level_for_rx,))
+            if self._rs485_mode.delay_before_tx is not None:
+                raise ValueError(
+                        'Unsupported value for RS485Settings.delay_before_tx: %r' % (
+                        self._rs485_mode.delay_before_tx,))
+            if self._rs485_mode.delay_before_rx is not None:
+                raise ValueError(
+                        'Unsupported value for RS485Settings.delay_before_rx: %r' % (
+                        self._rs485_mode.delay_before_rx,))
+            if self._rs485_mode.loopback:
+                raise ValueError(
+                        'Unsupported value for RS485Settings.loopback: %r' % (
+                        self._rs485_mode.loopback,))
+            comDCB.fRtsControl = win32.RTS_CONTROL_TOGGLE
+            comDCB.fOutxCtsFlow = 0
+
         if self._dsrdtr:
             comDCB.fDtrControl  = win32.DTR_CONTROL_HANDSHAKE
         else:
             comDCB.fDtrControl  = self._dtrState
-
-        if self._rtsToggle:
-            comDCB.fOutxCtsFlow     = 0
-        else:
-            comDCB.fOutxCtsFlow     = self._rtscts
         comDCB.fOutxDsrFlow     = self._dsrdtr
         comDCB.fOutX            = self._xonxoff
         comDCB.fInX             = self._xonxoff
@@ -427,16 +448,19 @@ class Serial(SerialBase, io.RawIOBase):
         return comstat.cbOutQue
 
     # functions useful for RS-485 adapters
-    def setRtsToggle(self, rtsToggle):
-        """Change RTS toggle control setting."""
-        self._rtsToggle = rtsToggle
+    @property
+    def rs485_mode(self):
+        """\
+        enable RS485 mode and apply new settings, set to None to disable.
+        see serial.rs485 for more info about the value.
+        """
+        return self.rs485_settings
+
+    @rs485_mode.setter
+    def rs485_mode(self, rs485_settings):
+        self.rs485_settings = rs485_settings
+        self._rtsToggle = rs485_settings is not None
         if self._isOpen: self._reconfigurePort()
-
-    def getRtsToggle(self):
-        """Get the current RTS toggle control setting."""
-        return self._rtsToggle
-
-    rtsToggle = property(getRtsToggle, setRtsToggle, doc="RTS toggle control setting")
 
 
 t

@@ -12,8 +12,15 @@
 #
 # references: http://www.easysw.com/~mike/serial/serial.html
 
-import sys, os, fcntl, termios, struct, select, errno, time
+import errno
+import fcntl
 import io
+import os
+import select
+import struct
+import sys
+import termios
+import time
 from serial.serialutil import *
 
 
@@ -23,6 +30,7 @@ from serial.serialutil import *
 plat = sys.platform.lower()
 
 if   plat[:5] == 'linux':    # Linux (confirmed)
+    import array
 
     def device(port):
         return '/dev/ttyS%d' % port
@@ -33,7 +41,6 @@ if   plat[:5] == 'linux':    # Linux (confirmed)
 
     def set_special_baudrate(port, baudrate):
         # right size is 44 on x86_64, allow for some growth
-        import array
         buf = array.array('i', [0] * 64)
 
         try:
@@ -83,6 +90,41 @@ if   plat[:5] == 'linux':    # Linux (confirmed)
         4000000: 0o010017
     }
 
+    # RS485 ioctls
+    TIOCGRS485 = 0x542E
+    TIOCSRS485 = 0x542F
+    SER_RS485_ENABLED        = 0b00000001
+    SER_RS485_RTS_ON_SEND    = 0b00000010
+    SER_RS485_RTS_AFTER_SEND = 0b00000100
+    SER_RS485_RX_DURING_TX   = 0b00010000
+
+    def set_rs485_mode(port, rs485_settings):
+        buf = array.array('i', [0] * 8) # flags, delaytx, delayrx, padding
+
+        try:
+            fcntl.ioctl(port.fd, TIOCGRS485, buf)
+            if rs485_settings is not None:
+                if rs485_settings.loopback:
+                    buf[0] |= SER_RS485_RX_DURING_TX
+                else:
+                    buf[0] &= ~SER_RS485_RX_DURING_TX
+                if rs485_settings.rts_level_for_tx:
+                    buf[0] |= SER_RS485_RTS_ON_SEND
+                else:
+                    buf[0] &= ~SER_RS485_RTS_ON_SEND
+                if rs485_settings.rts_level_for_rx:
+                    buf[0] |= SER_RS485_RTS_AFTER_SEND
+                else:
+                    buf[0] &= ~SER_RS485_RTS_AFTER_SEND
+                buf[1] = int(rs485_settings.delay_rts_before_send * 1000)
+                buf[2] = int(rs485_settings.delay_rts_after_send * 1000)
+            else:
+                buf[0] = 0  # clear SER_RS485_ENABLED
+            res = fcntl.ioctl(port.fd, TIOCSRS485, buf)
+        except IOError as e:
+            raise ValueError('Failed to set RS485 mode: %s' % (e,))
+
+
 elif plat == 'cygwin':       # cygwin/win32 (confirmed)
 
     def device(port):
@@ -127,13 +169,13 @@ elif plat[:3] == 'bsd' or  \
     baudrate_constants = {}
 
 elif plat[:6] == 'darwin':   # OS X
+    import array
 
     version = os.uname()[2].split('.')
     # Tiger or above can support arbitrary serial speeds
     if int(version[0]) >= 8:
         def set_special_baudrate(port, baudrate):
             # use IOKit-specific call to set up high speeds
-            import array
             buf = array.array('i', [baudrate])
             IOSSIOSPEED = 0x80045402 #_IOW('T', 2, speed_t)
             fcntl.ioctl(port.fd, IOSSIOSPEED, buf, 1)
@@ -413,6 +455,10 @@ class Serial(SerialBase, io.RawIOBase):
             else:
                 cflag &= ~(termios.CNEW_RTSCTS)
         # XXX should there be a warning if setting up rtscts (and xonxoff etc) fails??
+
+        # XXX linux only
+        if self._rs485_mode is not None:
+            set_rs485_mode(self, self._rs485_mode)
 
         # buffer
         # vmin "minimal number of characters to be read. 0 for non blocking"
