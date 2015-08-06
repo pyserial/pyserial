@@ -2,12 +2,12 @@
 # Python Serial Port Extension for Win32, Linux, BSD, Jython
 # see __init__.py
 #
-# (C) 2001-2008 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
 """\
 Some tests for the serial module.
-Part of pyserial (http://pyserial.sf.net)  (C)2001-2009 cliechti@gmx.net
+Part of pyserial (http://pyserial.sf.net)  (C)2001-2015 cliechti@gmx.net
 
 Intended to be run on different platforms, to ensure portability of
 the code.
@@ -203,15 +203,20 @@ class Test_MoreTimeouts(unittest.TestCase):
 
     def tearDown(self):
         #~ self.s.write(serial.XON)
-        self.s.flushInput()
+        self.s.close()
+        # reopen... some faulty USB-serial adapter make next test fail otherwise...
+        self.s.timeout = 1
+        self.s.xonxoff = False
+        self.s.open()
+        self.s.read(10)
         self.s.close()
 
     def test_WriteTimeout(self):
         """Test write() timeout."""
         # use xonxoff setting and the loop-back adapter to switch traffic on hold
         self.s.port = PORT
-        self.s.writeTimeout = 1
-        self.s.xonxoff = 1
+        self.s.writeTimeout = True
+        self.s.xonxoff = True
         self.s.open()
         self.s.write(serial.XOFF)
         time.sleep(0.5) # some systems need a little delay so that they can react on XOFF

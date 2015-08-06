@@ -25,7 +25,7 @@ if len(sys.argv) > 1:
 mainsuite = unittest.TestSuite()
 for modulename in [
         os.path.splitext(x)[0]
-        for x in os.listdir(os.path.dirname(__file__))
+        for x in os.listdir(os.path.dirname(__file__) or '.')
         if x != __file__ and x.startswith("test") and x.endswith(".py")
 ]:
     try:
@@ -41,6 +41,7 @@ for modulename in [
 verbosity = 1
 if '-v' in sys.argv[1:]:
     verbosity = 2
+    print('-'*78)
 
 # run the collected tests
 testRunner = unittest.TextTestRunner(verbosity=verbosity)

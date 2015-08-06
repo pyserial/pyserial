@@ -44,7 +44,7 @@ class Test_RS485_class(unittest.TestCase):
     """Test RS485 class"""
 
     def setUp(self):
-        self.s = serial.rs485.RS485(PORT, timeout=3)
+        self.s = serial.rs485.RS485(PORT, timeout=1)
 
     def tearDown(self):
         self.s.close()
