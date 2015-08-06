@@ -513,6 +513,8 @@ Version 3.x     2015-xx-xx
 - remove file ``FileLike`` class, add ``read_until`` and ``iread_until`` to
   ``SerialBase``
 - remove set* functions, please use the properties instead
+- RS485 support changed (rts_toggle removed, added serial.rs485 module and
+  rs485_mode property)
 - remove obsolete examples
 - finish update to BSD license
 - update links to point to github
@@ -529,6 +531,7 @@ Bugfixes (posix):
 - fix setXON
 - [Patch pyserial:36 / 38] Make USB information work in python 3.4 and 2.7
 - clear OCRNL/ONLCR flags (CR/LF translation settings)
+- [Feature pyserial:38] RS485 Support
 
 Bugfixes (win32):
 

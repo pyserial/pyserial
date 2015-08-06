@@ -17,7 +17,7 @@ Native ports
         :param port:
             Device name or port number number or :const:`None`.
 
-        :param baudrate:
+        :param int baudrate:
             Baud rate such as 9600 or 115200 etc.
 
         :param bytesize:
@@ -35,22 +35,22 @@ Native ports
             :const:`STOPBITS_ONE`, :const:`STOPBITS_ONE_POINT_FIVE`,
             :const:`STOPBITS_TWO`
 
-        :param timeout:
+        :param float timeout:
             Set a read timeout value.
 
-        :param xonxoff:
+        :param bool xonxoff:
             Enable software flow control.
 
-        :param rtscts:
+        :param bool rtscts:
             Enable hardware (RTS/CTS) flow control.
 
-        :param dsrdtr:
+        :param bool dsrdtr:
             Enable hardware (DSR/DTR) flow control.
 
-        :param writeTimeout:
+        :param float writeTimeout:
             Set a write timeout value.
 
-        :param interCharTimeout:
+        :param float interCharTimeout:
             Inter-character timeout, :const:`None` to disable (default).
 
         :exception ValueError:
@@ -280,6 +280,20 @@ Native ports
 
         Read or write current inter character timeout setting.
 
+    .. attribute:: rs485_mode
+
+        :platform: Posix
+        :platform: Windows
+
+        Attribute to configure RS485 support. When set to an instance of
+        :class:`rs485.RS485Settings` and supported by OS, RTS will be active
+        when data is sent and inactive otherwise (for reception). The
+        :class:`rs485.RS485Settings` class provides additional settings
+        supported on some platforms.
+
+        .. versionadded:: 3.0
+
+
     The following constants are also provided:
 
     .. attribute:: BAUDRATES
@@ -364,7 +378,7 @@ Native ports
 
     .. method:: outWaiting()
 
-        :platform: Unix
+        :platform: Posix
         :platform: Windows
 
         Return the number of bytes in the output buffer.
@@ -373,14 +387,14 @@ Native ports
 
     .. method:: nonblocking()
 
-        :platform: Unix
+        :platform: Posix
 
         Configure the device for nonblocking operation. This can be useful if
         the port is used with :mod:`select`.
 
     .. method:: fileno()
 
-        :platform: Unix
+        :platform: Posix
         :return: File descriptor.
 
         Return file descriptor number for the port that is opened by this object.
@@ -420,122 +434,101 @@ Native ports
         if no data is available.
 
         .. versionadded:: 2.6
+        .. versionchanged:: 3.0 (removed, see :meth:`rs485_mode` instead)
 
-
-.. note::
-
-    For systems that provide the :py:mod:`io` library (Python 2.6 and newer), the
-    class :class:`Serial` will derive from :py:class:`io.RawIOBase`. For all
-    others from :class:`FileLike`.
 
 Implementation detail: some attributes and functions are provided by the
 class :class:`SerialBase` and some by the platform specific class and
 others by the base class mentioned above.
 
-.. class:: FileLike
+RS485 support
+-------------
+The :class:`Serial` class has a :attr:`Serial.rs485_mode` attribute which allows to
+enable RS485 specific support on some platforms. Currently Windows and Linux
+(only a small number of devices) are supported.
 
-    An abstract file like class. It is used as base class for :class:`Serial`
-    when no :py:mod:`io` module is available.
+:attr:`Serial.rs485_mode` needs to be set to an instance of
+:class:`rs485.RS485Settings` to enable or to ``None`` to disable this feature.
 
-    This class implements :meth:`readline` and :meth:`readlines` based on
-    :meth:`read` and :meth:`writelines` based on :meth:`write`.
+Usage::
 
-    Note that when the serial port was opened with no timeout, that
-    :meth:`readline` blocks until it sees a newline (or the specified size is
-    reached) and that :meth:`readlines` would never return and therefore
-    refuses to work (it raises an exception in this case)!
+    ser = serial.Serial(...)
+    ser.rs485_mode = serial.rs485.RS485Settings(...)
+    ser.write(b'hello')
 
-    .. method:: writelines(sequence)
+There is a subclass :class:`rs485.RS485` available to emulate the RS485 support
+on regular serial ports.
 
-        Write a list of strings to the port.
+Usage::
 
-
-    The following three methods are overridden in :class:`Serial`.
-
-    .. method:: flush()
-
-        Flush of file like objects. It's a no-op in this class, may be overridden.
-
-    .. method:: read()
-
-        Raises NotImplementedError, needs to be overridden by subclass.
-
-    .. method:: write(data)
-
-        Raises NotImplementedError, needs to be overridden by subclass.
-
-    The following functions are implemented for compatibility with other
-    file-like objects, however serial ports are not seekable.
+    ser = serial.rs485.RS485(...)
+    ser.rs485_mode = serial.rs485.RS485Settings(...)
+    ser.write(b'hello')
 
 
-    .. method:: seek(pos, whence=0)
+.. class:: rs485.RS485Settings
 
-        :exception IOError: always, as method is not supported on serial port
+    A class that holds RS485 specific settings which are supported on
+    some platforms.
 
-        .. versionadded:: 2.5
+    .. versionadded:: 3.0
 
-    .. method:: tell()
+    .. method:: __init__(rts_level_for_tx=True, rts_level_for_rx=False, loopback=False, delay_before_tx=None, delay_before_rx=None):
 
-        :exception IOError: always, as method is not supported on serial port
+        :param bool rts_level_for_tx:
+            RTS level for transmission
 
-        .. versionadded:: 2.5
+        :param bool rts_level_for_rx:
+            RTS level for reception
 
-    .. method:: truncate(self, n=None)
+        :param bool loopback:
+            When set to ``True`` transmitted data is also received.
 
-        :exception IOError: always, as method is not supported on serial port
+        :param float delay_before_tx:
+            Delay after setting RTS but before transmission starts
 
-        .. versionadded:: 2.5
+        :param float delay_before_rx:
+            Delay after transmission ends and resetting RTS
 
-    .. method:: isatty()
+    .. attribute:: rts_level_for_tx
 
-        :exception IOError: always, as method is not supported on serial port
+            RTS level for transmission.
 
-        .. versionadded:: 2.5
+    .. attribute:: rts_level_for_rx
 
-    To be able to use the file like object as iterator for e.g.
-    ``for line in Serial(0): ...`` usage:
+            RTS level for reception.
 
-    .. method:: next()
+    .. attribute:: loopback
 
-        Return the next line by calling :meth:`readline`.
+            When set to ``True`` transmitted data is also received.
 
-    .. method:: __iter__()
+    .. attribute:: delay_before_tx
 
-        Returns self.
+            Delay after setting RTS but before transmission starts (seconds as float).
 
-    Other high level access functions.
+    .. attribute:: delay_before_rx
 
-    .. method:: readline(size=None, eol='\\n')
+            Delay after transmission ends and resetting RTS (seconds as float).
 
-        :param size: Max number of bytes to read, ``None`` -> no limit.
-        :param eol: The end of line character.
 
-        Read a line which is terminated with end-of-line (*eol*) character
-        (``\n`` by default) or until timeout.
+.. class:: rs485.RS485
 
-    .. method:: readlines(sizehint=None, eol='\\n')
+    A subclass that replaces the :meth:`Serial.write` method with one that toggles RTS
+    according to the RS485 settings.
 
-        :param sizehint: Ignored parameter.
-        :param eol: The end of line character.
+    .. warning:: This may work unreliably on some serial ports (control signals not
+        synchronized or delayed compared to data). Using delays may be unreliable
+        (varying times, larger than expected) as the OS may not support very fine
+        grained delays (no smaller than in the order of tens of milliseconds).
 
-        Read a list of lines, until timeout. *sizehint* is ignored and only
-        present for API compatibility with built-in File objects.
+    .. note:: Some implementations support this natively in the class
+        :class:`Serial`. Better performance can be expected when the native version
+        is used.
 
-        Note that this function only returns on a timeout.
+    .. note:: The loopback property is ignored by this implementation. The actual
+        behavior depends on the used hardware.
 
-    .. method:: xreadlines(sizehint=None)
 
-        Read lines, implemented as generator. Unlike *readlines* (that only
-        returns on a timeout) is this function yielding lines as they are
-        received.
-
-        .. deprecated:: 2.5
-            Use ``for line in Serial(...): ...`` instead. This method is not
-            available in Python 2.6 and newer where the :mod:`io` library is
-            available and pySerial bases on it.
-
-        .. versionchanged:: 2.5
-            Implement as generator.
 
 
 :rfc:`2217` Network ports
@@ -892,8 +885,8 @@ possible for the user to add protocol handlers using
     VID:PID or texts.
 
     Unfortunately, on some systems list_ports only lists a subset of the port
-    names with no additional information. Currently, on Windows and Linux it
-    should find additional information.
+    names with no additional information. Currently, on Windows and Linux and
+    OSX it should find additional information.
 
 
 
