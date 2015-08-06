@@ -30,8 +30,11 @@ if   plat[:5] == 'linux':    # Linux (confirmed)
     from serial.tools.list_ports_linux import comports
 
 elif plat == 'cygwin':       # cygwin/win32
+    # cygwin accepts /dev/com* in many contexts
+    # (such as 'open' call, explicit 'ls'), but 'glob.glob'
+    # and bare 'ls' do not; so use /dev/ttyS* instead
     def comports():
-        devices = glob.glob('/dev/com*')
+        devices = glob.glob('/dev/ttyS*')
         return [(d, d, d) for d in devices]
 
 elif plat[:7] == 'openbsd':    # OpenBSD
