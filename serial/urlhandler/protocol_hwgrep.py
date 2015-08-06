@@ -6,7 +6,7 @@
 # This module implements a special URL handler that uses the port listing to
 # find ports by searching the string descriptions.
 #
-# (C) 2011 Chris Liechti <cliechti@gmx.net>
+# (C) 2011-2015 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 #
 # URL format:    hwgrep://regexp
@@ -14,15 +14,21 @@
 import serial
 import serial.tools.list_ports
 
-class Serial(serial.Serial):
-    """Just inherit the native Serial port implementation and patch the open function."""
+try:
+    basestring
+except NameError:
+    basestring = str    # python 3
 
-    def setPort(self, value):
+class Serial(serial.Serial):
+    """Just inherit the native Serial port implementation and patch the port property."""
+
+    @serial.Serial.port.setter
+    def port(self, value):
         """translate port name before storing it"""
         if isinstance(value, basestring) and value.startswith('hwgrep://'):
-            serial.Serial.setPort(self, self.fromURL(value))
+            serial.Serial.port.__set__(self, self.fromURL(value))
         else:
-            serial.Serial.setPort(self, value)
+            serial.Serial.port.__set__(self, value)
 
     def fromURL(self, url):
         """extract host and port from an URL string"""
@@ -32,9 +38,6 @@ class Serial(serial.Serial):
             return port
         else:
             raise serial.SerialException('no ports found matching regexp %r' % (url,))
-
-    # override property
-    port = property(serial.Serial.getPort, setPort, doc="Port setting")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __name__ == '__main__':
