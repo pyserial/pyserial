@@ -23,7 +23,7 @@ sab = System.Array[System.Byte]
 def as_byte_array(string):
     return sab([ord(x) for x in string])  # XXX will require adaption when run with a 3.x compatible IronPython
 
-class IronSerial(SerialBase):
+class Serial(SerialBase):
     """Serial port implementation for .NET/Mono."""
 
     BAUDRATES = (50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
@@ -247,21 +247,6 @@ class IronSerial(SerialBase):
 
     # - - platform specific - - - -
     # none
-
-
-# assemble Serial class with the platform specific implementation and the base
-# for file-like behavior. for Python 2.6 and newer, that provide the new I/O
-# library, derive from io.RawIOBase
-try:
-    import io
-except ImportError:
-    # classic version with our own file-like emulation
-    class Serial(IronSerial, FileLike):
-        pass
-else:
-    # io library present
-    class Serial(IronSerial, io.RawIOBase):
-        pass
 
 
 # Nur Testfunktion!!

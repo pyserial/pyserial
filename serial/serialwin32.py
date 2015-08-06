@@ -9,7 +9,6 @@
 # Initial patch to use ctypes by Giovanni Bajo <rasky@develer.com>
 
 import ctypes
-import io
 import time
 from serial import win32
 
@@ -21,7 +20,7 @@ def device(portnum):
     return 'COM%d' % (portnum+1) # numbers are transformed to a string
 
 
-class Serial(SerialBase, io.RawIOBase):
+class Serial(SerialBase):
     """Serial port implementation for Win32 based on ctypes."""
 
     BAUDRATES = (50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,

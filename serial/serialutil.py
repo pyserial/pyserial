@@ -5,6 +5,7 @@
 # (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
+import io
 
 # ``memoryview`` was introduced in Python 2.7 and ``bytes(some_memoryview)``
 # isn't returning the contents (very unfortunate). Therefore we need special
@@ -73,7 +74,7 @@ writeTimeoutError = SerialTimeoutException('Write timeout')
 portNotOpenError = SerialException('Attempting to use a port that is not open')
 
 
-class SerialBase(object):
+class SerialBase(io.RawIOBase):
     """\
     Serial port base class. Provides __init__ function and properties to
     get/set port settings.

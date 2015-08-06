@@ -49,7 +49,7 @@ def device(portnumber):
     return ports[portnumber].getName()
 
 
-class JavaSerial(SerialBase):
+class Serial(SerialBase):
     """\
     Serial port class, implemented with Java Communications API and
     thus usable with jython and the appropriate java extension.
@@ -231,21 +231,6 @@ class JavaSerial(SerialBase):
         """Read terminal status line: Carrier Detect"""
         if not self.sPort: raise portNotOpenError
         self.sPort.isCD()
-
-
-# assemble Serial class with the platform specific implementation and the base
-# for file-like behavior. for Python 2.6 and newer, that provide the new I/O
-# library, derive from io.RawIOBase
-try:
-    import io
-except ImportError:
-    # classic version with our own file-like emulation
-    class Serial(JavaSerial, FileLike):
-        pass
-else:
-    # io library present
-    class Serial(JavaSerial, io.RawIOBase):
-        pass
 
 
 if __name__ == '__main__':

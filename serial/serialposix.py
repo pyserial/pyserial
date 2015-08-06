@@ -14,7 +14,6 @@
 
 import errno
 import fcntl
-import io
 import os
 import select
 import struct
@@ -270,7 +269,7 @@ TIOCCBRK  = getattr(termios, 'TIOCCBRK', 0x5428)
 CMSPAR = 0o10000000000 # Use "stick" (mark/space) parity
 
 
-class Serial(SerialBase, io.RawIOBase, PlatformSpecific):
+class Serial(SerialBase, PlatformSpecific):
     """\
     Serial port class POSIX implementation. Serial port configuration is 
     done with termios and fcntl. Runs on Linux and many other Un*x like

@@ -60,7 +60,6 @@
 # the order of the options is not relevant
 
 from serial.serialutil import *
-import io
 import time
 import struct
 import socket
@@ -366,7 +365,7 @@ class TelnetSubnegotiation(object):
             self.connection.logger.debug("SB Answer %s -> %r -> %s" % (self.name, suboption, self.state))
 
 
-class Serial(SerialBase, io.RawIOBase):
+class Serial(SerialBase):
     """Serial port implementation for RFC 2217 remote serial ports."""
 
     BAUDRATES = (50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,

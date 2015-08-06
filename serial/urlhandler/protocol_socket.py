@@ -33,7 +33,7 @@ LOGGER_LEVELS = {
 
 POLL_TIMEOUT = 2
 
-class SocketSerial(SerialBase):
+class Serial(SerialBase):
     """Serial port implementation for plain sockets."""
 
     BAUDRATES = (50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
@@ -262,21 +262,7 @@ class SocketSerial(SerialBase):
         return self._socket.fileno()
 
 
-# assemble Serial class with the platform specific implementation and the base
-# for file-like behavior. for Python 2.6 and newer, that provide the new I/O
-# library, derive from io.RawIOBase
-try:
-    import io
-except ImportError:
-    # classic version with our own file-like emulation
-    class Serial(SocketSerial, FileLike):
-        pass
-else:
-    # io library present
-    class Serial(SocketSerial, io.RawIOBase):
-        pass
-
-
+#
 # simple client test
 if __name__ == '__main__':
     import sys
