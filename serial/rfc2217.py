@@ -65,6 +65,7 @@ import struct
 import socket
 import threading
 import logging
+import urlparse
 
 try:
     import Queue
@@ -531,37 +532,36 @@ class Serial(SerialBase):
 
     def fromURL(self, url):
         """extract host and port from an URL string"""
-        if url.lower().startswith("rfc2217://"): url = url[10:]
+        parts = urlparse.urlsplit(url)
+        if parts.scheme.lower() != "rfc2217":
+            raise SerialException('expected a string in the form "rfc2217://<host>:<port>[/option[/option...]]": not starting with socket:// (%r)' % (parts.scheme,))
         try:
-            # is there a "path" (our options)?
-            if '/' in url:
-                # cut away options
-                url, options = url.split('/', 1)
-                # process options now, directly altering self
-                for option in options.split('/'):
-                    if '=' in option:
-                        option, value = option.split('=', 1)
-                    else:
-                        value = None
-                    if option == 'logging':
-                        logging.basicConfig()   # XXX is that good to call it here?
-                        self.logger = logging.getLogger('pySerial.rfc2217')
-                        self.logger.setLevel(LOGGER_LEVELS[value])
-                        self.logger.debug('enabled logging')
-                    elif option == 'ign_set_control':
-                        self._ignore_set_control_answer = True
-                    elif option == 'poll_modem':
-                        self._poll_modem_state = True
-                    elif option == 'timeout':
-                        self._network_timeout = float(value)
-                    else:
-                        raise ValueError('unknown option: %r' % (option,))
+            # process options now, directly altering self
+            for option in parts.path.lower().split('/'):
+                if '=' in option:
+                    option, value = option.split('=', 1)
+                else:
+                    value = None
+                if not option:
+                    pass
+                elif option == 'logging':
+                    logging.basicConfig()   # XXX is that good to call it here?
+                    self.logger = logging.getLogger('pySerial.rfc2217')
+                    self.logger.setLevel(LOGGER_LEVELS[value])
+                    self.logger.debug('enabled logging')
+                elif option == 'ign_set_control':
+                    self._ignore_set_control_answer = True
+                elif option == 'poll_modem':
+                    self._poll_modem_state = True
+                elif option == 'timeout':
+                    self._network_timeout = float(value)
+                else:
+                    raise ValueError('unknown option: %r' % (option,))
             # get host and port
-            host, port = url.split(':', 1) # may raise ValueError because of unpacking
-            port = int(port)               # and this if it's not a number
+            host, port = parts.hostname, parts.port
             if not 0 <= port < 65536: raise ValueError("port not in range 0...65535")
         except ValueError as e:
-            raise SerialException('expected a string in the form "[rfc2217://]<host>:<port>[/option[/option...]]": %s' % e)
+            raise SerialException('expected a string in the form "rfc2217://<host>:<port>[/option[/option...]]": %s' % e)
         return (host, port)
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
