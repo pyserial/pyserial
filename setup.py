@@ -11,8 +11,10 @@
 
 import sys
 
-from distutils.core import setup
-
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 # importing version does not work with Python 3 as files have not yet been
 # converted.

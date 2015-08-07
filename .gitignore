@@ -2,4 +2,7 @@
 *.pyc
 *.pyo
 documentation/_build
+build
+dist
+*.egg-info
 
