@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 # Very simple serial terminal
 # (C)2002-2015 Chris Liechti <cliechti@gmx.net>
 
@@ -7,12 +6,16 @@
 # done), received characters are displayed as is (or escaped trough pythons
 # repr, useful for debug purposes)
 
-
-import sys, os, serial, threading
+import os
+import sys
+import threading
 try:
     from serial.tools.list_ports import comports
 except ImportError:
     comports = None
+
+import serial
+
 
 try:
     raw_input
@@ -121,7 +124,8 @@ if os.name == 'nt':
     console = Console()
 
 elif os.name == 'posix':
-    import termios, sys, os
+    import atexit
+    import termios
     class Console(object):
         def __init__(self):
             self.fd = sys.stdin.fileno()
@@ -144,11 +148,7 @@ elif os.name == 'posix':
                 termios.tcsetattr(self.fd, termios.TCSAFLUSH, self.old)
 
     console = Console()
-
-    def cleanup_console():
-        console.cleanup()
-
-    sys.exitfunc = cleanup_console      # terminal modes have to be restored on exit...
+    atexit.register(console.cleanup)
 
 else:
     raise NotImplementedError("Sorry no implementation for your platform (%s) available." % sys.platform)
@@ -172,12 +172,7 @@ REPR_MODES = ('raw', 'some control', 'all control', 'hex')
 
 class Miniterm(object):
     def __init__(self, port, baudrate, parity, rtscts, xonxoff, echo=False, convert_outgoing=CONVERT_CRLF, repr_mode=0):
-        try:
-            self.serial = serial.serial_for_url(port, baudrate, parity=parity, rtscts=rtscts, xonxoff=xonxoff, timeout=1)
-        except AttributeError:
-            # happens when the installed pyserial is older than 2.5. use the
-            # Serial class directly then.
-            self.serial = serial.Serial(port, baudrate, parity=parity, rtscts=rtscts, xonxoff=xonxoff, timeout=1)
+        self.serial = serial.serial_for_url(port, baudrate, parity=parity, rtscts=rtscts, xonxoff=xonxoff, timeout=1)
         self.echo = echo
         self.repr_mode = repr_mode
         self.convert_outgoing = convert_outgoing
