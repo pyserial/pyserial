@@ -503,7 +503,7 @@ Bugfixes (cli):
 - [Bug pyserial:159] write() in serialcli.py not working with IronPython 2.7.4
 
 
-Version 3.x     2015-xx-xx
+Version 3.0a     2015-xx-xx
 --------------------------
 
 - Starting from this release, only 2.7 and 3.4 (or newer) are supported. The
@@ -521,6 +521,7 @@ Version 3.x     2015-xx-xx
 - update links to point to github
 - [Patch pyserial:34] Improvements to port_publisher.py example
 - [Feature pyserial:39] Support BlueTooth serial port discovery on Linux
+- Use setuptools if aviliable, fall back to distutils if unaviliable.
 
 Bugfixes:
 
