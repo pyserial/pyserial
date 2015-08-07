@@ -9,8 +9,6 @@
 # For Python 3.x use the corresponding Python executable,
 # e.g. "python3 setup.py ..."
 
-import sys
-
 try:
     from setuptools import setup
 except ImportError:
