@@ -8,6 +8,7 @@
 
 VERSION = '3.0a'
 
+import importlib
 import sys
 
 if sys.platform == 'cli':
@@ -51,21 +52,22 @@ def serial_for_url(url, *args, **kwargs):
     klass = Serial   # 'native' implementation
     # check port type and get class
     try:
-        url_nocase = url.lower()
+        url_lowercase = url.lower()
     except AttributeError:
         # it's not a string, use default
         pass
     else:
-        if '://' in url_nocase:
-            protocol = url_nocase.split('://', 1)[0]
+        if '://' in url_lowercase:
+            protocol = url_lowercase.split('://', 1)[0]
+            module_name = '.protocol_%s' % (protocol,)
             for package_name in protocol_handler_packages:
-                module_name = '%s.protocol_%s' % (package_name, protocol,)
+                package = importlib.import_module(package_name)
                 try:
-                    handler_module = __import__(module_name)
+                    handler_module = importlib.import_module(module_name, package_name)
                 except ImportError:
                     pass
                 else:
-                    klass = sys.modules[module_name].Serial
+                    klass = handler_module.Serial
                     break
             else:
                 raise ValueError('invalid URL, protocol %r not known' % (protocol,))
