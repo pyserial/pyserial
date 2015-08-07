@@ -22,15 +22,18 @@ import time
 import socket
 import select
 import logging
-import urlparse
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
 
 # map log level names to constants. used in fromURL()
 LOGGER_LEVELS = {
-    'debug': logging.DEBUG,
-    'info': logging.INFO,
-    'warning': logging.WARNING,
-    'error': logging.ERROR,
-    }
+        'debug': logging.DEBUG,
+        'info': logging.INFO,
+        'warning': logging.WARNING,
+        'error': logging.ERROR,
+        }
 
 POLL_TIMEOUT = 2
 
@@ -51,7 +54,6 @@ class Serial(SerialBase):
         if self._isOpen:
             raise SerialException("Port is already open.")
         try:
-            # XXX in future replace with create_connection (py >=2.6)
             self._socket = socket.create_connection(self.fromURL(self.portstr))
         except Exception as msg:
             self._socket = None

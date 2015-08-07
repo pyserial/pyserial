@@ -59,13 +59,17 @@
 #   RFC).
 # the order of the options is not relevant
 
-from serial.serialutil import *
-import time
-import struct
-import socket
-import threading
 import logging
-import urlparse
+import socket
+import struct
+import threading
+import time
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
+
+from serial.serialutil import *
 
 try:
     import Queue
@@ -79,11 +83,11 @@ except ImportError:
 
 # map log level names to constants. used in fromURL()
 LOGGER_LEVELS = {
-    'debug': logging.DEBUG,
-    'info': logging.INFO,
-    'warning': logging.WARNING,
-    'error': logging.ERROR,
-    }
+        'debug': logging.DEBUG,
+        'info': logging.INFO,
+        'warning': logging.WARNING,
+        'error': logging.ERROR,
+        }
 
 
 # telnet protocol characters
@@ -386,8 +390,7 @@ class Serial(SerialBase):
         if self._isOpen:
             raise SerialException("Port is already open.")
         try:
-            self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self._socket.connect(self.fromURL(self.portstr))
+            self._socket = socket.create_connection(self.fromURL(self.portstr))
             self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         except Exception as msg:
             self._socket = None
@@ -534,7 +537,7 @@ class Serial(SerialBase):
         """extract host and port from an URL string"""
         parts = urlparse.urlsplit(url)
         if parts.scheme.lower() != "rfc2217":
-            raise SerialException('expected a string in the form "rfc2217://<host>:<port>[/option[/option...]]": not starting with socket:// (%r)' % (parts.scheme,))
+            raise SerialException('expected a string in the form "rfc2217://<host>:<port>[/option[/option...]]": not starting with rfc2217:// (%r)' % (parts.scheme,))
         try:
             # process options now, directly altering self
             for option in parts.path.lower().split('/'):

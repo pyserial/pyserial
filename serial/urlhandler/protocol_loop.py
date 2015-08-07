@@ -8,25 +8,30 @@
 # The purpose of this module is.. well... You can run the unit tests with it.
 # and it was so easy to implement ;-)
 #
-# (C) 2001-2011 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 #
 # URL format:    loop://[option[/option...]]
 # options:
 # - "debug" print diagnostic messages
-
-from serial.serialutil import *
+import logging
+import numbers
 import threading
 import time
-import logging
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
+
+from serial.serialutil import *
 
 # map log level names to constants. used in fromURL()
 LOGGER_LEVELS = {
-    'debug': logging.DEBUG,
-    'info': logging.INFO,
-    'warning': logging.WARNING,
-    'error': logging.ERROR,
-    }
+        'debug': logging.DEBUG,
+        'info': logging.INFO,
+        'warning': logging.WARNING,
+        'error': logging.ERROR,
+        }
 
 
 class Serial(SerialBase):
@@ -70,7 +75,7 @@ class Serial(SerialBase):
         protocol all settings are ignored!
         """
         # not that's it of any real use, but it helps in the unit tests
-        if not isinstance(self._baudrate, (int, long)) or not 0 < self._baudrate < 2**32:
+        if not isinstance(self._baudrate, numbers.Integral) or not 0 < self._baudrate < 2**32:
             raise ValueError("invalid baudrate: %r" % (self._baudrate))
         if self.logger:
             self.logger.info('_reconfigurePort()')
@@ -87,10 +92,12 @@ class Serial(SerialBase):
 
     def fromURL(self, url):
         """extract host and port from an URL string"""
-        if url.lower().startswith("loop://"): url = url[7:]
+        parts = urlparse.urlsplit(url)
+        if parts.scheme.lower() != "loop":
+            raise SerialException('expected a string in the form "loop://[option[/option...]]": not starting with loop:// (%r)' % (parts.scheme,))
         try:
             # process options now, directly altering self
-            for option in url.split('/'):
+            for option in parts.path.split('/'):
                 if '=' in option:
                     option, value = option.split('=', 1)
                 else:
@@ -131,12 +138,9 @@ class Serial(SerialBase):
             timeout = None
         data = bytearray()
         while size > 0:
-            self.buffer_lock.acquire()
-            try:
+            with self.buffer_lock:
                 block = to_bytes(self.loop_buffer[:size])
                 del self.loop_buffer[:size]
-            finally:
-                self.buffer_lock.release()
             data += block
             size -= len(block)
             # check for timeout now, after data has been read.
@@ -161,11 +165,8 @@ class Serial(SerialBase):
         if self._writeTimeout is not None and time_used_to_send > self._writeTimeout:
             time.sleep(self._writeTimeout) # must wait so that unit test succeeds
             raise writeTimeoutError
-        self.buffer_lock.acquire()
-        try:
+        with self.buffer_lock:
             self.loop_buffer += data
-        finally:
-            self.buffer_lock.release()
         return len(data)
 
     def flushInput(self):
@@ -173,11 +174,8 @@ class Serial(SerialBase):
         if not self._isOpen: raise portNotOpenError
         if self.logger:
             self.logger.info('flushInput()')
-        self.buffer_lock.acquire()
-        try:
+        with self.buffer_lock:
             del self.loop_buffer[:]
-        finally:
-            self.buffer_lock.release()
 
     def flushOutput(self):
         """\
