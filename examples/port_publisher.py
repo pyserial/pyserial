@@ -132,6 +132,8 @@ class Forwarder(ZeroconfService):
         self.serial_settings_backup = self.serial.getSettingsDict()
 
         # start the socket server
+        # XXX add IPv6 support: use getaddrinfo for socket options, bind to multiple sockets?
+        #       info_list = socket.getaddrinfo(None, port, 0, socket.SOCK_STREAM, 0, socket.AI_PASSIVE)
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.setsockopt(
             socket.SOL_SOCKET,
@@ -286,7 +288,7 @@ class Forwarder(ZeroconfService):
             self.socket.setblocking(0)
             self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             if self.log is not None:
-                self.log.info('%s: Connected by %s:%s' % (self.device, addr[0], addr[1]))
+                self.log.warning('%s: Connected by %s:%s' % (self.device, addr[0], addr[1]))
             self.serial.setRTS(True)
             self.serial.setDTR(True)
             if self.log is not None:
@@ -297,7 +299,7 @@ class Forwarder(ZeroconfService):
             # reject connection if there is already one
             connection.close()
             if self.log is not None:
-                self.log.info('%s: Rejecting connect from %s:%s' % (self.device, addr[0], addr[1]))
+                self.log.warning('%s: Rejecting connect from %s:%s' % (self.device, addr[0], addr[1]))
 
     def handle_server_error(self):
         """Socket server fails"""
@@ -321,7 +323,7 @@ class Forwarder(ZeroconfService):
                 self.socket.close()
                 self.socket = None
                 if self.log is not None:
-                    self.log.info('%s: Disconnected' % self.device)
+                    self.log.warning('%s: Disconnected' % self.device)
 
 
 def test():
