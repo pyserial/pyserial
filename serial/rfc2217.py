@@ -68,13 +68,12 @@ try:
     import urlparse
 except ImportError:
     import urllib.parse as urlparse
-
-from serial.serialutil import *
-
 try:
     import Queue
 except ImportError:
     import queue as Queue
+
+from serial.serialutil import *
 
 # port string is expected to be something like this:
 # rfc2217://host:port
@@ -91,59 +90,58 @@ LOGGER_LEVELS = {
 
 
 # telnet protocol characters
-IAC  = to_bytes([255]) # Interpret As Command
-DONT = to_bytes([254])
-DO   = to_bytes([253])
-WONT = to_bytes([252])
-WILL = to_bytes([251])
-IAC_DOUBLED = to_bytes([IAC, IAC])
-
-SE  = to_bytes([240])  # Subnegotiation End
-NOP = to_bytes([241])  # No Operation
-DM  = to_bytes([242])  # Data Mark
-BRK = to_bytes([243])  # Break
-IP  = to_bytes([244])  # Interrupt process
-AO  = to_bytes([245])  # Abort output
-AYT = to_bytes([246])  # Are You There
-EC  = to_bytes([247])  # Erase Character
-EL  = to_bytes([248])  # Erase Line
-GA  = to_bytes([249])  # Go Ahead
-SB =  to_bytes([250])  # Subnegotiation Begin
+SE  = b'\xf0'   # Subnegotiation End
+NOP = b'\xf1'   # No Operation
+DM  = b'\xf2'   # Data Mark
+BRK = b'\xf3'   # Break
+IP  = b'\xf4'   # Interrupt process
+AO  = b'\xf5'   # Abort output
+AYT = b'\xf6'   # Are You There
+EC  = b'\xf7'   # Erase Character
+EL  = b'\xf8'   # Erase Line
+GA  = b'\xf9'   # Go Ahead
+SB =  b'\xfa'   # Subnegotiation Begin
+WILL = b'\xfb'
+WONT = b'\xfc'
+DO   = b'\xfd'
+DONT = b'\xfe'
+IAC  = b'\xff'  # Interpret As Command
+IAC_DOUBLED = b'\xff\xff'
 
 # selected telnet options
-BINARY = to_bytes([0]) # 8-bit data path
-ECHO = to_bytes([1])   # echo
-SGA = to_bytes([3])    # suppress go ahead
+BINARY = b'\x00'    # 8-bit data path
+ECHO = b'\x01'      # echo
+SGA = b'\x03'       # suppress go ahead
 
 # RFC2217
-COM_PORT_OPTION = to_bytes([44])
+COM_PORT_OPTION = b'\x2c'
 
 # Client to Access Server
-SET_BAUDRATE = to_bytes([1])
-SET_DATASIZE = to_bytes([2])
-SET_PARITY = to_bytes([3])
-SET_STOPSIZE = to_bytes([4])
-SET_CONTROL = to_bytes([5])
-NOTIFY_LINESTATE = to_bytes([6])
-NOTIFY_MODEMSTATE = to_bytes([7])
-FLOWCONTROL_SUSPEND = to_bytes([8])
-FLOWCONTROL_RESUME = to_bytes([9])
-SET_LINESTATE_MASK = to_bytes([10])
-SET_MODEMSTATE_MASK = to_bytes([11])
-PURGE_DATA = to_bytes([12])
+SET_BAUDRATE = b'\x01'
+SET_DATASIZE = b'\x02'
+SET_PARITY = b'\x03'
+SET_STOPSIZE = b'\x04'
+SET_CONTROL = b'\x05'
+NOTIFY_LINESTATE = b'\x06'
+NOTIFY_MODEMSTATE = b'\x07'
+FLOWCONTROL_SUSPEND = b'\x08'
+FLOWCONTROL_RESUME = b'\x09'
+SET_LINESTATE_MASK = b'\x0a'
+SET_MODEMSTATE_MASK = b'\x0b'
+PURGE_DATA = b'\x0c'
 
-SERVER_SET_BAUDRATE = to_bytes([101])
-SERVER_SET_DATASIZE = to_bytes([102])
-SERVER_SET_PARITY = to_bytes([103])
-SERVER_SET_STOPSIZE = to_bytes([104])
-SERVER_SET_CONTROL = to_bytes([105])
-SERVER_NOTIFY_LINESTATE = to_bytes([106])
-SERVER_NOTIFY_MODEMSTATE = to_bytes([107])
-SERVER_FLOWCONTROL_SUSPEND = to_bytes([108])
-SERVER_FLOWCONTROL_RESUME = to_bytes([109])
-SERVER_SET_LINESTATE_MASK = to_bytes([110])
-SERVER_SET_MODEMSTATE_MASK = to_bytes([111])
-SERVER_PURGE_DATA = to_bytes([112])
+SERVER_SET_BAUDRATE = b'\x65'
+SERVER_SET_DATASIZE = b'\x66'
+SERVER_SET_PARITY = b'\x67'
+SERVER_SET_STOPSIZE = b'\x68'
+SERVER_SET_CONTROL = b'\x69'
+SERVER_NOTIFY_LINESTATE = b'\x6a'
+SERVER_NOTIFY_MODEMSTATE = b'\x6b'
+SERVER_FLOWCONTROL_SUSPEND = b'\x6c'
+SERVER_FLOWCONTROL_RESUME = b'\x6d'
+SERVER_SET_LINESTATE_MASK = b'\x6e'
+SERVER_SET_MODEMSTATE_MASK = b'\x6f'
+SERVER_PURGE_DATA = b'\x70'
 
 RFC2217_ANSWER_MAP = {
     SET_BAUDRATE: SERVER_SET_BAUDRATE,
@@ -160,48 +158,48 @@ RFC2217_ANSWER_MAP = {
     PURGE_DATA: SERVER_PURGE_DATA,
 }
 
-SET_CONTROL_REQ_FLOW_SETTING = to_bytes([0])        # Request Com Port Flow Control Setting (outbound/both)
-SET_CONTROL_USE_NO_FLOW_CONTROL = to_bytes([1])     # Use No Flow Control (outbound/both)
-SET_CONTROL_USE_SW_FLOW_CONTROL = to_bytes([2])     # Use XON/XOFF Flow Control (outbound/both)
-SET_CONTROL_USE_HW_FLOW_CONTROL = to_bytes([3])     # Use HARDWARE Flow Control (outbound/both)
-SET_CONTROL_REQ_BREAK_STATE = to_bytes([4])         # Request BREAK State
-SET_CONTROL_BREAK_ON = to_bytes([5])                # Set BREAK State ON
-SET_CONTROL_BREAK_OFF = to_bytes([6])               # Set BREAK State OFF
-SET_CONTROL_REQ_DTR = to_bytes([7])                 # Request DTR Signal State
-SET_CONTROL_DTR_ON = to_bytes([8])                  # Set DTR Signal State ON
-SET_CONTROL_DTR_OFF = to_bytes([9])                 # Set DTR Signal State OFF
-SET_CONTROL_REQ_RTS = to_bytes([10])                # Request RTS Signal State
-SET_CONTROL_RTS_ON = to_bytes([11])                 # Set RTS Signal State ON
-SET_CONTROL_RTS_OFF = to_bytes([12])                # Set RTS Signal State OFF
-SET_CONTROL_REQ_FLOW_SETTING_IN = to_bytes([13])    # Request Com Port Flow Control Setting (inbound)
-SET_CONTROL_USE_NO_FLOW_CONTROL_IN = to_bytes([14]) # Use No Flow Control (inbound)
-SET_CONTROL_USE_SW_FLOW_CONTOL_IN = to_bytes([15])  # Use XON/XOFF Flow Control (inbound)
-SET_CONTROL_USE_HW_FLOW_CONTOL_IN = to_bytes([16])  # Use HARDWARE Flow Control (inbound)
-SET_CONTROL_USE_DCD_FLOW_CONTROL = to_bytes([17])   # Use DCD Flow Control (outbound/both)
-SET_CONTROL_USE_DTR_FLOW_CONTROL = to_bytes([18])   # Use DTR Flow Control (inbound)
-SET_CONTROL_USE_DSR_FLOW_CONTROL = to_bytes([19])   # Use DSR Flow Control (outbound/both)
+SET_CONTROL_REQ_FLOW_SETTING = b'\x00'        # Request Com Port Flow Control Setting (outbound/both)
+SET_CONTROL_USE_NO_FLOW_CONTROL = b'\x01'     # Use No Flow Control (outbound/both)
+SET_CONTROL_USE_SW_FLOW_CONTROL = b'\x02'     # Use XON/XOFF Flow Control (outbound/both)
+SET_CONTROL_USE_HW_FLOW_CONTROL = b'\x03'     # Use HARDWARE Flow Control (outbound/both)
+SET_CONTROL_REQ_BREAK_STATE = b'\x04'         # Request BREAK State
+SET_CONTROL_BREAK_ON = b'\x05'                # Set BREAK State ON
+SET_CONTROL_BREAK_OFF = b'\x06'               # Set BREAK State OFF
+SET_CONTROL_REQ_DTR = b'\x07'                 # Request DTR Signal State
+SET_CONTROL_DTR_ON = b'\x08'                  # Set DTR Signal State ON
+SET_CONTROL_DTR_OFF = b'\x09'                 # Set DTR Signal State OFF
+SET_CONTROL_REQ_RTS = b'\x0a'                 # Request RTS Signal State
+SET_CONTROL_RTS_ON = b'\x0b'                  # Set RTS Signal State ON
+SET_CONTROL_RTS_OFF = b'\x0c'                 # Set RTS Signal State OFF
+SET_CONTROL_REQ_FLOW_SETTING_IN = b'\x0d'     # Request Com Port Flow Control Setting (inbound)
+SET_CONTROL_USE_NO_FLOW_CONTROL_IN = b'\x0e'  # Use No Flow Control (inbound)
+SET_CONTROL_USE_SW_FLOW_CONTOL_IN = b'\x0f'   # Use XON/XOFF Flow Control (inbound)
+SET_CONTROL_USE_HW_FLOW_CONTOL_IN = b'\x10'   # Use HARDWARE Flow Control (inbound)
+SET_CONTROL_USE_DCD_FLOW_CONTROL = b'\x11'    # Use DCD Flow Control (outbound/both)
+SET_CONTROL_USE_DTR_FLOW_CONTROL = b'\x12'    # Use DTR Flow Control (inbound)
+SET_CONTROL_USE_DSR_FLOW_CONTROL = b'\x13'    # Use DSR Flow Control (outbound/both)
 
-LINESTATE_MASK_TIMEOUT = 128                # Time-out Error
-LINESTATE_MASK_SHIFTREG_EMPTY = 64          # Transfer Shift Register Empty
-LINESTATE_MASK_TRANSREG_EMPTY = 32          # Transfer Holding Register Empty
-LINESTATE_MASK_BREAK_DETECT = 16            # Break-detect Error
-LINESTATE_MASK_FRAMING_ERROR = 8            # Framing Error
-LINESTATE_MASK_PARTIY_ERROR = 4             # Parity Error
-LINESTATE_MASK_OVERRUN_ERROR = 2            # Overrun Error
-LINESTATE_MASK_DATA_READY = 1               # Data Ready
+LINESTATE_MASK_TIMEOUT = 128        # Time-out Error
+LINESTATE_MASK_SHIFTREG_EMPTY = 64  # Transfer Shift Register Empty
+LINESTATE_MASK_TRANSREG_EMPTY = 32  # Transfer Holding Register Empty
+LINESTATE_MASK_BREAK_DETECT = 16    # Break-detect Error
+LINESTATE_MASK_FRAMING_ERROR = 8    # Framing Error
+LINESTATE_MASK_PARTIY_ERROR = 4     # Parity Error
+LINESTATE_MASK_OVERRUN_ERROR = 2    # Overrun Error
+LINESTATE_MASK_DATA_READY = 1       # Data Ready
 
-MODEMSTATE_MASK_CD = 128                    # Receive Line Signal Detect (also known as Carrier Detect)
-MODEMSTATE_MASK_RI = 64                     # Ring Indicator
-MODEMSTATE_MASK_DSR = 32                    # Data-Set-Ready Signal State
-MODEMSTATE_MASK_CTS = 16                    # Clear-To-Send Signal State
-MODEMSTATE_MASK_CD_CHANGE = 8               # Delta Receive Line Signal Detect
-MODEMSTATE_MASK_RI_CHANGE = 4               # Trailing-edge Ring Detector
-MODEMSTATE_MASK_DSR_CHANGE = 2              # Delta Data-Set-Ready
-MODEMSTATE_MASK_CTS_CHANGE = 1              # Delta Clear-To-Send
+MODEMSTATE_MASK_CD = 128            # Receive Line Signal Detect (also known as Carrier Detect)
+MODEMSTATE_MASK_RI = 64             # Ring Indicator
+MODEMSTATE_MASK_DSR = 32            # Data-Set-Ready Signal State
+MODEMSTATE_MASK_CTS = 16            # Clear-To-Send Signal State
+MODEMSTATE_MASK_CD_CHANGE = 8       # Delta Receive Line Signal Detect
+MODEMSTATE_MASK_RI_CHANGE = 4       # Trailing-edge Ring Detector
+MODEMSTATE_MASK_DSR_CHANGE = 2      # Delta Data-Set-Ready
+MODEMSTATE_MASK_CTS_CHANGE = 1      # Delta Clear-To-Send
 
-PURGE_RECEIVE_BUFFER = to_bytes([1])        # Purge access server receive data buffer
-PURGE_TRANSMIT_BUFFER = to_bytes([2])       # Purge access server transmit data buffer
-PURGE_BOTH_BUFFERS = to_bytes([3])          # Purge both the access server receive data buffer and the access server transmit data buffer
+PURGE_RECEIVE_BUFFER = b'\x01'      # Purge access server receive data buffer
+PURGE_TRANSMIT_BUFFER = b'\x02'     # Purge access server transmit data buffer
+PURGE_BOTH_BUFFERS = b'\x03'        # Purge both the access server receive data buffer and the access server transmit data buffer
 
 
 RFC2217_PARITY_MAP = {
@@ -824,7 +822,7 @@ class Serial(SerialBase):
         """Send DO, DONT, WILL, WONT."""
         self._internal_raw_write(to_bytes([IAC, action, option]))
 
-    def rfc2217SendSubnegotiation(self, option, value=''):
+    def rfc2217SendSubnegotiation(self, option, value=b''):
         """Subnegotiation of RFC2217 parameters."""
         value = value.replace(IAC, IAC_DOUBLED)
         self._internal_raw_write(to_bytes([IAC, SB, COM_PORT_OPTION, option] + list(value) + [IAC, SE]))
@@ -958,7 +956,7 @@ class PortManager(object):
         """Send DO, DONT, WILL, WONT."""
         self.connection.write(to_bytes([IAC, action, option]))
 
-    def rfc2217SendSubnegotiation(self, option, value=''):
+    def rfc2217SendSubnegotiation(self, option, value=b''):
         """Subnegotiation of RFC 2217 parameters."""
         value = value.replace(IAC, IAC_DOUBLED)
         self.connection.write(to_bytes([IAC, SB, COM_PORT_OPTION, option] + list(value) + [IAC, SE]))
@@ -1152,7 +1150,7 @@ class PortManager(object):
                         self.logger.info("%s parity: %s" % (parity and 'set' or 'get', self.serial.parity))
                 self.rfc2217SendSubnegotiation(
                     SERVER_SET_PARITY,
-                    struct.pack("!B", RFC2217_PARITY_MAP[self.serial.parity])
+                    struct.pack(b"!B", RFC2217_PARITY_MAP[self.serial.parity])
                     )
             elif suboption[1:2] == SET_STOPSIZE:
                 backup = self.serial.stopbits
@@ -1309,7 +1307,7 @@ if __name__ == '__main__':
     #~ s.baudrate = 1898
 
     sys.stdout.write("write...\n")
-    s.write("hello\n")
+    s.write(b"hello\n")
     s.flush()
     sys.stdout.write("read: %s\n" % s.read(5))
 
