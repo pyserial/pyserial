@@ -5,7 +5,7 @@
 Overview
 ========
 This module encapsulates the access for the serial port. It provides backends
-for Python running on Windows, Linux, BSD (possibly any POSIX compliant
+for Python_ running on Windows, Linux, BSD (possibly any POSIX compliant
 system), Jython and IronPython (.NET and Mono). The module named "serial"
 automatically selects the appropriate backend.
 
@@ -19,12 +19,12 @@ Documentation
 =============
 For API documentation, usage and examples see files in the "documentation"
 directory.  The ".rst" files can be read in any text editor or being converted to
-HTML or PDF using Sphinx. An online HTML version is at
+HTML or PDF using Sphinx_. A HTML version is online at
 https://pythonhosted.org/pyserial/
 
 Examples
 ========
-Examples and unit tests are in the directory "examples".
+Examples and unit tests are in the directory examples_.
 
 
 Installation
@@ -33,7 +33,10 @@ Installation
 
 Detailed information can be found in `documentation/pyserial.rst`_.
 
-The usual setup.py for Python libraries is used for the source distribution.
+The usual setup.py for Python_ libraries is used for the source distribution.
 Windows installers are also available (see download link above).
 
 .. _`documentation/pyserial.rst`: https://github.com/pyserial/pyserial/blob/master/documentation/pyserial.rst#installation
+.. _examples: https://github.com/pyserial/pyserial/blob/master/examples
+.. _Python: http://python.org/
+.. _Sphinx: http://sphinx-doc.org/
