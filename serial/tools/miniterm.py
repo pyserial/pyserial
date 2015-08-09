@@ -123,8 +123,8 @@ if os.name == 'nt':
                     return z
 
         def write(self, s):
-            sys.output.write(s)
-            sys.output.flush()
+            self.output.write(s)
+            self.output.flush()
 
 elif os.name == 'posix':
     import atexit

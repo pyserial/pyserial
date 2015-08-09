@@ -28,11 +28,10 @@ class Serial(SerialBase):
                  9600, 19200, 38400, 57600, 115200)
 
     def __init__(self, *args, **kwargs):
+        super(SerialBase, self).__init__()
         self.hComPort = None
         self._overlappedRead = None
         self._overlappedWrite = None
-        self._rtsToggle = False
-
         self._rtsState = win32.RTS_CONTROL_ENABLE
         self._dtrState = win32.DTR_CONTROL_ENABLE
 
@@ -447,23 +446,8 @@ class Serial(SerialBase):
             raise SerialException('call to ClearCommError failed')
         return comstat.cbOutQue
 
-    # functions useful for RS-485 adapters
-    @property
-    def rs485_mode(self):
-        """\
-        enable RS485 mode and apply new settings, set to None to disable.
-        see serial.rs485 for more info about the value.
-        """
-        return self.rs485_settings
-
-    @rs485_mode.setter
-    def rs485_mode(self, rs485_settings):
-        self.rs485_settings = rs485_settings
-        self._rtsToggle = rs485_settings is not None
-        if self._isOpen: self._reconfigurePort()
 
 
-t
 # Nur Testfunktion!!
 if __name__ == '__main__':
     s = Serial(0)
