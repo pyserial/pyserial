@@ -6,6 +6,7 @@
 # This is a thin wrapper to load the rfc2271 implementation.
 #
 # (C) 2011 Chris Liechti <cliechti@gmx.net>
-# this is distributed under a free software license, see license.txt
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 
 from serial.rfc2217 import Serial

@@ -5,7 +5,8 @@
 # see __init__.py
 #
 # (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
-# this is distributed under a free software license, see license.txt
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 #
 # parts based on code from Grant B. Edwards  <grante@visi.com>:
 #  ftp://ftp.visi.com/users/grante/python/PosixSerial.py

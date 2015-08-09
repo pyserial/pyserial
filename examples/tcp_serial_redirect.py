@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-
+#
+# Redirect data from a TCP/IP connection to a serial port and vice versa.
+#
 # (C) 2002-2009 Chris Liechti <cliechti@gmx.net>
-# redirect data from a TCP/IP connection to a serial port and vice versa
-# requires Python 2.2 'cause socket.sendall is used
-
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 
 import sys
 import os

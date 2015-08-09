@@ -8,8 +8,9 @@
 # this is a wrapper module for different platform implementations of the
 # port enumeration feature
 #
-# (C) 2011-2013 Chris Liechti <cliechti@gmx.net>
-# this is distributed under a free software license, see license.txt
+# (C) 2011-2015 Chris Liechti <cliechti@gmx.net>
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 
 """\
 The ``comports`` function is expected to return an iterable that yields tuples
@@ -102,3 +103,4 @@ this module running...
 if __name__ == '__main__':
     for port, desc, hwid in sorted(comports()):
         print("%s: %s [%s]" % (port, desc, hwid))
+

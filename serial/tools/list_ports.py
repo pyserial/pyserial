@@ -5,7 +5,8 @@
 # port enumeration feature
 #
 # (C) 2011-2015 Chris Liechti <cliechti@gmx.net>
-# this is distributed under a free software license, see license.txt
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 
 """\
 This module will provide a function called comports that returns an

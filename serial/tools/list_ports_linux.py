@@ -1,12 +1,13 @@
 #!/usr/bin/env python
-
+#
 # portable serial port access with python
 #
 # This is a module that gathers a list of serial ports including details on
 # GNU/Linux systems
 #
-# (C) 2011-2013 Chris Liechti <cliechti@gmx.net>
-# this is distributed under a free software license, see license.txt
+# (C) 2011-2015 Chris Liechti <cliechti@gmx.net>
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 
 import glob
 import sys

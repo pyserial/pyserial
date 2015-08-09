@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+#
 # portable serial port access with python
 #
 # This is a module that gathers a list of serial ports including details on OSX
@@ -8,7 +8,9 @@
 # with contributions from cibomahto, dgs3, FarMcKon, tedbrandston
 # and modifications by cliechti
 #
-# this is distributed under a free software license, see license.txt
+# (C) 2013-2015
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 
 
 

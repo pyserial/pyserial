@@ -5,7 +5,8 @@
 # see __init__.py
 #
 # (C) 2002-2008 Chris Liechti <cliechti@gmx.net>
-# this is distributed under a free software license, see license.txt
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 
 from serial.serialutil import *
 

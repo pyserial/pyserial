@@ -1,4 +1,8 @@
 #! /usr/bin/env python
+#
+# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 """\
 Multi-port serial<->TCP/IP forwarder.
 - RFC 2217

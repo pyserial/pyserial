@@ -1,9 +1,11 @@
 #!/usr/bin/env python
-
-# (C) 2009 Chris Liechti <cliechti@gmx.net>
+#
 # redirect data from a TCP/IP connection to a serial port and vice versa
 # using RFC 2217
-
+#
+# (C) 2009 Chris Liechti <cliechti@gmx.net>
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 
 import logging
 import os

@@ -8,7 +8,8 @@
 # modem control lines etc.
 #
 # (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
-# this is distributed under a free software license, see license.txt
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 
 # TODO:
 # - setting control line -> answer is not checked (had problems with one of the

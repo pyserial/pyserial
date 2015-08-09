@@ -1,3 +1,9 @@
+#! python
+#
+# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+#
+# SPDX-License-Identifier:    BSD-3-Clause
+
 from ctypes import *
 from ctypes.wintypes import HANDLE
 from ctypes.wintypes import BOOL

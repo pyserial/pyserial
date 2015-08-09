@@ -11,21 +11,23 @@
 # TCP/IP to serial port converters that do not support RFC 2217.
 #
 # (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
-# this is distributed under a free software license, see license.txt
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 #
 # URL format:    socket://<host>:<port>[/option[/option...]]
 # options:
 # - "debug" print diagnostic messages
 
-from serial.serialutil import *
-import time
-import socket
-import select
 import logging
+import select
+import socket
+import time
 try:
     import urlparse
 except ImportError:
     import urllib.parse as urlparse
+
+from serial.serialutil import *
 
 # map log level names to constants. used in fromURL()
 LOGGER_LEVELS = {
@@ -271,7 +273,7 @@ if __name__ == '__main__':
     sys.stdout.write('%s\n' % s)
 
     sys.stdout.write("write...\n")
-    s.write("hello\n")
+    s.write(b"hello\n")
     s.flush()
     sys.stdout.write("read: %s\n" % s.read(5))
 

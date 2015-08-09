@@ -1,6 +1,10 @@
 #!/usr/bin/env python
+#
 # Very simple serial terminal
+#
 # (C)2002-2015 Chris Liechti <cliechti@gmx.net>
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 
 # Input characters are sent directly (only LF -> CR/LF/CRLF translation is
 # done), received characters are displayed as is (or escaped through pythons

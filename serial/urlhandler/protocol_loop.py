@@ -9,7 +9,8 @@
 # and it was so easy to implement ;-)
 #
 # (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
-# this is distributed under a free software license, see license.txt
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 #
 # URL format:    loop://[option[/option...]]
 # options:

@@ -1,10 +1,11 @@
 #!/usr/bin/env python
-
+#
 # portable serial port access with python
 # this is a wrapper module for different platform implementations
 #
-# (C) 2001-2010 Chris Liechti <cliechti@gmx.net>
-# this is distributed under a free software license, see license.txt
+# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 
 VERSION = '3.0a'
 

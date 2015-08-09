@@ -7,7 +7,8 @@
 # find ports by searching the string descriptions.
 #
 # (C) 2011-2015 Chris Liechti <cliechti@gmx.net>
-# this is distributed under a free software license, see license.txt
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 #
 # URL format:    hwgrep://regexp
 
@@ -32,7 +33,8 @@ class Serial(serial.Serial):
 
     def fromURL(self, url):
         """extract host and port from an URL string"""
-        if url.lower().startswith("hwgrep://"): url = url[9:]
+        if url.lower().startswith("hwgrep://"):
+            url = url[9:]
         # use a for loop to get the 1st element from the generator
         for port, desc, hwid in serial.tools.list_ports.grep(url):
             return port

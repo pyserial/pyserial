@@ -1,4 +1,8 @@
 # setup script for py2exe to create the miniterm.exe
+#
+# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 
 from distutils.core import setup
 import glob

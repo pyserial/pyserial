@@ -1,3 +1,12 @@
+#! python
+#
+# Enumerate serial ports on Windows including a human readable description
+# and hardware information.
+#
+# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+#
+# SPDX-License-Identifier:    BSD-3-Clause
+
 import ctypes
 import re
 
@@ -239,3 +248,4 @@ if __name__ == '__main__':
 
     for port, desc, hwid in sorted(comports()):
         print("%s: %s [%s]" % (port, desc, hwid))
+

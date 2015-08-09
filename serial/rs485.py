@@ -3,6 +3,8 @@
 # RS485 support
 #
 # (C) 2015 Chris Liechti <cliechti@gmx.net>
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 
 """\
 The settings for RS485 are stored in a dedicated object that can be applied to
