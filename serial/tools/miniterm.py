@@ -461,7 +461,7 @@ class Miniterm(object):
                     if self.echo:
                         sys.console.write(c)                # local echo is a real newline in any case
                 else:
-                    self.console.write(c)                   # send byte
+                    self.serial.write(c)                    # send byte
                     if self.echo:
                         self.console.write(c)
         except:
