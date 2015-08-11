@@ -23,6 +23,10 @@ try:
     import urlparse
 except ImportError:
     import urllib.parse as urlparse
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 
 from serial.serialutil import *
 
@@ -41,6 +45,10 @@ class Serial(SerialBase):
     BAUDRATES = (50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
                  9600, 19200, 38400, 57600, 115200)
 
+    def __init__(self, *args, **kwargs):
+        super(Serial, self).__init__(*args, **kwargs)
+        self.buffer_size = 4096
+
     def open(self):
         """\
         Open port with current settings. This may throw a SerialException
@@ -49,8 +57,7 @@ class Serial(SerialBase):
         if self._isOpen:
             raise SerialException("Port is already open.")
         self.logger = None
-        self.buffer_lock = threading.Lock()
-        self.loop_buffer = bytearray()
+        self.queue = queue.Queue(self.buffer_size)
         self.cts = False
         self.dsr = False
 
@@ -70,6 +77,10 @@ class Serial(SerialBase):
         self.flushInput()
         self.flushOutput()
 
+    def close(self):
+        self.queue.put(None)
+        super(Serial, self).close()
+
     def _reconfigurePort(self):
         """\
         Set communication parameters on opened port. For the loop://
@@ -87,9 +98,6 @@ class Serial(SerialBase):
             self._isOpen = False
             # in case of quick reconnects, give the server some time
             time.sleep(0.3)
-
-    def makeDeviceName(self, port):
-        raise SerialException("there is no sensible way to turn numbers into URLs")
 
     def fromURL(self, url):
         """extract host and port from an URL string"""
@@ -123,8 +131,8 @@ class Serial(SerialBase):
         if self.logger:
             # attention the logged value can differ from return value in
             # threaded environments...
-            self.logger.debug('inWaiting() -> %d' % (len(self.loop_buffer),))
-        return len(self.loop_buffer)
+            self.logger.debug('inWaiting() -> %d' % (self.queue.qsize(),))
+        return self.queue.qsize()
 
     def read(self, size=1):
         """\
@@ -138,12 +146,13 @@ class Serial(SerialBase):
         else:
             timeout = None
         data = bytearray()
-        while size > 0:
-            with self.buffer_lock:
-                block = to_bytes(self.loop_buffer[:size])
-                del self.loop_buffer[:size]
-            data += block
-            size -= len(block)
+        while size > 0 and self._isOpen:
+            try:
+                data += self.queue.get(timeout=self._timeout) # XXX inter char timeout
+            except queue.Empty:
+                break
+            else:
+                size -= 1
             # check for timeout now, after data has been read.
             # useful for timeout = 0 (non blocking) read
             if timeout and time.time() > timeout:
@@ -157,7 +166,6 @@ class Serial(SerialBase):
         closed.
         """
         if not self._isOpen: raise portNotOpenError
-        # ensure we're working with bytes
         data = to_bytes(data)
         # calculate aprox time that would be used to send the data
         time_used_to_send = 10.0*len(data) / self._baudrate
@@ -166,8 +174,10 @@ class Serial(SerialBase):
         if self._writeTimeout is not None and time_used_to_send > self._writeTimeout:
             time.sleep(self._writeTimeout) # must wait so that unit test succeeds
             raise writeTimeoutError
-        with self.buffer_lock:
-            self.loop_buffer += data
+        #~ for byte in data:    # fails for python3 as it returns ints instead of b''
+        for x in range(len(data)):
+            byte = data[x:x+1]
+            self.queue.put(byte, timeout=self._writeTimeout)
         return len(data)
 
     def flushInput(self):
@@ -175,8 +185,11 @@ class Serial(SerialBase):
         if not self._isOpen: raise portNotOpenError
         if self.logger:
             self.logger.info('flushInput()')
-        with self.buffer_lock:
-            del self.loop_buffer[:]
+        try:
+            while self.queue.qsize():
+                self.queue.get_nowait()
+        except queue.Empty:
+            pass
 
     def flushOutput(self):
         """\
@@ -186,6 +199,11 @@ class Serial(SerialBase):
         if not self._isOpen: raise portNotOpenError
         if self.logger:
             self.logger.info('flushOutput()')
+        try:
+            while self.queue.qsize():
+                self.queue.get_nowait()
+        except queue.Empty:
+            pass
 
     def sendBreak(self, duration=0.25):
         """\
@@ -193,6 +211,7 @@ class Serial(SerialBase):
         duration.
         """
         if not self._isOpen: raise portNotOpenError
+        time.sleep(duration)
 
     def setBreak(self, level=True):
         """\
