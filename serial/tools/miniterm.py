@@ -641,8 +641,17 @@ def main():
         default = False
     )
 
+    group.add_option("--encoding",
+        dest = "serial_port_encoding",
+        metavar="CODEC",
+        action = "store",
+        help = "Set the encoding for the serial port (default: %default)",
+        default = 'latin1'
+    )
+
     group.add_option("-t", "--transformation",
         dest = "transformations",
+        metavar="NAME",
         action = "append",
         help = "Add text transformation",
         default = []
@@ -774,6 +783,8 @@ def main():
             transformations=transformations,
         )
         miniterm.raw = options.raw
+        miniterm.input_encoding = options.serial_port_encoding
+        miniterm.output_encoding = options.serial_port_encoding
     except serial.SerialException as e:
         sys.stderr.write("could not open port %r: %s\n" % (port, e))
         if options.develop:
