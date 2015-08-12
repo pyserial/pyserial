@@ -412,145 +412,13 @@ class Miniterm(object):
                 except KeyboardInterrupt:
                     c = '\x03'
                 if menu_active:
-                    if c == MENUCHARACTER or c == EXITCHARCTER: # Menu character again/exit char -> send itself
-                        b = codecs.encode(
-                                c,
-                                self.output_encoding,
-                                self.output_error_handling)
-                        self.serial.write(b)
-                        if self.echo:
-                            self.console.write(c)
-                    elif c == b'\x15':                       # CTRL+U -> upload file
-                        sys.stderr.write('\n--- File to upload: ')
-                        sys.stderr.flush()
-                        self.console.cleanup()
-                        filename = sys.stdin.readline().rstrip('\r\n')
-                        if filename:
-                            try:
-                                with open(filename, 'rb') as f:
-                                    sys.stderr.write('--- Sending file %s ---\n' % filename)
-                                    while True:
-                                        block = f.read(1024)
-                                        if not block:
-                                            break
-                                        self.serial.write(block)
-                                        # Wait for output buffer to drain.
-                                        self.serial.flush()
-                                        sys.stderr.write('.')   # Progress indicator.
-                                sys.stderr.write('\n--- File %s sent ---\n' % filename)
-                            except IOError as e:
-                                sys.stderr.write('--- ERROR opening file %s: %s ---\n' % (filename, e))
-                        self.console.setup()
-                    elif c in '\x08hH?':                    # CTRL+H, h, H, ? -> Show help
-                        sys.stderr.write(get_help_text())
-                    elif c == '\x12':                       # CTRL+R -> Toggle RTS
-                        self.rts_state = not self.rts_state
-                        self.serial.setRTS(self.rts_state)
-                        sys.stderr.write('--- RTS %s ---\n' % (self.rts_state and 'active' or 'inactive'))
-                    elif c == '\x04':                       # CTRL+D -> Toggle DTR
-                        self.dtr_state = not self.dtr_state
-                        self.serial.setDTR(self.dtr_state)
-                        sys.stderr.write('--- DTR %s ---\n' % (self.dtr_state and 'active' or 'inactive'))
-                    elif c == '\x02':                       # CTRL+B -> toggle BREAK condition
-                        self.break_state = not self.break_state
-                        self.serial.setBreak(self.break_state)
-                        sys.stderr.write('--- BREAK %s ---\n' % (self.break_state and 'active' or 'inactive'))
-                    elif c == '\x05':                       # CTRL+E -> toggle local echo
-                        self.echo = not self.echo
-                        sys.stderr.write('--- local echo %s ---\n' % (self.echo and 'active' or 'inactive'))
-                    elif c == '\x09':                       # CTRL+I -> info
-                        self.dump_port_settings()
-                    #~ elif c == '\x01':                       # CTRL+A -> cycle escape mode
-                    #~ elif c == '\x0c':                       # CTRL+L -> cycle linefeed mode
-                    elif c in 'pP':                         # P -> change port
-                        dump_port_list()
-                        sys.stderr.write('--- Enter port name: ')
-                        sys.stderr.flush()
-                        self.console.cleanup()
-                        try:
-                            port = sys.stdin.readline().strip()
-                        except KeyboardInterrupt:
-                            port = None
-                        self.console.setup()
-                        if port and port != self.serial.port:
-                            # reader thread needs to be shut down
-                            self._stop_reader()
-                            # save settings
-                            settings = self.serial.getSettingsDict()
-                            try:
-                                new_serial = serial.serial_for_url(port, do_not_open=True)
-                                # restore settings and open
-                                new_serial.applySettingsDict(settings)
-                                new_serial.open()
-                                new_serial.setRTS(self.rts_state)
-                                new_serial.setDTR(self.dtr_state)
-                                new_serial.setBreak(self.break_state)
-                            except Exception as e:
-                                sys.stderr.write('--- ERROR opening new port: %s ---\n' % (e,))
-                                new_serial.close()
-                            else:
-                                self.serial.close()
-                                self.serial = new_serial
-                                sys.stderr.write('--- Port changed to: %s ---\n' % (self.serial.port,))
-                            # and restart the reader thread
-                            self._start_reader()
-                    elif c in 'bB':                         # B -> change baudrate
-                        sys.stderr.write('\n--- Baudrate: ')
-                        sys.stderr.flush()
-                        self.console.cleanup()
-                        backup = self.serial.baudrate
-                        try:
-                            self.serial.baudrate = int(sys.stdin.readline().strip())
-                        except ValueError as e:
-                            sys.stderr.write('--- ERROR setting baudrate: %s ---\n' % (e,))
-                            self.serial.baudrate = backup
-                        else:
-                            self.dump_port_settings()
-                        self.console.setup()
-                    elif c == '8':                          # 8 -> change to 8 bits
-                        self.serial.bytesize = serial.EIGHTBITS
-                        self.dump_port_settings()
-                    elif c == '7':                          # 7 -> change to 8 bits
-                        self.serial.bytesize = serial.SEVENBITS
-                        self.dump_port_settings()
-                    elif c in 'eE':                         # E -> change to even parity
-                        self.serial.parity = serial.PARITY_EVEN
-                        self.dump_port_settings()
-                    elif c in 'oO':                         # O -> change to odd parity
-                        self.serial.parity = serial.PARITY_ODD
-                        self.dump_port_settings()
-                    elif c in 'mM':                         # M -> change to mark parity
-                        self.serial.parity = serial.PARITY_MARK
-                        self.dump_port_settings()
-                    elif c in 'sS':                         # S -> change to space parity
-                        self.serial.parity = serial.PARITY_SPACE
-                        self.dump_port_settings()
-                    elif c in 'nN':                         # N -> change to no parity
-                        self.serial.parity = serial.PARITY_NONE
-                        self.dump_port_settings()
-                    elif c == '1':                          # 1 -> change to 1 stop bits
-                        self.serial.stopbits = serial.STOPBITS_ONE
-                        self.dump_port_settings()
-                    elif c == '2':                          # 2 -> change to 2 stop bits
-                        self.serial.stopbits = serial.STOPBITS_TWO
-                        self.dump_port_settings()
-                    elif c == '3':                          # 3 -> change to 1.5 stop bits
-                        self.serial.stopbits = serial.STOPBITS_ONE_POINT_FIVE
-                        self.dump_port_settings()
-                    elif c in 'xX':                         # X -> change software flow control
-                        self.serial.xonxoff = (c == 'X')
-                        self.dump_port_settings()
-                    elif c in 'rR':                         # R -> change hardware flow control
-                        self.serial.rtscts = (c == 'R')
-                        self.dump_port_settings()
-                    else:
-                        sys.stderr.write('--- unknown menu character %s --\n' % key_description(c))
+                    self.handle_menu_key(c)
                     menu_active = False
-                elif c == MENUCHARACTER: # next char will be for menu
-                    menu_active = True
+                elif c == MENUCHARACTER:
+                    menu_active = True      # next char will be for menu
                 elif c == EXITCHARCTER:
-                    self.stop()
-                    break                                   # exit app
+                    self.stop()             # exit app
+                    break
                 else:
                     #~ if self.raw:
                     text = c
@@ -568,6 +436,144 @@ class Miniterm(object):
         except:
             self.alive = False
             raise
+
+    def handle_menu_key(self, c):
+        """Implement a simple menu / settings"""
+        if c == MENUCHARACTER or c == EXITCHARCTER: # Menu character again/exit char -> send itself
+            b = codecs.encode(
+                    c,
+                    self.output_encoding,
+                    self.output_error_handling)
+            self.serial.write(b)
+            if self.echo:
+                self.console.write(c)
+        elif c == b'\x15':                       # CTRL+U -> upload file
+            sys.stderr.write('\n--- File to upload: ')
+            sys.stderr.flush()
+            self.console.cleanup()
+            filename = sys.stdin.readline().rstrip('\r\n')
+            if filename:
+                try:
+                    with open(filename, 'rb') as f:
+                        sys.stderr.write('--- Sending file %s ---\n' % filename)
+                        while True:
+                            block = f.read(1024)
+                            if not block:
+                                break
+                            self.serial.write(block)
+                            # Wait for output buffer to drain.
+                            self.serial.flush()
+                            sys.stderr.write('.')   # Progress indicator.
+                    sys.stderr.write('\n--- File %s sent ---\n' % filename)
+                except IOError as e:
+                    sys.stderr.write('--- ERROR opening file %s: %s ---\n' % (filename, e))
+            self.console.setup()
+        elif c in '\x08hH?':                    # CTRL+H, h, H, ? -> Show help
+            sys.stderr.write(get_help_text())
+        elif c == '\x12':                       # CTRL+R -> Toggle RTS
+            self.rts_state = not self.rts_state
+            self.serial.setRTS(self.rts_state)
+            sys.stderr.write('--- RTS %s ---\n' % (self.rts_state and 'active' or 'inactive'))
+        elif c == '\x04':                       # CTRL+D -> Toggle DTR
+            self.dtr_state = not self.dtr_state
+            self.serial.setDTR(self.dtr_state)
+            sys.stderr.write('--- DTR %s ---\n' % (self.dtr_state and 'active' or 'inactive'))
+        elif c == '\x02':                       # CTRL+B -> toggle BREAK condition
+            self.break_state = not self.break_state
+            self.serial.setBreak(self.break_state)
+            sys.stderr.write('--- BREAK %s ---\n' % (self.break_state and 'active' or 'inactive'))
+        elif c == '\x05':                       # CTRL+E -> toggle local echo
+            self.echo = not self.echo
+            sys.stderr.write('--- local echo %s ---\n' % (self.echo and 'active' or 'inactive'))
+        elif c == '\x09':                       # CTRL+I -> info
+            self.dump_port_settings()
+        #~ elif c == '\x01':                       # CTRL+A -> cycle escape mode
+        #~ elif c == '\x0c':                       # CTRL+L -> cycle linefeed mode
+        elif c in 'pP':                         # P -> change port
+            dump_port_list()
+            sys.stderr.write('--- Enter port name: ')
+            sys.stderr.flush()
+            self.console.cleanup()
+            try:
+                port = sys.stdin.readline().strip()
+            except KeyboardInterrupt:
+                port = None
+            self.console.setup()
+            if port and port != self.serial.port:
+                # reader thread needs to be shut down
+                self._stop_reader()
+                # save settings
+                settings = self.serial.getSettingsDict()
+                try:
+                    new_serial = serial.serial_for_url(port, do_not_open=True)
+                    # restore settings and open
+                    new_serial.applySettingsDict(settings)
+                    new_serial.open()
+                    new_serial.setRTS(self.rts_state)
+                    new_serial.setDTR(self.dtr_state)
+                    new_serial.setBreak(self.break_state)
+                except Exception as e:
+                    sys.stderr.write('--- ERROR opening new port: %s ---\n' % (e,))
+                    new_serial.close()
+                else:
+                    self.serial.close()
+                    self.serial = new_serial
+                    sys.stderr.write('--- Port changed to: %s ---\n' % (self.serial.port,))
+                # and restart the reader thread
+                self._start_reader()
+        elif c in 'bB':                         # B -> change baudrate
+            sys.stderr.write('\n--- Baudrate: ')
+            sys.stderr.flush()
+            self.console.cleanup()
+            backup = self.serial.baudrate
+            try:
+                self.serial.baudrate = int(sys.stdin.readline().strip())
+            except ValueError as e:
+                sys.stderr.write('--- ERROR setting baudrate: %s ---\n' % (e,))
+                self.serial.baudrate = backup
+            else:
+                self.dump_port_settings()
+            self.console.setup()
+        elif c == '8':                          # 8 -> change to 8 bits
+            self.serial.bytesize = serial.EIGHTBITS
+            self.dump_port_settings()
+        elif c == '7':                          # 7 -> change to 8 bits
+            self.serial.bytesize = serial.SEVENBITS
+            self.dump_port_settings()
+        elif c in 'eE':                         # E -> change to even parity
+            self.serial.parity = serial.PARITY_EVEN
+            self.dump_port_settings()
+        elif c in 'oO':                         # O -> change to odd parity
+            self.serial.parity = serial.PARITY_ODD
+            self.dump_port_settings()
+        elif c in 'mM':                         # M -> change to mark parity
+            self.serial.parity = serial.PARITY_MARK
+            self.dump_port_settings()
+        elif c in 'sS':                         # S -> change to space parity
+            self.serial.parity = serial.PARITY_SPACE
+            self.dump_port_settings()
+        elif c in 'nN':                         # N -> change to no parity
+            self.serial.parity = serial.PARITY_NONE
+            self.dump_port_settings()
+        elif c == '1':                          # 1 -> change to 1 stop bits
+            self.serial.stopbits = serial.STOPBITS_ONE
+            self.dump_port_settings()
+        elif c == '2':                          # 2 -> change to 2 stop bits
+            self.serial.stopbits = serial.STOPBITS_TWO
+            self.dump_port_settings()
+        elif c == '3':                          # 3 -> change to 1.5 stop bits
+            self.serial.stopbits = serial.STOPBITS_ONE_POINT_FIVE
+            self.dump_port_settings()
+        elif c in 'xX':                         # X -> change software flow control
+            self.serial.xonxoff = (c == 'X')
+            self.dump_port_settings()
+        elif c in 'rR':                         # R -> change hardware flow control
+            self.serial.rtscts = (c == 'R')
+            self.dump_port_settings()
+        else:
+            sys.stderr.write('--- unknown menu character %s --\n' % key_description(c))
+
+
 
 def main():
     import optparse
