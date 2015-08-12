@@ -213,7 +213,7 @@ class LF(Transform):
 class NoTerminal(Transform):
     """remove typical terminal control codes from input"""
     def input(self, text):
-        return ''.join(t if t >= ' ' or t in '\r\n' else unichr(0x2400 + ord(t)) for t in text)
+        return ''.join(t if t >= ' ' or t in '\r\n\b\t' else unichr(0x2400 + ord(t)) for t in text)
 
     echo = input
 
@@ -235,11 +235,11 @@ class HexDump(Transform):
 
 
 class Printable(Transform):
-    """Show decimal code for all non-ASCII characters and control codes"""
+    """Show decimal code for all non-ASCII characters and most control codes"""
     def input(self, text):
         r = []
         for t in text:
-            if ' ' <= t < '\x7f' or t in '\r\n':
+            if ' ' <= t < '\x7f' or t in '\r\n\b\t':
                 r.append(t)
             else:
                 r.extend(unichr(0x2080 + ord(d) - 48) for d in '{:d}'.format(ord(t)))
