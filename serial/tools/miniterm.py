@@ -116,6 +116,23 @@ if os.name == 'nt':
     import msvcrt
     import ctypes
     class Console(ConsoleBase):
+        def __init__(self):
+            super(Console, self).__init__()
+            ctypes.windll.kernel32.SetConsoleOutputCP(65001)
+            ctypes.windll.kernel32.SetConsoleCP(65001)
+            if sys.version_info < (3, 0):
+                class Out:
+                    def __init__(self):
+                        self.fd = sys.stdout.fileno()
+                    def flush(self):
+                        pass
+                    def write(self, s):
+                        os.write(self.fd, s)
+                self.output = codecs.getwriter('UTF-8')(Out(), 'replace')
+                self.byte_output = Out()
+            else:
+                self.output = codecs.getwriter('UTF-8')(sys.stdout.buffer, 'replace')
+
         def getkey(self):
             while True:
                 z = msvcrt.getwch()
@@ -125,21 +142,6 @@ if os.name == 'nt':
                     msvcrt.getwch()
                 else:
                     return z
-        
-        def write(self, s):
-            # works, kind of.. can't print unicode
-            self.byte_output.write(s.encode(sys.stdout.encoding, 'replace'))
-            #~ sys.stdout.write(s) # fails with encoding errors
-            #~ for byte in data:    # fails for python3 as it returns ints instead of b''
-            #~ for x in range(len(s)):
-                #~ byte = s[x:x+1]
-                #~ msvcrt.putwch(byte)     # blocks?!? non-overlapped win io?
-        
-        def write_bytes(self, data):
-            #~ for byte in data:    # fails for python3 as it returns ints instead of b''
-            for x in range(len(data)):
-                byte = data[x:x+1]
-                msvcrt.putch(byte)
 
 elif os.name == 'posix':
     import atexit
@@ -178,6 +180,7 @@ else:
 # codecs.IncrementalEncoder would be a good choice
 
 class Transform(object):
+    """do-nothing: forward all data unchanged"""
     def input(self, text):
         """text received from serial port"""
         return text
@@ -281,6 +284,7 @@ TRANSFORMATIONS = {
         'crlf': CRLF,
         'cr': CR,
         'lf': LF,
+        'direct': Transform,    # no transformation
         'default': NoTerminal,
         'nocontrol': NoControls,
         'printable': Printable,
