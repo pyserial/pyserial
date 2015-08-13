@@ -22,6 +22,16 @@ except (NameError, AttributeError):
         pass
 
 
+# "for byte in data" fails for python3 as it returns ints instead of bytes
+def iterbytes(b):
+    """Iterate over bytes, returning bytes instead of ints (python3)"""
+    x = 0
+    a = True
+    while a:
+        a = b[x:x+1]
+        x += 1
+        yield a
+        
 # all Python versions prior 3.x convert ``str([17])`` to '[17]' instead of '\x11'
 # so a simple ``bytes(sequence)`` doesn't work for all versions
 def to_bytes(seq):

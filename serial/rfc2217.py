@@ -706,9 +706,7 @@ class Serial(SerialBase):
                         self.logger.debug("socket error in reader thread: %s" % (e,))
                     break
                 if not data: break # lost connection
-                #~ for byte in data:    # fails for python3 as it returns ints instead of b''
-                for x in range(len(data)):
-                    byte = data[x:x+1]
+                for byte in iterbytes(data):
                     if mode == M_NORMAL:
                         # interpret as command or as data
                         if byte == IAC:
@@ -1031,9 +1029,7 @@ class PortManager(object):
 
         (socket error handling code left as exercise for the reader)
         """
-        #~ for byte in data:    # XXX fails for python3 as it returns ints instead of bytes
-        for x in range(len(data)):
-            byte = data[x:x+1]
+        for byte in iterbytes(data):
             if self.mode == M_NORMAL:
                 # interpret as command or as data
                 if byte == IAC:

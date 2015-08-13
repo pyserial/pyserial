@@ -174,9 +174,7 @@ class Serial(SerialBase):
         if self._writeTimeout is not None and time_used_to_send > self._writeTimeout:
             time.sleep(self._writeTimeout) # must wait so that unit test succeeds
             raise writeTimeoutError
-        #~ for byte in data:    # fails for python3 as it returns ints instead of b''
-        for x in range(len(data)):
-            byte = data[x:x+1]
+        for byte in iterbytes(data):
             self.queue.put(byte, timeout=self._writeTimeout)
         return len(data)
 
