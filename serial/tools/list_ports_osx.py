@@ -66,6 +66,15 @@ cf.CFStringGetCStringPtr.restype = ctypes.c_char_p
 cf.CFNumberGetValue.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_void_p]
 cf.CFNumberGetValue.restype = ctypes.c_void_p
 
+
+class HexInt(int):
+
+    """Class to pretty print a integer in a hex representation."""
+
+    def __repr__(self):
+        return "0x{0:X}".format(self)
+
+
 def get_string_property(device_t, property):
     """ Search the given device for the specified string property
 
