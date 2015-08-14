@@ -28,9 +28,8 @@ except NameError:
     raw_input = input   # in python3 it's "raw"
     unichr = chr
 
-EXITCHARCTER = b'\x1d'  # GS/CTRL+]
-MENUCHARACTER = b'\x14' # Menu: CTRL+T
-
+# globals: can be used to override then call .main() to customize from an other
+# script
 DEFAULT_PORT = None
 DEFAULT_BAUDRATE = 9600
 DEFAULT_RTS = None
@@ -44,46 +43,6 @@ def key_description(character):
         return 'Ctrl+%c' % (ord('@') + ascii_code)
     else:
         return repr(character)
-
-
-# help text, starts with blank line! it's a function so that the current values
-# for the shortcut keys is used and not the value at program start
-def get_help_text():
-    return """
---- pySerial (%(version)s) - miniterm - help
----
---- %(exit)-8s Exit program
---- %(menu)-8s Menu escape key, followed by:
---- Menu keys:
----    %(itself)-7s Send the menu character itself to remote
----    %(exchar)-7s Send the exit character itself to remote
----    %(info)-7s Show info
----    %(upload)-7s Upload file (prompt will be shown)
---- Toggles:
----    %(rts)-7s RTS          %(echo)-7s local echo
----    %(dtr)-7s DTR          %(break)-7s BREAK
----
---- Port settings (%(menu)s followed by the following):
----    p          change port
----    7 8        set data bits
----    n e o s m  change parity (None, Even, Odd, Space, Mark)
----    1 2 3      set stop bits (1, 2, 1.5)
----    b          change baud rate
----    x X        disable/enable software flow control
----    r R        disable/enable hardware flow control
-""" % {
-    'version': getattr(serial, 'VERSION', 'unknown version'),
-    'exit': key_description(EXITCHARCTER),
-    'menu': key_description(MENUCHARACTER),
-    'rts': key_description(b'\x12'),
-    'dtr': key_description(b'\x04'),
-    'break': key_description(b'\x02'),
-    'echo': key_description(b'\x05'),
-    'info': key_description(b'\x09'),
-    'upload': key_description(b'\x15'),
-    'itself': key_description(MENUCHARACTER),
-    'exchar': key_description(EXITCHARCTER),
-}
 
 
 class ConsoleBase(object):
@@ -193,6 +152,7 @@ class Transform(object):
         """text to be sent but displayed on console"""
         return text
 
+
 class CRLF(Transform):
     """ENTER sends CR+LF"""
     def input(self, text):
@@ -201,6 +161,7 @@ class CRLF(Transform):
     def output(self, text):
         return text.replace('\n', '\r\n')
 
+
 class CR(Transform):
     """ENTER sends CR"""
     def input(self, text):
@@ -208,6 +169,7 @@ class CR(Transform):
 
     def output(self, text):
         return text.replace('\n', '\r')
+
 
 class LF(Transform):
     """ENTER sends LF"""
@@ -252,9 +214,8 @@ class Printable(Transform):
     echo = input
 
 
-
 class Colorize(Transform):
-    """Apply different colors for input and echo"""
+    """Apply different colors for received and echo"""
     def __init__(self):
         # XXX make it configurable, use colorama?
         self.input_color = '\x1b[37m'
@@ -266,15 +227,17 @@ class Colorize(Transform):
     def echo(self, text):
         return self.echo_color + text
 
+
 class DebugIO(Transform):
-    """Apply different colors for input and echo"""
+    """Print what is sent and received"""
     def input(self, text):
-        sys.stderr.write('in: %r\n' % text)
+        sys.stderr.write('rx: {} (0x{:X})\n'.format(repr(text), ord(text[0:1])))
         return text
 
-    def echo(self, text):
-        sys.stderr.write('out: %r\n' % text)
+    def output(self, text):
+        sys.stderr.write('tx: {} (0x{:X})\n'.format(repr(text), ord(text[0:1])))
         return text
+
 
 # other ideas:
 # - add date/time for each newline
@@ -311,12 +274,14 @@ class Miniterm(object):
         self.rts_state = True
         self.break_state = False
         self.raw = False
-        self.input_encoding = 'latin1'
+        self.input_encoding = 'UTF-8'
         self.input_error_handling = 'replace'
-        self.output_encoding = 'latin1'
+        self.output_encoding = 'UTF-8'
         self.output_error_handling = 'ignore'
         self.transformations = [TRANSFORMATIONS[t]() for t in transformations]
         self.transformation_names = transformations
+        self.exit_character = 0x1d  # GS/CTRL+]
+        self.menu_character = 0x14  # Menu: CTRL+T
 
     def _start_reader(self):
         """Start reader thread"""
@@ -350,34 +315,34 @@ class Miniterm(object):
             self.receiver_thread.join()
 
     def dump_port_settings(self):
-        sys.stderr.write("\n--- Settings: %s  %s,%s,%s,%s\n" % (
+        sys.stderr.write("\n--- Settings: {}  {},{},{},{}\n".format(
                 self.serial.portstr,
                 self.serial.baudrate,
                 self.serial.bytesize,
                 self.serial.parity,
                 self.serial.stopbits))
-        sys.stderr.write('--- RTS: %-8s  DTR: %-8s  BREAK: %-8s\n' % (
-                (self.rts_state and 'active' or 'inactive'),
-                (self.dtr_state and 'active' or 'inactive'),
-                (self.break_state and 'active' or 'inactive')))
+        sys.stderr.write('--- RTS: {:8}  DTR: {:8}  BREAK: {:8}\n'.format(
+                ('active' if self.rts_state else 'inactive'),
+                ('active' if self.dtr_state else 'inactive'),
+                ('active' if self.break_state else 'inactive')))
         try:
-            sys.stderr.write('--- CTS: %-8s  DSR: %-8s  RI: %-8s  CD: %-8s\n' % (
-                    (self.serial.getCTS() and 'active' or 'inactive'),
-                    (self.serial.getDSR() and 'active' or 'inactive'),
-                    (self.serial.getRI() and 'active' or 'inactive'),
-                    (self.serial.getCD() and 'active' or 'inactive')))
+            sys.stderr.write('--- CTS: {:8}  DSR: {:8}  RI: {:8}  CD: {:8}\n'.format(
+                    ('active' if self.serial.getCTS() else 'inactive'),
+                    ('active' if self.serial.getDSR() else 'inactive'),
+                    ('active' if self.serial.getRI() else 'inactive'),
+                    ('active' if self.serial.getCD() else 'inactive')))
         except serial.SerialException:
             # on RFC 2217 ports, it can happen to no modem state notification was
             # yet received. ignore this error.
             pass
-        sys.stderr.write('--- software flow control: %s\n' % (self.serial.xonxoff and 'active' or 'inactive'))
-        sys.stderr.write('--- hardware flow control: %s\n' % (self.serial.rtscts and 'active' or 'inactive'))
+        sys.stderr.write('--- software flow control: {}\n'.format('active' if self.serial.xonxoff else 'inactive'))
+        sys.stderr.write('--- hardware flow control: {}\n'.format('active' if self.serial.rtscts else 'inactive'))
         #~ sys.stderr.write('--- data escaping: %s  linefeed: %s\n' % (
                 #~ REPR_MODES[self.repr_mode],
                 #~ LF_MODES[self.convert_outgoing]))
-        sys.stderr.write('--- serial input encoding: %s\n' % (self.input_encoding,))
-        sys.stderr.write('--- serial output encoding: %s\n' % (self.output_encoding,))
-        sys.stderr.write('--- transformations: %s\n' % ' '.join(self.transformation_names))
+        sys.stderr.write('--- serial input encoding: {}\n'.format(self.input_encoding))
+        sys.stderr.write('--- serial output encoding: {}\n'.format(self.output_encoding))
+        sys.stderr.write('--- transformations: {}\n'.format(' '.join(self.transformation_names)))
 
     def reader(self):
         """loop and copy serial->console"""
@@ -404,8 +369,8 @@ class Miniterm(object):
 
     def writer(self):
         """\
-        Loop and copy console->serial until EXITCHARCTER character is
-        found. When MENUCHARACTER is found, interpret the next key
+        Loop and copy console->serial until self.exit_character character is
+        found. When self.menu_character is found, interpret the next key
         locally.
         """
         menu_active = False
@@ -418,9 +383,9 @@ class Miniterm(object):
                 if menu_active:
                     self.handle_menu_key(c)
                     menu_active = False
-                elif c == MENUCHARACTER:
+                elif c == self.menu_character:
                     menu_active = True      # next char will be for menu
-                elif c == EXITCHARCTER:
+                elif c == self.exit_character:
                     self.stop()             # exit app
                     break
                 else:
@@ -443,7 +408,7 @@ class Miniterm(object):
 
     def handle_menu_key(self, c):
         """Implement a simple menu / settings"""
-        if c == MENUCHARACTER or c == EXITCHARCTER: # Menu character again/exit char -> send itself
+        if c == self.menu_character or c == self.exit_character: # Menu character again/exit char -> send itself
             b = codecs.encode(
                     c,
                     self.output_encoding,
@@ -459,7 +424,7 @@ class Miniterm(object):
             if filename:
                 try:
                     with open(filename, 'rb') as f:
-                        sys.stderr.write('--- Sending file %s ---\n' % filename)
+                        sys.stderr.write('--- Sending file {} ---\n'.format(filename))
                         while True:
                             block = f.read(1024)
                             if not block:
@@ -468,27 +433,27 @@ class Miniterm(object):
                             # Wait for output buffer to drain.
                             self.serial.flush()
                             sys.stderr.write('.')   # Progress indicator.
-                    sys.stderr.write('\n--- File %s sent ---\n' % filename)
+                    sys.stderr.write('\n--- File {} sent ---\n'.format(filename))
                 except IOError as e:
-                    sys.stderr.write('--- ERROR opening file %s: %s ---\n' % (filename, e))
+                    sys.stderr.write('--- ERROR opening file {}: {} ---\n'.format(filename, e))
             self.console.setup()
         elif c in '\x08hH?':                    # CTRL+H, h, H, ? -> Show help
-            sys.stderr.write(get_help_text())
+            sys.stderr.write(self.get_help_text())
         elif c == '\x12':                       # CTRL+R -> Toggle RTS
             self.rts_state = not self.rts_state
             self.serial.setRTS(self.rts_state)
-            sys.stderr.write('--- RTS %s ---\n' % (self.rts_state and 'active' or 'inactive'))
+            sys.stderr.write('--- RTS {} ---\n'.format('active' if self.rts_state else 'inactive'))
         elif c == '\x04':                       # CTRL+D -> Toggle DTR
             self.dtr_state = not self.dtr_state
             self.serial.setDTR(self.dtr_state)
-            sys.stderr.write('--- DTR %s ---\n' % (self.dtr_state and 'active' or 'inactive'))
+            sys.stderr.write('--- DTR {} ---\n'.format('active' if self.dtr_state else 'inactive'))
         elif c == '\x02':                       # CTRL+B -> toggle BREAK condition
             self.break_state = not self.break_state
             self.serial.setBreak(self.break_state)
-            sys.stderr.write('--- BREAK %s ---\n' % (self.break_state and 'active' or 'inactive'))
+            sys.stderr.write('--- BREAK {} ---\n'.format('active' if self.break_state else 'inactive'))
         elif c == '\x05':                       # CTRL+E -> toggle local echo
             self.echo = not self.echo
-            sys.stderr.write('--- local echo %s ---\n' % (self.echo and 'active' or 'inactive'))
+            sys.stderr.write('--- local echo {} ---\n'.format('active' if self.echo else 'inactive'))
         elif c == '\x09':                       # CTRL+I -> info
             self.dump_port_settings()
         #~ elif c == '\x01':                       # CTRL+A -> cycle escape mode
@@ -517,12 +482,12 @@ class Miniterm(object):
                     new_serial.setDTR(self.dtr_state)
                     new_serial.setBreak(self.break_state)
                 except Exception as e:
-                    sys.stderr.write('--- ERROR opening new port: %s ---\n' % (e,))
+                    sys.stderr.write('--- ERROR opening new port: {} ---\n'.format(e))
                     new_serial.close()
                 else:
                     self.serial.close()
                     self.serial = new_serial
-                    sys.stderr.write('--- Port changed to: %s ---\n' % (self.serial.port,))
+                    sys.stderr.write('--- Port changed to: {} ---\n'.format(self.serial.port))
                 # and restart the reader thread
                 self._start_reader()
         elif c in 'bB':                         # B -> change baudrate
@@ -533,7 +498,7 @@ class Miniterm(object):
             try:
                 self.serial.baudrate = int(sys.stdin.readline().strip())
             except ValueError as e:
-                sys.stderr.write('--- ERROR setting baudrate: %s ---\n' % (e,))
+                sys.stderr.write('--- ERROR setting baudrate: %s ---\n'.format(e))
                 self.serial.baudrate = backup
             else:
                 self.dump_port_settings()
@@ -575,7 +540,44 @@ class Miniterm(object):
             self.serial.rtscts = (c == 'R')
             self.dump_port_settings()
         else:
-            sys.stderr.write('--- unknown menu character %s --\n' % key_description(c))
+            sys.stderr.write('--- unknown menu character {} --\n'.format(key_description(c)))
+
+    def get_help_text(self):
+        # help text, starts with blank line! it's a function so that the current values
+        # for the shortcut keys is used and not the value at program start
+        return """
+--- pySerial ({version}) - miniterm - help
+---
+--- {exit:8} Exit program
+--- {menu:8} Menu escape key, followed by:
+--- Menu keys:
+---    {menu:7} Send the menu character itself to remote
+---    {exit:7} Send the exit character itself to remote
+---    {info:7} Show info
+---    {upload:7} Upload file (prompt will be shown)
+--- Toggles:
+---    {rts:7} RTS          {echo:7} local echo
+---    {dtr:7} DTR          {brk:7} BREAK
+---
+--- Port settings {menu} followed by the following):
+---    p          change port
+---    7 8        set data bits
+---    n e o s m  change parity (None, Even, Odd, Space, Mark)
+---    1 2 3      set stop bits (1, 2, 1.5)
+---    b          change baud rate
+---    x X        disable/enable software flow control
+---    r R        disable/enable hardware flow control
+""".format(
+                version=getattr(serial, 'VERSION', 'unknown version'),
+                exit=key_description(self.exit_character),
+                menu=key_description(self.menu_character),
+                rts=key_description(b'\x12'),
+                dtr=key_description(b'\x04'),
+                brk=key_description(b'\x02'),
+                echo=key_description(b'\x05'),
+                info=key_description(b'\x09'),
+                upload=key_description(b'\x15'),
+                )
 
 
 
@@ -656,7 +658,7 @@ def main():
         metavar="CODEC",
         action = "store",
         help = "Set the encoding for the serial port (default: %default)",
-        default = 'latin1'
+        default = 'UTF-8'
     )
 
     group.add_option("-t", "--transformation",
@@ -696,16 +698,16 @@ def main():
         dest = "exit_char",
         action = "store",
         type = 'int',
-        help = "ASCII code of special character that is used to exit the application",
-        default = 0x1d
+        help = "Unicode of special character that is used to exit the application",
+        default = 0x1d  # GS/CTRL+]
     )
 
     group.add_option("--menu-char",
         dest = "menu_char",
         action = "store",
         type = 'int',
-        help = "ASCII code of special character that is used to control miniterm (menu)",
-        default = 0x14
+        help = "Unicode code of special character that is used to control miniterm (menu)",
+        default = 0x14  # Menu: CTRL+T
     )
 
     parser.add_option_group(group)
@@ -719,7 +721,7 @@ def main():
         default = False
     )
 
-    group.add_option("", "--develop",
+    group.add_option("--develop",
         dest = "develop",
         action = "store_true",
         help = "show Python traceback on error",
@@ -741,9 +743,6 @@ def main():
     if options.menu_char == options.exit_char:
         parser.error('--exit-char can not be the same as --menu-char')
 
-    global EXITCHARCTER, MENUCHARACTER
-    EXITCHARCTER = chr(options.exit_char)
-    MENUCHARACTER = chr(options.menu_char)
 
     port = options.port
     baudrate = options.baudrate
@@ -768,7 +767,9 @@ def main():
     if options.transformations:
         if 'help' in options.transformations:
             sys.stderr.write('Available Transformations:\n')
-            sys.stderr.write('\n'.join('{:<20} = {.__doc__}'.format(k,v) for k,v in sorted(TRANSFORMATIONS.items())))
+            sys.stderr.write('\n'.join(
+                    '{:<20} = {.__doc__}'.format(k,v)
+                    for k,v in sorted(TRANSFORMATIONS.items())))
             sys.stderr.write('\n')
             sys.exit(1)
         transformations = options.transformations
@@ -784,46 +785,48 @@ def main():
 
     try:
         miniterm = Miniterm(
-            port,
-            baudrate,
-            options.parity,
-            rtscts=options.rtscts,
-            xonxoff=options.xonxoff,
-            echo=options.echo,
-            transformations=transformations,
-        )
+                port,
+                baudrate,
+                options.parity,
+                rtscts=options.rtscts,
+                xonxoff=options.xonxoff,
+                echo=options.echo,
+                transformations=transformations,
+                )
+        miniterm.exit_character = unichr(options.exit_char)
+        miniterm.menu_character = unichr(options.menu_char)
         miniterm.raw = options.raw
         miniterm.input_encoding = options.serial_port_encoding
         miniterm.output_encoding = options.serial_port_encoding
     except serial.SerialException as e:
-        sys.stderr.write("could not open port %r: %s\n" % (port, e))
+        sys.stderr.write('could not open port {}: {}\n'.format(repr(port), e))
         if options.develop:
             raise
         sys.exit(1)
 
     if not options.quiet:
-        sys.stderr.write('--- Miniterm on %s: %d,%s,%s,%s ---\n' % (
-            miniterm.serial.portstr,
-            miniterm.serial.baudrate,
-            miniterm.serial.bytesize,
-            miniterm.serial.parity,
-            miniterm.serial.stopbits,
-        ))
-        sys.stderr.write('--- Quit: %s  |  Menu: %s | Help: %s followed by %s ---\n' % (
-            key_description(EXITCHARCTER),
-            key_description(MENUCHARACTER),
-            key_description(MENUCHARACTER),
-            key_description(b'\x08'),
-        ))
+        sys.stderr.write('--- Miniterm on {}: {},{},{},{} ---\n'.format(
+                miniterm.serial.portstr,
+                miniterm.serial.baudrate,
+                miniterm.serial.bytesize,
+                miniterm.serial.parity,
+                miniterm.serial.stopbits,
+                ))
+        sys.stderr.write('--- Quit: {}  |  Menu: {} | Help: {} followed by {} ---\n'.format(
+                key_description(miniterm.exit_character),
+                key_description(miniterm.menu_character),
+                key_description(miniterm.menu_character),
+                key_description(b'\x08'),
+                ))
 
     if options.dtr_state is not None:
         if not options.quiet:
-            sys.stderr.write('--- forcing DTR %s\n' % (options.dtr_state and 'active' or 'inactive'))
+            sys.stderr.write('--- forcing DTR {}\n'.format('active' if options.dtr_state else 'inactive'))
         miniterm.serial.setDTR(options.dtr_state)
         miniterm.dtr_state = options.dtr_state
     if options.rts_state is not None:
         if not options.quiet:
-            sys.stderr.write('--- forcing RTS %s\n' % (options.rts_state and 'active' or 'inactive'))
+            sys.stderr.write('--- forcing RTS {}\n'.format('active' if options.rts_state else 'inactive'))
         miniterm.serial.setRTS(options.rts_state)
         miniterm.rts_state = options.rts_state
 
