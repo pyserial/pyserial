@@ -142,7 +142,7 @@ it waits for the next connect.
         default = 9600
     )
 
-    group.add_option("", "--parity",
+    group.add_option("--parity",
         dest = "parity",
         action = "store",
         help = "set parity, one of [N, E, O], default=%default",

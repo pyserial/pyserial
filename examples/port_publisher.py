@@ -362,7 +362,7 @@ If running as daemon, write to syslog. Otherwise write to stdout.
 
     group = optparse.OptionGroup(parser, "Serial Port Settings")
 
-    group.add_option("", "--ports-regex",
+    group.add_option("--ports-regex",
             dest="ports_regex",
             help="specify a regex to search against the serial devices and their descriptions (default: %default)",
             default='/dev/ttyUSB[0-9]+',
@@ -372,7 +372,7 @@ If running as daemon, write to syslog. Otherwise write to stdout.
 
     group = optparse.OptionGroup(parser, "Network Settings")
 
-    group.add_option("", "--tcp-port",
+    group.add_option("--tcp-port",
             dest="base_port",
             help="specify lowest TCP port number (default: %default)",
             default=7000,
@@ -389,7 +389,7 @@ If running as daemon, write to syslog. Otherwise write to stdout.
             help="start as daemon",
             default=False)
 
-    group.add_option("", "--pidfile",
+    group.add_option("--pidfile",
             dest="pid_file",
             help="specify a name for the PID file",
             default=None,
