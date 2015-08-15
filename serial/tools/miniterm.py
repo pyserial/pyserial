@@ -416,7 +416,7 @@ class Miniterm(object):
             self.serial.write(b)
             if self.echo:
                 self.console.write(c)
-        elif c == b'\x15':                       # CTRL+U -> upload file
+        elif c == '\x15':                       # CTRL+U -> upload file
             sys.stderr.write('\n--- File to upload: ')
             sys.stderr.flush()
             self.console.cleanup()
@@ -562,7 +562,7 @@ class Miniterm(object):
 --- Port settings {menu} followed by the following):
 ---    p          change port
 ---    7 8        set data bits
----    n e o s m  change parity (None, Even, Odd, Space, Mark)
+---    N E O S M  change parity (None, Even, Odd, Space, Mark)
 ---    1 2 3      set stop bits (1, 2, 1.5)
 ---    b          change baud rate
 ---    x X        disable/enable software flow control
@@ -571,240 +571,175 @@ class Miniterm(object):
                 version=getattr(serial, 'VERSION', 'unknown version'),
                 exit=key_description(self.exit_character),
                 menu=key_description(self.menu_character),
-                rts=key_description(b'\x12'),
-                dtr=key_description(b'\x04'),
-                brk=key_description(b'\x02'),
-                echo=key_description(b'\x05'),
-                info=key_description(b'\x09'),
-                upload=key_description(b'\x15'),
+                rts=key_description('\x12'),
+                dtr=key_description('\x04'),
+                brk=key_description('\x02'),
+                echo=key_description('\x05'),
+                info=key_description('\x09'),
+                upload=key_description('\x15'),
                 )
 
 
 
 def main():
-    import optparse
+    import argparse
 
-    parser = optparse.OptionParser(
-        usage = "%prog [options] [port [baudrate]]",
-        description = "Miniterm - A simple terminal program for the serial port."
-    )
+    parser = argparse.ArgumentParser(
+            description="Miniterm - A simple terminal program for the serial port.")
 
-    group = optparse.OptionGroup(parser, "Port settings")
+    parser.add_argument("port",
+            nargs='?',
+            help="serial port name",
+            default=DEFAULT_PORT)
 
-    group.add_option("-p", "--port",
-        dest = "port",
-        help = "port, a number or a device name. (deprecated option, use parameter instead)",
-        default = DEFAULT_PORT
-    )
+    parser.add_argument("baudrate",
+            nargs='?',
+            type=int,
+            help="set baud rate, default: %(default)s",
+            default=DEFAULT_BAUDRATE)
 
-    group.add_option("-b", "--baud",
-        dest = "baudrate",
-        action = "store",
-        type = 'int',
-        help = "set baud rate, default %default",
-        default = DEFAULT_BAUDRATE
-    )
+    group = parser.add_argument_group("Port settings")
 
-    group.add_option("--parity",
-        dest = "parity",
-        action = "store",
-        help = "set parity, one of [N, E, O, S, M], default=N",
-        default = 'N'
-    )
+    group.add_argument("--parity",
+            choices=['N', 'E', 'O', 'S', 'M'],
+            help="set parity, one of {N E O S M}, default: N",
+            default='N')
 
-    group.add_option("--rtscts",
-        dest = "rtscts",
-        action = "store_true",
-        help = "enable RTS/CTS flow control (default off)",
-        default = False
-    )
+    group.add_argument("--rtscts",
+            action="store_true",
+            help="enable RTS/CTS flow control (default off)",
+            default=False)
 
-    group.add_option("--xonxoff",
-        dest = "xonxoff",
-        action = "store_true",
-        help = "enable software flow control (default off)",
-        default = False
-    )
+    group.add_argument("--xonxoff",
+            action="store_true",
+            help="enable software flow control (default off)",
+            default=False)
 
-    group.add_option("--rts",
-        dest = "rts_state",
-        action = "store",
-        type = 'int',
-        help = "set initial RTS line state (possible values: 0, 1)",
-        default = DEFAULT_RTS
-    )
+    group.add_argument("--rts",
+            type=int,
+            help="set initial RTS line state (possible values: 0, 1)",
+            default=DEFAULT_RTS)
 
-    group.add_option("--dtr",
-        dest = "dtr_state",
-        action = "store",
-        type = 'int',
-        help = "set initial DTR line state (possible values: 0, 1)",
-        default = DEFAULT_DTR
-    )
+    group.add_argument("--dtr",
+            type=int,
+            help="set initial DTR line state (possible values: 0, 1)",
+            default=DEFAULT_DTR)
 
-    parser.add_option_group(group)
+    group = parser.add_argument_group("Data handling")
 
-    group = optparse.OptionGroup(parser, "Data handling")
+    group.add_argument("-e", "--echo",
+            action="store_true",
+            help="enable local echo (default off)",
+            default=False)
 
-    group.add_option("-e", "--echo",
-        dest = "echo",
-        action = "store_true",
-        help = "enable local echo (default off)",
-        default = False
-    )
+    group.add_argument("--encoding",
+            dest="serial_port_encoding",
+            metavar="CODEC",
+            help="Set the encoding for the serial port (default: %(default)s",
+            default='UTF-8')
 
-    group.add_option("--encoding",
-        dest = "serial_port_encoding",
-        metavar="CODEC",
-        action = "store",
-        help = "Set the encoding for the serial port (default: %default)",
-        default = 'UTF-8'
-    )
+    group.add_argument("-t", "--transformation",
+            dest="transformations",
+            action="append",
+            metavar="NAME",
+            help="Add text transformation",
+            default=[])
 
-    group.add_option("-t", "--transformation",
-        dest = "transformations",
-        metavar="NAME",
-        action = "append",
-        help = "Add text transformation",
-        default = []
-    )
+    eol_group = group.add_mutually_exclusive_group()
 
-    group.add_option("--cr",
-        dest = "cr",
-        action = "store_true",
-        help = "do not send CR+LF, send CR only",
-        default = False
-    )
+    eol_group.add_argument("--cr",
+            action="store_true",
+            help="do not send CR+LF, send CR only",
+            default=False)
 
-    group.add_option("--lf",
-        dest = "lf",
-        action = "store_true",
-        help = "do not send CR+LF, send LF only",
-        default = False
-    )
+    eol_group.add_argument("--lf",
+            action="store_true",
+            help="do not send CR+LF, send LF only",
+            default=False)
 
-    group.add_option("--raw",
-        dest = "raw",
-        action = "store_true",
-        help = "Do no apply any encodings/transformations",
-        default = False
-    )
+    group.add_argument("--raw",
+            action="store_true",
+            help="Do no apply any encodings/transformations",
+            default=False)
 
-    parser.add_option_group(group)
+    group = parser.add_argument_group("Hotkeys")
 
-    group = optparse.OptionGroup(parser, "Hotkeys")
+    group.add_argument("--exit-char",
+            type=int,
+            help="Unicode of special character that is used to exit the application",
+            default=0x1d  # GS/CTRL+]
+            )
 
-    group.add_option("--exit-char",
-        dest = "exit_char",
-        action = "store",
-        type = 'int',
-        help = "Unicode of special character that is used to exit the application",
-        default = 0x1d  # GS/CTRL+]
-    )
+    group.add_argument("--menu-char",
+            type=int,
+            help="Unicode code of special character that is used to control miniterm (menu)",
+            default=0x14  # Menu: CTRL+T
+            )
 
-    group.add_option("--menu-char",
-        dest = "menu_char",
-        action = "store",
-        type = 'int',
-        help = "Unicode code of special character that is used to control miniterm (menu)",
-        default = 0x14  # Menu: CTRL+T
-    )
+    group = parser.add_argument_group("Diagnostics")
 
-    parser.add_option_group(group)
+    group.add_argument("-q", "--quiet",
+            action="store_true",
+            help="suppress non-error messages",
+            default=False)
 
-    group = optparse.OptionGroup(parser, "Diagnostics")
+    group.add_argument("--develop",
+            action="store_true",
+            help="show Python traceback on error",
+            default=False)
 
-    group.add_option("-q", "--quiet",
-        dest = "quiet",
-        action = "store_true",
-        help = "suppress non-error messages",
-        default = False
-    )
+    args = parser.parse_args()
 
-    group.add_option("--develop",
-        dest = "develop",
-        action = "store_true",
-        help = "show Python traceback on error",
-        default = False
-    )
-
-    parser.add_option_group(group)
-
-
-    (options, args) = parser.parse_args()
-
-    options.parity = options.parity.upper()
-    if options.parity not in 'NEOSM':
-        parser.error("invalid parity")
-
-    if options.cr and options.lf:
-        parser.error("only one of --cr or --lf can be specified")
-
-    if options.menu_char == options.exit_char:
+    if args.menu_char == args.exit_char:
         parser.error('--exit-char can not be the same as --menu-char')
 
 
-    port = options.port
-    baudrate = options.baudrate
-    if args:
-        if options.port is not None:
-            parser.error("no arguments are allowed, options only when --port is given")
-        port = args.pop(0)
-        if args:
-            try:
-                baudrate = int(args[0])
-            except ValueError:
-                parser.error("baud rate must be a number, not %r" % args[0])
-            args.pop(0)
-        if args:
-            parser.error("too many arguments")
-    else:
-        # no port given on command line -> ask user now
-        if port is None:
-            dump_port_list()
-            port = raw_input('Enter port name:')
+    # no port given on command line -> ask user now
+    if args.port is None:
+        dump_port_list()
+        args.port = raw_input('Enter port name:')
 
-    if options.transformations:
-        if 'help' in options.transformations:
+    if args.transformations:
+        if 'help' in args.transformations:
             sys.stderr.write('Available Transformations:\n')
             sys.stderr.write('\n'.join(
-                    '{:<20} = {.__doc__}'.format(k,v)
-                    for k,v in sorted(TRANSFORMATIONS.items())))
+                    '{:<20} = {.__doc__}'.format(k, v)
+                    for k, v in sorted(TRANSFORMATIONS.items())))
             sys.stderr.write('\n')
             sys.exit(1)
-        transformations = options.transformations
+        transformations = args.transformations
     else:
         transformations = ['default']
 
-    if options.cr:
+    if args.cr:
         transformations.append('cr')
-    elif options.lf:
+    elif args.lf:
         transformations.append('lf')
     else:
         transformations.append('crlf')
 
     try:
         miniterm = Miniterm(
-                port,
-                baudrate,
-                options.parity,
-                rtscts=options.rtscts,
-                xonxoff=options.xonxoff,
-                echo=options.echo,
+                args.port,
+                args.baudrate,
+                args.parity,
+                rtscts=args.rtscts,
+                xonxoff=args.xonxoff,
+                echo=args.echo,
                 transformations=transformations,
                 )
-        miniterm.exit_character = unichr(options.exit_char)
-        miniterm.menu_character = unichr(options.menu_char)
-        miniterm.raw = options.raw
-        miniterm.input_encoding = options.serial_port_encoding
-        miniterm.output_encoding = options.serial_port_encoding
+        miniterm.exit_character = unichr(args.exit_char)
+        miniterm.menu_character = unichr(args.menu_char)
+        miniterm.raw = args.raw
+        miniterm.input_encoding = args.serial_port_encoding
+        miniterm.output_encoding = args.serial_port_encoding
     except serial.SerialException as e:
         sys.stderr.write('could not open port {}: {}\n'.format(repr(port), e))
-        if options.develop:
+        if args.develop:
             raise
         sys.exit(1)
 
-    if not options.quiet:
+    if not args.quiet:
         sys.stderr.write('--- Miniterm on {}: {},{},{},{} ---\n'.format(
                 miniterm.serial.portstr,
                 miniterm.serial.baudrate,
@@ -812,30 +747,30 @@ def main():
                 miniterm.serial.parity,
                 miniterm.serial.stopbits,
                 ))
-        sys.stderr.write('--- Quit: {}  |  Menu: {} | Help: {} followed by {} ---\n'.format(
+        sys.stderr.write('--- Quit: {} | Menu: {} | Help: {} followed by {} ---\n'.format(
                 key_description(miniterm.exit_character),
                 key_description(miniterm.menu_character),
                 key_description(miniterm.menu_character),
-                key_description(b'\x08'),
+                key_description('\x08'),
                 ))
 
-    if options.dtr_state is not None:
-        if not options.quiet:
-            sys.stderr.write('--- forcing DTR {}\n'.format('active' if options.dtr_state else 'inactive'))
-        miniterm.serial.setDTR(options.dtr_state)
-        miniterm.dtr_state = options.dtr_state
-    if options.rts_state is not None:
-        if not options.quiet:
-            sys.stderr.write('--- forcing RTS {}\n'.format('active' if options.rts_state else 'inactive'))
-        miniterm.serial.setRTS(options.rts_state)
-        miniterm.rts_state = options.rts_state
+    if args.dtr is not None:
+        if not args.quiet:
+            sys.stderr.write('--- forcing DTR {}\n'.format('active' if args.dtr else 'inactive'))
+        miniterm.serial.setDTR(args.dtr)
+        miniterm.dtr_state = args.dtr
+    if args.rts is not None:
+        if not args.quiet:
+            sys.stderr.write('--- forcing RTS {}\n'.format('active' if args.rts else 'inactive'))
+        miniterm.serial.setRTS(args.rts)
+        miniterm.rts_state = args.rts
 
     miniterm.start()
     try:
         miniterm.join(True)
     except KeyboardInterrupt:
         pass
-    if not options.quiet:
+    if not args.quiet:
         sys.stderr.write("\n--- exit ---\n")
     miniterm.join()
 
