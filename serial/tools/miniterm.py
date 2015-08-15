@@ -14,26 +14,15 @@ import codecs
 import os
 import sys
 import threading
-try:
-    from serial.tools.list_ports import comports
-except ImportError:
-    comports = None
 
 import serial
-
+from serial.tools.list_ports import comports
 
 try:
     raw_input
 except NameError:
     raw_input = input   # in python3 it's "raw"
     unichr = chr
-
-# globals: can be used to override then call .main() to customize from an other
-# script
-DEFAULT_PORT = None
-DEFAULT_BAUDRATE = 9600
-DEFAULT_RTS = None
-DEFAULT_DTR = None
 
 
 def key_description(character):
@@ -287,8 +276,8 @@ class Miniterm(object):
         """Start reader thread"""
         self._reader_alive = True
         # start serial->console thread
-        self.receiver_thread = threading.Thread(target=self.reader)
-        self.receiver_thread.setDaemon(True)
+        self.receiver_thread = threading.Thread(target=self.reader, name='rx')
+        self.receiver_thread.daemon = True
         self.receiver_thread.start()
 
     def _stop_reader(self):
@@ -301,8 +290,8 @@ class Miniterm(object):
         self.alive = True
         self._start_reader()
         # enter console->serial loop
-        self.transmitter_thread = threading.Thread(target=self.writer)
-        self.transmitter_thread.setDaemon(True)
+        self.transmitter_thread = threading.Thread(target=self.writer, name='tx')
+        self.transmitter_thread.daemon = True
         self.transmitter_thread.start()
         self.console.setup()
 
@@ -328,7 +317,7 @@ class Miniterm(object):
                     ('active' if self.serial.getRI() else 'inactive'),
                     ('active' if self.serial.getCD() else 'inactive')))
         except serial.SerialException:
-            # on RFC 2217 ports, it can happen to no modem state notification was
+            # on RFC 2217 ports, it can happen if no modem state notification was
             # yet received. ignore this error.
             pass
         sys.stderr.write('--- software flow control: {}\n'.format('active' if self.serial.xonxoff else 'inactive'))
@@ -404,7 +393,8 @@ class Miniterm(object):
 
     def handle_menu_key(self, c):
         """Implement a simple menu / settings"""
-        if c == self.menu_character or c == self.exit_character: # Menu character again/exit char -> send itself
+        if c == self.menu_character or c == self.exit_character:
+            # Menu/exit character again -> send itself
             b = codecs.encode(
                     c,
                     self.output_encoding,
@@ -539,8 +529,7 @@ class Miniterm(object):
             sys.stderr.write('--- unknown menu character {} --\n'.format(key_description(c)))
 
     def get_help_text(self):
-        # help text, starts with blank line! it's a function so that the current values
-        # for the shortcut keys is used and not the value at program start
+        # help text, starts with blank line!
         return """
 --- pySerial ({version}) - miniterm - help
 ---
@@ -555,7 +544,7 @@ class Miniterm(object):
 ---    {rts:7} RTS          {echo:7} local echo
 ---    {dtr:7} DTR          {brk:7} BREAK
 ---
---- Port settings {menu} followed by the following):
+--- Port settings ({menu} followed by the following):
 ---    p          change port
 ---    7 8        set data bits
 ---    N E O S M  change parity (None, Even, Odd, Space, Mark)
@@ -577,7 +566,9 @@ class Miniterm(object):
 
 
 
-def main():
+# default args can be used to override when calling main() from an other script
+# e.g to create a miniterm-my-device.py
+def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr=None):
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -586,13 +577,13 @@ def main():
     parser.add_argument("port",
             nargs='?',
             help="serial port name",
-            default=DEFAULT_PORT)
+            default=default_port)
 
     parser.add_argument("baudrate",
             nargs='?',
             type=int,
             help="set baud rate, default: %(default)s",
-            default=DEFAULT_BAUDRATE)
+            default=default_baudrate)
 
     group = parser.add_argument_group("port settings")
 
@@ -615,12 +606,12 @@ def main():
     group.add_argument("--rts",
             type=int,
             help="set initial RTS line state (possible values: 0, 1)",
-            default=DEFAULT_RTS)
+            default=default_rts)
 
     group.add_argument("--dtr",
             type=int,
             help="set initial DTR line state (possible values: 0, 1)",
-            default=DEFAULT_DTR)
+            default=default_dtr)
 
     group = parser.add_argument_group("data handling")
 
@@ -657,13 +648,15 @@ def main():
 
     group.add_argument("--exit-char",
             type=int,
-            help="Unicode of special character that is used to exit the application",
+            metavar='NUM',
+            help="Unicode of special character that is used to exit the application, default: %(default)s",
             default=0x1d  # GS/CTRL+]
             )
 
     group.add_argument("--menu-char",
             type=int,
-            help="Unicode code of special character that is used to control miniterm (menu)",
+            metavar='NUM',
+            help="Unicode code of special character that is used to control miniterm (menu), default: %(default)s",
             default=0x14  # Menu: CTRL+T
             )
 
