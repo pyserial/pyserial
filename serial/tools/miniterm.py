@@ -220,11 +220,13 @@ class Colorize(Transform):
 class DebugIO(Transform):
     """Print what is sent and received"""
     def input(self, text):
-        sys.stderr.write('rx: {} (0x{:X})\n'.format(repr(text), ord(text[0:1])))
+        sys.stderr.write(' [RX:{}] '.format(repr(text)))
+        sys.stderr.flush()
         return text
 
     def output(self, text):
-        sys.stderr.write('tx: {} (0x{:X})\n'.format(repr(text), ord(text[0:1])))
+        sys.stderr.write(' [TX:{}] '.format(repr(text)))
+        sys.stderr.flush()
         return text
 
 
@@ -267,7 +269,8 @@ class Miniterm(object):
         self.input_error_handling = 'replace'
         self.output_encoding = 'UTF-8'
         self.output_error_handling = 'ignore'
-        self.transformations = [TRANSFORMATIONS[t]() for t in transformations]
+        self.tx_transformations = [TRANSFORMATIONS[t]() for t in transformations]
+        self.rx_transformations = list(reversed(self.tx_transformations))
         self.transformation_names = transformations
         self.exit_character = 0x1d  # GS/CTRL+]
         self.menu_character = 0x14  # Menu: CTRL+T
@@ -342,7 +345,7 @@ class Miniterm(object):
                                 data,
                                 self.input_encoding,
                                 self.input_error_handling)
-                        for transformation in self.transformations:
+                        for transformation in self.rx_transformations:
                             text = transformation.input(text)
                         self.console.write(text)
         except serial.SerialException as e:
@@ -377,7 +380,7 @@ class Miniterm(object):
                     #~ if self.raw:
                     text = c
                     echo_text = text
-                    for transformation in self.transformations:
+                    for transformation in self.tx_transformations:
                         text = transformation.output(text)
                         echo_text = transformation.echo(echo_text)
                     b = codecs.encode(
@@ -695,7 +698,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
     else:
         transformations = ['default']
 
-    transformations.append(args.eol.lower())
+    transformations.insert(0, args.eol.lower())
 
     try:
         miniterm = Miniterm(
