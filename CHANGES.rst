@@ -522,6 +522,7 @@ Version 3.0a     2015-xx-xx
 - [Patch pyserial:34] Improvements to port_publisher.py example
 - [Feature pyserial:39] Support BlueTooth serial port discovery on Linux
 - Use setuptools if aviliable, fall back to distutils if unaviliable.
+- miniterm: changed command line options, translations, support encodings
 
 Bugfixes:
 

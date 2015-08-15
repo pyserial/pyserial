@@ -315,12 +315,8 @@ class Miniterm(object):
             self.receiver_thread.join()
 
     def dump_port_settings(self):
-        sys.stderr.write("\n--- Settings: {}  {},{},{},{}\n".format(
-                self.serial.portstr,
-                self.serial.baudrate,
-                self.serial.bytesize,
-                self.serial.parity,
-                self.serial.stopbits))
+        sys.stderr.write("\n--- Settings: {p.name}  {p.baudrate},{p.bytesize},{p.parity},{p.stopbits}\n".format(
+                p=self.serial))
         sys.stderr.write('--- RTS: {:8}  DTR: {:8}  BREAK: {:8}\n'.format(
                 ('active' if self.rts_state else 'inactive'),
                 ('active' if self.dtr_state else 'inactive'),
@@ -598,10 +594,11 @@ def main():
             help="set baud rate, default: %(default)s",
             default=DEFAULT_BAUDRATE)
 
-    group = parser.add_argument_group("Port settings")
+    group = parser.add_argument_group("port settings")
 
     group.add_argument("--parity",
             choices=['N', 'E', 'O', 'S', 'M'],
+            type=lambda c: c.upper(),
             help="set parity, one of {N E O S M}, default: N",
             default='N')
 
@@ -625,7 +622,7 @@ def main():
             help="set initial DTR line state (possible values: 0, 1)",
             default=DEFAULT_DTR)
 
-    group = parser.add_argument_group("Data handling")
+    group = parser.add_argument_group("data handling")
 
     group.add_argument("-e", "--echo",
             action="store_true",
@@ -635,34 +632,28 @@ def main():
     group.add_argument("--encoding",
             dest="serial_port_encoding",
             metavar="CODEC",
-            help="Set the encoding for the serial port (default: %(default)s",
+            help="set the encoding for the serial port, default: %(default)s",
             default='UTF-8')
 
     group.add_argument("-t", "--transformation",
             dest="transformations",
             action="append",
             metavar="NAME",
-            help="Add text transformation",
+            help="add text transformation",
             default=[])
 
-    eol_group = group.add_mutually_exclusive_group()
-
-    eol_group.add_argument("--cr",
-            action="store_true",
-            help="do not send CR+LF, send CR only",
-            default=False)
-
-    eol_group.add_argument("--lf",
-            action="store_true",
-            help="do not send CR+LF, send LF only",
-            default=False)
+    group.add_argument("--eol",
+            choices=['CR', 'LF', 'CRLF'],
+            type=lambda c: c.upper(),
+            help="end of line mode",
+            default='CRLF')
 
     group.add_argument("--raw",
             action="store_true",
             help="Do no apply any encodings/transformations",
             default=False)
 
-    group = parser.add_argument_group("Hotkeys")
+    group = parser.add_argument_group("hotkeys")
 
     group.add_argument("--exit-char",
             type=int,
@@ -676,7 +667,7 @@ def main():
             default=0x14  # Menu: CTRL+T
             )
 
-    group = parser.add_argument_group("Diagnostics")
+    group = parser.add_argument_group("diagnostics")
 
     group.add_argument("-q", "--quiet",
             action="store_true",
@@ -711,12 +702,7 @@ def main():
     else:
         transformations = ['default']
 
-    if args.cr:
-        transformations.append('cr')
-    elif args.lf:
-        transformations.append('lf')
-    else:
-        transformations.append('crlf')
+    transformations.append(args.eol.lower())
 
     try:
         miniterm = Miniterm(
@@ -740,13 +726,8 @@ def main():
         sys.exit(1)
 
     if not args.quiet:
-        sys.stderr.write('--- Miniterm on {}: {},{},{},{} ---\n'.format(
-                miniterm.serial.portstr,
-                miniterm.serial.baudrate,
-                miniterm.serial.bytesize,
-                miniterm.serial.parity,
-                miniterm.serial.stopbits,
-                ))
+        sys.stderr.write('--- Miniterm on {p.name}  {p.baudrate},{p.bytesize},{p.parity},{p.stopbits} ---\n'.format(
+                p=miniterm.serial))
         sys.stderr.write('--- Quit: {} | Menu: {} | Help: {} followed by {} ---\n'.format(
                 key_description(miniterm.exit_character),
                 key_description(miniterm.menu_character),
