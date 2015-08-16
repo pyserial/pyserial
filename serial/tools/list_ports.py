@@ -48,55 +48,44 @@ def grep(regexp):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 def main():
-    import optparse
+    import argparse
 
-    parser = optparse.OptionParser(
-        usage = "%prog [options] [<regexp>]",
-        description = "Miniterm - A simple terminal program for the serial port."
-    )
+    parser = argparse.ArgumentParser(description='Serial port enumeration')
 
-    parser.add_option("--debug",
-            help="print debug messages and tracebacks (development mode)",
-            dest="debug",
-            default=False,
-            action='store_true')
+    parser.add_argument('regexp',
+            nargs='?',
+            help='only show ports that match this regex')
 
-    parser.add_option("-v", "--verbose",
-            help="show more messages (can be given multiple times)",
-            dest="verbose",
-            default=1,
-            action='count')
+    parser.add_argument('-v', '--verbose',
+            action='store_true',
+            help='show more messages')
 
-    parser.add_option("-q", "--quiet",
-            help="suppress all messages",
-            dest="verbose",
-            action='store_const',
-            const=0)
+    parser.add_argument('-q', '--quiet',
+            action='store_true',
+            help='suppress all messages')
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
 
     hits = 0
     # get iteraror w/ or w/o filter
-    if args:
-        if len(args) > 1:
-            parser.error('more than one regexp not supported')
-        print("Filtered list with regexp: %r" % (args[0],))
-        iterator = sorted(grep(args[0]))
+    if args.regexp:
+        sys.stderr.write("Filtered list with regexp: %r\n" % (args.regexp,))
+        iterator = sorted(grep(args.regexp))
     else:
         iterator = sorted(comports())
     # list them
     for port, desc, hwid in iterator:
-        print("%-20s" % (port,))
-        if options.verbose > 1:
-            print("    desc: %s" % (desc,))
-            print("    hwid: %s" % (hwid,))
+        sys.stdout.write("{:20}\n".format(port))
+        if args.verbose:
+            sys.stdout.write("    desc: {}\n".format(desc))
+            sys.stdout.write("    hwid: {}\n".format(hwid))
         hits += 1
-    if options.verbose:
+    if not args.quiet:
         if hits:
-            print("%d ports found" % (hits,))
+            sys.stderr.write("{} ports found\n".format(hits))
         else:
-            print("no ports found")
+            sys.stderr.write("no ports found\n")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
