@@ -6,10 +6,6 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
-# Input characters are sent directly (only LF -> CR/LF/CRLF translation is
-# done), received characters are displayed as is (or escaped through pythons
-# repr, useful for debug purposes)
-
 import codecs
 import os
 import sys
@@ -716,7 +712,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         miniterm.input_encoding = args.serial_port_encoding
         miniterm.output_encoding = args.serial_port_encoding
     except serial.SerialException as e:
-        sys.stderr.write('could not open port {}: {}\n'.format(repr(port), e))
+        sys.stderr.write('could not open port {}: {}\n'.format(repr(args.port), e))
         if args.develop:
             raise
         sys.exit(1)
