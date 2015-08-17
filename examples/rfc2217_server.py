@@ -142,8 +142,7 @@ it waits for the next connect.
     logging.getLogger('rfc2217').setLevel(level)
 
     # connect to serial port
-    ser = serial.Serial()
-    ser.port = args.SERIALPORT
+    ser = serial.serial_for_url(args.SERIALPORT, do_not_open=True)
     ser.timeout  = 3     # required so that the reader thread can exit
 
     logging.info("RFC 2217 TCP/IP to Serial redirector - type Ctrl-C / BREAK to quit")
