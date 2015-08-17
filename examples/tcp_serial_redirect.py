@@ -2,7 +2,7 @@
 #
 # Redirect data from a TCP/IP connection to a serial port and vice versa.
 #
-# (C) 2002-2009 Chris Liechti <cliechti@gmx.net>
+# (C) 2002-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
@@ -11,17 +11,14 @@ import os
 import time
 import threading
 import socket
-import codecs
 import serial
 
 class Redirector(object):
-    def __init__(self, serial_instance, socket, spy=False):
+    def __init__(self, serial_instance, socket):
         self.serial = serial_instance
         self.socket = socket
-        self.spy = spy
-        self._write_lock = threading.Lock()
 
-    def shortcut(self):
+    def shortcircuit(self):
         """connect the serial port to the TCP port by copying everything
            from one side to the other"""
         self.alive = True
@@ -40,23 +37,12 @@ class Redirector(object):
                 if n:
                     data = data + self.serial.read(n)   # and get as much as possible
                 if data:
-                    # the spy shows what's on the serial port, so log it before converting newlines
-                    if self.spy:
-                        sys.stdout.write(codecs.escape_encode(data)[0])
-                        sys.stdout.flush()
-                    # escape outgoing data when needed (Telnet IAC (0xff) character)
-                    with self._write_lock:
-                        self.socket.sendall(data)           # send it over TCP
+                    self.socket.sendall(data)           # send it over TCP
             except socket.error as msg:
                 sys.stderr.write('ERROR: %s\n' % msg)
                 # probably got disconnected
                 break
         self.alive = False
-
-    def write(self, data):
-        """thread safe socket write with no data escaping. used to send telnet stuff"""
-        with self._write_lock:
-            self.socket.sendall(data)
 
     def writer(self):
         """loop forever and copy socket->serial"""
@@ -66,10 +52,6 @@ class Redirector(object):
                 if not data:
                     break
                 self.serial.write(data)                 # get a bunch of bytes and send them
-                # the spy shows what's on the serial port, so log it after converting newlines
-                if self.spy:
-                    sys.stdout.write(codecs.escape_encode(data)[0])
-                    sys.stdout.flush()
             except socket.error as msg:
                 sys.stderr.write('ERROR: %s\n' % msg)
                 # probably got disconnected
@@ -109,12 +91,6 @@ it waits for the next connect.
     parser.add_argument('-q', '--quiet',
             action='store_true',
             help='suppress non error messages',
-            default=False)
-
-    parser.add_argument('--spy',
-            dest='spy',
-            action='store_true',
-            help='peek at the communication and print all data to the console',
             default=False)
 
     group = parser.add_argument_group('serial Port')
@@ -187,14 +163,8 @@ it waits for the next connect.
             connection, addr = srv.accept()
             sys.stderr.write('Connected by %s\n' % (addr,))
             # enter network <-> serial loop
-            r = Redirector(
-                ser,
-                connection,
-                args.spy,
-            )
-            r.shortcut()
-            if args.spy:
-                sys.stdout.write('\n')
+            r = Redirector(ser, connection)
+            r.shortcircuit()
             sys.stderr.write('Disconnected\n')
             connection.close()
         except KeyboardInterrupt:
