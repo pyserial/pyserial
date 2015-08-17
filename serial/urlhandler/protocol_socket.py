@@ -163,8 +163,8 @@ class Serial(SerialBase):
                     break
             except socket.timeout:
                 # just need to get out of recv from time to time to check if
-                # still alive
-                continue
+                # still alive and timeout did not expire
+                pass
             except socket.error as e:
                 # connection fails -> terminate loop
                 raise SerialException('connection failed (%s)' % e)
