@@ -4,7 +4,9 @@
 # see __init__.py
 #
 # This module implements a special URL handler that wraps an other port,
-# printint the traffic for debugging purposes
+# print the traffic for debugging purposes. With this, it is possible
+# to debug the serial port traffic on every application that uses
+# serial_for_url.
 #
 # (C) 2015 Chris Liechti <cliechti@gmx.net>
 #
@@ -27,10 +29,6 @@ try:
     import urlparse
 except ImportError:
     import urllib.parse as urlparse
-try:
-    basestring
-except NameError:
-    basestring = str    # python 3
 
 class Serial(serial.Serial):
     """Just inherit the native Serial port implementation and patch the port property."""
@@ -50,9 +48,8 @@ class Serial(serial.Serial):
 
     def fromURL(self, url):
         """extract host and port from an URL string"""
-        print(url)
         parts = urlparse.urlsplit(url)
-        if parts.scheme != "spy":
+        if parts.scheme != 'spy':
             raise serial.SerialException('expected a string in the form "spy://port[?option[=value][&option[=value]]]": not starting with spy:// (%r)' % (parts.scheme,))
         # process options now, directly altering self
         for option, values in urlparse.parse_qs(parts.query, True).items():
