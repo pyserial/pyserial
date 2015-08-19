@@ -34,23 +34,27 @@ except ImportError:
 
 
 def sixteen(data):
+    """\
+    yield tuples of hex and ASCII display in multiples of 16. Includes a
+    space after 8 bytes and (None, None) after 16 bytes and at the end.
+    """
     n = 0
     for b in serial.iterbytes(data):
         yield ('{:02X} '.format(ord(b)), b if b' ' <= b < b'\x7f' else b'.')
         n += 1
         if n == 8:
-            yield ' ', ' '
+            yield (' ', ' ')
         elif n > 16:
-            yield None, None
+            yield (None, None)
             n = 0
     while n < 16:
         yield ('   ', ' ')
         n += 1
-    yield None, None
-
+    yield (None, None)
 
 
 def hexdump(data):
+    """yield lines with hexdump of data"""
     values = []
     ascii = []
     for h, a in sixteen(data):
@@ -65,8 +69,9 @@ def hexdump(data):
             ascii.append(a)
 
 
-
 class FormatRaw(object):
+    """forward rx and tx data to output"""
+
     def __init__(self, output, color):
         self.output = output
         self.color = color
@@ -90,6 +95,20 @@ class FormatRaw(object):
 
 
 class FormatHexdump(object):
+    """\
+    Create a hex dump of RX ad TX data, show when control lines are read or
+    written.
+
+    output example::
+
+        000000.000 FLSH flushInput
+        000002.469 RTS  inactive
+        000002.773 RTS  active
+        000003.106 TX   C3 B6                                            ..
+        000003.107 RX   C3                                               .
+        000003.108 RX   B6                                               .
+    """
+
     def __init__(self, output, color):
         self.start_time = time.time()
         self.output = output
@@ -175,7 +194,7 @@ class Serial(serial.Serial):
         super(Serial, self).flushOutput()
 
     def sendBreak(self, duration=0.25):
-        self.formatter.control('FLSH', 'sendBreak')
+        self.formatter.control('BRK', 'sendBreak {}'.format(duration))
         super(Serial, self).sendBreak(duration)
 
     def setBreak(self, level=1):
