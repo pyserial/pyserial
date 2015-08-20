@@ -810,6 +810,7 @@ The function :func:`serial_for_url` accepts the following types of URLs:
 - ``rfc2217://<host>:<port>[/<option>[/<option>]]``
 - ``socket://<host>:<port>[/<option>[/<option>]]``
 - ``loop://[<option>[/<option>]]``
+- ``spy://port[?option[=value][&option[=value]]]``
 
 Device names are also supported, e.g.:
 
@@ -887,6 +888,75 @@ possible for the user to add protocol handlers using
     Unfortunately, on some systems list_ports only lists a subset of the port
     names with no additional information. Currently, on Windows and Linux and
     OSX it should find additional information.
+
+``spy://``
+    Wrapping the native serial port, this protocol makes it possible to
+    intercept the data received and transmitted as well as the access to the
+    control lines, break and flush commands.
+
+    Supported options in the URL are:
+
+    - ``dev=FILENAME`` output to given file or device instead of stderr
+    - ``color`` enable ANSI escape sequences to colorize output
+    - ``raw`` output the read and written data directly (default is to create a
+      hex dump). In this mode, no control line and other commands are logged.
+
+    Example::
+
+        import serial
+
+        with serial.serial_for_url('spy:///dev/ttyUSB0?dev=test.txt', timeout=1) as s:
+            s.setDTR(False)
+            s.write('hello world')
+            s.read(20)
+            s.setDTR(True)
+            s.write(serial.to_bytes(range(256)))
+            s.read(400)
+            s.sendBreak()
+
+        with open('test.txt') as f:
+            print(f.read())
+
+    Outputs::
+
+        000000.002 FLSH flushInput
+        000000.002 DTR  inactive
+        000000.002 TX   0000  68 65 6C 6C 6F 20 77 6F  72 6C 64                 hello wo rld     
+        000001.015 RX   0000  68 65 6C 6C 6F 20 77 6F  72 6C 64                 hello wo rld     
+        000001.015 DTR  active
+        000001.015 TX   0000  00 01 02 03 04 05 06 07  08 09 0A 0B 0C 0D 0E 0F  ........ ........
+        000001.015 TX   0010  10 11 12 13 14 15 16 17  18 19 1A 1B 1C 1D 1E 1F  ........ ........
+        000001.015 TX   0020  20 21 22 23 24 25 26 27  28 29 2A 2B 2C 2D 2E 2F   !"#$%&' ()*+,-./
+        000001.015 TX   0030  30 31 32 33 34 35 36 37  38 39 3A 3B 3C 3D 3E 3F  01234567 89:;<=>?
+        000001.015 TX   0040  40 41 42 43 44 45 46 47  48 49 4A 4B 4C 4D 4E 4F  @ABCDEFG HIJKLMNO
+        000001.016 TX   0050  50 51 52 53 54 55 56 57  58 59 5A 5B 5C 5D 5E 5F  PQRSTUVW XYZ[\]^_
+        000001.016 TX   0060  60 61 62 63 64 65 66 67  68 69 6A 6B 6C 6D 6E 6F  `abcdefg hijklmno
+        000001.016 TX   0070  70 71 72 73 74 75 76 77  78 79 7A 7B 7C 7D 7E 7F  pqrstuvw xyz{|}~.
+        000001.016 TX   0080  80 81 82 83 84 85 86 87  88 89 8A 8B 8C 8D 8E 8F  ........ ........
+        000001.016 TX   0090  90 91 92 93 94 95 96 97  98 99 9A 9B 9C 9D 9E 9F  ........ ........
+        000001.016 TX   00A0  A0 A1 A2 A3 A4 A5 A6 A7  A8 A9 AA AB AC AD AE AF  ........ ........
+        000001.016 TX   00B0  B0 B1 B2 B3 B4 B5 B6 B7  B8 B9 BA BB BC BD BE BF  ........ ........
+        000001.016 TX   00C0  C0 C1 C2 C3 C4 C5 C6 C7  C8 C9 CA CB CC CD CE CF  ........ ........
+        000001.016 TX   00D0  D0 D1 D2 D3 D4 D5 D6 D7  D8 D9 DA DB DC DD DE DF  ........ ........
+        000001.016 TX   00E0  E0 E1 E2 E3 E4 E5 E6 E7  E8 E9 EA EB EC ED EE EF  ........ ........
+        000001.016 TX   00F0  F0 F1 F2 F3 F4 F5 F6 F7  F8 F9 FA FB FC FD FE FF  ........ ........
+        000002.284 RX   0000  00 01 02 03 04 05 06 07  08 09 0A 0B 0C 0D 0E 0F  ........ ........
+        000002.284 RX   0010  10 11 12 13 14 15 16 17  18 19 1A 1B 1C 1D 1E 1F  ........ ........
+        000002.284 RX   0020  20 21 22 23 24 25 26 27  28 29 2A 2B 2C 2D 2E 2F   !"#$%&' ()*+,-./
+        000002.284 RX   0030  30 31 32 33 34 35 36 37  38 39 3A 3B 3C 3D 3E 3F  01234567 89:;<=>?
+        000002.284 RX   0040  40 41 42 43 44 45 46 47  48 49 4A 4B 4C 4D 4E 4F  @ABCDEFG HIJKLMNO
+        000002.284 RX   0050  50 51 52 53 54 55 56 57  58 59 5A 5B 5C 5D 5E 5F  PQRSTUVW XYZ[\]^_
+        000002.284 RX   0060  60 61 62 63 64 65 66 67  68 69 6A 6B 6C 6D 6E 6F  `abcdefg hijklmno
+        000002.284 RX   0070  70 71 72 73 74 75 76 77  78 79 7A 7B 7C 7D 7E 7F  pqrstuvw xyz{|}~.
+        000002.284 RX   0080  80 81 82 83 84 85 86 87  88 89 8A 8B 8C 8D 8E 8F  ........ ........
+        000002.284 RX   0090  90 91 92 93 94 95 96 97  98 99 9A 9B 9C 9D 9E 9F  ........ ........
+        000002.284 RX   00A0  A0 A1 A2 A3 A4 A5 A6 A7  A8 A9 AA AB AC AD AE AF  ........ ........
+        000002.284 RX   00B0  B0 B1 B2 B3 B4 B5 B6 B7  B8 B9 BA BB BC BD BE BF  ........ ........
+        000002.284 RX   00C0  C0 C1 C2 C3 C4 C5 C6 C7  C8 C9 CA CB CC CD CE CF  ........ ........
+        000002.284 RX   00D0  D0 D1 D2 D3 D4 D5 D6 D7  D8 D9 DA DB DC DD DE DF  ........ ........
+        000002.284 RX   00E0  E0 E1 E2 E3 E4 E5 E6 E7  E8 E9 EA EB EC ED EE EF  ........ ........
+        000002.284 RX   00F0  F0 F1 F2 F3 F4 F5 F6 F7  F8 F9 FA FB FC FD FE FF  ........ ........
+        000002.284 BRK  sendBreak 0.25
 
 
 
