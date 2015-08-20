@@ -535,35 +535,29 @@ class Serial(SerialBase):
     def fromURL(self, url):
         """extract host and port from an URL string"""
         parts = urlparse.urlsplit(url)
-        if parts.scheme.lower() != "rfc2217":
-            raise SerialException('expected a string in the form "rfc2217://<host>:<port>[/option[/option...]]": not starting with rfc2217:// (%r)' % (parts.scheme,))
+        if parts.scheme != "rfc2217":
+            raise SerialException('expected a string in the form "rfc2217://<host>:<port>[?option[&option...]]": not starting with rfc2217:// (%r)' % (parts.scheme,))
         try:
             # process options now, directly altering self
-            for option in parts.path.lower().split('/'):
-                if '=' in option:
-                    option, value = option.split('=', 1)
-                else:
-                    value = None
-                if not option:
-                    pass
-                elif option == 'logging':
+            for option, values in urlparse.parse_qs(parts.query, True).items():
+                if option == 'logging':
                     logging.basicConfig()   # XXX is that good to call it here?
                     self.logger = logging.getLogger('pySerial.rfc2217')
-                    self.logger.setLevel(LOGGER_LEVELS[value])
+                    self.logger.setLevel(LOGGER_LEVELS[values[0]])
                     self.logger.debug('enabled logging')
                 elif option == 'ign_set_control':
                     self._ignore_set_control_answer = True
                 elif option == 'poll_modem':
                     self._poll_modem_state = True
                 elif option == 'timeout':
-                    self._network_timeout = float(value)
+                    self._network_timeout = float(values[0])
                 else:
                     raise ValueError('unknown option: %r' % (option,))
             # get host and port
             host, port = parts.hostname, parts.port
             if not 0 <= port < 65536: raise ValueError("port not in range 0...65535")
         except ValueError as e:
-            raise SerialException('expected a string in the form "rfc2217://<host>:<port>[/option[/option...]]": %s' % e)
+            raise SerialException('expected a string in the form "rfc2217://<host>:<port>[?option[&option...]]": %s' % e)
         return (host, port)
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -

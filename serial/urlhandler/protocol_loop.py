@@ -102,26 +102,20 @@ class Serial(SerialBase):
     def fromURL(self, url):
         """extract host and port from an URL string"""
         parts = urlparse.urlsplit(url)
-        if parts.scheme.lower() != "loop":
-            raise SerialException('expected a string in the form "loop://[option[/option...]]": not starting with loop:// (%r)' % (parts.scheme,))
+        if parts.scheme != "loop":
+            raise SerialException('expected a string in the form "loop://[?logging={debug|info|warning|error}]": not starting with loop:// (%r)' % (parts.scheme,))
         try:
             # process options now, directly altering self
-            for option in parts.path.split('/'):
-                if '=' in option:
-                    option, value = option.split('=', 1)
-                else:
-                    value = None
-                if not option:
-                    pass
-                elif option == 'logging':
+            for option, values in urlparse.parse_qs(parts.query, True).items():
+                if option == 'logging':
                     logging.basicConfig()   # XXX is that good to call it here?
                     self.logger = logging.getLogger('pySerial.loop')
-                    self.logger.setLevel(LOGGER_LEVELS[value])
+                    self.logger.setLevel(LOGGER_LEVELS[values[0]])
                     self.logger.debug('enabled logging')
                 else:
                     raise ValueError('unknown option: %r' % (option,))
         except ValueError as e:
-            raise SerialException('expected a string in the form "[loop://][option[/option...]]": %s' % e)
+            raise SerialException('expected a string in the form "loop://[?logging={debug|info|warning|error}]": %s' % e)
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 

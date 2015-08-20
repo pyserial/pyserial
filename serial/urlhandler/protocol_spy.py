@@ -165,13 +165,18 @@ class Serial(serial.Serial):
         formatter = FormatHexdump
         color = False
         output = sys.stderr
-        for option, values in urlparse.parse_qs(parts.query, True).items():
-            if option == 'dev':
-                output = open(values[0], 'w')
-            elif option == 'color':
-                color = True
-            elif option == 'raw':
-                formatter = FormatRaw
+        try:
+            for option, values in urlparse.parse_qs(parts.query, True).items():
+                if option == 'dev':
+                    output = open(values[0], 'w')
+                elif option == 'color':
+                    color = True
+                elif option == 'raw':
+                    formatter = FormatRaw
+                else:
+                    raise ValueError('unknown option: %r' % (option,))
+        except ValueError as e:
+            raise SerialException('expected a string in the form "spy://port[?option[=value][&option[=value]]]": %s' % e)
         self.formatter = formatter(output, color)
         return ''.join([parts.netloc, parts.path])
 

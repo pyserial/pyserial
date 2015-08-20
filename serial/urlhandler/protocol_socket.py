@@ -104,21 +104,15 @@ class Serial(SerialBase):
     def fromURL(self, url):
         """extract host and port from an URL string"""
         parts = urlparse.urlsplit(url)
-        if parts.scheme.lower() != "socket":
-            raise SerialException('expected a string in the form "socket://<host>:<port>[/option[/option...]]": not starting with socket:// (%r)' % (parts.scheme,))
+        if parts.scheme != "socket":
+            raise SerialException('expected a string in the form "socket://<host>:<port>[?logging={debug|info|warning|error}]": not starting with socket:// (%r)' % (parts.scheme,))
         try:
             # process options now, directly altering self
-            for option in parts.path.lower().split('/'):
-                if '=' in option:
-                    option, value = option.split('=', 1)
-                else:
-                    value = None
-                if not option:
-                    pass
-                elif option == 'logging':
+            for option, values in urlparse.parse_qs(parts.query, True).items():
+                if option == 'logging':
                     logging.basicConfig()   # XXX is that good to call it here?
                     self.logger = logging.getLogger('pySerial.socket')
-                    self.logger.setLevel(LOGGER_LEVELS[value])
+                    self.logger.setLevel(LOGGER_LEVELS[values[0]])
                     self.logger.debug('enabled logging')
                 else:
                     raise ValueError('unknown option: %r' % (option,))
@@ -126,7 +120,7 @@ class Serial(SerialBase):
             host, port = parts.hostname, parts.port
             if not 0 <= port < 65536: raise ValueError("port not in range 0...65535")
         except ValueError as e:
-            raise SerialException('expected a string in the form "socket://<host>:<port>[/option[/option...]]": %s' % e)
+            raise SerialException('expected a string in the form "socket://<host>:<port>[?logging={debug|info|warning|error}]": %s' % e)
         return (host, port)
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -

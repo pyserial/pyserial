@@ -800,6 +800,17 @@ Module functions and attributes
 
     .. versionadded:: 2.5
 
+.. function:: iterbytes(b)
+
+    :param b: bytes, bytearray or memoryview
+    :returns: a generator that yields bytes
+
+    Some versions of Python (3.x) would return integers instead of bytes when
+    looping over an instance of ``bytes``.  This helper function ensures that
+    bytes are returned.
+
+    .. versionadded:: 3.0
+
 
 .. _URLs:
 
@@ -807,10 +818,12 @@ URLs
 ----
 The function :func:`serial_for_url` accepts the following types of URLs:
 
-- ``rfc2217://<host>:<port>[/<option>[/<option>]]``
-- ``socket://<host>:<port>[/<option>[/<option>]]``
-- ``loop://[<option>[/<option>]]``
+- ``rfc2217://<host>:<port>[?<option>[&<option>...]]``
+- ``socket://<host>:<port>[?logging={debug|info|warning|error}]``
+- ``loop://[?logging={debug|info|warning|error}]``
 - ``spy://port[?option[=value][&option[=value]]]``
+
+.. versionchanged:: 3.0 Options are specified with ``?`` and ``&`` instead of ``/``
 
 Device names are also supported, e.g.:
 
@@ -842,7 +855,7 @@ possible for the user to add protocol handlers using
       timeout applies to the initial Telnet / :rfc:`2271` negotiation as well
       as changing port settings or control line change commands.
 
-    - ``logging=[debug|info|warning|error]``: Prints diagnostic messages (not
+    - ``logging={debug|info|warning|error}``: Prints diagnostic messages (not
       useful for end users). It uses the logging module and a logger called
       ``pySerial.rfc2217`` so that the application can setup up logging
       handlers etc. It will call :meth:`logging.basicConfig` which initializes
@@ -857,7 +870,7 @@ possible for the user to add protocol handlers using
 
     Supported options in the URL are:
 
-    - ``logging=[debug|info|warning|error]``: Prints diagnostic messages (not
+    - ``logging={debug|info|warning|error}``: Prints diagnostic messages (not
       useful for end users). It uses the logging module and a logger called
       ``pySerial.socket`` so that the application can setup up logging handlers
       etc. It will call :meth:`logging.basicConfig` which initializes for
@@ -870,7 +883,7 @@ possible for the user to add protocol handlers using
 
     Supported options in the URL are:
 
-    - ``logging=[debug|info|warning|error]``: Prints diagnostic messages (not
+    - ``logging={debug|info|warning|error}``: Prints diagnostic messages (not
       useful for end users). It uses the logging module and a logger called
       ``pySerial.loop`` so that the application can setup up logging handlers
       etc. It will call :meth:`logging.basicConfig` which initializes for
@@ -958,16 +971,19 @@ possible for the user to add protocol handlers using
         000002.284 RX   00F0  F0 F1 F2 F3 F4 F5 F6 F7  F8 F9 FA FB FC FD FE FF  ........ ........
         000002.284 BRK  sendBreak 0.25
 
+    .. versionadded:: 3.0
+
 
 
 Examples:
 
 - ``rfc2217://localhost:7000``
-- ``rfc2217://localhost:7000/poll_modem``
-- ``rfc2217://localhost:7000/ign_set_control/timeout=5.5``
+- ``rfc2217://localhost:7000?poll_modem``
+- ``rfc2217://localhost:7000?ign_set_control&timeout=5.5``
 - ``socket://localhost:7777``
-- ``loop://logging=debug``
+- ``loop://?logging=debug``
 - ``hwgrep://0451:f432`` (USB VID:PID)
+- ``spy://COM54?dev=log.txt``
 
 Tools
 =====

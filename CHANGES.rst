@@ -507,22 +507,24 @@ Version 3.0a     2015-xx-xx
 --------------------------
 
 - Starting from this release, only 2.7 and 3.4 (or newer) are supported. The
-  sourcecode is compatible to the 2.x and 3.x series without any changes. The
+  source code is compatible to the 2.x and 3.x series without any changes. The
   support for earlier Python versions than 2.7 is removed, please refer to the
   pyserial-legacy (V2.x) series if older Python versions are a requirement).
 - remove file ``FileLike`` class, add ``read_until`` and ``iread_until`` to
   ``SerialBase``
 - remove set* functions, please use the properties instead
-- RS485 support changed (rts_toggle removed, added serial.rs485 module and
-  rs485_mode property)
-- socket:// and rfc2217:// handlers use the IPv6 compatible socket.create_connection
+- RS485 support changed (rts_toggle removed, added ``serial.rs485`` module and
+  ``rs485_mode`` property)
+- ``socket://`` and ``rfc2217://`` handlers use the IPv6 compatible ``socket.create_connection``
 - remove obsolete examples
 - finish update to BSD license
 - update links to point to github
 - [Patch pyserial:34] Improvements to port_publisher.py example
 - [Feature pyserial:39] Support BlueTooth serial port discovery on Linux
-- Use setuptools if aviliable, fall back to distutils if unaviliable.
+- Use setuptools if available, fall back to distutils if unavailable.
 - miniterm: changed command line options, translations, support encodings
+- URL handlers now require the proper format (``?`` and ``&``) for arguments
+  instead of ``/`` (e.g. ``rfc2217://localhost:7000?ign_set_control&timeout=5.5``)
 
 Bugfixes:
 
