@@ -25,6 +25,8 @@ except (NameError, AttributeError):
 # "for byte in data" fails for python3 as it returns ints instead of bytes
 def iterbytes(b):
     """Iterate over bytes, returning bytes instead of ints (python3)"""
+    if isinstance(b, memoryview):
+        b = b.tobytes()
     x = 0
     while True:
         a = b[x:x+1]

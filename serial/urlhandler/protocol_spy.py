@@ -44,13 +44,16 @@ def sixteen(data):
         n += 1
         if n == 8:
             yield (' ', ' ')
-        elif n > 16:
+        elif n >= 16:
             yield (None, None)
             n = 0
-    while n < 16:
-        yield ('   ', ' ')
-        n += 1
-    yield (None, None)
+    if n > 0:
+        while n < 16:
+            n += 1
+            if n == 8:
+                yield (' ', ' ')
+            yield ('   ', ' ')
+        yield (None, None)
 
 
 def hexdump(data):
@@ -104,9 +107,9 @@ class FormatHexdump(object):
         000000.000 FLSH flushInput
         000002.469 RTS  inactive
         000002.773 RTS  active
-        000003.106 TX   C3 B6                                            ..
-        000003.107 RX   C3                                               .
-        000003.108 RX   B6                                               .
+        000003.001 TX   48 45 4C 4C 4F                                    HELLO
+        000003.102 RX   48 45 4C 4C 4F                                    HELLO
+
     """
 
     def __init__(self, output, color):
@@ -187,7 +190,7 @@ class Serial(serial.Serial):
 
     def flushInput(self):
         self.formatter.control('FLSH', 'flushInput')
-        super(Serial, self).flush()
+        super(Serial, self).flushInput()
 
     def flushOutput(self):
         self.formatter.control('FLSH', 'flushOutput')
@@ -225,8 +228,8 @@ class Serial(serial.Serial):
         return level
 
     def getCD(self):
-        self.formatter.control('CD', 'active' if level else 'inactive')
         level = super(Serial, self).getCD()
+        self.formatter.control('CD', 'active' if level else 'inactive')
         return level
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
