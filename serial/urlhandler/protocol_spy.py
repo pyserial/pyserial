@@ -60,13 +60,15 @@ def hexdump(data):
     """yield lines with hexdump of data"""
     values = []
     ascii = []
+    offset = 0
     for h, a in sixteen(data):
         if h is None:
-            yield ' '.join([
+            yield (offset, ' '.join([
                     ''.join(values),
-                    ''.join(ascii)])
+                    ''.join(ascii)]))
             del values[:]
             del ascii[:]
+            offset += 0x10
         else:
             values.append(h)
             ascii.append(a)
@@ -120,21 +122,21 @@ class FormatHexdump(object):
         self.tx_color = '\x1b[31m'
         self.control_color = '\x1b[37m'
 
-    def write_line(self, timestamp, label, value):
-        self.output.write('{:010.3f} {:4} {}\n'.format(timestamp, label, value))
+    def write_line(self, timestamp, label, value, value2=''):
+        self.output.write('{:010.3f} {:4} {}{}\n'.format(timestamp, label, value, value2))
         self.output.flush()
 
     def rx(self, data):
         if self.color:
             self.output.write(self.rx_color)
-        for row in hexdump(data):
-            self.write_line(time.time() - self.start_time, 'RX', row)
+        for offset, row in hexdump(data):
+            self.write_line(time.time() - self.start_time, 'RX', '{:04X}  '.format(offset), row)
 
     def tx(self, data):
         if self.color:
             self.output.write(self.tx_color)
-        for row in hexdump(data):
-            self.write_line(time.time() - self.start_time, 'TX', row)
+        for offset, row in hexdump(data):
+            self.write_line(time.time() - self.start_time, 'TX', '{:04X}  '.format(offset), row)
 
     def control(self, name, value):
         if self.color:
