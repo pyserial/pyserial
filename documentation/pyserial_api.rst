@@ -909,7 +909,7 @@ possible for the user to add protocol handlers using
 
     Supported options in the URL are:
 
-    - ``dev=FILENAME`` output to given file or device instead of stderr
+    - ``file=FILENAME`` output to given file or device instead of stderr
     - ``color`` enable ANSI escape sequences to colorize output
     - ``raw`` output the read and written data directly (default is to create a
       hex dump). In this mode, no control line and other commands are logged.
@@ -918,7 +918,7 @@ possible for the user to add protocol handlers using
 
         import serial
 
-        with serial.serial_for_url('spy:///dev/ttyUSB0?dev=test.txt', timeout=1) as s:
+        with serial.serial_for_url('spy:///dev/ttyUSB0?file=test.txt', timeout=1) as s:
             s.setDTR(False)
             s.write('hello world')
             s.read(20)
@@ -983,7 +983,7 @@ Examples:
 - ``socket://localhost:7777``
 - ``loop://?logging=debug``
 - ``hwgrep://0451:f432`` (USB VID:PID)
-- ``spy://COM54?dev=log.txt``
+- ``spy://COM54?file=log.txt``
 
 Tools
 =====

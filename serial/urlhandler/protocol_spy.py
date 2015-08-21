@@ -167,7 +167,7 @@ class Serial(serial.Serial):
         output = sys.stderr
         try:
             for option, values in urlparse.parse_qs(parts.query, True).items():
-                if option == 'dev':
+                if option == 'file':
                     output = open(values[0], 'w')
                 elif option == 'color':
                     color = True
