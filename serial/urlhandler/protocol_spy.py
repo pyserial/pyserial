@@ -40,7 +40,7 @@ def sixteen(data):
     """
     n = 0
     for b in serial.iterbytes(data):
-        yield ('{:02X} '.format(ord(b)), b if b' ' <= b < b'\x7f' else b'.')
+        yield ('{:02X} '.format(ord(b)), b.decode('ascii') if b' ' <= b < b'\x7f' else '.')
         n += 1
         if n == 8:
             yield (' ', ' ')
