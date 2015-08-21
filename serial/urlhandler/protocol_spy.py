@@ -129,8 +129,11 @@ class FormatHexdump(object):
     def rx(self, data):
         if self.color:
             self.output.write(self.rx_color)
-        for offset, row in hexdump(data):
-            self.write_line(time.time() - self.start_time, 'RX', '{:04X}  '.format(offset), row)
+        if data:
+            for offset, row in hexdump(data):
+                self.write_line(time.time() - self.start_time, 'RX', '{:04X}  '.format(offset), row)
+        else:
+            self.write_line(time.time() - self.start_time, 'RX', '<empty>')
 
     def tx(self, data):
         if self.color:
@@ -150,6 +153,7 @@ class Serial(serial.Serial):
     def __init__(self, *args, **kwargs):
         super(Serial, self).__init__(*args, **kwargs)
         self.formatter = None
+        self.show_all = False
 
     @serial.Serial.port.setter
     def port(self, value):
@@ -173,10 +177,12 @@ class Serial(serial.Serial):
                     color = True
                 elif option == 'raw':
                     formatter = FormatRaw
+                elif option == 'all':
+                    self.show_all = True
                 else:
                     raise ValueError('unknown option: %r' % (option,))
         except ValueError as e:
-            raise SerialException('expected a string in the form "spy://port[?option[=value][&option[=value]]]": %s' % e)
+            raise serial.SerialException('expected a string in the form "spy://port[?option[=value][&option[=value]]]": %s' % e)
         self.formatter = formatter(output, color)
         return ''.join([parts.netloc, parts.path])
 
@@ -186,25 +192,31 @@ class Serial(serial.Serial):
 
     def read(self, size=1):
         rx = super(Serial, self).read(size)
-        if rx:
+        if rx or self.show_all:
             self.formatter.rx(rx)
         return rx
 
 
+    def inWaiting(self):
+        n = super(Serial, self).inWaiting()
+        if self.show_all:
+            self.formatter.control('QRX', 'inWaiting -> {}'.format(n))
+        return n
+
     def flush(self):
-        self.formatter.control('FLSH', 'flush')
+        self.formatter.control('QTX', 'flush')
         super(Serial, self).flush()
 
     def flushInput(self):
-        self.formatter.control('FLSH', 'flushInput')
+        self.formatter.control('QRX', 'flushInput')
         super(Serial, self).flushInput()
 
     def flushOutput(self):
-        self.formatter.control('FLSH', 'flushOutput')
+        self.formatter.control('QTX', 'flushOutput')
         super(Serial, self).flushOutput()
 
     def sendBreak(self, duration=0.25):
-        self.formatter.control('BRK', 'sendBreak {}'.format(duration))
+        self.formatter.control('BRK', 'sendBreak {}s'.format(duration))
         super(Serial, self).sendBreak(duration)
 
     def setBreak(self, level=1):

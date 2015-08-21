@@ -913,6 +913,8 @@ possible for the user to add protocol handlers using
     - ``color`` enable ANSI escape sequences to colorize output
     - ``raw`` output the read and written data directly (default is to create a
       hex dump). In this mode, no control line and other commands are logged.
+    - ``all`` also show ``inWaiting()`` and empty ``read()`` calls (hidden by
+      default because of high traffic).
 
     Example::
 
