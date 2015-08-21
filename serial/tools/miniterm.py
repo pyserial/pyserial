@@ -332,7 +332,8 @@ class Miniterm(object):
         """loop and copy serial->console"""
         try:
             while self.alive and self._reader_alive:
-                data = self.serial.read(1) + self.serial.read(self.serial.inWaiting())
+                # read all that is there or wait for one byte
+                data = self.serial.read(self.serial.inWaiting() or 1)
                 if data:
                     if self.raw:
                         self.console.write_bytes(data)
