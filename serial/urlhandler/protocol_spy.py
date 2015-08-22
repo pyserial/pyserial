@@ -43,7 +43,7 @@ def sixteen(data):
         yield ('{:02X} '.format(ord(b)), b.decode('ascii') if b' ' <= b < b'\x7f' else '.')
         n += 1
         if n == 8:
-            yield (' ', ' ')
+            yield (' ', '')
         elif n >= 16:
             yield (None, None)
             n = 0
@@ -51,7 +51,7 @@ def sixteen(data):
         while n < 16:
             n += 1
             if n == 8:
-                yield (' ', ' ')
+                yield (' ', '')
             yield ('   ', ' ')
         yield (None, None)
 
@@ -75,7 +75,7 @@ def hexdump(data):
 
 
 class FormatRaw(object):
-    """forward rx and tx data to output"""
+    """Forward only RX and TX data to output."""
 
     def __init__(self, output, color):
         self.output = output
@@ -106,7 +106,7 @@ class FormatHexdump(object):
 
     output example::
 
-        000000.000 FLSH flushInput
+        000000.000 Q-RX flushInput
         000002.469 RTS  inactive
         000002.773 RTS  active
         000003.001 TX   48 45 4C 4C 4F                                    HELLO
@@ -200,19 +200,19 @@ class Serial(serial.Serial):
     def inWaiting(self):
         n = super(Serial, self).inWaiting()
         if self.show_all:
-            self.formatter.control('QRX', 'inWaiting -> {}'.format(n))
+            self.formatter.control('Q-RX', 'inWaiting -> {}'.format(n))
         return n
 
     def flush(self):
-        self.formatter.control('QTX', 'flush')
+        self.formatter.control('Q-TX', 'flush')
         super(Serial, self).flush()
 
     def flushInput(self):
-        self.formatter.control('QRX', 'flushInput')
+        self.formatter.control('Q-RX', 'flushInput')
         super(Serial, self).flushInput()
 
     def flushOutput(self):
-        self.formatter.control('QTX', 'flushOutput')
+        self.formatter.control('Q-TX', 'flushOutput')
         super(Serial, self).flushOutput()
 
     def sendBreak(self, duration=0.25):
