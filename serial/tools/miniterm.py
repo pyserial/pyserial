@@ -94,13 +94,12 @@ elif os.name == 'posix':
         def __init__(self):
             super(Console, self).__init__()
             self.fd = sys.stdin.fileno()
-            self.old = None
+            self.old = termios.tcgetattr(self.fd)
             atexit.register(self.cleanup)
             if sys.version_info < (3, 0):
                 sys.stdin = codecs.getreader(sys.stdin.encoding)(sys.stdin)
 
         def setup(self):
-            self.old = termios.tcgetattr(self.fd)
             new = termios.tcgetattr(self.fd)
             new[3] = new[3] & ~termios.ICANON & ~termios.ECHO & ~termios.ISIG
             new[6][termios.VMIN] = 1
@@ -113,8 +112,7 @@ elif os.name == 'posix':
             #~ return c
 
         def cleanup(self):
-            if self.old is not None:
-                termios.tcsetattr(self.fd, termios.TCSAFLUSH, self.old)
+            termios.tcsetattr(self.fd, termios.TCSAFLUSH, self.old)
 
 else:
     raise NotImplementedError("Sorry no implementation for your platform (%s) available." % sys.platform)
