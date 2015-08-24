@@ -20,6 +20,9 @@ except NameError:
     raw_input = input   # in python3 it's "raw"
     unichr = chr
 
+from . import hexlify_codec
+codecs.register(lambda c: hexlify_codec.getregentry() if c == 'hexlify' else None)
+
 
 def key_description(character):
     """generate a readable description for a key"""
@@ -198,6 +201,7 @@ class NoControls(NoTerminal):
 
 class Printable(Transform):
     """Show decimal code for all non-ASCII characters and replace most control codes"""
+
     def rx(self, text):
         r = []
         for t in text:
@@ -215,6 +219,7 @@ class Printable(Transform):
 
 class Colorize(Transform):
     """Apply different colors for received and echo"""
+
     def __init__(self):
         # XXX make it configurable, use colorama?
         self.input_color = '\x1b[37m'
@@ -229,6 +234,7 @@ class Colorize(Transform):
 
 class DebugIO(Transform):
     """Print what is sent and received"""
+
     def rx(self, text):
         sys.stderr.write(' [RX:{}] '.format(repr(text)))
         sys.stderr.flush()
