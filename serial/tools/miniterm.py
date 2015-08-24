@@ -129,16 +129,14 @@ else:
     raise NotImplementedError("Sorry no implementation for your platform (%s) available." % sys.platform)
 
 
-# XXX how to handle multi byte sequences like CRLF?
-# codecs.IncrementalEncoder would be a good choice
 
 class Transform(object):
     """do-nothing: forward all data unchanged"""
-    def input(self, text):
+    def rx(self, text):
         """text received from serial port"""
         return text
 
-    def output(self, text):
+    def tx(self, text):
         """text to be sent to serial port"""
         return text
 
@@ -149,19 +147,18 @@ class Transform(object):
 
 class CRLF(Transform):
     """ENTER sends CR+LF"""
-    def input(self, text):
-        return text.replace('\r\n', '\n')
 
-    def output(self, text):
+    def tx(self, text):
         return text.replace('\n', '\r\n')
 
 
 class CR(Transform):
     """ENTER sends CR"""
-    def input(self, text):
+
+    def rx(self, text):
         return text.replace('\r', '\n')
 
-    def output(self, text):
+    def tx(self, text):
         return text.replace('\n', '\r')
 
 
@@ -171,41 +168,35 @@ class LF(Transform):
 
 class NoTerminal(Transform):
     """remove typical terminal control codes from input"""
-    def input(self, text):
+    def rx(self, text):
         return ''.join(t if t >= ' ' or t in '\r\n\b\t' else unichr(0x2400 + ord(t)) for t in text)
 
-    echo = input
+    echo = rx
 
 
 class NoControls(Transform):
     """Remove all control codes, incl. CR+LF"""
-    def input(self, text):
-        return ''.join(t if t >= ' ' else unichr(0x2400 + ord(t)) for t in text)
+    def rx(self, text):
+        return ''.join(t if t >= ' ' else unichr(0x2400 + ord(t)) for t in text).replace(' ', '\u2423')
 
-    echo = input
-
-
-class HexDump(Transform):
-    """Complete hex dump"""
-    def input(self, text):
-        return ''.join('{:02x} '.format(ord(t)) for t in text)
-
-    echo = input
+    echo = rx
 
 
 class Printable(Transform):
-    """Show decimal code for all non-ASCII characters and most control codes"""
-    def input(self, text):
+    """Show decimal code for all non-ASCII characters and replace most control codes"""
+    def rx(self, text):
         r = []
         for t in text:
             if ' ' <= t < '\x7f' or t in '\r\n\b\t':
                 r.append(t)
+            elif t < ' ':
+                r.append(unichr(0x2400 + ord(t)))
             else:
                 r.extend(unichr(0x2080 + ord(d) - 48) for d in '{:d}'.format(ord(t)))
                 r.append(' ')
         return ''.join(r)
 
-    echo = input
+    echo = rx
 
 
 class Colorize(Transform):
@@ -215,7 +206,7 @@ class Colorize(Transform):
         self.input_color = '\x1b[37m'
         self.echo_color = '\x1b[31m'
 
-    def input(self, text):
+    def rx(self, text):
         return self.input_color + text
 
     def echo(self, text):
@@ -224,12 +215,12 @@ class Colorize(Transform):
 
 class DebugIO(Transform):
     """Print what is sent and received"""
-    def input(self, text):
+    def rx(self, text):
         sys.stderr.write(' [RX:{}] '.format(repr(text)))
         sys.stderr.flush()
         return text
 
-    def output(self, text):
+    def tx(self, text):
         sys.stderr.write(' [TX:{}] '.format(repr(text)))
         sys.stderr.flush()
         return text
@@ -247,7 +238,6 @@ TRANSFORMATIONS = {
         'default': NoTerminal,
         'nocontrol': NoControls,
         'printable': Printable,
-        'hex': HexDump,
         'colorize': Colorize,
         'debug': DebugIO,
         }
@@ -271,9 +261,7 @@ class Miniterm(object):
         self.break_state = False
         self.raw = False
         self.input_encoding = 'UTF-8'
-        self.input_error_handling = 'replace'
         self.output_encoding = 'UTF-8'
-        self.output_error_handling = 'ignore'
         self.tx_transformations = [TRANSFORMATIONS[t]() for t in transformations]
         self.rx_transformations = list(reversed(self.tx_transformations))
         self.transformation_names = transformations
@@ -311,6 +299,15 @@ class Miniterm(object):
         if not transmit_only:
             self.receiver_thread.join()
 
+    def set_rx_encoding(self, encoding, errors='replace'):
+        self.input_encoding = encoding
+        self.rx_decoder = codecs.getincrementaldecoder(encoding)(errors)
+
+    def set_tx_encoding(self, encoding, errors='replace'):
+        self.output_encoding = encoding
+        self.tx_encoder = codecs.getincrementalencoder(encoding)(errors)
+
+
     def dump_port_settings(self):
         sys.stderr.write("\n--- Settings: {p.name}  {p.baudrate},{p.bytesize},{p.parity},{p.stopbits}\n".format(
                 p=self.serial))
@@ -347,12 +344,9 @@ class Miniterm(object):
                     if self.raw:
                         self.console.write_bytes(data)
                     else:
-                        text = codecs.decode(
-                                data,
-                                self.input_encoding,
-                                self.input_error_handling)
+                        text = self.rx_decoder.decode(data)
                         for transformation in self.rx_transformations:
-                            text = transformation.input(text)
+                            text = transformation.rx(text)
                         self.console.write(text)
         except serial.SerialException as e:
             self.alive = False
@@ -387,13 +381,9 @@ class Miniterm(object):
                     text = c
                     echo_text = text
                     for transformation in self.tx_transformations:
-                        text = transformation.output(text)
+                        text = transformation.tx(text)
                         echo_text = transformation.echo(echo_text)
-                    b = codecs.encode(
-                            text,
-                            self.output_encoding,
-                            self.output_error_handling)
-                    self.serial.write(b)
+                    self.serial.write(self.tx_encoder.encode(text))
                     if self.echo:
                         self.console.write(echo_text)
         except:
@@ -404,11 +394,7 @@ class Miniterm(object):
         """Implement a simple menu / settings"""
         if c == self.menu_character or c == self.exit_character:
             # Menu/exit character again -> send itself
-            b = codecs.encode(
-                    c,
-                    self.output_encoding,
-                    self.output_error_handling)
-            self.serial.write(b)
+            self.serial.write(self.tx_encoder.encode(c))
             if self.echo:
                 self.console.write(c)
         elif c == '\x15':                       # CTRL+U -> upload file
@@ -716,8 +702,8 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         miniterm.exit_character = unichr(args.exit_char)
         miniterm.menu_character = unichr(args.menu_char)
         miniterm.raw = args.raw
-        miniterm.input_encoding = args.serial_port_encoding
-        miniterm.output_encoding = args.serial_port_encoding
+        miniterm.set_rx_encoding(args.serial_port_encoding)
+        miniterm.set_tx_encoding(args.serial_port_encoding)
     except serial.SerialException as e:
         sys.stderr.write('could not open port {}: {}\n'.format(repr(args.port), e))
         if args.develop:
