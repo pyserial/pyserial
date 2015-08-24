@@ -30,6 +30,7 @@ def key_description(character):
         return repr(character)
 
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class ConsoleBase(object):
     def __init__(self):
         if sys.version_info >= (3, 0):
@@ -118,9 +119,11 @@ elif os.name == 'posix':
             termios.tcsetattr(self.fd, termios.TCSANOW, new)
 
         def getkey(self):
-            return sys.stdin.read(1)
+            c = sys.stdin.read(1)
             #~ c = os.read(self.fd, 1)
-            #~ return c
+            if c == '\x7f':
+                c = '\b'    # map the BS key (which yields DEL) to backspace
+            return c
 
         def cleanup(self):
             termios.tcsetattr(self.fd, termios.TCSAFLUSH, self.old)
@@ -129,6 +132,7 @@ else:
     raise NotImplementedError("Sorry no implementation for your platform (%s) available." % sys.platform)
 
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class Transform(object):
     """do-nothing: forward all data unchanged"""
@@ -168,18 +172,28 @@ class LF(Transform):
 
 class NoTerminal(Transform):
     """remove typical terminal control codes from input"""
+
+    REPLACEMENT_MAP = dict((x, 0x2400 + x) for x in range(32) if unichr(x) not in '\r\n\b\t')
+    REPLACEMENT_MAP.update({
+            0x7F: 0x2421, # DEL
+            0x9B: 0x2425, # CSI
+            })
+
     def rx(self, text):
-        return ''.join(t if t >= ' ' or t in '\r\n\b\t' else unichr(0x2400 + ord(t)) for t in text)
+        return text.translate(self.REPLACEMENT_MAP)
 
     echo = rx
 
 
-class NoControls(Transform):
+class NoControls(NoTerminal):
     """Remove all control codes, incl. CR+LF"""
-    def rx(self, text):
-        return ''.join(t if t >= ' ' else unichr(0x2400 + ord(t)) for t in text).replace(' ', '\u2423')
 
-    echo = rx
+    REPLACEMENT_MAP = dict((x, 0x2400 + x) for x in range(32))
+    REPLACEMENT_MAP.update({
+            32: 0x2423,   # visual space
+            0x7F: 0x2421, # DEL
+            0x9B: 0x2425, # CSI
+            })
 
 
 class Printable(Transform):
@@ -242,6 +256,7 @@ TRANSFORMATIONS = {
         'debug': DebugIO,
         }
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def dump_port_list():
     if comports:
