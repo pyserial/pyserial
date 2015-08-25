@@ -250,10 +250,13 @@ class DebugIO(Transform):
 # - add date/time for each newline
 # - insert newline after: a) timeout b) packet end character
 
-TRANSFORMATIONS = {
+EOL_TRANSFORMATIONS = {
         'crlf': CRLF,
         'cr': CR,
         'lf': LF,
+        }
+
+TRANSFORMATIONS = {
         'direct': Transform,    # no transformation
         'default': NoTerminal,
         'nocontrol': NoControls,
@@ -273,7 +276,7 @@ def dump_port_list():
 
 
 class Miniterm(object):
-    def __init__(self, port, baudrate, parity, rtscts, xonxoff, echo=False, transformations=()):
+    def __init__(self, port, baudrate, parity, rtscts, xonxoff, echo=False, eol='crlf', filters=()):
         self.console = Console()
         self.serial = serial.serial_for_url(port, baudrate, parity=parity, rtscts=rtscts, xonxoff=xonxoff, timeout=1)
         self.echo = echo
@@ -283,9 +286,9 @@ class Miniterm(object):
         self.raw = False
         self.input_encoding = 'UTF-8'
         self.output_encoding = 'UTF-8'
-        self.tx_transformations = [TRANSFORMATIONS[t]() for t in transformations]
-        self.rx_transformations = list(reversed(self.tx_transformations))
-        self.transformation_names = transformations
+        self.eol = eol
+        self.filters = filters
+        self.update_transformations()
         self.exit_character = 0x1d  # GS/CTRL+]
         self.menu_character = 0x14  # Menu: CTRL+T
 
@@ -320,6 +323,11 @@ class Miniterm(object):
         if not transmit_only:
             self.receiver_thread.join()
 
+    def update_transformations(self):
+        transformations = [EOL_TRANSFORMATIONS[self.eol]] + [TRANSFORMATIONS[f] for f in self.filters]
+        self.tx_transformations = [t() for t in transformations]
+        self.rx_transformations = list(reversed(self.tx_transformations))
+
     def set_rx_encoding(self, encoding, errors='replace'):
         self.input_encoding = encoding
         self.rx_decoder = codecs.getincrementaldecoder(encoding)(errors)
@@ -353,7 +361,8 @@ class Miniterm(object):
                 #~ LF_MODES[self.convert_outgoing]))
         sys.stderr.write('--- serial input encoding: {}\n'.format(self.input_encoding))
         sys.stderr.write('--- serial output encoding: {}\n'.format(self.output_encoding))
-        sys.stderr.write('--- transformations: {}\n'.format(' '.join(self.transformation_names)))
+        sys.stderr.write('--- EOL: {}\n'.format(self.eol.upper()))
+        sys.stderr.write('--- filters: {}\n'.format(' '.join(self.filters)))
 
     def reader(self):
         """loop and copy serial->console"""
@@ -455,6 +464,45 @@ class Miniterm(object):
         elif c == '\x05':                       # CTRL+E -> toggle local echo
             self.echo = not self.echo
             sys.stderr.write('--- local echo {} ---\n'.format('active' if self.echo else 'inactive'))
+        elif c == '\x06':                       # CTRL+F -> edit filters
+            sys.stderr.write('\n--- Available Filters:\n')
+            sys.stderr.write('\n'.join(
+                    '---   {:<10} = {.__doc__}'.format(k, v)
+                    for k, v in sorted(TRANSFORMATIONS.items())))
+            sys.stderr.write('\n--- Enter new filter name(s) [{}]: '.format(' '.join(self.filters)))
+            with self.console:
+                new_filters = sys.stdin.readline().lower().split()
+            if new_filters:
+                for f in new_filters:
+                    if f not in TRANSFORMATIONS:
+                        sys.stderr.write('--- unknown filter: {}'.format(repr(f)))
+                        break
+                else:
+                    self.filters = new_filters
+                    self.update_transformations()
+            sys.stderr.write('--- filters: {}\n'.format(' '.join(self.filters)))
+        elif c == '\x0c':                       # CTRL+L -> EOL mode
+            modes = list(EOL_TRANSFORMATIONS) # keys
+            eol = modes.index(self.eol) + 1
+            if eol >= len(modes):
+                eol = 0
+            self.eol = modes[eol]
+            sys.stderr.write('--- EOL: {} ---\n'.format(self.eol.upper()))
+            self.update_transformations()
+        elif c == '\x01':                       # CTRL+A -> set encoding
+            sys.stderr.write('\n--- Enter new encoding name [{}]: '.format(self.input_encoding))
+            with self.console:
+                new_encoding = sys.stdin.readline().strip()
+            if new_encoding:
+                try:
+                    codecs.lookup(new_encoding)
+                except LookupError:
+                    sys.stderr.write('--- invalid encoding name: {}\n'.format(new_encoding))
+                else:
+                    self.set_rx_encoding(new_encoding)
+                    self.set_tx_encoding(new_encoding)
+            sys.stderr.write('--- serial input encoding: {}\n'.format(self.input_encoding))
+            sys.stderr.write('--- serial output encoding: {}\n'.format(self.output_encoding))
         elif c == '\x09':                       # CTRL+I -> info
             self.dump_port_settings()
         #~ elif c == '\x01':                       # CTRL+A -> cycle escape mode
@@ -553,9 +601,11 @@ class Miniterm(object):
 ---    {exit:7} Send the exit character itself to remote
 ---    {info:7} Show info
 ---    {upload:7} Upload file (prompt will be shown)
+---    {repr:7} encoding
+---    {filter:7} edit filters
 --- Toggles:
----    {rts:7} RTS          {echo:7} local echo
----    {dtr:7} DTR          {brk:7} BREAK
+---    {rts:7} RTS   {dtr:7} DTR   {brk:7} BREAK
+---    {echo:7} echo  {eol:7} EOL
 ---
 --- Port settings ({menu} followed by the following):
 ---    p          change port
@@ -575,10 +625,14 @@ class Miniterm(object):
                 echo=key_description('\x05'),
                 info=key_description('\x09'),
                 upload=key_description('\x15'),
+                repr=key_description('\x01'),
+                filter=key_description('\x06'),
+                eol=key_description('\x0c'),
                 )
 
 
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # default args can be used to override when calling main() from an other script
 # e.g to create a miniterm-my-device.py
 def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr=None):
@@ -639,8 +693,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
             help="set the encoding for the serial port, default: %(default)s",
             default='UTF-8')
 
-    group.add_argument("-t", "--transformation",
-            dest="transformations",
+    group.add_argument("-f", "--filter",
             action="append",
             metavar="NAME",
             help="add text transformation",
@@ -696,19 +749,18 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         dump_port_list()
         args.port = raw_input('Enter port name:')
 
-    if args.transformations:
-        if 'help' in args.transformations:
-            sys.stderr.write('Available Transformations:\n')
+    if args.filter:
+        if 'help' in args.filter:
+            sys.stderr.write('Available filters:\n')
             sys.stderr.write('\n'.join(
-                    '{:<20} = {.__doc__}'.format(k, v)
+                    '{:<10} = {.__doc__}'.format(k, v)
                     for k, v in sorted(TRANSFORMATIONS.items())))
             sys.stderr.write('\n')
             sys.exit(1)
-        transformations = args.transformations
+        filters = args.filter
     else:
-        transformations = ['default']
+        filters = ['default']
 
-    transformations.insert(0, args.eol.lower())
 
     try:
         miniterm = Miniterm(
@@ -718,7 +770,8 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
                 rtscts=args.rtscts,
                 xonxoff=args.xonxoff,
                 echo=args.echo,
-                transformations=transformations,
+                eol=args.eol.lower(),
+                filters=filters,
                 )
         miniterm.exit_character = unichr(args.exit_char)
         miniterm.menu_character = unichr(args.menu_char)
