@@ -112,7 +112,9 @@ elif os.name == 'posix':
             self.old = termios.tcgetattr(self.fd)
             atexit.register(self.cleanup)
             if sys.version_info < (3, 0):
-                sys.stdin = codecs.getreader(sys.stdin.encoding)(sys.stdin)
+                self.enc_stdin = codecs.getreader(sys.stdin.encoding)(sys.stdin)
+            else:
+                self.enc_stdin = sys.stdin
 
         def setup(self):
             new = termios.tcgetattr(self.fd)
@@ -122,8 +124,7 @@ elif os.name == 'posix':
             termios.tcsetattr(self.fd, termios.TCSANOW, new)
 
         def getkey(self):
-            c = sys.stdin.read(1)
-            #~ c = os.read(self.fd, 1)
+            c = self.enc_stdin.read(1)
             if c == '\x7f':
                 c = '\b'    # map the BS key (which yields DEL) to backspace
             return c
@@ -690,7 +691,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
     group.add_argument("--encoding",
             dest="serial_port_encoding",
             metavar="CODEC",
-            help="set the encoding for the serial port, default: %(default)s",
+            help="set the encoding for the serial port (e.g. hexlify, Latin1, UTF-8), default: %(default)s",
             default='UTF-8')
 
     group.add_argument("-f", "--filter",
