@@ -95,9 +95,9 @@ if os.name == 'nt':
         def getkey(self):
             while True:
                 z = msvcrt.getwch()
-                if z == '\r':
-                    return '\n'
-                elif z in '\x00\x0e':    # functions keys, ignore
+                if z == u'\r':
+                    return u'\n'
+                elif z in u'\x00\x0e':    # functions keys, ignore
                     msvcrt.getwch()
                 else:
                     return z
@@ -125,8 +125,8 @@ elif os.name == 'posix':
 
         def getkey(self):
             c = self.enc_stdin.read(1)
-            if c == '\x7f':
-                c = '\b'    # map the BS key (which yields DEL) to backspace
+            if c == u'\x7f':
+                c = u'\b'    # map the BS key (which yields DEL) to backspace
             return c
 
         def cleanup(self):
@@ -277,13 +277,10 @@ def dump_port_list():
 
 
 class Miniterm(object):
-    def __init__(self, port, baudrate, parity, rtscts, xonxoff, echo=False, eol='crlf', filters=()):
+    def __init__(self, serial_instance, echo=False, eol='crlf', filters=()):
         self.console = Console()
-        self.serial = serial.serial_for_url(port, baudrate, parity=parity, rtscts=rtscts, xonxoff=xonxoff, timeout=1)
+        self.serial = serial_instance
         self.echo = echo
-        self.dtr_state = True
-        self.rts_state = True
-        self.break_state = False
         self.raw = False
         self.input_encoding = 'UTF-8'
         self.output_encoding = 'UTF-8'
@@ -342,15 +339,15 @@ class Miniterm(object):
         sys.stderr.write("\n--- Settings: {p.name}  {p.baudrate},{p.bytesize},{p.parity},{p.stopbits}\n".format(
                 p=self.serial))
         sys.stderr.write('--- RTS: {:8}  DTR: {:8}  BREAK: {:8}\n'.format(
-                ('active' if self.rts_state else 'inactive'),
-                ('active' if self.dtr_state else 'inactive'),
-                ('active' if self.break_state else 'inactive')))
+                ('active' if self.serial.rts else 'inactive'),
+                ('active' if self.serial.dtr else 'inactive'),
+                ('active' if self.serial.break_condition else 'inactive')))
         try:
             sys.stderr.write('--- CTS: {:8}  DSR: {:8}  RI: {:8}  CD: {:8}\n'.format(
-                    ('active' if self.serial.getCTS() else 'inactive'),
-                    ('active' if self.serial.getDSR() else 'inactive'),
-                    ('active' if self.serial.getRI() else 'inactive'),
-                    ('active' if self.serial.getCD() else 'inactive')))
+                    ('active' if self.serial.cts else 'inactive'),
+                    ('active' if self.serial.dsr else 'inactive'),
+                    ('active' if self.serial.ri else 'inactive'),
+                    ('active' if self.serial.cd else 'inactive')))
         except serial.SerialException:
             # on RFC 2217 ports, it can happen if no modem state notification was
             # yet received. ignore this error.
@@ -370,7 +367,7 @@ class Miniterm(object):
         try:
             while self.alive and self._reader_alive:
                 # read all that is there or wait for one byte
-                data = self.serial.read(self.serial.inWaiting() or 1)
+                data = self.serial.read(self.serial.in_waiting or 1)
                 if data:
                     if self.raw:
                         self.console.write_bytes(data)
@@ -410,12 +407,13 @@ class Miniterm(object):
                 else:
                     #~ if self.raw:
                     text = c
-                    echo_text = text
                     for transformation in self.tx_transformations:
                         text = transformation.tx(text)
-                        echo_text = transformation.echo(echo_text)
                     self.serial.write(self.tx_encoder.encode(text))
                     if self.echo:
+                        echo_text = c
+                        for transformation in self.tx_transformations:
+                            echo_text = transformation.echo(echo_text)
                         self.console.write(echo_text)
         except:
             self.alive = False
@@ -451,17 +449,14 @@ class Miniterm(object):
         elif c in '\x08hH?':                    # CTRL+H, h, H, ? -> Show help
             sys.stderr.write(self.get_help_text())
         elif c == '\x12':                       # CTRL+R -> Toggle RTS
-            self.rts_state = not self.rts_state
-            self.serial.setRTS(self.rts_state)
-            sys.stderr.write('--- RTS {} ---\n'.format('active' if self.rts_state else 'inactive'))
+            self.serial.rts = not self.serial.rts
+            sys.stderr.write('--- RTS {} ---\n'.format('active' if self.serial.rts else 'inactive'))
         elif c == '\x04':                       # CTRL+D -> Toggle DTR
-            self.dtr_state = not self.dtr_state
-            self.serial.setDTR(self.dtr_state)
-            sys.stderr.write('--- DTR {} ---\n'.format('active' if self.dtr_state else 'inactive'))
+            self.serial.dtr = not self.serial.dtr
+            sys.stderr.write('--- DTR {} ---\n'.format('active' if self.serial.dtr else 'inactive'))
         elif c == '\x02':                       # CTRL+B -> toggle BREAK condition
-            self.break_state = not self.break_state
-            self.serial.setBreak(self.break_state)
-            sys.stderr.write('--- BREAK {} ---\n'.format('active' if self.break_state else 'inactive'))
+            self.serial.break_condition = not self.serial.break_condition
+            sys.stderr.write('--- BREAK {} ---\n'.format('active' if self.serial.break_condition else 'inactive'))
         elif c == '\x05':                       # CTRL+E -> toggle local echo
             self.echo = not self.echo
             sys.stderr.write('--- local echo {} ---\n'.format('active' if self.echo else 'inactive'))
@@ -764,26 +759,41 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
 
 
     try:
-        miniterm = Miniterm(
+        serial_instance = serial.serial_for_url(
                 args.port,
                 args.baudrate,
-                args.parity,
+                parity=args.parity,
                 rtscts=args.rtscts,
                 xonxoff=args.xonxoff,
-                echo=args.echo,
-                eol=args.eol.lower(),
-                filters=filters,
-                )
-        miniterm.exit_character = unichr(args.exit_char)
-        miniterm.menu_character = unichr(args.menu_char)
-        miniterm.raw = args.raw
-        miniterm.set_rx_encoding(args.serial_port_encoding)
-        miniterm.set_tx_encoding(args.serial_port_encoding)
+                timeout=1,
+                do_not_open=True)
+
+        if args.dtr is not None:
+            if not args.quiet:
+                sys.stderr.write('--- forcing DTR {}\n'.format('active' if args.dtr else 'inactive'))
+            serial_instance.dtr = args.dtr
+        if args.rts is not None:
+            if not args.quiet:
+                sys.stderr.write('--- forcing RTS {}\n'.format('active' if args.rts else 'inactive'))
+            serial_instance.rts = args.rts
+
+        serial_instance.open()
     except serial.SerialException as e:
         sys.stderr.write('could not open port {}: {}\n'.format(repr(args.port), e))
         if args.develop:
             raise
         sys.exit(1)
+
+    miniterm = Miniterm(
+            serial_instance,
+            echo=args.echo,
+            eol=args.eol.lower(),
+            filters=filters)
+    miniterm.exit_character = unichr(args.exit_char)
+    miniterm.menu_character = unichr(args.menu_char)
+    miniterm.raw = args.raw
+    miniterm.set_rx_encoding(args.serial_port_encoding)
+    miniterm.set_tx_encoding(args.serial_port_encoding)
 
     if not args.quiet:
         sys.stderr.write('--- Miniterm on {p.name}  {p.baudrate},{p.bytesize},{p.parity},{p.stopbits} ---\n'.format(
@@ -794,17 +804,6 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
                 key_description(miniterm.menu_character),
                 key_description('\x08'),
                 ))
-
-    if args.dtr is not None:
-        if not args.quiet:
-            sys.stderr.write('--- forcing DTR {}\n'.format('active' if args.dtr else 'inactive'))
-        miniterm.serial.setDTR(args.dtr)
-        miniterm.dtr_state = args.dtr
-    if args.rts is not None:
-        if not args.quiet:
-            sys.stderr.write('--- forcing RTS {}\n'.format('active' if args.rts else 'inactive'))
-        miniterm.serial.setRTS(args.rts)
-        miniterm.rts_state = args.rts
 
     miniterm.start()
     try:
