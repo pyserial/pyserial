@@ -10,7 +10,7 @@ Miniterm
 ========
 This is a console application that provides a small terminal application.
 Miniterm itself does not implement any terminal features such as VT102
-compatibility. However it inherits these features from the terminal it is run.
+compatibility. However it may inherit these features from the terminal it is run.
 For example on GNU/Linux running from an xterm it will support the escape
 sequences of the xterm. On Windows the typical console window is dumb and does
 not support any escapes. When ANSI.sys is loaded it supports some escapes.
@@ -29,77 +29,82 @@ such as ``rfc2217:://<host>:<port>`` respectively ``socket://<host>:<port>`` as
 
 Command line options ``python -m serial.tools.miniterm -h``::
 
-    Usage: miniterm.py [options] [port [baudrate]]
+    usage: miniterm.py [-h] [--parity {N,E,O,S,M}] [--rtscts] [--xonxoff]
+                       [--rts RTS] [--dtr DTR] [-e] [--encoding CODEC] [-f NAME]
+                       [--eol {CR,LF,CRLF}] [--raw] [--exit-char NUM]
+                       [--menu-char NUM] [-q] [--develop]
+                       [port] [baudrate]
 
     Miniterm - A simple terminal program for the serial port.
 
-    Options:
+    positional arguments:
+      port                  serial port name
+      baudrate              set baud rate, default: 9600
+
+    optional arguments:
       -h, --help            show this help message and exit
 
-      Port settings:
-        -p PORT, --port=PORT
-                            port, a number or a device name. (deprecated option,
-                            use parameter instead)
-        -b BAUDRATE, --baud=BAUDRATE
-                            set baud rate, default 9600
-        --parity=PARITY     set parity, one of [N, E, O, S, M], default=N
-        --rtscts            enable RTS/CTS flow control (default off)
-        --xonxoff           enable software flow control (default off)
-        --rts=RTS_STATE     set initial RTS line state (possible values: 0, 1)
-        --dtr=DTR_STATE     set initial DTR line state (possible values: 0, 1)
+    port settings:
+      --parity {N,E,O,S,M}  set parity, one of {N E O S M}, default: N
+      --rtscts              enable RTS/CTS flow control (default off)
+      --xonxoff             enable software flow control (default off)
+      --rts RTS             set initial RTS line state (possible values: 0, 1)
+      --dtr DTR             set initial DTR line state (possible values: 0, 1)
 
-      Data handling:
-        -e, --echo          enable local echo (default off)
-        --cr                do not send CR+LF, send CR only
-        --lf                do not send CR+LF, send LF only
-        -D, --debug         debug received data (escape non-printable chars)
-                            --debug can be given multiple times: 0: just print
-                            what is received 1: escape non-printable characters,
-                            do newlines as unusual 2: escape non-printable
-                            characters, newlines too 3: hex dump everything
+    data handling:
+      -e, --echo            enable local echo (default off)
+      --encoding CODEC      set the encoding for the serial port (e.g. hexlify,
+                            Latin1, UTF-8), default: UTF-8
+      -f NAME, --filter NAME
+                            add text transformation
+      --eol {CR,LF,CRLF}    end of line mode
+      --raw                 Do no apply any encodings/transformations
 
-      Hotkeys:
-        --exit-char=EXIT_CHAR
-                            ASCII code of special character that is used to exit
-                            the application
-        --menu-char=MENU_CHAR
-                            ASCII code of special character that is used to
-                            control miniterm (menu)
+    hotkeys:
+      --exit-char NUM       Unicode of special character that is used to exit the
+                            application, default: 29
+      --menu-char NUM       Unicode code of special character that is used to
+                            control miniterm (menu), default: 20
 
-      Diagnostics:
-        -q, --quiet         suppress non-error messages
+    diagnostics:
+      -q, --quiet           suppress non-error messages
+      --develop             show Python traceback on error
 
 
 Miniterm supports some control functions. Typing :kbd:`Ctrl+T Ctrl+H` when it is
 running shows the help text::
 
-    --- pySerial - miniterm - help
+    --- pySerial (3.0a) - miniterm - help
     ---
     --- Ctrl+]   Exit program
     --- Ctrl+T   Menu escape key, followed by:
     --- Menu keys:
-    ---       Ctrl+T  Send the menu character itself to remote
-    ---       Ctrl+]  Send the exit character to remote
-    ---       Ctrl+I  Show info
-    ---       Ctrl+U  Upload file (prompt will be shown)
+    ---    Ctrl+T  Send the menu character itself to remote
+    ---    Ctrl+]  Send the exit character itself to remote
+    ---    Ctrl+I  Show info
+    ---    Ctrl+U  Upload file (prompt will be shown)
+    ---    Ctrl+A  encoding
+    ---    Ctrl+F  edit filters
     --- Toggles:
-    ---       Ctrl+R  RTS          Ctrl+E  local echo
-    ---       Ctrl+D  DTR          Ctrl+B  BREAK
-    ---       Ctrl+L  line feed    Ctrl+A  Cycle repr mode
+    ---    Ctrl+R  RTS   Ctrl+D  DTR   Ctrl+B  BREAK
+    ---    Ctrl+E  echo  Ctrl+L  EOL
     ---
     --- Port settings (Ctrl+T followed by the following):
-    --- p             change port
-    --- 7 8           set data bits
-    --- n e o s m     change parity (None, Even, Odd, Space, Mark)
-    --- 1 2 3         set stop bits (1, 2, 1.5)
-    --- b             change baud rate
-    --- x X           disable/enable software flow control
-    --- r R           disable/enable hardware flow control
+    ---    p          change port
+    ---    7 8        set data bits
+    ---    N E O S M  change parity (None, Even, Odd, Space, Mark)
+    ---    1 2 3      set stop bits (1, 2, 1.5)
+    ---    b          change baud rate
+    ---    x X        disable/enable software flow control
+    ---    r R        disable/enable hardware flow control
 
 .. versionchanged:: 2.5
     Added :kbd:`Ctrl+T` menu and added support for opening URLs.
 .. versionchanged:: 2.6
     File moved from the examples to :mod:`serial.tools.miniterm`.
+.. versionchanged:: 3.0
+    Apply encoding on serial port, convert to Unicode for console.
+    Added new filters, default to stripping terminal control sequences.
 
 miniterm.py_
     The miniterm program.
