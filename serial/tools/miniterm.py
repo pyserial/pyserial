@@ -74,6 +74,17 @@ class ConsoleBase(object):
 if os.name == 'nt':
     import msvcrt
     import ctypes
+
+    class Out(object):
+        def __init__(self, fd):
+            self.fd = fd
+
+        def flush(self):
+            pass
+
+        def write(self, s):
+            os.write(self.fd, s)
+
     class Console(ConsoleBase):
         def __init__(self):
             super(Console, self).__init__()
@@ -81,18 +92,10 @@ if os.name == 'nt':
             self._saved_icp = ctypes.windll.kernel32.GetConsoleCP()
             ctypes.windll.kernel32.SetConsoleOutputCP(65001)
             ctypes.windll.kernel32.SetConsoleCP(65001)
-            if sys.version_info < (3, 0):
-                class Out:
-                    def __init__(self):
-                        self.fd = sys.stdout.fileno()
-                    def flush(self):
-                        pass
-                    def write(self, s):
-                        os.write(self.fd, s)
-                self.output = codecs.getwriter('UTF-8')(Out(), 'replace')
-                self.byte_output = Out()
-            else:
-                self.output = codecs.getwriter('UTF-8')(sys.stdout.buffer, 'replace')
+            self.output = codecs.getwriter('UTF-8')(Out(sys.stdout.fileno()), 'replace')
+            # the change of the code page is not propagated to Python, manually fix it
+            sys.stderr = codecs.getwriter('UTF-8')(Out(sys.stderr.fileno()), 'replace')
+            sys.stdout = self.output
 
         def __del__(self):
             ctypes.windll.kernel32.SetConsoleOutputCP(self._saved_ocp)
@@ -111,6 +114,7 @@ if os.name == 'nt':
 elif os.name == 'posix':
     import atexit
     import termios
+
     class Console(ConsoleBase):
         def __init__(self):
             super(Console, self).__init__()
