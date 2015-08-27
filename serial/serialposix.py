@@ -307,7 +307,11 @@ class Serial(SerialBase, PlatformSpecific):
             raise
         else:
             self._isOpen = True
-        self.flushInput()
+        if not self.dsrdtr:
+            self._update_dtr_state()
+        if not self.rtscts:
+            self._update_rts_state()
+        self.reset_input_buffer()
 
 
     def _reconfigurePort(self):
@@ -453,7 +457,8 @@ class Serial(SerialBase, PlatformSpecific):
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-    def inWaiting(self):
+    @property
+    def in_waiting(self):
         """Return the number of characters currently in the input buffer."""
         #~ s = fcntl.ioctl(self.fd, termios.FIONREAD, TIOCM_zero_str)
         s = fcntl.ioctl(self.fd, TIOCINQ, TIOCM_zero_str)
@@ -541,12 +546,12 @@ class Serial(SerialBase, PlatformSpecific):
         """
         self.drainOutput()
 
-    def flushInput(self):
+    def reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
         if not self._isOpen: raise portNotOpenError
         termios.tcflush(self.fd, termios.TCIFLUSH)
 
-    def flushOutput(self):
+    def reset_output_buffer(self):
         """\
         Clear output buffer, aborting the current output and discarding all
         that is in the buffer.
@@ -554,7 +559,7 @@ class Serial(SerialBase, PlatformSpecific):
         if not self._isOpen: raise portNotOpenError
         termios.tcflush(self.fd, termios.TCOFLUSH)
 
-    def sendBreak(self, duration=0.25):
+    def send_break(self, duration=0.25):
         """\
         Send break condition. Timed, returns to idle state after given
         duration.
@@ -562,51 +567,52 @@ class Serial(SerialBase, PlatformSpecific):
         if not self._isOpen: raise portNotOpenError
         termios.tcsendbreak(self.fd, int(duration/0.25))
 
-    def setBreak(self, level=1):
+    def _update_break_state(self):
         """\
         Set break: Controls TXD. When active, no transmitting is possible.
         """
-        if self.fd is None: raise portNotOpenError
-        if level:
+        if self._break_state:
             fcntl.ioctl(self.fd, TIOCSBRK)
         else:
             fcntl.ioctl(self.fd, TIOCCBRK)
 
-    def setRTS(self, level=1):
+    def _update_rts_state(self):
         """Set terminal status line: Request To Send"""
-        if not self._isOpen: raise portNotOpenError
-        if level:
+        if self._rts_state:
             fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_RTS_str)
         else:
             fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_RTS_str)
 
-    def setDTR(self, level=1):
+    def _update_dtr_state(self):
         """Set terminal status line: Data Terminal Ready"""
-        if not self._isOpen: raise portNotOpenError
-        if level:
+        if self._dtr_state:
             fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_DTR_str)
         else:
             fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_DTR_str)
 
-    def getCTS(self):
+    @property
+    def cts(self):
         """Read terminal status line: Clear To Send"""
         if not self._isOpen: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_CTS != 0
 
-    def getDSR(self):
+    @property
+    def dsr(self):
         """Read terminal status line: Data Set Ready"""
         if not self._isOpen: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_DSR != 0
 
-    def getRI(self):
+    @property
+    def ri(self):
         """Read terminal status line: Ring Indicator"""
         if not self._isOpen: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)
         return struct.unpack('I',s)[0] & TIOCM_RI != 0
 
-    def getCD(self):
+    @property
+    def cd(self):
         """Read terminal status line: Carrier Detect"""
         if not self._isOpen: raise portNotOpenError
         s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_zero_str)

@@ -196,58 +196,65 @@ class Serial(serial.Serial):
             self.formatter.rx(rx)
         return rx
 
-
-    def inWaiting(self):
-        n = super(Serial, self).inWaiting()
+    @property
+    def in_waiting(self):
+        n = super(Serial, self).in_waiting
         if self.show_all:
-            self.formatter.control('Q-RX', 'inWaiting -> {}'.format(n))
+            self.formatter.control('Q-RX', 'in_waiting -> {}'.format(n))
         return n
 
     def flush(self):
         self.formatter.control('Q-TX', 'flush')
         super(Serial, self).flush()
 
-    def flushInput(self):
-        self.formatter.control('Q-RX', 'flushInput')
-        super(Serial, self).flushInput()
+    def reset_input_buffer(self):
+        self.formatter.control('Q-RX', 'reset_input_buffer')
+        super(Serial, self).reset_input_buffer()
 
-    def flushOutput(self):
-        self.formatter.control('Q-TX', 'flushOutput')
-        super(Serial, self).flushOutput()
+    def reset_output_buffer(self):
+        self.formatter.control('Q-TX', 'reset_output_buffer')
+        super(Serial, self).reset_output_buffer()
 
-    def sendBreak(self, duration=0.25):
-        self.formatter.control('BRK', 'sendBreak {}s'.format(duration))
-        super(Serial, self).sendBreak(duration)
+    def send_break(self, duration=0.25):
+        self.formatter.control('BRK', 'send_break {}s'.format(duration))
+        super(Serial, self).send_break(duration)
 
-    def setBreak(self, level=1):
+    @serial.Serial.break_condition.setter
+    def break_condition(self, level):
         self.formatter.control('BRK', 'active' if level else 'inactive')
-        super(Serial, self).setBreak(level)
+        serial.Serial.break_condition.__set__(self, level)
 
-    def setRTS(self, level=1):
+    @serial.Serial.rts.setter
+    def rts(self, level):
         self.formatter.control('RTS', 'active' if level else 'inactive')
-        super(Serial, self).setRTS(level)
+        serial.Serial.rts.__set__(self, level)
 
-    def setDTR(self, level=1):
+    @serial.Serial.dtr.setter
+    def dtr(self, level):
         self.formatter.control('DTR', 'active' if level else 'inactive')
-        super(Serial, self).setDTR(level)
+        serial.Serial.dtr.__set__(self, level)
 
-    def getCTS(self):
-        level = super(Serial, self).getCTS()
+    @serial.Serial.cts.getter
+    def cts(self):
+        level = super(Serial, self).cts
         self.formatter.control('CTS', 'active' if level else 'inactive')
         return level
 
-    def getDSR(self):
-        level = super(Serial, self).getDSR()
+    @serial.Serial.dsr.getter
+    def dsr(self):
+        level = super(Serial, self).dsr
         self.formatter.control('DSR', 'active' if level else 'inactive')
         return level
 
-    def getRI(self):
-        level = super(Serial, self).getRI()
+    @serial.Serial.ri.getter
+    def ri(self):
+        level = super(Serial, self).ri
         self.formatter.control('RI', 'active' if level else 'inactive')
         return level
 
-    def getCD(self):
-        level = super(Serial, self).getCD()
+    @serial.Serial.cd.getter
+    def cd(self):
+        level = super(Serial, self).cd
         self.formatter.control('CD', 'active' if level else 'inactive')
         return level
 

@@ -462,11 +462,12 @@ class Serial(SerialBase):
         self._reconfigurePort()
         # all things set up get, now a clean start
         self._isOpen = True
+        if not self.dsrdtr:
+            self._update_dtr_state()
         if not self._rtscts:
-            self.setRTS(True)
-            self.setDTR(True)
-        self.flushInput()
-        self.flushOutput()
+            self._update_rts_state()
+        self.reset_input_buffer()
+        self.reset_output_buffer()
 
     def _reconfigurePort(self):
         """Set communication parameters on opened port."""
@@ -562,7 +563,8 @@ class Serial(SerialBase):
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-    def inWaiting(self):
+    @property
+    def in_waiting(self):
         """Return the number of characters currently in the input buffer."""
         if not self._isOpen: raise portNotOpenError
         return self._read_buffer.qsize()
@@ -598,7 +600,7 @@ class Serial(SerialBase):
                 raise SerialException("connection failed (socket error): %s" % (e,))
         return len(data)
 
-    def flushInput(self):
+    def reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
         if not self._isOpen: raise portNotOpenError
         self.rfc2217SendPurge(PURGE_RECEIVE_BUFFER)
@@ -606,7 +608,7 @@ class Serial(SerialBase):
         while self._read_buffer.qsize():
             self._read_buffer.get(False)
 
-    def flushOutput(self):
+    def reset_output_buffer(self):
         """\
         Clear output buffer, aborting the current output and
         discarding all that is in the buffer.
@@ -614,65 +616,59 @@ class Serial(SerialBase):
         if not self._isOpen: raise portNotOpenError
         self.rfc2217SendPurge(PURGE_TRANSMIT_BUFFER)
 
-    def sendBreak(self, duration=0.25):
-        """\
-        Send break condition. Timed, returns to idle state after given
-        duration.
-        """
-        if not self._isOpen: raise portNotOpenError
-        self.setBreak(True)
-        time.sleep(duration)
-        self.setBreak(False)
-
-    def setBreak(self, level=True):
+    def _update_break_state(self):
         """\
         Set break: Controls TXD. When active, to transmitting is
         possible.
         """
         if not self._isOpen: raise portNotOpenError
         if self.logger:
-            self.logger.info('set BREAK to %s' % ('active' if level else 'inactive'))
-        if level:
+            self.logger.info('set BREAK to %s' % ('active' if self._break_state else 'inactive'))
+        if self._break_state:
             self.rfc2217SetControl(SET_CONTROL_BREAK_ON)
         else:
             self.rfc2217SetControl(SET_CONTROL_BREAK_OFF)
 
-    def setRTS(self, level=True):
+    def _update_rts_state(self):
         """Set terminal status line: Request To Send."""
         if not self._isOpen: raise portNotOpenError
         if self.logger:
-            self.logger.info('set RTS to %s' % ('active' if level else 'inactive'))
-        if level:
+            self.logger.info('set RTS to %s' % ('active' if self._rts_state else 'inactive'))
+        if self._rts_state:
             self.rfc2217SetControl(SET_CONTROL_RTS_ON)
         else:
             self.rfc2217SetControl(SET_CONTROL_RTS_OFF)
 
-    def setDTR(self, level=True):
+    def _update_dtr_state(self, level=True):
         """Set terminal status line: Data Terminal Ready."""
         if not self._isOpen: raise portNotOpenError
         if self.logger:
-            self.logger.info('set DTR to %s' % ('active' if level else 'inactive'))
-        if level:
+            self.logger.info('set DTR to %s' % ('active' if self._dtr_state else 'inactive'))
+        if self._dtr_state:
             self.rfc2217SetControl(SET_CONTROL_DTR_ON)
         else:
             self.rfc2217SetControl(SET_CONTROL_DTR_OFF)
 
-    def getCTS(self):
+    @property
+    def cts(self):
         """Read terminal status line: Clear To Send."""
         if not self._isOpen: raise portNotOpenError
         return bool(self.getModemState() & MODEMSTATE_MASK_CTS)
 
-    def getDSR(self):
+    @property
+    def dsr(self):
         """Read terminal status line: Data Set Ready."""
         if not self._isOpen: raise portNotOpenError
         return bool(self.getModemState() & MODEMSTATE_MASK_DSR)
 
-    def getRI(self):
+    @property
+    def ri(self):
         """Read terminal status line: Ring Indicator."""
         if not self._isOpen: raise portNotOpenError
         return bool(self.getModemState() & MODEMSTATE_MASK_RI)
 
-    def getCD(self):
+    @property
+    def cd(self):
         """Read terminal status line: Carrier Detect."""
         if not self._isOpen: raise portNotOpenError
         return bool(self.getModemState() & MODEMSTATE_MASK_CD)

@@ -58,8 +58,6 @@ class Serial(SerialBase):
             raise SerialException("Port is already open.")
         self.logger = None
         self.queue = queue.Queue(self.buffer_size)
-        self.cts = False
-        self.dsr = False
 
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
@@ -71,11 +69,12 @@ class Serial(SerialBase):
         self._reconfigurePort()
         # all things set up get, now a clean start
         self._isOpen = True
+        if not self.dsrdtr:
+            self._update_dtr_state()
         if not self._rtscts:
-            self.setRTS(True)
-            self.setDTR(True)
-        self.flushInput()
-        self.flushOutput()
+            self._update_rts_state()
+        self.reset_input_buffer()
+        self.reset_output_buffer()
 
     def close(self):
         self.queue.put(None)
@@ -119,7 +118,8 @@ class Serial(SerialBase):
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-    def inWaiting(self):
+    @property
+    def in_waiting(self):
         """Return the number of characters currently in the input buffer."""
         if not self._isOpen: raise portNotOpenError
         if self.logger:
@@ -172,7 +172,7 @@ class Serial(SerialBase):
             self.queue.put(byte, timeout=self._writeTimeout)
         return len(data)
 
-    def flushInput(self):
+    def reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
         if not self._isOpen: raise portNotOpenError
         if self.logger:
@@ -183,7 +183,7 @@ class Serial(SerialBase):
         except queue.Empty:
             pass
 
-    def flushOutput(self):
+    def reset_output_buffer(self):
         """\
         Clear output buffer, aborting the current output and
         discarding all that is in the buffer.
@@ -197,59 +197,49 @@ class Serial(SerialBase):
         except queue.Empty:
             pass
 
-    def sendBreak(self, duration=0.25):
-        """\
-        Send break condition. Timed, returns to idle state after given
-        duration.
-        """
-        if not self._isOpen: raise portNotOpenError
-        time.sleep(duration)
-
-    def setBreak(self, level=True):
+    def _update_break_state(self):
         """\
         Set break: Controls TXD. When active, to transmitting is
         possible.
         """
-        if not self._isOpen: raise portNotOpenError
         if self.logger:
-            self.logger.info('setBreak(%r)' % (level,))
+            self.logger.info('setBreak(%r)' % (self._break_state,))
 
-    def setRTS(self, level=True):
+    def _update_rts_state(self):
         """Set terminal status line: Request To Send"""
-        if not self._isOpen: raise portNotOpenError
         if self.logger:
-            self.logger.info('setRTS(%r) -> state of CTS' % (level,))
-        self.cts = level
+            self.logger.info('setRTS(%r) -> state of CTS' % (self._rts_state,))
 
-    def setDTR(self, level=True):
+    def _update_dtr_state(self):
         """Set terminal status line: Data Terminal Ready"""
-        if not self._isOpen: raise portNotOpenError
         if self.logger:
-            self.logger.info('setDTR(%r) -> state of DSR' % (level,))
-        self.dsr = level
+            self.logger.info('setDTR(%r) -> state of DSR' % (self._dtr_state,))
 
-    def getCTS(self):
+    @property
+    def cts(self):
         """Read terminal status line: Clear To Send"""
         if not self._isOpen: raise portNotOpenError
         if self.logger:
-            self.logger.info('getCTS() -> state of RTS (%r)' % (self.cts,))
-        return self.cts
+            self.logger.info('getCTS() -> state of RTS (%r)' % (self._rts_state,))
+        return self._rts_state
 
-    def getDSR(self):
+    @property
+    def dsr(self):
         """Read terminal status line: Data Set Ready"""
-        if not self._isOpen: raise portNotOpenError
         if self.logger:
-            self.logger.info('getDSR() -> state of DTR (%r)' % (self.dsr,))
-        return self.dsr
+            self.logger.info('getDSR() -> state of DTR (%r)' % (self._dtr_state,))
+        return self._dtr_state
 
-    def getRI(self):
+    @property
+    def ri(self):
         """Read terminal status line: Ring Indicator"""
         if not self._isOpen: raise portNotOpenError
         if self.logger:
             self.logger.info('returning dummy for getRI()')
         return False
 
-    def getCD(self):
+    @property
+    def cd(self):
         """Read terminal status line: Carrier Detect"""
         if not self._isOpen: raise portNotOpenError
         if self.logger:

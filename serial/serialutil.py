@@ -140,6 +140,9 @@ class SerialBase(io.RawIOBase):
         self._dsrdtr   = None           # correct value is assigned below through properties
         self._interCharTimeout = None   # correct value is assigned below through properties
         self._rs485_mode = None         # disabled by default
+        self._rts_state = True
+        self._dtr_state = True
+        self._break_state = False
 
         # assign values using get/set methods using the properties feature
         self.port     = port
@@ -433,6 +436,78 @@ class SerialBase(io.RawIOBase):
 
     def __exit__(self, *args, **kwargs):
         self.close()
+
+    #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+    def send_break(self, duration=0.25):
+        """\
+        Send break condition. Timed, returns to idle state after given
+        duration.
+        """
+        if not self._isOpen: raise portNotOpenError
+        self.break_condition = True
+        time.sleep(duration)
+        self.break_condition = False
+
+    #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+    # backwards compatibility / deprecated functions
+
+    def flushInput(self):
+        self.reset_input_buffer()
+
+    def flushOutput(self):
+        self.reset_output_buffer()
+
+    def inWaiting(self):
+        return self.in_waiting
+
+    def sendBreak(self, duration=0.25):
+        self.send_break(duration)
+
+    def setRTS(self, value=1):
+        self.rts = value
+
+    def setDTR(self, value=1):
+        self.dtr = value
+
+    def getCTS(self):
+        return self.cts
+
+    def getDSR(self):
+        return self.dsr
+
+    def getRI(self):
+        return self.ri
+
+    def getCD(self):
+        return self.cd
+
+    @property
+    def rts(self):
+        return self._rts_state
+    @rts.setter
+    def rts(self, value):
+        self._rts_state = value
+        if self._isOpen:
+            self._update_rts_state()
+
+    @property
+    def dtr(self):
+        return self._dtr_state
+    @dtr.setter
+    def dtr(self, value):
+        self._dtr_state = value
+        if self._isOpen:
+            self._update_dtr_state()
+
+    @property
+    def break_condition(self):
+        return self._break_state
+    @break_condition.setter
+    def break_condition(self, value):
+        self._break_state = value
+        if self._isOpen:
+            self._update_break_state()
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     # additional functionality

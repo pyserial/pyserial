@@ -32,10 +32,6 @@ class Serial(SerialBase):
         self.hComPort = None
         self._overlappedRead = None
         self._overlappedWrite = None
-        self._rtsState = win32.RTS_CONTROL_ENABLE
-        self._dtrState = win32.DTR_CONTROL_ENABLE
-
-
         SerialBase.__init__(self, *args, **kwargs)
 
     def open(self):
@@ -50,7 +46,7 @@ class Serial(SerialBase):
         # the "\\.\COMx" format is required for devices other than COM1-COM8
         # not all versions of windows seem to support this properly
         # so that the first few ports are used with the DOS device name
-        port = self.portstr
+        port = self.name
         try:
             if port.upper().startswith('COM') and int(port[3:]) > 8:
                 port = '\\\\.\\' + port
@@ -181,7 +177,7 @@ class Serial(SerialBase):
             if self._rtscts:
                 comDCB.fRtsControl = win32.RTS_CONTROL_HANDSHAKE
             else:
-                comDCB.fRtsControl = self._rtsState
+                comDCB.fRtsControl = win32.RTS_CONTROL_ENABLE if self._rts_state else win32.RTS_CONTROL_DISABLE
             comDCB.fOutxCtsFlow = self._rtscts
         else:
             # checks for unsupported settings
@@ -212,7 +208,7 @@ class Serial(SerialBase):
         if self._dsrdtr:
             comDCB.fDtrControl  = win32.DTR_CONTROL_HANDSHAKE
         else:
-            comDCB.fDtrControl  = self._dtrState
+            comDCB.fDtrControl  = win32.DTR_CONTROL_ENABLE if self._dtr_state else win32.DTR_CONTROL_DISABLE
         comDCB.fOutxDsrFlow     = self._dsrdtr
         comDCB.fOutX            = self._xonxoff
         comDCB.fInX             = self._xonxoff
@@ -255,7 +251,8 @@ class Serial(SerialBase):
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-    def inWaiting(self):
+    @property
+    def in_waiting(self):
         """Return the number of characters currently in the input buffer."""
         flags = win32.DWORD()
         comstat = win32.COMSTAT()
@@ -333,12 +330,12 @@ class Serial(SerialBase):
         # require overlapped IO and its also only possible to set a single mask
         # on the port---
 
-    def flushInput(self):
+    def reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
         if not self.hComPort: raise portNotOpenError
         win32.PurgeComm(self.hComPort, win32.PURGE_RXCLEAR | win32.PURGE_RXABORT)
 
-    def flushOutput(self):
+    def reset_output_buffer(self):
         """\
         Clear output buffer, aborting the current output and discarding all
         that is in the buffer.
@@ -346,74 +343,52 @@ class Serial(SerialBase):
         if not self.hComPort: raise portNotOpenError
         win32.PurgeComm(self.hComPort, win32.PURGE_TXCLEAR | win32.PURGE_TXABORT)
 
-    def sendBreak(self, duration=0.25):
-        """\
-        Send break condition. Timed, returns to idle state after given duration.
-        """
-        if not self.hComPort: raise portNotOpenError
-        win32.SetCommBreak(self.hComPort)
-        time.sleep(duration)
-        win32.ClearCommBreak(self.hComPort)
-
-    def setBreak(self, level=1):
+    def _update_break_state(self):
         """Set break: Controls TXD. When active, to transmitting is possible."""
         if not self.hComPort: raise portNotOpenError
-        if level:
+        if self._break_state:
             win32.SetCommBreak(self.hComPort)
         else:
             win32.ClearCommBreak(self.hComPort)
 
-    def setRTS(self, level=1):
+    def _update_rts_state(self):
         """Set terminal status line: Request To Send"""
-        # remember level for reconfigure
-        if level:
-            self._rtsState = win32.RTS_CONTROL_ENABLE
+        if self._rts_state:
+            win32.EscapeCommFunction(self.hComPort, win32.SETRTS)
         else:
-            self._rtsState = win32.RTS_CONTROL_DISABLE
-        # also apply now if port is open
-        if self.hComPort:
-            if level:
-                win32.EscapeCommFunction(self.hComPort, win32.SETRTS)
-            else:
-                win32.EscapeCommFunction(self.hComPort, win32.CLRRTS)
+            win32.EscapeCommFunction(self.hComPort, win32.CLRRTS)
 
-    def setDTR(self, level=1):
+    def _update_dtr_state(self):
         """Set terminal status line: Data Terminal Ready"""
-        # remember level for reconfigure
-        if level:
-            self._dtrState = win32.DTR_CONTROL_ENABLE
+        if self._dtr_state:
+            win32.EscapeCommFunction(self.hComPort, win32.SETDTR)
         else:
-            self._dtrState = win32.DTR_CONTROL_DISABLE
-        # also apply now if port is open
-        if self.hComPort:
-            if level:
-                win32.EscapeCommFunction(self.hComPort, win32.SETDTR)
-            else:
-                win32.EscapeCommFunction(self.hComPort, win32.CLRDTR)
+            win32.EscapeCommFunction(self.hComPort, win32.CLRDTR)
 
     def _GetCommModemStatus(self):
+        if not self.hComPort: raise portNotOpenError
         stat = win32.DWORD()
         win32.GetCommModemStatus(self.hComPort, ctypes.byref(stat))
         return stat.value
 
-    def getCTS(self):
+    @property
+    def cts(self):
         """Read terminal status line: Clear To Send"""
-        if not self.hComPort: raise portNotOpenError
         return win32.MS_CTS_ON & self._GetCommModemStatus() != 0
 
-    def getDSR(self):
+    @property
+    def dsr(self):
         """Read terminal status line: Data Set Ready"""
-        if not self.hComPort: raise portNotOpenError
         return win32.MS_DSR_ON & self._GetCommModemStatus() != 0
 
-    def getRI(self):
+    @property
+    def ri(self):
         """Read terminal status line: Ring Indicator"""
-        if not self.hComPort: raise portNotOpenError
         return win32.MS_RING_ON & self._GetCommModemStatus() != 0
 
-    def getCD(self):
+    @property
+    def cd(self):
         """Read terminal status line: Carrier Detect"""
-        if not self.hComPort: raise portNotOpenError
         return win32.MS_RLSD_ON & self._GetCommModemStatus() != 0
 
     # - - platform specific - - - -
