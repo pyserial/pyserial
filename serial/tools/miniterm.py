@@ -43,10 +43,10 @@ class ConsoleBase(object):
         self.output = sys.stdout
 
     def setup(self):
-        pass    # Do nothing for 'nt'
+        pass
 
     def cleanup(self):
-        pass    # Do nothing for 'nt'
+        pass
 
     def getkey(self):
         return None
@@ -77,6 +77,8 @@ if os.name == 'nt':
     class Console(ConsoleBase):
         def __init__(self):
             super(Console, self).__init__()
+            self._saved_ocp = ctypes.windll.kernel32.GetConsoleOutputCP()
+            self._saved_icp = ctypes.windll.kernel32.GetConsoleCP()
             ctypes.windll.kernel32.SetConsoleOutputCP(65001)
             ctypes.windll.kernel32.SetConsoleCP(65001)
             if sys.version_info < (3, 0):
@@ -91,6 +93,10 @@ if os.name == 'nt':
                 self.byte_output = Out()
             else:
                 self.output = codecs.getwriter('UTF-8')(sys.stdout.buffer, 'replace')
+
+        def __del__(self):
+            ctypes.windll.kernel32.SetConsoleOutputCP(self._saved_ocp)
+            ctypes.windll.kernel32.SetConsoleCP(self._saved_icp)
 
         def getkey(self):
             while True:
