@@ -118,7 +118,7 @@ Native ports
         Destructor, close port when serial port instance is freed.
 
 
-    The following methods may raise :exc:`ValueError` when applied to a closed
+    The following methods may raise :exc:`SerialException` when applied to a closed
     port.
 
     .. method:: read(size=1)
@@ -151,70 +151,89 @@ Native ports
         .. versionchanged:: 2.5
             Write returned ``None`` in previous versions.
 
-    .. method:: inWaiting()
+    .. attribute:: in_waiting
 
-        Return the number of chars in the receive buffer.
+        :getter: Get the number of bytes in the input buffer
+        :type: int
+
+        Return the number of bytes in the receive buffer.
 
     .. method:: flush()
 
         Flush of file like objects. In this case, wait until all data is
         written.
 
-    .. method:: flushInput()
+    .. method:: reset_input_buffer()
 
         Flush input buffer, discarding all it's contents.
 
-    .. method:: flushOutput()
+    .. method:: reset_output_buffer()
 
         Clear output buffer, aborting the current output and
         discarding all that is in the buffer.
 
-    .. method:: sendBreak(duration=0.25)
+    .. method:: send_break(duration=0.25)
 
         :param duration: Time (float) to activate the BREAK condition.
 
         Send break condition. Timed, returns to idle state after given
         duration.
 
-    .. method:: setBreak(level=True)
 
-        :param level: when true activate BREAK condition, else disable.
+    .. attribute:: break_condition
 
-        Set break: Controls TXD. When active, no transmitting is possible.
+        :getter: Get the current BREAK state
+        :setter: Control the BREAK state
+        :type: bool
 
-    .. method:: setRTS(level=True)
+        When set to ``True`` activate BREAK condition, else disable.
+        Controls TXD. When active, no transmitting is possible.
 
-        :param level: Set control line to logic level.
+    .. attribute:: rts
 
-        Set RTS line to specified logic level.
+        :setter: Set the state of the RTS line
+        :getter: Return the state of the RTS line
+        :type: bool
 
-    .. method:: setDTR(level=True)
+        Set RTS line to specified logic level. It is possible to assign this
+        value before opening the serial port, then the value is applied uppon
+        :meth:`open`.
 
-        :param level: Set control line to logic level.
+    .. attribute:: dtr
 
-        Set DTR line to specified logic level.
+        :setter: Set the state of the DTR line
+        :getter: Return the state of the DTR line
+        :type: bool
 
-    .. method:: getCTS()
+        Set DTR line to specified logic level. It is possible to assign this
+        value before opening the serial port, then the value is applied uppon
+        :meth:`open`.
 
-        :return: Current state (boolean)
+    .. attribute:: cts
+
+        :getter: Get the state of the CTS line
+        :type: bool
 
         Return the state of the CTS line.
 
-    .. method:: getDSR()
+    .. attribute:: dsr
 
-        :return: Current state (boolean)
+        :getter: Get the state of the DSR line
+        :type: bool
 
         Return the state of the DSR line.
 
-    .. method:: getRI()
+    .. attribute:: ri
 
-        :return: Current state (boolean)
+        :getter: Get the state of the RI line
+        :type: bool
 
         Return the state of the RI line.
 
-    .. method:: getCD()
+    .. attribute:: cd
 
-        :return: Current state (boolean)
+        :getter: Get the state of the CD line
+        :type: bool
 
         Return the state of the CD line
 
@@ -226,10 +245,6 @@ Native ports
         port was opened by a number. (Read Only).
 
         .. versionadded:: 2.5
-
-    .. attribute:: portstr
-
-        :deprecated: use :attr:`name` instead
 
     New values can be assigned to the following attributes (properties), the
     port will be reconfigured, even if it's opened at that time:
@@ -276,7 +291,7 @@ Native ports
 
         Read or write current hardware flow control setting.
 
-    .. attribute:: interCharTimeout
+    .. attribute:: inter_character_timeout
 
         Read or write current inter character timeout setting.
 
@@ -347,7 +362,7 @@ Native ports
 
     The port settings can be read and written as dictionary.
 
-    .. method:: getSettingsDict()
+    .. method:: get_settings()
 
         :return: a dictionary with current port settings.
 
@@ -359,7 +374,7 @@ Native ports
 
         .. versionadded:: 2.5
 
-    .. method:: applySettingsDict(d)
+    .. method:: apply_settings(d)
 
         :param d: a dictionary with port settings.
 
@@ -376,7 +391,7 @@ Native ports
     .. warning:: Programs using the following methods and attributes are not
                  portable to other platforms!
 
-    .. method:: outWaiting()
+    .. attribute:: out_waiting
 
         :platform: Posix
         :platform: Windows
@@ -384,6 +399,7 @@ Native ports
         Return the number of bytes in the output buffer.
 
         .. versionchanged:: 2.7 (Posix support added)
+        .. versionchanged:: 3.0 changed to property from ``outWaiting()``
 
     .. method:: nonblocking()
 
@@ -400,7 +416,7 @@ Native ports
         Return file descriptor number for the port that is opened by this object.
         It is useful when serial ports are used with :mod:`select`.
 
-    .. method:: setXON(level=True)
+    .. method:: set_output_flow_control(level=True)
 
         :platform: Windows
         :platform: Posix
@@ -411,8 +427,9 @@ Native ports
         This will send XON (true) and XOFF (false) to the other device.
 
         .. versionchanged:: 2.7 (renamed on Posix, function was called ``flowControl``)
+        .. versionchanged:: 3.0 renamed from ``setXON``
 
-    .. method:: flowControlOut(enable)
+    .. method:: set_input_flow_control(enable)
 
         :platform: Posix
         :param enable: Set flow control state.
@@ -424,6 +441,82 @@ Native ports
         called with ``True``.
 
         .. versionadded:: 2.7 (Posix support added)
+        .. versionchanged:: 3.0 renamed from ``flowControlOut``
+
+
+    .. note:: Deprecated API
+
+    .. attribute:: portstr
+
+        .. deprecated:: use :attr:`name` instead
+
+    .. method:: inWaiting()
+
+        .. deprecated:: 3.0, see :attr:`in_waiting`
+
+    .. attribute:: interCharTimeout
+
+        .. deprecated:: 3.0, see :attr:`inter_character_timeout`
+
+    .. method:: sendBreak(duration=0.25)
+
+        .. deprecated:: 3.0, see :meth:`send_break`
+
+    .. method:: flushInput()
+
+        .. deprecated:: 3.0, see :meth:`reset_input_buffer`
+
+    .. method:: flushOutput()
+
+        .. deprecated:: 3.0, see :meth:`reset_output_buffer`
+
+    .. method:: setBreak(level=True)
+
+        .. deprecated:: 3.0, see :attr:`break_condition`
+
+    .. method:: setRTS(level=True)
+
+        .. deprecated:: 3.0, see :attr:`rts`
+
+    .. method:: setDTR(level=True)
+
+        .. deprecated:: 3.0, see :attr:`dtr`
+
+    .. method:: getCTS()
+
+        .. deprecated:: 3.0, see :attr:`cts`
+
+    .. method:: getDSR()
+
+        .. deprecated:: 3.0, see :attr:`dsr`
+
+    .. method:: getRI()
+
+        .. deprecated:: 3.0, see :attr:`ri`
+
+    .. method:: getCD()
+
+        .. deprecated:: 3.0, see :attr:`cd`
+
+    .. method:: getSettingsDict()
+
+        .. deprecated:: 3.0, see :meth:`get_settings`
+
+    .. method:: applySettingsDict(d)
+
+        .. deprecated:: 3.0, see :meth:`apply_settings`
+
+    .. method:: outWaiting()
+
+        .. deprecated:: 3.0, see :attr:`out_waiting`
+
+    .. method:: setXON(level=True)
+
+        .. deprecated:: 3.0, see :meth:`set_output_flow_control`
+
+    .. method:: flowControlOut(enable)
+
+        .. deprecated:: 3.0, see :meth:`set_input_flow_control`
 
     .. attribute:: rtsToggle
 
