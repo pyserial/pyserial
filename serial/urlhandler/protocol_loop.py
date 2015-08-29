@@ -30,7 +30,7 @@ except ImportError:
 
 from serial.serialutil import *
 
-# map log level names to constants. used in fromURL()
+# map log level names to constants. used in from_url()
 LOGGER_LEVELS = {
         'debug': logging.DEBUG,
         'info': logging.INFO,
@@ -54,7 +54,7 @@ class Serial(SerialBase):
         Open port with current settings. This may throw a SerialException
         if the port cannot be opened.
         """
-        if self._isOpen:
+        if self.is_open:
             raise SerialException("Port is already open.")
         self.logger = None
         self.queue = queue.Queue(self.buffer_size)
@@ -63,13 +63,13 @@ class Serial(SerialBase):
             raise SerialException("Port must be configured before it can be used.")
         # not that there is anything to open, but the function applies the
         # options found in the URL
-        self.fromURL(self.port)
+        self.from_url(self.port)
 
         # not that there anything to configure...
-        self._reconfigurePort()
+        self._reconfigure_port()
         # all things set up get, now a clean start
-        self._isOpen = True
-        if not self.dsrdtr:
+        self.is_open = True
+        if not self._dsrdtr:
             self._update_dtr_state()
         if not self._rtscts:
             self._update_rts_state()
@@ -80,7 +80,7 @@ class Serial(SerialBase):
         self.queue.put(None)
         super(Serial, self).close()
 
-    def _reconfigurePort(self):
+    def _reconfigure_port(self):
         """\
         Set communication parameters on opened port. For the loop://
         protocol all settings are ignored!
@@ -89,16 +89,16 @@ class Serial(SerialBase):
         if not isinstance(self._baudrate, numbers.Integral) or not 0 < self._baudrate < 2**32:
             raise ValueError("invalid baudrate: %r" % (self._baudrate))
         if self.logger:
-            self.logger.info('_reconfigurePort()')
+            self.logger.info('_reconfigure_port()')
 
     def close(self):
         """Close port"""
-        if self._isOpen:
-            self._isOpen = False
+        if self.is_open:
+            self.is_open = False
             # in case of quick reconnects, give the server some time
             time.sleep(0.3)
 
-    def fromURL(self, url):
+    def from_url(self, url):
         """extract host and port from an URL string"""
         parts = urlparse.urlsplit(url)
         if parts.scheme != "loop":
@@ -120,12 +120,12 @@ class Serial(SerialBase):
 
     @property
     def in_waiting(self):
-        """Return the number of characters currently in the input buffer."""
-        if not self._isOpen: raise portNotOpenError
+        """Return the number of bytes currently in the input buffer."""
+        if not self.is_open: raise portNotOpenError
         if self.logger:
             # attention the logged value can differ from return value in
             # threaded environments...
-            self.logger.debug('inWaiting() -> %d' % (self.queue.qsize(),))
+            self.logger.debug('in_waiting -> %d' % (self.queue.qsize(),))
         return self.queue.qsize()
 
     def read(self, size=1):
@@ -134,13 +134,13 @@ class Serial(SerialBase):
         return less characters as requested. With no timeout it will block
         until the requested number of bytes is read.
         """
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         if self._timeout is not None:
             timeout = time.time() + self._timeout
         else:
             timeout = None
         data = bytearray()
-        while size > 0 and self._isOpen:
+        while size > 0 and self.is_open:
             try:
                 data += self.queue.get(timeout=self._timeout) # XXX inter char timeout
             except queue.Empty:
@@ -155,28 +155,28 @@ class Serial(SerialBase):
 
     def write(self, data):
         """\
-        Output the given string over the serial port. Can block if the
+        Output the given byte string over the serial port. Can block if the
         connection is blocked. May raise SerialException if the connection is
         closed.
         """
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         data = to_bytes(data)
         # calculate aprox time that would be used to send the data
         time_used_to_send = 10.0*len(data) / self._baudrate
         # when a write timeout is configured check if we would be successful
         # (not sending anything, not even the part that would have time)
-        if self._writeTimeout is not None and time_used_to_send > self._writeTimeout:
-            time.sleep(self._writeTimeout) # must wait so that unit test succeeds
+        if self._write_timeout is not None and time_used_to_send > self._write_timeout:
+            time.sleep(self._write_timeout) # must wait so that unit test succeeds
             raise writeTimeoutError
         for byte in iterbytes(data):
-            self.queue.put(byte, timeout=self._writeTimeout)
+            self.queue.put(byte, timeout=self._write_timeout)
         return len(data)
 
     def reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         if self.logger:
-            self.logger.info('flushInput()')
+            self.logger.info('reset_input_buffer()')
         try:
             while self.queue.qsize():
                 self.queue.get_nowait()
@@ -188,9 +188,9 @@ class Serial(SerialBase):
         Clear output buffer, aborting the current output and
         discarding all that is in the buffer.
         """
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         if self.logger:
-            self.logger.info('flushOutput()')
+            self.logger.info('reset_output_buffer()')
         try:
             while self.queue.qsize():
                 self.queue.get_nowait()
@@ -203,47 +203,47 @@ class Serial(SerialBase):
         possible.
         """
         if self.logger:
-            self.logger.info('setBreak(%r)' % (self._break_state,))
+            self.logger.info('_update_break_state(%r)' % (self._break_state,))
 
     def _update_rts_state(self):
         """Set terminal status line: Request To Send"""
         if self.logger:
-            self.logger.info('setRTS(%r) -> state of CTS' % (self._rts_state,))
+            self.logger.info('_update_rts_state(%r) -> state of CTS' % (self._rts_state,))
 
     def _update_dtr_state(self):
         """Set terminal status line: Data Terminal Ready"""
         if self.logger:
-            self.logger.info('setDTR(%r) -> state of DSR' % (self._dtr_state,))
+            self.logger.info('_update_dtr_state(%r) -> state of DSR' % (self._dtr_state,))
 
     @property
     def cts(self):
         """Read terminal status line: Clear To Send"""
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         if self.logger:
-            self.logger.info('getCTS() -> state of RTS (%r)' % (self._rts_state,))
+            self.logger.info('CTS -> state of RTS (%r)' % (self._rts_state,))
         return self._rts_state
 
     @property
     def dsr(self):
         """Read terminal status line: Data Set Ready"""
         if self.logger:
-            self.logger.info('getDSR() -> state of DTR (%r)' % (self._dtr_state,))
+            self.logger.info('DSR -> state of DTR (%r)' % (self._dtr_state,))
         return self._dtr_state
 
     @property
     def ri(self):
         """Read terminal status line: Ring Indicator"""
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         if self.logger:
-            self.logger.info('returning dummy for getRI()')
+            self.logger.info('returning dummy for RI')
         return False
 
     @property
     def cd(self):
         """Read terminal status line: Carrier Detect"""
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         if self.logger:
-            self.logger.info('returning dummy for getCD()')
+            self.logger.info('returning dummy for CD')
         return True
 
     # - - - platform specific - - -

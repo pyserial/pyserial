@@ -127,18 +127,18 @@ class SerialBase(io.RawIOBase):
         is returned.
         """
 
-        self._isOpen   = False
+        self.is_open  = False
         self._port     = None           # correct value is assigned below through properties
         self._baudrate = None           # correct value is assigned below through properties
         self._bytesize = None           # correct value is assigned below through properties
         self._parity   = None           # correct value is assigned below through properties
         self._stopbits = None           # correct value is assigned below through properties
         self._timeout  = None           # correct value is assigned below through properties
-        self._writeTimeout = None       # correct value is assigned below through properties
+        self._write_timeout = None      # correct value is assigned below through properties
         self._xonxoff  = None           # correct value is assigned below through properties
         self._rtscts   = None           # correct value is assigned below through properties
         self._dsrdtr   = None           # correct value is assigned below through properties
-        self._interCharTimeout = None   # correct value is assigned below through properties
+        self._inter_character_timeout = None   # correct value is assigned below through properties
         self._rs485_mode = None         # disabled by default
         self._rts_state = True
         self._dtr_state = True
@@ -151,19 +151,14 @@ class SerialBase(io.RawIOBase):
         self.parity   = parity
         self.stopbits = stopbits
         self.timeout  = timeout
-        self.writeTimeout = writeTimeout
+        self.write_timeout = writeTimeout
         self.xonxoff  = xonxoff
         self.rtscts   = rtscts
         self.dsrdtr   = dsrdtr
-        self.interCharTimeout = interCharTimeout
+        self.inter_character_timeout = interCharTimeout
 
         if port is not None:
             self.open()
-
-    def isOpen(self):
-        """Check if the port is opened."""
-        return self._isOpen
-
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
@@ -183,12 +178,14 @@ class SerialBase(io.RawIOBase):
         contains the name of the port.
         """
 
-        was_open = self._isOpen
-        if was_open: self.close()
+        was_open = self.is_open
+        if was_open:
+            self.close()
         self.portstr = port
         self._port = port
         self.name = self.portstr
-        if was_open: self.open()
+        if was_open:
+            self.open()
 
 
     @property
@@ -211,7 +208,8 @@ class SerialBase(io.RawIOBase):
             if b <= 0:
                 raise ValueError("Not a valid baudrate: %r" % (baudrate,))
             self._baudrate = b
-            if self._isOpen:  self._reconfigurePort()
+            if self.is_open:
+                self._reconfigure_port()
 
 
     @property
@@ -224,7 +222,8 @@ class SerialBase(io.RawIOBase):
         """Change byte size."""
         if bytesize not in self.BYTESIZES: raise ValueError("Not a valid byte size: %r" % (bytesize,))
         self._bytesize = bytesize
-        if self._isOpen: self._reconfigurePort()
+        if self.is_open:
+            self._reconfigure_port()
 
 
 
@@ -238,7 +237,8 @@ class SerialBase(io.RawIOBase):
         """Change parity setting."""
         if parity not in self.PARITIES: raise ValueError("Not a valid parity: %r" % (parity,))
         self._parity = parity
-        if self._isOpen: self._reconfigurePort()
+        if self.is_open:
+            self._reconfigure_port()
 
 
 
@@ -252,7 +252,8 @@ class SerialBase(io.RawIOBase):
         """Change stop bits size."""
         if stopbits not in self.STOPBITS: raise ValueError("Not a valid stop bit size: %r" % (stopbits,))
         self._stopbits = stopbits
-        if self._isOpen: self._reconfigurePort()
+        if self.is_open:
+            self._reconfigure_port()
 
 
     @property
@@ -270,16 +271,17 @@ class SerialBase(io.RawIOBase):
                 raise ValueError("Not a valid timeout: %r" % (timeout,))
             if timeout < 0: raise ValueError("Not a valid timeout: %r" % (timeout,))
         self._timeout = timeout
-        if self._isOpen: self._reconfigurePort()
+        if self.is_open:
+            self._reconfigure_port()
 
 
     @property
-    def writeTimeout(self):
+    def write_timeout(self):
         """Get the current timeout setting."""
-        return self._writeTimeout
+        return self._write_timeout
 
-    @writeTimeout.setter
-    def writeTimeout(self, timeout):
+    @write_timeout.setter
+    def write_timeout(self, timeout):
         """Change timeout setting."""
         if timeout is not None:
             if timeout < 0: raise ValueError("Not a valid timeout: %r" % (timeout,))
@@ -288,8 +290,29 @@ class SerialBase(io.RawIOBase):
             except TypeError:
                 raise ValueError("Not a valid timeout: %r" % timeout)
 
-        self._writeTimeout = timeout
-        if self._isOpen: self._reconfigurePort()
+        self._write_timeout = timeout
+        if self.is_open:
+            self._reconfigure_port()
+
+
+    @property
+    def inter_character_timeout(self):
+        """Get the current inter-character timeout setting."""
+        return self._interCharTimeout
+
+    @inter_character_timeout.setter
+    def inter_character_timeout(self, ic_timeout):
+        """Change inter-character timeout setting."""
+        if ic_timeout is not None:
+            if ic_timeout < 0: raise ValueError("Not a valid timeout: %r" % ic_timeout)
+            try:
+                ic_timeout + 1     # test if it's a number, will throw a TypeError if not...
+            except TypeError:
+                raise ValueError("Not a valid timeout: %r" % ic_timeout)
+
+        self._interCharTimeout = ic_timeout
+        if self.is_open:
+            self._reconfigure_port()
 
 
     @property
@@ -301,7 +324,8 @@ class SerialBase(io.RawIOBase):
     def xonxoff(self, xonxoff):
         """Change XON/XOFF setting."""
         self._xonxoff = xonxoff
-        if self._isOpen: self._reconfigurePort()
+        if self.is_open:
+            self._reconfigure_port()
 
 
     @property
@@ -313,7 +337,8 @@ class SerialBase(io.RawIOBase):
     def rtscts(self, rtscts):
         """Change RTS/CTS flow control setting."""
         self._rtscts = rtscts
-        if self._isOpen: self._reconfigurePort()
+        if self.is_open:
+            self._reconfigure_port()
 
 
     @property
@@ -330,27 +355,39 @@ class SerialBase(io.RawIOBase):
         else:
             # if defined independently, follow its value
             self._dsrdtr = dsrdtr
-        if self._isOpen: self._reconfigurePort()
+        if self.is_open:
+            self._reconfigure_port()
 
 
     @property
-    def interCharTimeout(self):
-        """Get the current inter-character timeout setting."""
-        return self._interCharTimeout
+    def rts(self):
+        return self._rts_state
 
-    @interCharTimeout.setter
-    def interCharTimeout(self, interCharTimeout):
-        """Change inter-character timeout setting."""
-        if interCharTimeout is not None:
-            if interCharTimeout < 0: raise ValueError("Not a valid timeout: %r" % interCharTimeout)
-            try:
-                interCharTimeout + 1     # test if it's a number, will throw a TypeError if not...
-            except TypeError:
-                raise ValueError("Not a valid timeout: %r" % interCharTimeout)
+    @rts.setter
+    def rts(self, value):
+        self._rts_state = value
+        if self.is_open:
+            self._update_rts_state()
 
-        self._interCharTimeout = interCharTimeout
-        if self._isOpen: self._reconfigurePort()
+    @property
+    def dtr(self):
+        return self._dtr_state
 
+    @dtr.setter
+    def dtr(self, value):
+        self._dtr_state = value
+        if self.is_open:
+            self._update_dtr_state()
+
+    @property
+    def break_condition(self):
+        return self._break_state
+
+    @break_condition.setter
+    def break_condition(self, value):
+        self._break_state = value
+        if self.is_open:
+            self._update_break_state()
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     # functions useful for RS-485 adapters
@@ -366,27 +403,28 @@ class SerialBase(io.RawIOBase):
     @rs485_mode.setter
     def rs485_mode(self, rs485_settings):
         self._rs485_mode = rs485_settings
-        if self._isOpen: self._reconfigurePort()
+        if self.is_open:
+            self._reconfigure_port()
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-    _SETTINGS = ('baudrate', 'bytesize', 'parity', 'stopbits', 'xonxoff',
-            'dsrdtr', 'rtscts', 'timeout', 'writeTimeout', 'interCharTimeout')
+    _SAVED_SETTINGS = ('baudrate', 'bytesize', 'parity', 'stopbits', 'xonxoff',
+            'dsrdtr', 'rtscts', 'timeout', 'write_timeout', 'inter_character_timeout')
 
-    def getSettingsDict(self):
+    def get_settings(self):
         """\
         Get current port settings as a dictionary. For use with
-        applySettingsDict.
+        apply_settings().
         """
-        return dict([(key, getattr(self, '_'+key)) for key in self._SETTINGS])
+        return dict([(key, getattr(self, '_'+key)) for key in self._SAVED_SETTINGS])
 
-    def applySettingsDict(self, d):
+    def apply_settings(self, d):
         """\
-        apply stored settings from a dictionary returned from
-        getSettingsDict. it's allowed to delete keys from the dictionary. these
+        Apply stored settings from a dictionary returned from
+        get_settings(). It's allowed to delete keys from the dictionary. These
         values will simply left unchanged.
         """
-        for key in self._SETTINGS:
+        for key in self._SAVED_SETTINGS:
             if key in d and d[key] != getattr(self, '_'+key):   # check against internal "_" value
                 setattr(self, key, d[key])          # set non "_" value to use properties write function
 
@@ -395,18 +433,18 @@ class SerialBase(io.RawIOBase):
     def __repr__(self):
         """String representation of the current port settings and its state."""
         return "%s<id=0x%x, open=%s>(port=%r, baudrate=%r, bytesize=%r, parity=%r, stopbits=%r, timeout=%r, xonxoff=%r, rtscts=%r, dsrdtr=%r)" % (
-            self.__class__.__name__,
-            id(self),
-            self._isOpen,
-            self.portstr,
-            self.baudrate,
-            self.bytesize,
-            self.parity,
-            self.stopbits,
-            self.timeout,
-            self.xonxoff,
-            self.rtscts,
-            self.dsrdtr,
+                self.__class__.__name__,
+                id(self),
+                self.is_open,
+                self.portstr,
+                self.baudrate,
+                self.bytesize,
+                self.parity,
+                self.stopbits,
+                self.timeout,
+                self.xonxoff,
+                self.rtscts,
+                self.dsrdtr,
         )
 
 
@@ -444,7 +482,8 @@ class SerialBase(io.RawIOBase):
         Send break condition. Timed, returns to idle state after given
         duration.
         """
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open:
+            raise portNotOpenError
         self.break_condition = True
         time.sleep(duration)
         self.break_condition = False
@@ -483,31 +522,29 @@ class SerialBase(io.RawIOBase):
         return self.cd
 
     @property
-    def rts(self):
-        return self._rts_state
-    @rts.setter
-    def rts(self, value):
-        self._rts_state = value
-        if self._isOpen:
-            self._update_rts_state()
+    def writeTimeout(self):
+        return self.write_timeout
+
+    @writeTimeout.setter
+    def writeTimeout(self, timeout):
+        self.write_timeout = timeout
 
     @property
-    def dtr(self):
-        return self._dtr_state
-    @dtr.setter
-    def dtr(self, value):
-        self._dtr_state = value
-        if self._isOpen:
-            self._update_dtr_state()
+    def interCharTimeout(self):
+        return self.inter_character_timeout
 
-    @property
-    def break_condition(self):
-        return self._break_state
-    @break_condition.setter
-    def break_condition(self, value):
-        self._break_state = value
-        if self._isOpen:
-            self._update_break_state()
+    @interCharTimeout.setter
+    def interCharTimeout(self, interCharTimeout):
+        self.inter_character_timeout = interCharTimeout
+
+    def getSettingsDict(self):
+        return self.get_settings()
+
+    def applySettingsDict(self, d):
+        self.apply_settings(d)
+
+    def isOpen(self):
+        return self._is_open
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     # additional functionality
@@ -539,7 +576,8 @@ class SerialBase(io.RawIOBase):
         """
         while True:
             line = self.read_until(*args, **kwargs)
-            if not line: break
+            if not line:
+                break
             yield line
 
 

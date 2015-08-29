@@ -81,7 +81,7 @@ from serial.serialutil import *
 # host may be an IP or including domain, whatever.
 # port is 0...65535
 
-# map log level names to constants. used in fromURL()
+# map log level names to constants. used in from_url()
 LOGGER_LEVELS = {
         'debug': logging.DEBUG,
         'info': logging.INFO,
@@ -386,10 +386,10 @@ class Serial(SerialBase):
         self._network_timeout = 3
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
-        if self._isOpen:
+        if self.is_open:
             raise SerialException("Port is already open.")
         try:
-            self._socket = socket.create_connection(self.fromURL(self.portstr))
+            self._socket = socket.create_connection(self.from_url(self.portstr))
             self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         except Exception as msg:
             self._socket = None
@@ -459,17 +459,17 @@ class Serial(SerialBase):
             self.logger.info("Negotiated options: %s" % self._telnet_options)
 
         # fine, go on, set RFC 2271 specific things
-        self._reconfigurePort()
+        self._reconfigure_port()
         # all things set up get, now a clean start
-        self._isOpen = True
-        if not self.dsrdtr:
+        self.is_open = True
+        if not self._dsrdtr:
             self._update_dtr_state()
         if not self._rtscts:
             self._update_rts_state()
         self.reset_input_buffer()
         self.reset_output_buffer()
 
-    def _reconfigurePort(self):
+    def _reconfigure_port(self):
         """Set communication parameters on opened port."""
         if self._socket is None:
             raise SerialException("Can only operate on open ports")
@@ -477,8 +477,8 @@ class Serial(SerialBase):
         # if self._timeout != 0 and self._interCharTimeout is not None:
             # XXX
 
-        if self._writeTimeout is not None:
-            raise NotImplementedError('writeTimeout is currently not supported')
+        if self._write_timeout is not None:
+            raise NotImplementedError('write_timeout is currently not supported')
             # XXX
 
         # Setup the connection
@@ -515,7 +515,7 @@ class Serial(SerialBase):
 
     def close(self):
         """Close port"""
-        if self._isOpen:
+        if self.is_open:
             if self._socket:
                 try:
                     self._socket.shutdown(socket.SHUT_RDWR)
@@ -526,14 +526,11 @@ class Serial(SerialBase):
                 self._socket = None
             if self._thread:
                 self._thread.join()
-            self._isOpen = False
+            self.is_open = False
             # in case of quick reconnects, give the server some time
             time.sleep(0.3)
 
-    def makeDeviceName(self, port):
-        raise SerialException("there is no sensible way to turn numbers into URLs")
-
-    def fromURL(self, url):
+    def from_url(self, url):
         """extract host and port from an URL string"""
         parts = urlparse.urlsplit(url)
         if parts.scheme != "rfc2217":
@@ -565,8 +562,8 @@ class Serial(SerialBase):
 
     @property
     def in_waiting(self):
-        """Return the number of characters currently in the input buffer."""
-        if not self._isOpen: raise portNotOpenError
+        """Return the number of bytes currently in the input buffer."""
+        if not self.is_open: raise portNotOpenError
         return self._read_buffer.qsize()
 
     def read(self, size=1):
@@ -575,7 +572,7 @@ class Serial(SerialBase):
         return less characters as requested. With no timeout it will block
         until the requested number of bytes is read.
         """
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         data = bytearray()
         try:
             while len(data) < size:
@@ -588,11 +585,11 @@ class Serial(SerialBase):
 
     def write(self, data):
         """\
-        Output the given string over the serial port. Can block if the
+        Output the given byte string over the serial port. Can block if the
         connection is blocked. May raise SerialException if the connection is
         closed.
         """
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         with self._write_lock:
             try:
                 self._socket.sendall(to_bytes(data).replace(IAC, IAC_DOUBLED))
@@ -602,7 +599,7 @@ class Serial(SerialBase):
 
     def reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         self.rfc2217SendPurge(PURGE_RECEIVE_BUFFER)
         # empty read buffer
         while self._read_buffer.qsize():
@@ -613,7 +610,7 @@ class Serial(SerialBase):
         Clear output buffer, aborting the current output and
         discarding all that is in the buffer.
         """
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         self.rfc2217SendPurge(PURGE_TRANSMIT_BUFFER)
 
     def _update_break_state(self):
@@ -621,7 +618,7 @@ class Serial(SerialBase):
         Set break: Controls TXD. When active, to transmitting is
         possible.
         """
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         if self.logger:
             self.logger.info('set BREAK to %s' % ('active' if self._break_state else 'inactive'))
         if self._break_state:
@@ -631,7 +628,7 @@ class Serial(SerialBase):
 
     def _update_rts_state(self):
         """Set terminal status line: Request To Send."""
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         if self.logger:
             self.logger.info('set RTS to %s' % ('active' if self._rts_state else 'inactive'))
         if self._rts_state:
@@ -641,7 +638,7 @@ class Serial(SerialBase):
 
     def _update_dtr_state(self, level=True):
         """Set terminal status line: Data Terminal Ready."""
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         if self.logger:
             self.logger.info('set DTR to %s' % ('active' if self._dtr_state else 'inactive'))
         if self._dtr_state:
@@ -652,25 +649,25 @@ class Serial(SerialBase):
     @property
     def cts(self):
         """Read terminal status line: Clear To Send."""
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         return bool(self.getModemState() & MODEMSTATE_MASK_CTS)
 
     @property
     def dsr(self):
         """Read terminal status line: Data Set Ready."""
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         return bool(self.getModemState() & MODEMSTATE_MASK_DSR)
 
     @property
     def ri(self):
         """Read terminal status line: Ring Indicator."""
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         return bool(self.getModemState() & MODEMSTATE_MASK_RI)
 
     @property
     def cd(self):
         """Read terminal status line: Carrier Detect."""
-        if not self._isOpen: raise portNotOpenError
+        if not self.is_open: raise portNotOpenError
         return bool(self.getModemState() & MODEMSTATE_MASK_CD)
 
     # - - - platform specific - - -
@@ -1257,18 +1254,18 @@ class PortManager(object):
                     self.logger.info("modem state mask: 0x%02x" % (self.modemstate_mask,))
             elif suboption[1:2] == PURGE_DATA:
                 if suboption[2:3] == PURGE_RECEIVE_BUFFER:
-                    self.serial.flushInput()
+                    self.serial.reset_input_buffer()
                     if self.logger:
                         self.logger.info("purge in")
                     self.rfc2217SendSubnegotiation(SERVER_PURGE_DATA, PURGE_RECEIVE_BUFFER)
                 elif suboption[2:3] == PURGE_TRANSMIT_BUFFER:
-                    self.serial.flushOutput()
+                    self.serial.reset_output_buffer()
                     if self.logger:
                         self.logger.info("purge out")
                     self.rfc2217SendSubnegotiation(SERVER_PURGE_DATA, PURGE_TRANSMIT_BUFFER)
                 elif suboption[2:3] == PURGE_BOTH_BUFFERS:
-                    self.serial.flushInput()
-                    self.serial.flushOutput()
+                    self.serial.reset_input_buffer()
+                    self.serial.reset_output_buffer()
                     if self.logger:
                         self.logger.info("purge both")
                     self.rfc2217SendSubnegotiation(SERVER_PURGE_DATA, PURGE_BOTH_BUFFERS)

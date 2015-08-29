@@ -158,9 +158,9 @@ class Serial(serial.Serial):
     @serial.Serial.port.setter
     def port(self, value):
         if value is not None:
-            serial.Serial.port.__set__(self, self.fromURL(value))
+            serial.Serial.port.__set__(self, self.from_url(value))
 
-    def fromURL(self, url):
+    def from_url(self, url):
         """extract host and port from an URL string"""
         parts = urlparse.urlsplit(url)
         if parts.scheme != 'spy':
