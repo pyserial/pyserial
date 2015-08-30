@@ -68,6 +68,11 @@ def main():
             action='store_true',
             help='suppress all messages')
 
+    parser.add_argument(
+            '-n',
+            type=int,
+            help='only output the N-th entry')
+
     args = parser.parse_args()
 
     hits = 0
@@ -78,11 +83,12 @@ def main():
     else:
         iterator = sorted(comports())
     # list them
-    for port, desc, hwid in iterator:
-        sys.stdout.write("{:20}\n".format(port))
-        if args.verbose:
-            sys.stdout.write("    desc: {}\n".format(desc))
-            sys.stdout.write("    hwid: {}\n".format(hwid))
+    for n, (port, desc, hwid) in enumerate(iterator, 1):
+        if args.n is None or args.n == n:
+            sys.stdout.write("{:20}\n".format(port))
+            if args.verbose:
+                sys.stdout.write("    desc: {}\n".format(desc))
+                sys.stdout.write("    hwid: {}\n".format(hwid))
         hits += 1
     if not args.quiet:
         if hits:

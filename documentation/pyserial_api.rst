@@ -501,7 +501,7 @@ Native ports
 
 
 
-    .. note:: The following members are deprecated nd will be removed in a
+    .. note:: The following members are deprecated and will be removed in a
               future release.
 
     .. attribute:: portstr
@@ -1192,8 +1192,36 @@ serial.tools.list_ports``). It also contains the following functions.
     only those that match the regexp.
 
 
+Command line usage
+
+Help for ``python -m serial.tools.list_ports``::
+
+    usage: list_ports.py [-h] [-v] [-q] [-n N] [regexp]
+
+    Serial port enumeration
+
+    positional arguments:
+      regexp         only show ports that match this regex
+
+    optional arguments:
+      -h, --help     show this help message and exit
+      -v, --verbose  show more messages
+      -q, --quiet    suppress all messages
+      -n N           only output the N-th entry
+
+Examples:
+
+- List all ports with details::
+
+    python -m serial.tools.list_ports -v
+
+- List the 2nd port matching a USB VID:PID pattern::
+
+    python -m serial.tools.list_ports 1234:5678 -q -n 2
+
+
 serial.tools.miniterm
------------------------
+---------------------
 .. module:: serial.tools.miniterm
 .. versionadded:: 2.6
 
