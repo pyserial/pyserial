@@ -321,9 +321,9 @@ class Serial(SerialBase, PlatformSpecific):
         custom_baud = None
 
         vmin = vtime = 0                # timeout is done via select
-        if self._inter_character_timeout is not None:
+        if self._inter_byte_timeout is not None:
             vmin = 1
-            vtime = int(self._inter_character_timeout * 10)
+            vtime = int(self._inter_byte_timeout * 10)
         try:
             orig_attr = termios.tcgetattr(self.fd)
             iflag, oflag, cflag, lflag, ispeed, ospeed, cc = orig_attr
@@ -638,7 +638,7 @@ class Serial(SerialBase, PlatformSpecific):
         if not self.is_open: raise portNotOpenError
         return self.fd
 
-    def set_input_flow_control(self, level=True):
+    def set_input_flow_control(self, enable=True):
         """\
         Manually control flow - when software flow control is enabled.
         This will send XON (true) or XOFF (false) to the other device.
@@ -650,7 +650,7 @@ class Serial(SerialBase, PlatformSpecific):
         else:
             termios.tcflow(self.fd, termios.TCIOFF)
 
-    def set_output_flow_control(self, enable):
+    def set_output_flow_control(self, enable=True):
         """\
         Manually control flow of outgoing data - when hardware or software flow
         control is enabled.
@@ -692,8 +692,8 @@ class PosixPollSerial(Serial):
                     #  handled below
                 buf = os.read(self.fd, size - len(read))
                 read.extend(buf)
-                if ((self._timeout is not None and self._timeout >= 0) or 
-                    (self._inter_character_timeout is not None and self._inter_character_timeout > 0)) and not buf:
+                if ((self._timeout is not None and self._timeout >= 0) or
+                    (self._inter_byte_timeout is not None and self._inter_byte_timeout > 0)) and not buf:
                     break   # early abort on timeout
         return bytes(read)
 

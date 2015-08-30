@@ -117,9 +117,9 @@ class SerialBase(io.RawIOBase):
                  timeout=None,          # set a timeout value, None to wait forever
                  xonxoff=False,         # enable software flow control
                  rtscts=False,          # enable RTS/CTS flow control
-                 writeTimeout=None,     # set a timeout for writes
+                 write_timeout=None,    # set a timeout for writes
                  dsrdtr=False,          # None: use rtscts setting, dsrdtr override if True or False
-                 interCharTimeout=None  # Inter-character timeout, None to disable
+                 inter_byte_timeout=None # Inter-character timeout, None to disable
                  ):
         """\
         Initialize comm port object. If a port is given, then the port will be
@@ -138,7 +138,7 @@ class SerialBase(io.RawIOBase):
         self._xonxoff  = None           # correct value is assigned below through properties
         self._rtscts   = None           # correct value is assigned below through properties
         self._dsrdtr   = None           # correct value is assigned below through properties
-        self._inter_character_timeout = None   # correct value is assigned below through properties
+        self._inter_byte_timeout = None # correct value is assigned below through properties
         self._rs485_mode = None         # disabled by default
         self._rts_state = True
         self._dtr_state = True
@@ -151,11 +151,11 @@ class SerialBase(io.RawIOBase):
         self.parity   = parity
         self.stopbits = stopbits
         self.timeout  = timeout
-        self.write_timeout = writeTimeout
+        self.write_timeout = write_timeout
         self.xonxoff  = xonxoff
         self.rtscts   = rtscts
         self.dsrdtr   = dsrdtr
-        self.inter_character_timeout = interCharTimeout
+        self.inter_character_timeout = inter_byte_timeout
 
         if port is not None:
             self.open()
@@ -296,13 +296,13 @@ class SerialBase(io.RawIOBase):
 
 
     @property
-    def inter_character_timeout(self):
+    def inter_byte_timeout(self):
         """Get the current inter-character timeout setting."""
         return self._interCharTimeout
 
-    @inter_character_timeout.setter
-    def inter_character_timeout(self, ic_timeout):
-        """Change inter-character timeout setting."""
+    @inter_byte_timeout.setter
+    def inter_byte_timeout(self, ic_timeout):
+        """Change inter-byte timeout setting."""
         if ic_timeout is not None:
             if ic_timeout < 0: raise ValueError("Not a valid timeout: %r" % ic_timeout)
             try:
@@ -310,7 +310,7 @@ class SerialBase(io.RawIOBase):
             except TypeError:
                 raise ValueError("Not a valid timeout: %r" % ic_timeout)
 
-        self._interCharTimeout = ic_timeout
+        self._inter_byte_timeout = ic_timeout
         if self.is_open:
             self._reconfigure_port()
 

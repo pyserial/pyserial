@@ -109,8 +109,8 @@ class Serial(SerialBase):
             timeouts = (win32.MAXDWORD, 0, 0, 0, 0)
         else:
             timeouts = (0, 0, int(self._timeout*1000), 0, 0)
-        if self._timeout != 0 and self._inter_character_timeout is not None:
-            timeouts = (int(self._inter_character_timeout * 1000),) + timeouts[1:]
+        if self._timeout != 0 and self._inter_byte_timeout is not None:
+            timeouts = (int(self._inter_byte_timeout * 1000),) + timeouts[1:]
 
         if self._write_timeout is None:
             pass
@@ -393,7 +393,7 @@ class Serial(SerialBase):
         if tx_size is None: tx_size = rx_size
         win32.SetupComm(self._port_handle, rx_size, tx_size)
 
-    def set_output_flow_control(self, level=True):
+    def set_output_flow_control(self, enable=True):
         """\
         Manually control flow - when software flow control is enabled.
         This will do the same as if XON (true) or XOFF (false) are received
@@ -401,7 +401,7 @@ class Serial(SerialBase):
         WARNING: this function is not portable to different platforms!
         """
         if not self._port_handle: raise portNotOpenError
-        if level:
+        if enable:
             win32.EscapeCommFunction(self._port_handle, win32.SETXON)
         else:
             win32.EscapeCommFunction(self._port_handle, win32.SETXOFF)

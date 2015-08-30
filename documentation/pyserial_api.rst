@@ -12,10 +12,10 @@ Native ports
 
 .. class:: Serial
 
-    .. method:: __init__(port=None, baudrate=9600, bytesize=EIGHTBITS, parity=PARITY_NONE, stopbits=STOPBITS_ONE, timeout=None, xonxoff=False, rtscts=False, writeTimeout=None, dsrdtr=False, interCharTimeout=None)
+    .. method:: __init__(port=None, baudrate=9600, bytesize=EIGHTBITS, parity=PARITY_NONE, stopbits=STOPBITS_ONE, timeout=None, xonxoff=False, rtscts=False, write_timeout=None, dsrdtr=False, inter_byte_timeout=None)
 
         :param port:
-            Device name or port number number or :const:`None`.
+            Device name or :const:`None`.
 
         :param int baudrate:
             Baud rate such as 9600 or 115200 etc.
@@ -47,10 +47,10 @@ Native ports
         :param bool dsrdtr:
             Enable hardware (DSR/DTR) flow control.
 
-        :param float writeTimeout:
+        :param float write_timeout
             Set a write timeout value.
 
-        :param float interCharTimeout:
+        :param float inter_byte_timeout
             Inter-character timeout, :const:`None` to disable (default).
 
         :exception ValueError:
@@ -64,11 +64,8 @@ Native ports
         given. It is not opened when *port* is :const:`None` and a successive call
         to :meth:`open` will be needed.
 
-        Possible values for the parameter *port*:
-
-        - Number: number of device, numbering starts at zero.
-        - Device name: depending on operating system. e.g. ``/dev/ttyUSB0``
-          on GNU/Linux or ``COM3`` on Windows.
+        *port* is a device name: depending on operating system. e.g.
+        ``/dev/ttyUSB0`` on GNU/Linux or ``COM3`` on Windows.
 
         The parameter *baudrate* can be one of the standard values:
         50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
@@ -89,7 +86,7 @@ Native ports
         - ``timeout = 0``:     non-blocking mode (return immediately on read)
         - ``timeout = x``:     set timeout to ``x`` seconds (float allowed)
 
-        Writes are blocking by default, unless *writeTimeout* is set. For
+        Writes are blocking by default, unless *write_imeout* is set. For
         possible values refer to the list for *timeout* above.
 
         Note that enabling both flow control methods (*xonxoff* and *rtscts*)
@@ -151,6 +148,11 @@ Native ports
         .. versionchanged:: 2.5
             Write returned ``None`` in previous versions.
 
+    .. method:: flush()
+
+        Flush of file like objects. In this case, wait until all data is
+        written.
+
     .. attribute:: in_waiting
 
         :getter: Get the number of bytes in the input buffer
@@ -158,19 +160,31 @@ Native ports
 
         Return the number of bytes in the receive buffer.
 
-    .. method:: flush()
+        .. versionchanged:: 3.0 changed to property from ``inWaiting()``
 
-        Flush of file like objects. In this case, wait until all data is
-        written.
+    .. attribute:: out_waiting
+
+        :getter: Get the number of bytes in the output buffer
+        :platform: Posix
+        :platform: Windows
+
+        Return the number of bytes in the output buffer.
+
+        .. versionchanged:: 2.7 (Posix support added)
+        .. versionchanged:: 3.0 changed to property from ``outWaiting()``
 
     .. method:: reset_input_buffer()
 
         Flush input buffer, discarding all it's contents.
 
+        .. versionchanged:: 3.0 renamed from ``flushInput()``
+
     .. method:: reset_output_buffer()
 
         Clear output buffer, aborting the current output and
         discarding all that is in the buffer.
+
+        .. versionchanged:: 3.0 renamed from ``flushOutput()``
 
     .. method:: send_break(duration=0.25)
 
@@ -209,6 +223,14 @@ Native ports
         value before opening the serial port, then the value is applied uppon
         :meth:`open`.
 
+    Read-only attributes:
+
+    .. attribute:: name
+
+        :getter: Device name.
+
+        .. versionadded:: 2.5
+
     .. attribute:: cts
 
         :getter: Get the state of the CTS line
@@ -237,14 +259,6 @@ Native ports
 
         Return the state of the CD line
 
-    Read-only attributes:
-
-    .. attribute:: name
-
-        Device name. This is always the device name even if the
-        port was opened by a number. (Read Only).
-
-        .. versionadded:: 2.5
 
     New values can be assigned to the following attributes (properties), the
     port will be reconfigured, even if it's opened at that time:
@@ -257,48 +271,99 @@ Native ports
 
     .. attribute:: baudrate
 
+        :getter: Get current baud rate
+        :setter: Set new baud rate
+        :type: int
+
         Read or write current baud rate setting.
 
     .. attribute:: bytesize
+
+        :getter: Get current byte size
+        :setter: Set new byte size. Possible values:
+            :const:`FIVEBITS`, :const:`SIXBITS`, :const:`SEVENBITS`,
+            :const:`EIGHTBITS`
+        :type: int
 
         Read or write current data byte size setting.
 
     .. attribute:: parity
 
+        :getter: Get current parity setting
+        :setter: Set new parity mode. Possible values:
+            :const:`PARITY_NONE`, :const:`PARITY_EVEN`, :const:`PARITY_ODD`
+            :const:`PARITY_MARK`, :const:`PARITY_SPACE`
+
         Read or write current parity setting.
 
     .. attribute:: stopbits
+
+        :getter: Get current stop bit setting
+        :setter: Set new stop bit setting. Possible values:
+            :const:`STOPBITS_ONE`, :const:`STOPBITS_ONE_POINT_FIVE`,
+            :const:`STOPBITS_TWO`
 
         Read or write current stop bit width setting.
 
     .. attribute:: timeout
 
+        :getter: Get current read timeout setting
+        :setter: Set read timeout
+        :type: float (seconds)
+
         Read or write current read timeout setting.
 
-    .. attribute:: writeTimeout
+    .. attribute:: write_timeout
+
+        :getter: Get current write timeout setting
+        :setter: Set write timeout
+        :type: float (seconds)
 
         Read or write current write timeout setting.
 
+        .. versionchanged:: 3.0 renamed from ``writeTimeout``
+
+    .. attribute:: inter_byte_timeout
+
+        :getter: Get current inter byte timeout setting
+        :setter: Disable (``None``) or enable the inter byte timeout
+        :type: float or None
+
+        Read or write current inter byte timeout setting.
+
+        .. versionchanged:: 3.0 renamed from ``interCharTimeout``
+
     .. attribute:: xonxoff
+
+        :getter: Get current software flow control setting
+        :setter: Enable or disable software flow control
+        :type: bool
 
         Read or write current software flow control rate setting.
 
     .. attribute:: rtscts
 
+        :getter: Get current hardware flow control setting
+        :setter: Enable or disable hardware flow control
+        :type: bool
+
         Read or write current hardware flow control setting.
 
     .. attribute:: dsrdtr
 
+        :getter: Get current hardware flow control setting
+        :setter: Enable or disable hardware flow control
+        :type: bool
+
         Read or write current hardware flow control setting.
-
-    .. attribute:: inter_character_timeout
-
-        Read or write current inter character timeout setting.
 
     .. attribute:: rs485_mode
 
-        :platform: Posix
-        :platform: Windows
+        :getter: Get the current RS485 settings
+        :setter: Disable (``None``) or enable the RS485 settings
+        :type: :class:`rs485.RS485Settings` or ``None``
+        :platform: Posix (Linux, limited set of hardware)
+        :platform: Windows (RTS on TX only possible)
 
         Attribute to configure RS485 support. When set to an instance of
         :class:`rs485.RS485Settings` and supported by OS, RTS will be active
@@ -368,7 +433,7 @@ Native ports
 
         Get a dictionary with port settings. This is useful to backup the
         current settings so that a later point in time they can be restored
-        using :meth:`applySettingsDict`.
+        using :meth:`apply_settings`.
 
         Note that control lines (RTS/DTR) are part of the settings.
 
@@ -378,7 +443,7 @@ Native ports
 
         :param d: a dictionary with port settings.
 
-        Applies a dictionary that was created by :meth:`getSettingsDict`. Only
+        Applies a dictionary that was created by :meth:`get_settings`. Only
         changes are applied and when a key is missing it means that the setting
         stays unchanged.
 
@@ -391,22 +456,13 @@ Native ports
     .. warning:: Programs using the following methods and attributes are not
                  portable to other platforms!
 
-    .. attribute:: out_waiting
-
-        :platform: Posix
-        :platform: Windows
-
-        Return the number of bytes in the output buffer.
-
-        .. versionchanged:: 2.7 (Posix support added)
-        .. versionchanged:: 3.0 changed to property from ``outWaiting()``
-
     .. method:: nonblocking()
 
         :platform: Posix
 
         Configure the device for nonblocking operation. This can be useful if
-        the port is used with :mod:`select`.
+        the port is used with :mod:`select`. Note that :attr:`timeout` must
+        also be set to ``0``
 
     .. method:: fileno()
 
@@ -416,22 +472,22 @@ Native ports
         Return file descriptor number for the port that is opened by this object.
         It is useful when serial ports are used with :mod:`select`.
 
-    .. method:: set_output_flow_control(level=True)
+    .. method:: set_input_flow_control(enable)
 
-        :platform: Windows
         :platform: Posix
-        :param level: Set flow control state.
+        :param enable: Set flow control state.
 
         Manually control flow - when software flow control is enabled.
 
         This will send XON (true) and XOFF (false) to the other device.
 
-        .. versionchanged:: 2.7 (renamed on Posix, function was called ``flowControl``)
-        .. versionchanged:: 3.0 renamed from ``setXON``
+        .. versionadded:: 2.7 (Posix support added)
+        .. versionchanged:: 3.0 renamed from ``flowControlOut``
 
-    .. method:: set_input_flow_control(enable)
+    .. method:: set_output_flow_control(enable)
 
-        :platform: Posix
+        :platform: Posix (HW and SW flow control)
+        :platform: Windows (SW flow control only)
         :param enable: Set flow control state.
 
         Manually control flow of outgoing data - when hardware or software flow
@@ -440,83 +496,89 @@ Native ports
         Sending will be suspended when called with ``False`` and enabled when
         called with ``True``.
 
-        .. versionadded:: 2.7 (Posix support added)
-        .. versionchanged:: 3.0 renamed from ``flowControlOut``
+        .. versionchanged:: 2.7 (renamed on Posix, function was called ``flowControl``)
+        .. versionchanged:: 3.0 renamed from ``setXON``
 
 
-    .. note:: Deprecated API
+
+    .. note:: The following members are deprecated nd will be removed in a
+              future release.
 
     .. attribute:: portstr
 
-        .. deprecated:: use :attr:`name` instead
+        .. deprecated:: 2.5 use :attr:`name` instead
 
     .. method:: inWaiting()
 
-        .. deprecated:: 3.0, see :attr:`in_waiting`
+        .. deprecated:: 3.0 see :attr:`in_waiting`
+
+    .. attribute:: writeTimeout
+
+        .. deprecated:: 3.0 see :attr:`write_timeout`
 
     .. attribute:: interCharTimeout
 
-        .. deprecated:: 3.0, see :attr:`inter_character_timeout`
+        .. deprecated:: 3.0 see :attr:`inter_byte_timeout`
 
     .. method:: sendBreak(duration=0.25)
 
-        .. deprecated:: 3.0, see :meth:`send_break`
+        .. deprecated:: 3.0 see :meth:`send_break`
 
     .. method:: flushInput()
 
-        .. deprecated:: 3.0, see :meth:`reset_input_buffer`
+        .. deprecated:: 3.0 see :meth:`reset_input_buffer`
 
     .. method:: flushOutput()
 
-        .. deprecated:: 3.0, see :meth:`reset_output_buffer`
+        .. deprecated:: 3.0 see :meth:`reset_output_buffer`
 
     .. method:: setBreak(level=True)
 
-        .. deprecated:: 3.0, see :attr:`break_condition`
+        .. deprecated:: 3.0 see :attr:`break_condition`
 
     .. method:: setRTS(level=True)
 
-        .. deprecated:: 3.0, see :attr:`rts`
+        .. deprecated:: 3.0 see :attr:`rts`
 
     .. method:: setDTR(level=True)
 
-        .. deprecated:: 3.0, see :attr:`dtr`
+        .. deprecated:: 3.0 see :attr:`dtr`
 
     .. method:: getCTS()
 
-        .. deprecated:: 3.0, see :attr:`cts`
+        .. deprecated:: 3.0 see :attr:`cts`
 
     .. method:: getDSR()
 
-        .. deprecated:: 3.0, see :attr:`dsr`
+        .. deprecated:: 3.0 see :attr:`dsr`
 
     .. method:: getRI()
 
-        .. deprecated:: 3.0, see :attr:`ri`
+        .. deprecated:: 3.0 see :attr:`ri`
 
     .. method:: getCD()
 
-        .. deprecated:: 3.0, see :attr:`cd`
+        .. deprecated:: 3.0 see :attr:`cd`
 
     .. method:: getSettingsDict()
 
-        .. deprecated:: 3.0, see :meth:`get_settings`
+        .. deprecated:: 3.0 see :meth:`get_settings`
 
     .. method:: applySettingsDict(d)
 
-        .. deprecated:: 3.0, see :meth:`apply_settings`
+        .. deprecated:: 3.0 see :meth:`apply_settings`
 
     .. method:: outWaiting()
 
-        .. deprecated:: 3.0, see :attr:`out_waiting`
+        .. deprecated:: 3.0 see :attr:`out_waiting`
 
     .. method:: setXON(level=True)
 
-        .. deprecated:: 3.0, see :meth:`set_output_flow_control`
+        .. deprecated:: 3.0 see :meth:`set_output_flow_control`
 
     .. method:: flowControlOut(enable)
 
-        .. deprecated:: 3.0, see :meth:`set_input_flow_control`
+        .. deprecated:: 3.0 see :meth:`set_input_flow_control`
 
     .. attribute:: rtsToggle
 
@@ -527,7 +589,7 @@ Native ports
         if no data is available.
 
         .. versionadded:: 2.6
-        .. versionchanged:: 3.0 (removed, see :meth:`rs485_mode` instead)
+        .. versionchanged:: 3.0 (removed, see :attr:`rs485_mode` instead)
 
 
 Implementation detail: some attributes and functions are provided by the
@@ -551,12 +613,6 @@ Usage::
 
 There is a subclass :class:`rs485.RS485` available to emulate the RS485 support
 on regular serial ports.
-
-Usage::
-
-    ser = serial.rs485.RS485(...)
-    ser.rs485_mode = serial.rs485.RS485Settings(...)
-    ser.write(b'hello')
 
 
 .. class:: rs485.RS485Settings
@@ -609,6 +665,12 @@ Usage::
     A subclass that replaces the :meth:`Serial.write` method with one that toggles RTS
     according to the RS485 settings.
 
+    Usage::
+
+        ser = serial.rs485.RS485(...)
+        ser.rs485_mode = serial.rs485.RS485Settings(...)
+        ser.write(b'hello')
+
     .. warning:: This may work unreliably on some serial ports (control signals not
         synchronized or delayed compared to data). Using delays may be unreliable
         (varying times, larger than expected) as the OS may not support very fine
@@ -633,13 +695,11 @@ Usage::
 .. class:: rfc2217.Serial
 
     This implements a :rfc:`2217` compatible client. Port names are URLs_ in the
-    form: ``rfc2217://<host>:<port>[/<option>[/<option>]]``
+    form: ``rfc2217://<host>:<port>[?<option>[&<option>]]``
 
     This class API is compatible to :class:`Serial` with a few exceptions:
 
-    - numbers as port name are not allowed, only URLs in the form described
-      above.
-    - writeTimeout is not implemented
+    - write_timeout is not implemented
     - The current implementation starts a thread that keeps reading from the
       (internal) socket. The thread is managed automatically by the
       :class:`rfc2217.Serial` port object on :meth:`open`/:meth:`close`.
@@ -655,10 +715,10 @@ Usage::
       cache is updated depends entirely on the server. The server itself may
       implement a polling at a certain rate and quick changes may be invisible.
     - The network layer also has buffers. This means that :meth:`flush`,
-      :meth:`flushInput` and :meth:`flushOutput` may work with additional delay.
-      Likewise :meth:`inWaiting` returns the size of the data arrived at the
-      object internal buffer and excludes any bytes in the network buffers or
-      any server side buffer.
+      :meth:`reset_input_buffer` and :meth:`reset_output_buffer` may work with
+      additional delay.  Likewise :attr:`in_waiting` returns the size of the
+      data arrived at the object internal buffer and excludes any bytes in the
+      network buffers or any server side buffer.
     - Closing and immediately reopening the same port may fail due to time
       needed by the server to get ready again.
 
@@ -681,7 +741,7 @@ Usage::
     This class provides helper functions for implementing :rfc:`2217`
     compatible servers.
 
-    Basically, it implements every thing needed for the :rfc:`2217` protocol.
+    Basically, it implements everything needed for the :rfc:`2217` protocol.
     It just does not open sockets and read/write to serial ports (though it
     changes other port settings). The user of this class must take care of the
     data transmission itself. The reason for that is, that this way, this class
@@ -820,7 +880,7 @@ Module version:
 
 .. data:: VERSION
 
-    A string indicating the pySerial version, such as ``2.5``.
+    A string indicating the pySerial version, such as ``3.0``.
 
     .. versionadded:: 2.3
 
@@ -840,6 +900,8 @@ Module functions and attributes
 
     The conversion may be made off-line, that is, there is no guarantee that
     the returned device name really exists on the system.
+
+    .. versionchanged:: 3.0 removed, use ``serial.tools.list_ports`` instead
 
 
 .. function:: serial_for_url(url, \*args, \*\*kwargs)
@@ -914,6 +976,7 @@ The function :func:`serial_for_url` accepts the following types of URLs:
 - ``rfc2217://<host>:<port>[?<option>[&<option>...]]``
 - ``socket://<host>:<port>[?logging={debug|info|warning|error}]``
 - ``loop://[?logging={debug|info|warning|error}]``
+- ``hwgrep://<regexp>``
 - ``spy://port[?option[=value][&option[=value]]]``
 
 .. versionchanged:: 3.0 Options are specified with ``?`` and ``&`` instead of ``/``
@@ -940,7 +1003,7 @@ possible for the user to add protocol handlers using
     - ``poll_modem``: The client issues NOTIFY_MODEMSTATE requests when status
       lines are read (CTS/DTR/RI/CD). Without this option it relies on the server
       sending the notifications automatically (that's what the RFC suggests and
-      most servers do). Enable this option when :meth:`getCTS` does not work as
+      most servers do). Enable this option when :attr:`cts` does not work as
       expected, i.e. for servers that do not send notifications.
 
     - ``timeout=<value>``: Change network timeout (default 3 seconds). This is
@@ -1006,7 +1069,7 @@ possible for the user to add protocol handlers using
     - ``color`` enable ANSI escape sequences to colorize output
     - ``raw`` output the read and written data directly (default is to create a
       hex dump). In this mode, no control line and other commands are logged.
-    - ``all`` also show ``inWaiting()`` and empty ``read()`` calls (hidden by
+    - ``all`` also show ``in_waiting`` and empty ``read()`` calls (hidden by
       default because of high traffic).
 
     Example::
@@ -1014,57 +1077,57 @@ possible for the user to add protocol handlers using
         import serial
 
         with serial.serial_for_url('spy:///dev/ttyUSB0?file=test.txt', timeout=1) as s:
-            s.setDTR(False)
+            s.dtr = False
             s.write('hello world')
             s.read(20)
-            s.setDTR(True)
+            s.dtr = True
             s.write(serial.to_bytes(range(256)))
             s.read(400)
-            s.sendBreak()
+            s.send_break()
 
         with open('test.txt') as f:
             print(f.read())
 
     Outputs::
 
-        000000.002 FLSH flushInput
+        000000.002 Q-RX reset_input_buffer
         000000.002 DTR  inactive
-        000000.002 TX   0000  68 65 6C 6C 6F 20 77 6F  72 6C 64                 hello wo rld     
-        000001.015 RX   0000  68 65 6C 6C 6F 20 77 6F  72 6C 64                 hello wo rld     
+        000000.002 TX   0000  68 65 6C 6C 6F 20 77 6F  72 6C 64                 hello world     
+        000001.015 RX   0000  68 65 6C 6C 6F 20 77 6F  72 6C 64                 hello world     
         000001.015 DTR  active
-        000001.015 TX   0000  00 01 02 03 04 05 06 07  08 09 0A 0B 0C 0D 0E 0F  ........ ........
-        000001.015 TX   0010  10 11 12 13 14 15 16 17  18 19 1A 1B 1C 1D 1E 1F  ........ ........
-        000001.015 TX   0020  20 21 22 23 24 25 26 27  28 29 2A 2B 2C 2D 2E 2F   !"#$%&' ()*+,-./
-        000001.015 TX   0030  30 31 32 33 34 35 36 37  38 39 3A 3B 3C 3D 3E 3F  01234567 89:;<=>?
-        000001.015 TX   0040  40 41 42 43 44 45 46 47  48 49 4A 4B 4C 4D 4E 4F  @ABCDEFG HIJKLMNO
-        000001.016 TX   0050  50 51 52 53 54 55 56 57  58 59 5A 5B 5C 5D 5E 5F  PQRSTUVW XYZ[\]^_
-        000001.016 TX   0060  60 61 62 63 64 65 66 67  68 69 6A 6B 6C 6D 6E 6F  `abcdefg hijklmno
-        000001.016 TX   0070  70 71 72 73 74 75 76 77  78 79 7A 7B 7C 7D 7E 7F  pqrstuvw xyz{|}~.
-        000001.016 TX   0080  80 81 82 83 84 85 86 87  88 89 8A 8B 8C 8D 8E 8F  ........ ........
-        000001.016 TX   0090  90 91 92 93 94 95 96 97  98 99 9A 9B 9C 9D 9E 9F  ........ ........
-        000001.016 TX   00A0  A0 A1 A2 A3 A4 A5 A6 A7  A8 A9 AA AB AC AD AE AF  ........ ........
-        000001.016 TX   00B0  B0 B1 B2 B3 B4 B5 B6 B7  B8 B9 BA BB BC BD BE BF  ........ ........
-        000001.016 TX   00C0  C0 C1 C2 C3 C4 C5 C6 C7  C8 C9 CA CB CC CD CE CF  ........ ........
-        000001.016 TX   00D0  D0 D1 D2 D3 D4 D5 D6 D7  D8 D9 DA DB DC DD DE DF  ........ ........
-        000001.016 TX   00E0  E0 E1 E2 E3 E4 E5 E6 E7  E8 E9 EA EB EC ED EE EF  ........ ........
-        000001.016 TX   00F0  F0 F1 F2 F3 F4 F5 F6 F7  F8 F9 FA FB FC FD FE FF  ........ ........
-        000002.284 RX   0000  00 01 02 03 04 05 06 07  08 09 0A 0B 0C 0D 0E 0F  ........ ........
-        000002.284 RX   0010  10 11 12 13 14 15 16 17  18 19 1A 1B 1C 1D 1E 1F  ........ ........
-        000002.284 RX   0020  20 21 22 23 24 25 26 27  28 29 2A 2B 2C 2D 2E 2F   !"#$%&' ()*+,-./
-        000002.284 RX   0030  30 31 32 33 34 35 36 37  38 39 3A 3B 3C 3D 3E 3F  01234567 89:;<=>?
-        000002.284 RX   0040  40 41 42 43 44 45 46 47  48 49 4A 4B 4C 4D 4E 4F  @ABCDEFG HIJKLMNO
-        000002.284 RX   0050  50 51 52 53 54 55 56 57  58 59 5A 5B 5C 5D 5E 5F  PQRSTUVW XYZ[\]^_
-        000002.284 RX   0060  60 61 62 63 64 65 66 67  68 69 6A 6B 6C 6D 6E 6F  `abcdefg hijklmno
-        000002.284 RX   0070  70 71 72 73 74 75 76 77  78 79 7A 7B 7C 7D 7E 7F  pqrstuvw xyz{|}~.
-        000002.284 RX   0080  80 81 82 83 84 85 86 87  88 89 8A 8B 8C 8D 8E 8F  ........ ........
-        000002.284 RX   0090  90 91 92 93 94 95 96 97  98 99 9A 9B 9C 9D 9E 9F  ........ ........
-        000002.284 RX   00A0  A0 A1 A2 A3 A4 A5 A6 A7  A8 A9 AA AB AC AD AE AF  ........ ........
-        000002.284 RX   00B0  B0 B1 B2 B3 B4 B5 B6 B7  B8 B9 BA BB BC BD BE BF  ........ ........
-        000002.284 RX   00C0  C0 C1 C2 C3 C4 C5 C6 C7  C8 C9 CA CB CC CD CE CF  ........ ........
-        000002.284 RX   00D0  D0 D1 D2 D3 D4 D5 D6 D7  D8 D9 DA DB DC DD DE DF  ........ ........
-        000002.284 RX   00E0  E0 E1 E2 E3 E4 E5 E6 E7  E8 E9 EA EB EC ED EE EF  ........ ........
-        000002.284 RX   00F0  F0 F1 F2 F3 F4 F5 F6 F7  F8 F9 FA FB FC FD FE FF  ........ ........
-        000002.284 BRK  sendBreak 0.25
+        000001.015 TX   0000  00 01 02 03 04 05 06 07  08 09 0A 0B 0C 0D 0E 0F  ................
+        000001.015 TX   0010  10 11 12 13 14 15 16 17  18 19 1A 1B 1C 1D 1E 1F  ................
+        000001.015 TX   0020  20 21 22 23 24 25 26 27  28 29 2A 2B 2C 2D 2E 2F   !"#$%&'()*+,-./
+        000001.015 TX   0030  30 31 32 33 34 35 36 37  38 39 3A 3B 3C 3D 3E 3F  0123456789:;<=>?
+        000001.015 TX   0040  40 41 42 43 44 45 46 47  48 49 4A 4B 4C 4D 4E 4F  @ABCDEFGHIJKLMNO
+        000001.016 TX   0050  50 51 52 53 54 55 56 57  58 59 5A 5B 5C 5D 5E 5F  PQRSTUVWXYZ[\]^_
+        000001.016 TX   0060  60 61 62 63 64 65 66 67  68 69 6A 6B 6C 6D 6E 6F  `abcdefghijklmno
+        000001.016 TX   0070  70 71 72 73 74 75 76 77  78 79 7A 7B 7C 7D 7E 7F  pqrstuvwxyz{|}~.
+        000001.016 TX   0080  80 81 82 83 84 85 86 87  88 89 8A 8B 8C 8D 8E 8F  ................
+        000001.016 TX   0090  90 91 92 93 94 95 96 97  98 99 9A 9B 9C 9D 9E 9F  ................
+        000001.016 TX   00A0  A0 A1 A2 A3 A4 A5 A6 A7  A8 A9 AA AB AC AD AE AF  ................
+        000001.016 TX   00B0  B0 B1 B2 B3 B4 B5 B6 B7  B8 B9 BA BB BC BD BE BF  ................
+        000001.016 TX   00C0  C0 C1 C2 C3 C4 C5 C6 C7  C8 C9 CA CB CC CD CE CF  ................
+        000001.016 TX   00D0  D0 D1 D2 D3 D4 D5 D6 D7  D8 D9 DA DB DC DD DE DF  ................
+        000001.016 TX   00E0  E0 E1 E2 E3 E4 E5 E6 E7  E8 E9 EA EB EC ED EE EF  ................
+        000001.016 TX   00F0  F0 F1 F2 F3 F4 F5 F6 F7  F8 F9 FA FB FC FD FE FF  ................
+        000002.284 RX   0000  00 01 02 03 04 05 06 07  08 09 0A 0B 0C 0D 0E 0F  ................
+        000002.284 RX   0010  10 11 12 13 14 15 16 17  18 19 1A 1B 1C 1D 1E 1F  ................
+        000002.284 RX   0020  20 21 22 23 24 25 26 27  28 29 2A 2B 2C 2D 2E 2F   !"#$%&'()*+,-./
+        000002.284 RX   0030  30 31 32 33 34 35 36 37  38 39 3A 3B 3C 3D 3E 3F  0123456789:;<=>?
+        000002.284 RX   0040  40 41 42 43 44 45 46 47  48 49 4A 4B 4C 4D 4E 4F  @ABCDEFGHIJKLMNO
+        000002.284 RX   0050  50 51 52 53 54 55 56 57  58 59 5A 5B 5C 5D 5E 5F  PQRSTUVWXYZ[\]^_
+        000002.284 RX   0060  60 61 62 63 64 65 66 67  68 69 6A 6B 6C 6D 6E 6F  `abcdefghijklmno
+        000002.284 RX   0070  70 71 72 73 74 75 76 77  78 79 7A 7B 7C 7D 7E 7F  pqrstuvwxyz{|}~.
+        000002.284 RX   0080  80 81 82 83 84 85 86 87  88 89 8A 8B 8C 8D 8E 8F  ................
+        000002.284 RX   0090  90 91 92 93 94 95 96 97  98 99 9A 9B 9C 9D 9E 9F  ................
+        000002.284 RX   00A0  A0 A1 A2 A3 A4 A5 A6 A7  A8 A9 AA AB AC AD AE AF  ................
+        000002.284 RX   00B0  B0 B1 B2 B3 B4 B5 B6 B7  B8 B9 BA BB BC BD BE BF  ................
+        000002.284 RX   00C0  C0 C1 C2 C3 C4 C5 C6 C7  C8 C9 CA CB CC CD CE CF  ................
+        000002.284 RX   00D0  D0 D1 D2 D3 D4 D5 D6 D7  D8 D9 DA DB DC DD DE DF  ................
+        000002.284 RX   00E0  E0 E1 E2 E3 E4 E5 E6 E7  E8 E9 EA EB EC ED EE EF  ................
+        000002.284 RX   00F0  F0 F1 F2 F3 F4 F5 F6 F7  F8 F9 FA FB FC FD FE FF  ................
+        000002.284 BRK  send_break 0.25
 
     .. versionadded:: 3.0
 
