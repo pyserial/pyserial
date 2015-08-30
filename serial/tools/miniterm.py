@@ -189,8 +189,8 @@ class NoTerminal(Transform):
 
     REPLACEMENT_MAP = dict((x, 0x2400 + x) for x in range(32) if unichr(x) not in '\r\n\b\t')
     REPLACEMENT_MAP.update({
-            0x7F: 0x2421, # DEL
-            0x9B: 0x2425, # CSI
+            0x7F: 0x2421,  # DEL
+            0x9B: 0x2425,  # CSI
             })
 
     def rx(self, text):
@@ -204,9 +204,9 @@ class NoControls(NoTerminal):
 
     REPLACEMENT_MAP = dict((x, 0x2400 + x) for x in range(32))
     REPLACEMENT_MAP.update({
-            32: 0x2423,   # visual space
-            0x7F: 0x2421, # DEL
-            0x9B: 0x2425, # CSI
+            32: 0x2423,    # visual space
+            0x7F: 0x2421,  # DEL
+            0x9B: 0x2425,  # CSI
             })
 
 
@@ -276,8 +276,8 @@ TRANSFORMATIONS = {
         'debug': DebugIO,
         }
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 def dump_port_list():
     if comports:
         sys.stderr.write('\n--- Available ports:\n')
@@ -313,7 +313,6 @@ class Miniterm(object):
         self._reader_alive = False
         self.receiver_thread.join()
 
-
     def start(self):
         self.alive = True
         self._start_reader()
@@ -343,7 +342,6 @@ class Miniterm(object):
     def set_tx_encoding(self, encoding, errors='replace'):
         self.output_encoding = encoding
         self.tx_encoder = codecs.getincrementalencoder(encoding)(errors)
-
 
     def dump_port_settings(self):
         sys.stderr.write("\n--- Settings: {p.name}  {p.baudrate},{p.bytesize},{p.parity},{p.stopbits}\n".format(
@@ -386,12 +384,11 @@ class Miniterm(object):
                         for transformation in self.rx_transformations:
                             text = transformation.rx(text)
                         self.console.write(text)
-        except serial.SerialException as e:
+        except serial.SerialException:
             self.alive = False
             # XXX would be nice if the writer could be interrupted at this
             #     point... to exit completely
             raise
-
 
     def writer(self):
         """\
@@ -488,7 +485,7 @@ class Miniterm(object):
                     self.update_transformations()
             sys.stderr.write('--- filters: {}\n'.format(' '.join(self.filters)))
         elif c == '\x0c':                       # CTRL+L -> EOL mode
-            modes = list(EOL_TRANSFORMATIONS) # keys
+            modes = list(EOL_TRANSFORMATIONS)  # keys
             eol = modes.index(self.eol) + 1
             if eol >= len(modes):
                 eol = 0
@@ -637,7 +634,6 @@ class Miniterm(object):
                 )
 
 
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # default args can be used to override when calling main() from an other script
 # e.g to create a miniterm-my-device.py
@@ -647,12 +643,14 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
     parser = argparse.ArgumentParser(
             description="Miniterm - A simple terminal program for the serial port.")
 
-    parser.add_argument("port",
+    parser.add_argument(
+            "port",
             nargs='?',
             help="serial port name",
             default=default_port)
 
-    parser.add_argument("baudrate",
+    parser.add_argument(
+            "baudrate",
             nargs='?',
             type=int,
             help="set baud rate, default: %(default)s",
@@ -660,72 +658,84 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
 
     group = parser.add_argument_group("port settings")
 
-    group.add_argument("--parity",
+    group.add_argument(
+            "--parity",
             choices=['N', 'E', 'O', 'S', 'M'],
             type=lambda c: c.upper(),
             help="set parity, one of {N E O S M}, default: N",
             default='N')
 
-    group.add_argument("--rtscts",
+    group.add_argument(
+            "--rtscts",
             action="store_true",
             help="enable RTS/CTS flow control (default off)",
             default=False)
 
-    group.add_argument("--xonxoff",
+    group.add_argument(
+            "--xonxoff",
             action="store_true",
             help="enable software flow control (default off)",
             default=False)
 
-    group.add_argument("--rts",
+    group.add_argument(
+            "--rts",
             type=int,
             help="set initial RTS line state (possible values: 0, 1)",
             default=default_rts)
 
-    group.add_argument("--dtr",
+    group.add_argument(
+            "--dtr",
             type=int,
             help="set initial DTR line state (possible values: 0, 1)",
             default=default_dtr)
 
     group = parser.add_argument_group("data handling")
 
-    group.add_argument("-e", "--echo",
+    group.add_argument(
+            "-e", "--echo",
             action="store_true",
             help="enable local echo (default off)",
             default=False)
 
-    group.add_argument("--encoding",
+    group.add_argument(
+            "--encoding",
             dest="serial_port_encoding",
             metavar="CODEC",
             help="set the encoding for the serial port (e.g. hexlify, Latin1, UTF-8), default: %(default)s",
             default='UTF-8')
 
-    group.add_argument("-f", "--filter",
+    group.add_argument(
+            "-f", "--filter",
             action="append",
             metavar="NAME",
             help="add text transformation",
             default=[])
 
-    group.add_argument("--eol",
+    group.add_argument(
+            "--eol",
             choices=['CR', 'LF', 'CRLF'],
             type=lambda c: c.upper(),
             help="end of line mode",
             default='CRLF')
 
-    group.add_argument("--raw",
+    group.add_argument(
+            "--raw",
             action="store_true",
             help="Do no apply any encodings/transformations",
             default=False)
 
     group = parser.add_argument_group("hotkeys")
 
-    group.add_argument("--exit-char",
+    group.add_argument(
+            "--exit-char",
             type=int,
             metavar='NUM',
             help="Unicode of special character that is used to exit the application, default: %(default)s",
             default=0x1d  # GS/CTRL+]
             )
 
-    group.add_argument("--menu-char",
+    group.add_argument(
+            "--menu-char",
             type=int,
             metavar='NUM',
             help="Unicode code of special character that is used to control miniterm (menu), default: %(default)s",
@@ -734,12 +744,14 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
 
     group = parser.add_argument_group("diagnostics")
 
-    group.add_argument("-q", "--quiet",
+    group.add_argument(
+            "-q", "--quiet",
             action="store_true",
             help="suppress non-error messages",
             default=False)
 
-    group.add_argument("--develop",
+    group.add_argument(
+            "--develop",
             action="store_true",
             help="show Python traceback on error",
             default=False)
@@ -748,7 +760,6 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
 
     if args.menu_char == args.exit_char:
         parser.error('--exit-char can not be the same as --menu-char')
-
 
     # no port given on command line -> ask user now
     if args.port is None:
@@ -766,7 +777,6 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         filters = args.filter
     else:
         filters = ['default']
-
 
     try:
         serial_instance = serial.serial_for_url(

@@ -7,22 +7,25 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
-VERSION = '3.0a'
-
 import importlib
 import sys
 
+from serial.serialutil import *
+#~ SerialBase, SerialException, to_bytes, iterbytes
+
+VERSION = '3.0a'
+
 if sys.platform == 'cli':
-    from serial.serialcli import *
+    from serial.serialcli import Serial
 else:
     import os
     # chose an implementation, depending on os
-    if os.name == 'nt': #sys.platform == 'win32':
-        from serial.serialwin32 import *
+    if os.name == 'nt':  # sys.platform == 'win32':
+        from serial.serialwin32 import Serial
     elif os.name == 'posix':
-        from serial.serialposix import *
+        from serial.serialposix import Serial, PosixPollSerial
     elif os.name == 'java':
-        from serial.serialjava import *
+        from serial.serialjava import Serial
     else:
         raise ImportError("Sorry: no implementation for your platform ('%s') available" % (os.name,))
 
@@ -30,6 +33,7 @@ else:
 protocol_handler_packages = [
         'serial.urlhandler',
         ]
+
 
 def serial_for_url(url, *args, **kwargs):
     """\
@@ -48,7 +52,8 @@ def serial_for_url(url, *args, **kwargs):
     """
     # check remove extra parameter to not confuse the Serial class
     do_open = 'do_not_open' not in kwargs or not kwargs['do_not_open']
-    if 'do_not_open' in kwargs: del kwargs['do_not_open']
+    if 'do_not_open' in kwargs:
+        del kwargs['do_not_open']
     # the default is to use the native version
     klass = Serial   # 'native' implementation
     # check port type and get class

@@ -17,22 +17,23 @@ Additionally a grep function is supplied that can be used to search for ports
 based on their descriptions or hardware ID.
 """
 
-import sys, os, re
+import sys
+import os
+import re
 
 # chose an implementation, depending on os
 #~ if sys.platform == 'cli':
 #~ else:
-import os
-# chose an implementation, depending on os
-if os.name == 'nt': #sys.platform == 'win32':
-    from serial.tools.list_ports_windows import *
+if os.name == 'nt':  # sys.platform == 'win32':
+    from serial.tools.list_ports_windows import comports
 elif os.name == 'posix':
-    from serial.tools.list_ports_posix import *
+    from serial.tools.list_ports_posix import comports
 #~ elif os.name == 'java':
 else:
     raise ImportError("Sorry: no implementation for your platform ('%s') available" % (os.name,))
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 
 def grep(regexp):
     """\
@@ -52,20 +53,22 @@ def main():
 
     parser = argparse.ArgumentParser(description='Serial port enumeration')
 
-    parser.add_argument('regexp',
+    parser.add_argument(
+            'regexp',
             nargs='?',
             help='only show ports that match this regex')
 
-    parser.add_argument('-v', '--verbose',
+    parser.add_argument(
+            '-v', '--verbose',
             action='store_true',
             help='show more messages')
 
-    parser.add_argument('-q', '--quiet',
+    parser.add_argument(
+            '-q', '--quiet',
             action='store_true',
             help='suppress all messages')
 
     args = parser.parse_args()
-
 
     hits = 0
     # get iteraror w/ or w/o filter

@@ -8,13 +8,14 @@ from ctypes import *
 from ctypes.wintypes import HANDLE
 from ctypes.wintypes import BOOL
 from ctypes.wintypes import LPCWSTR
-_stdcall_libraries = {}
-_stdcall_libraries['kernel32'] = WinDLL('kernel32')
 from ctypes.wintypes import DWORD
 from ctypes.wintypes import WORD
 from ctypes.wintypes import BYTE
+_stdcall_libraries = {}
+_stdcall_libraries['kernel32'] = WinDLL('kernel32')
 
 INVALID_HANDLE_VALUE = HANDLE(-1).value
+
 
 # some details of the windows API differ between 32 and 64 bit systems..
 def is_64bit():
@@ -45,7 +46,7 @@ except AttributeError:
     CreateEventA = _stdcall_libraries['kernel32'].CreateEventA
     CreateEventA.restype = HANDLE
     CreateEventA.argtypes = [LPSECURITY_ATTRIBUTES, BOOL, BOOL, LPCSTR]
-    CreateEvent=CreateEventA
+    CreateEvent = CreateEventA
 
     CreateFileA = _stdcall_libraries['kernel32'].CreateFileA
     CreateFileA.restype = HANDLE
@@ -54,27 +55,35 @@ except AttributeError:
 else:
     CreateEventW.restype = HANDLE
     CreateEventW.argtypes = [LPSECURITY_ATTRIBUTES, BOOL, BOOL, LPCWSTR]
-    CreateEvent = CreateEventW # alias
+    CreateEvent = CreateEventW  # alias
 
     CreateFileW = _stdcall_libraries['kernel32'].CreateFileW
     CreateFileW.restype = HANDLE
     CreateFileW.argtypes = [LPCWSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE]
-    CreateFile = CreateFileW # alias
+    CreateFile = CreateFileW  # alias
+
 
 class _OVERLAPPED(Structure):
     pass
+
 OVERLAPPED = _OVERLAPPED
+
 
 class _COMSTAT(Structure):
     pass
+
 COMSTAT = _COMSTAT
+
 
 class _DCB(Structure):
     pass
+
 DCB = _DCB
+
 
 class _COMMTIMEOUTS(Structure):
     pass
+
 COMMTIMEOUTS = _COMMTIMEOUTS
 
 GetLastError = _stdcall_libraries['kernel32'].GetLastError
@@ -166,66 +175,70 @@ WaitForSingleObject = _stdcall_libraries['kernel32'].WaitForSingleObject
 WaitForSingleObject.restype = DWORD
 WaitForSingleObject.argtypes = [HANDLE, DWORD]
 
-ONESTOPBIT = 0 # Variable c_int
-TWOSTOPBITS = 2 # Variable c_int
+ONESTOPBIT = 0  # Variable c_int
+TWOSTOPBITS = 2  # Variable c_int
 ONE5STOPBITS = 1
 
-NOPARITY = 0 # Variable c_int
-ODDPARITY = 1 # Variable c_int
-EVENPARITY = 2 # Variable c_int
+NOPARITY = 0  # Variable c_int
+ODDPARITY = 1  # Variable c_int
+EVENPARITY = 2  # Variable c_int
 MARKPARITY = 3
 SPACEPARITY = 4
 
-RTS_CONTROL_HANDSHAKE = 2 # Variable c_int
-RTS_CONTROL_DISABLE = 0 # Variable c_int
-RTS_CONTROL_ENABLE = 1 # Variable c_int
-RTS_CONTROL_TOGGLE = 3 # Variable c_int
+RTS_CONTROL_HANDSHAKE = 2  # Variable c_int
+RTS_CONTROL_DISABLE = 0  # Variable c_int
+RTS_CONTROL_ENABLE = 1  # Variable c_int
+RTS_CONTROL_TOGGLE = 3  # Variable c_int
 SETRTS = 3
 CLRRTS = 4
 
-DTR_CONTROL_HANDSHAKE = 2 # Variable c_int
-DTR_CONTROL_DISABLE = 0 # Variable c_int
-DTR_CONTROL_ENABLE = 1 # Variable c_int
+DTR_CONTROL_HANDSHAKE = 2  # Variable c_int
+DTR_CONTROL_DISABLE = 0  # Variable c_int
+DTR_CONTROL_ENABLE = 1  # Variable c_int
 SETDTR = 5
 CLRDTR = 6
 
-MS_DSR_ON = 32 # Variable c_ulong
-EV_RING = 256 # Variable c_int
-EV_PERR = 512 # Variable c_int
-EV_ERR = 128 # Variable c_int
-SETXOFF = 1 # Variable c_int
-EV_RXCHAR = 1 # Variable c_int
-GENERIC_WRITE = 1073741824 # Variable c_long
-PURGE_TXCLEAR = 4 # Variable c_int
-FILE_FLAG_OVERLAPPED = 1073741824 # Variable c_int
-EV_DSR = 16 # Variable c_int
-MAXDWORD = 4294967295 # Variable c_uint
-EV_RLSD = 32 # Variable c_int
-ERROR_IO_PENDING = 997 # Variable c_long
-MS_CTS_ON = 16 # Variable c_ulong
-EV_EVENT1 = 2048 # Variable c_int
-EV_RX80FULL = 1024 # Variable c_int
-PURGE_RXABORT = 2 # Variable c_int
-FILE_ATTRIBUTE_NORMAL = 128 # Variable c_int
-PURGE_TXABORT = 1 # Variable c_int
-SETXON = 2 # Variable c_int
-OPEN_EXISTING = 3 # Variable c_int
-MS_RING_ON = 64 # Variable c_ulong
-EV_TXEMPTY = 4 # Variable c_int
-EV_RXFLAG = 2 # Variable c_int
-MS_RLSD_ON = 128 # Variable c_ulong
-GENERIC_READ = 2147483648 # Variable c_ulong
-EV_EVENT2 = 4096 # Variable c_int
-EV_CTS = 8 # Variable c_int
-EV_BREAK = 64 # Variable c_int
-PURGE_RXCLEAR = 8 # Variable c_int
+MS_DSR_ON = 32  # Variable c_ulong
+EV_RING = 256  # Variable c_int
+EV_PERR = 512  # Variable c_int
+EV_ERR = 128  # Variable c_int
+SETXOFF = 1  # Variable c_int
+EV_RXCHAR = 1  # Variable c_int
+GENERIC_WRITE = 1073741824  # Variable c_long
+PURGE_TXCLEAR = 4  # Variable c_int
+FILE_FLAG_OVERLAPPED = 1073741824  # Variable c_int
+EV_DSR = 16  # Variable c_int
+MAXDWORD = 4294967295  # Variable c_uint
+EV_RLSD = 32  # Variable c_int
+ERROR_IO_PENDING = 997  # Variable c_long
+MS_CTS_ON = 16  # Variable c_ulong
+EV_EVENT1 = 2048  # Variable c_int
+EV_RX80FULL = 1024  # Variable c_int
+PURGE_RXABORT = 2  # Variable c_int
+FILE_ATTRIBUTE_NORMAL = 128  # Variable c_int
+PURGE_TXABORT = 1  # Variable c_int
+SETXON = 2  # Variable c_int
+OPEN_EXISTING = 3  # Variable c_int
+MS_RING_ON = 64  # Variable c_ulong
+EV_TXEMPTY = 4  # Variable c_int
+EV_RXFLAG = 2  # Variable c_int
+MS_RLSD_ON = 128  # Variable c_ulong
+GENERIC_READ = 2147483648  # Variable c_ulong
+EV_EVENT2 = 4096  # Variable c_int
+EV_CTS = 8  # Variable c_int
+EV_BREAK = 64  # Variable c_int
+PURGE_RXCLEAR = 8  # Variable c_int
 INFINITE = 0xFFFFFFFF
 
 
 class N11_OVERLAPPED4DOLLAR_48E(Union):
     pass
+
+
 class N11_OVERLAPPED4DOLLAR_484DOLLAR_49E(Structure):
     pass
+
+
 N11_OVERLAPPED4DOLLAR_484DOLLAR_49E._fields_ = [
     ('Offset', DWORD),
     ('OffsetHigh', DWORD),

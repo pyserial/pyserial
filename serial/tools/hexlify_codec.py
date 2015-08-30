@@ -9,17 +9,22 @@ HEXDIGITS = '0123456789ABCDEF'
 
 ### Codec APIs
 
+
 def hex_encode(input, errors='strict'):
     return (serial.to_bytes([int(h, 16) for h in input.split()]), len(input))
+
 
 def hex_decode(input, errors='strict'):
     return (''.join('{:02X} '.format(b) for b in input), len(input))
 
+
 class Codec(codecs.Codec):
     def encode(self, input, errors='strict'):
         return serial.to_bytes([int(h, 16) for h in input.split()])
+
     def decode(self, input, errors='strict'):
         return ''.join('{:02X} '.format(b) for b in input)
+
 
 class IncrementalEncoder(codecs.IncrementalEncoder):
 
@@ -57,18 +62,21 @@ class IncrementalEncoder(codecs.IncrementalEncoder):
         self.state = state
         return serial.to_bytes(encoded)
 
+
 class IncrementalDecoder(codecs.IncrementalDecoder):
     def decode(self, input, final=False):
         return ''.join('{:02X} '.format(b) for b in input)
 
+
 class StreamWriter(Codec, codecs.StreamWriter):
     pass
+
 
 class StreamReader(Codec, codecs.StreamReader):
     pass
 
-### encodings module API
 
+### encodings module API
 def getregentry():
     return codecs.CodecInfo(
         name='hexlify',

@@ -27,7 +27,7 @@ import os
 # try to detect the OS so that a device can be selected...
 plat = sys.platform.lower()
 
-if   plat[:5] == 'linux':    # Linux (confirmed)
+if plat[:5] == 'linux':    # Linux (confirmed)
     from serial.tools.list_ports_linux import comports
 
 elif plat == 'cygwin':       # cygwin/win32
@@ -85,6 +85,7 @@ elif plat[:3] == 'aix':      # AIX
 
 else:
     # platform detection has failed...
+    import serial
     sys.stderr.write("""\
 don't know how to enumerate ttys on this system.
 ! I you know how the serial ports are named send this information to
@@ -103,4 +104,3 @@ this module running...
 if __name__ == '__main__':
     for port, desc, hwid in sorted(comports()):
         print("%s: %s [%s]" % (port, desc, hwid))
-

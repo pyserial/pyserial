@@ -15,7 +15,7 @@ import glob
 import os
 import re
 import subprocess
-import sys
+
 
 def read_command(argv):
     """run a command and return its output"""
@@ -23,6 +23,7 @@ def read_command(argv):
         return subprocess.check_output(argv, stderr=subprocess.STDOUT).strip().decode('ascii', 'replace')
     except subprocess.SubprocessError as e:
         raise IOError('command %r failed: %s' % (argv, e))
+
 
 def read_line(*args):
     """\
@@ -36,6 +37,7 @@ def read_line(*args):
         return line
     except IOError:
         return None
+
 
 def re_group(regexp, text):
     """search for regexp in text, return 1st group on match"""
@@ -63,6 +65,7 @@ def usb_sysfs_hw_string(sysfs_path):
             snr_txt
             )
 
+
 def usb_lsusb_string(sysfs_path):
     base = os.path.basename(os.path.realpath(sysfs_path))
     bus = base.split('-')[0]
@@ -81,6 +84,7 @@ def usb_lsusb_string(sysfs_path):
         idProduct = re_group('idProduct\s+0x\w+ (.+)', desc)
         # create descriptions. prefer text from device, fall back to the others
         return '%s %s %s' % (iManufacturer or idVendor, iProduct or idProduct, iSerial)
+
 
 def describe(device):
     """\
@@ -106,6 +110,7 @@ def describe(device):
             return read_line(product_name_file)
     return base
 
+
 def hwinfo(device):
     """Try to get a HW identification using sysfs"""
     base = os.path.basename(device)
@@ -126,6 +131,7 @@ def hwinfo(device):
                 return usb_sysfs_hw_string(sys_dev_path + '/..')
     return 'n/a'    # XXX directly remove these from the list?
 
+
 def comports():
     devices = glob.glob('/dev/ttyS*')           # built-in serial ports
     devices.extend(glob.glob('/dev/ttyUSB*'))   # usb-serial with own driver
@@ -138,4 +144,3 @@ def comports():
 if __name__ == '__main__':
     for port, desc, hwid in sorted(comports()):
         print("%s: %s [%s]" % (port, desc, hwid))
-

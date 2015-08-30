@@ -20,6 +20,7 @@ try:
 except NameError:
     basestring = str    # python 3
 
+
 class Serial(serial.Serial):
     """Just inherit the native Serial port implementation and patch the port property."""
 
@@ -43,8 +44,6 @@ class Serial(serial.Serial):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __name__ == '__main__':
-    #~ s = Serial('hwgrep://ttyS0')
     s = Serial(None)
     s.port = 'hwgrep://ttyS0'
     print(s)
-

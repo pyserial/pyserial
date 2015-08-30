@@ -263,4 +263,3 @@ if __name__ == '__main__':
     s = Serial(None)
     s.port = 'spy:///dev/ttyS0'
     print(s)
-

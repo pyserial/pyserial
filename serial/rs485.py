@@ -15,8 +15,10 @@ NOTE: Some implementations may only support a subset of the settings.
 import time
 import serial
 
+
 class RS485Settings(object):
-    def __init__(self,
+    def __init__(
+            self,
             rts_level_for_tx=True,
             rts_level_for_rx=False,
             loopback=False,
@@ -57,7 +59,6 @@ class RS485(serial.Serial):
         super(RS485, self).__init__(*args, **kwargs)
         self._alternate_rs485_settings = None
 
-
     def write(self, b):
         """Write to port, controlling RTS before and after transmitting."""
         if self._alternate_rs485_settings is not None:
@@ -75,7 +76,6 @@ class RS485(serial.Serial):
         else:
             super(RS485, self).write(b)
 
-
     # redirect where the property stores the settings so that underlying Serial
     # instance does not see them
     @property
@@ -89,5 +89,3 @@ class RS485(serial.Serial):
     @rs485_mode.setter
     def rs485_mode(self, rs485_settings):
         self._alternate_rs485_settings = rs485_settings
-
-

@@ -17,6 +17,8 @@ implementation. It should be possible to get that working though.
 """
 import asyncio
 import serial
+import logger
+
 
 class SerialTransport(asyncio.Transport):
     def __init__(self, loop, protocol, serial_instance):
@@ -79,6 +81,7 @@ class SerialTransport(asyncio.Transport):
     #~ def writelines(self, list_of_data):
     #~ def write_eof(self):
     #~ def abort(self):
+
 
 @asyncio.coroutine
 def create_serial_connection(loop, protocol_factory, *args, **kwargs):

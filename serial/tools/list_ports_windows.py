@@ -7,17 +7,8 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
-import ctypes
 import re
-
-def ValidHandle(value, func, arguments):
-    if value == 0:
-        raise ctypes.WinError()
-    return value
-
-import serial
-from serial.win32 import ULONG_PTR, is_64bit
-from ctypes.wintypes import HANDLE
+import ctypes
 from ctypes.wintypes import BOOL
 from ctypes.wintypes import HWND
 from ctypes.wintypes import DWORD
@@ -27,6 +18,14 @@ from ctypes.wintypes import ULONG
 from ctypes.wintypes import LPCSTR
 from ctypes.wintypes import HKEY
 from ctypes.wintypes import BYTE
+import serial
+from serial.win32 import ULONG_PTR
+
+
+def ValidHandle(value, func, arguments):
+    if value == 0:
+        raise ctypes.WinError()
+    return value
 
 NULL = 0
 HDEVINFO = ctypes.c_void_p
@@ -45,11 +44,13 @@ def byte_buffer(length):
     """Get a buffer for a string"""
     return (BYTE*length)()
 
+
 def string(buffer):
     s = []
     for c in buffer:
-        if c == 0: break
-        s.append(chr(c & 0xff)) # "& 0xff": hack to convert signed to unsigned
+        if c == 0:
+            break
+        s.append(chr(c & 0xff))  # "& 0xff": hack to convert signed to unsigned
     return ''.join(s)
 
 
@@ -60,6 +61,7 @@ class GUID(ctypes.Structure):
         ('Data3', WORD),
         ('Data4', BYTE*8),
     ]
+
     def __str__(self):
         return "{%08x-%04x-%04x-%s-%s}" % (
             self.Data1,
@@ -69,6 +71,7 @@ class GUID(ctypes.Structure):
             ''.join(["%02x" % d for d in self.Data4[2:]]),
         )
 
+
 class SP_DEVINFO_DATA(ctypes.Structure):
     _fields_ = [
         ('cbSize', DWORD),
@@ -76,6 +79,7 @@ class SP_DEVINFO_DATA(ctypes.Structure):
         ('DevInst', DWORD),
         ('Reserved', ULONG_PTR),
     ]
+
     def __str__(self):
         return "ClassGuid:%s DevInst:%s" % (self.ClassGuid, self.DevInst)
 
@@ -134,11 +138,12 @@ DIREG_DEV = 0x00000001
 KEY_READ = 0x20019
 
 # workaround for compatibility between Python 2.x and 3.x
-Ports = serial.to_bytes([80, 111, 114, 116, 115]) # "Ports"
-PortName = serial.to_bytes([80, 111, 114, 116, 78, 97, 109, 101]) # "PortName"
+Ports = serial.to_bytes([80, 111, 114, 116, 115])  # "Ports"
+PortName = serial.to_bytes([80, 111, 114, 116, 78, 97, 109, 101])  # "PortName"
+
 
 def comports():
-    GUIDs = (GUID*8)() # so far only seen one used, so hope 8 are enough...
+    GUIDs = (GUID*8)()  # so far only seen one used, so hope 8 are enough...
     guids_size = DWORD()
     if not SetupDiClassGuidsFromName(
             Ports,
@@ -153,7 +158,7 @@ def comports():
                 ctypes.byref(GUIDs[index]),
                 None,
                 NULL,
-                DIGCF_PRESENT) # was DIGCF_PRESENT|DIGCF_DEVICEINTERFACE which misses CDC ports
+                DIGCF_PRESENT)  # was DIGCF_PRESENT|DIGCF_DEVICEINTERFACE which misses CDC ports
 
         devinfo = SP_DEVINFO_DATA()
         devinfo.cbSize = ctypes.sizeof(devinfo)
@@ -244,8 +249,5 @@ def comports():
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
 if __name__ == '__main__':
-    import serial
-
     for port, desc, hwid in sorted(comports()):
         print("%s: %s [%s]" % (port, desc, hwid))
-

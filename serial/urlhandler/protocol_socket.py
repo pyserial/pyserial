@@ -27,7 +27,7 @@ try:
 except ImportError:
     import urllib.parse as urlparse
 
-from serial.serialutil import *
+from serial.serialutil import SerialBase, SerialException, portNotOpenError, to_bytes
 
 # map log level names to constants. used in from_url()
 LOGGER_LEVELS = {
@@ -38,6 +38,7 @@ LOGGER_LEVELS = {
         }
 
 POLL_TIMEOUT = 2
+
 
 class Serial(SerialBase):
     """Serial port implementation for plain sockets."""
@@ -61,7 +62,7 @@ class Serial(SerialBase):
             self._socket = None
             raise SerialException("Could not open port %s: %s" % (self.portstr, msg))
 
-        self._socket.settimeout(POLL_TIMEOUT) # used for write timeout support :/
+        self._socket.settimeout(POLL_TIMEOUT)  # used for write timeout support :/
 
         # not that there anything to configure...
         self._reconfigure_port()
@@ -116,7 +117,8 @@ class Serial(SerialBase):
                     raise ValueError('unknown option: %r' % (option,))
             # get host and port
             host, port = parts.hostname, parts.port
-            if not 0 <= port < 65536: raise ValueError("port not in range 0...65535")
+            if not 0 <= port < 65536:
+                raise ValueError("port not in range 0...65535")
         except ValueError as e:
             raise SerialException('expected a string in the form "socket://<host>:<port>[?logging={debug|info|warning|error}]": %s' % e)
         return (host, port)
@@ -126,7 +128,8 @@ class Serial(SerialBase):
     @property
     def in_waiting(self):
         """Return the number of bytes currently in the input buffer."""
-        if not self.is_open: raise portNotOpenError
+        if not self.is_open:
+            raise portNotOpenError
         # Poll the socket to see if it is ready for reading.
         # If ready, at least one byte will be to read.
         lr, lw, lx = select.select([self._socket], [], [], 0)
@@ -138,7 +141,8 @@ class Serial(SerialBase):
         return less characters as requested. With no timeout it will block
         until the requested number of bytes is read.
         """
-        if not self.is_open: raise portNotOpenError
+        if not self.is_open:
+            raise portNotOpenError
         data = bytearray()
         if self._timeout is not None:
             timeout = time.time() + self._timeout
@@ -171,7 +175,8 @@ class Serial(SerialBase):
         connection is blocked. May raise SerialException if the connection is
         closed.
         """
-        if not self.is_open: raise portNotOpenError
+        if not self.is_open:
+            raise portNotOpenError
         try:
             self._socket.sendall(to_bytes(data))
         except socket.error as e:
@@ -181,7 +186,8 @@ class Serial(SerialBase):
 
     def reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
-        if not self.is_open: raise portNotOpenError
+        if not self.is_open:
+            raise portNotOpenError
         if self.logger:
             self.logger.info('ignored reset_input_buffer')
 
@@ -190,7 +196,8 @@ class Serial(SerialBase):
         Clear output buffer, aborting the current output and
         discarding all that is in the buffer.
         """
-        if not self.is_open: raise portNotOpenError
+        if not self.is_open:
+            raise portNotOpenError
         if self.logger:
             self.logger.info('ignored reset_output_buffer')
 
@@ -199,7 +206,8 @@ class Serial(SerialBase):
         Send break condition. Timed, returns to idle state after given
         duration.
         """
-        if not self.is_open: raise portNotOpenError
+        if not self.is_open:
+            raise portNotOpenError
         if self.logger:
             self.logger.info('ignored send_break(%r)' % (duration,))
 
@@ -222,7 +230,8 @@ class Serial(SerialBase):
     @property
     def cts(self):
         """Read terminal status line: Clear To Send"""
-        if not self.is_open: raise portNotOpenError
+        if not self.is_open:
+            raise portNotOpenError
         if self.logger:
             self.logger.info('returning dummy for cts')
         return True
@@ -230,7 +239,8 @@ class Serial(SerialBase):
     @property
     def dsr(self):
         """Read terminal status line: Data Set Ready"""
-        if not self.is_open: raise portNotOpenError
+        if not self.is_open:
+            raise portNotOpenError
         if self.logger:
             self.logger.info('returning dummy for dsr')
         return True
@@ -238,7 +248,8 @@ class Serial(SerialBase):
     @property
     def ri(self):
         """Read terminal status line: Ring Indicator"""
-        if not self.is_open: raise portNotOpenError
+        if not self.is_open:
+            raise portNotOpenError
         if self.logger:
             self.logger.info('returning dummy for ri')
         return False
@@ -246,7 +257,8 @@ class Serial(SerialBase):
     @property
     def cd(self):
         """Read terminal status line: Carrier Detect"""
-        if not self.is_open: raise portNotOpenError
+        if not self.is_open:
+            raise portNotOpenError
         if self.logger:
             self.logger.info('returning dummy for cd)')
         return True
