@@ -29,9 +29,19 @@ class SysFS(object):
             self.subsystem = os.path.basename(os.path.realpath(os.path.join(self.device_path, 'subsystem')))
         if self.subsystem in 'usb-serial':
             self.usb_device_path = os.path.dirname(os.path.dirname(self.device_path))
-        if self.subsystem in 'usb':
+        elif self.subsystem in 'usb':
             self.usb_device_path = os.path.dirname(self.device_path)
+        else:
+            self.usb_device_path = None
         #~ print repr(self.__dict__)
+        if self.usb_device_path is not None:
+            self.vid = self.read_line(self.usb_device_path, 'idVendor').upper()
+            self.pid = self.read_line(self.usb_device_path, 'idProduct').upper()
+            self.serial = self.read_line(self.usb_device_path, 'serial')
+        else:
+            self.vid = None
+            self.pid = None
+            self.serial = None
 
     def read_line(self, *args):
         """\
@@ -63,11 +73,10 @@ class SysFS(object):
     def hwinfo(self):
         """Get a hardware description string"""
         if self.subsystem in ('usb', 'usb-serial'):
-            snr = self.read_line(self.usb_device_path, 'serial')
             return 'USB VID:PID={}:{}{}'.format(
-                    self.read_line(self.usb_device_path, 'idVendor'),
-                    self.read_line(self.usb_device_path, 'idProduct'),
-                    ' SER={}'.format(snr) if snr is not None else '',
+                    self.vid,
+                    self.pid,
+                    ' SER={}'.format(self.serial) if self.serial is not None else '',
                     )
         elif self.subsystem == 'pnp':  # PCI based devices
             return self.read_line(self.device_path, 'id')
