@@ -142,6 +142,44 @@ Ports = serial.to_bytes([80, 111, 114, 116, 115])  # "Ports"
 PortName = serial.to_bytes([80, 111, 114, 116, 78, 97, 109, 101])  # "PortName"
 
 
+class WinInfo(object):
+    """Wrapper for device info"""
+
+    def __init__(self, dev):
+        self.dev = dev
+        self.description = None
+        self.hwid = None
+        self.vid = None
+        self.pid = None
+        self.serial = None
+
+    def describe(self):
+        """Get a human readable string"""
+        return self.description if self.description is not None else 'n/a'
+
+    def hwinfo(self):
+        """Get a hardware description string"""
+        if self.vid is not None:
+            return 'USB VID:PID={}:{}{}'.format(
+                    self.vid,
+                    self.pid,
+                    ' SER={}'.format(self.serial) if self.serial is not None else '',
+                    )
+        else:
+            return self.hwid
+
+    def __getitem__(self, index):
+        """Item access: backwards compatible -> (port, desc, hwid)"""
+        if index == 0:
+            return self.dev
+        elif index == 1:
+            return self.describe()
+        elif index == 2:
+            return self.hwinfo()
+        else:
+            raise IndexError('{} > 2'.format(index))
+
+
 def comports():
     GUIDs = (GUID*8)()  # so far only seen one used, so hope 8 are enough...
     guids_size = DWORD()
@@ -191,6 +229,7 @@ def comports():
             if string(port_name_buffer).startswith('LPT'):
                 continue
 
+
             # hardware ID
             szHardwareID = byte_buffer(250)
             # try to get ID that includes serial number
@@ -215,19 +254,22 @@ def comports():
             # stringify
             szHardwareID_str = string(szHardwareID)
 
+            info = WinInfo(string(port_name_buffer))
+            info.hwid = szHardwareID_str
+
             # in case of USB, make a more readable string, similar to that form
             # that we also generate on other platforms
             if szHardwareID_str.startswith('USB'):
                 m = re.search(r'VID_([0-9a-f]{4})&PID_([0-9a-f]{4})(\\(\w+))?', szHardwareID_str, re.I)
                 if m:
+                    info.vid = m.group(1)
+                    info.pid = m.group(2)
                     if m.group(4):
-                        szHardwareID_str = 'USB VID:PID=%s:%s SNR=%s' % (m.group(1), m.group(2), m.group(4))
-                    else:
-                        szHardwareID_str = 'USB VID:PID=%s:%s' % (m.group(1), m.group(2))
+                        info.serial = m.group(4)
 
             # friendly name
             szFriendlyName = byte_buffer(250)
-            if not SetupDiGetDeviceRegistryProperty(
+            if SetupDiGetDeviceRegistryProperty(
                     g_hdi,
                     ctypes.byref(devinfo),
                     SPDRP_FRIENDLYNAME,
@@ -236,15 +278,15 @@ def comports():
                     ctypes.byref(szFriendlyName),
                     ctypes.sizeof(szFriendlyName) - 1,
                     None):
+                info.description = string(szFriendlyName)
+            #~ else:
                 # Ignore ERROR_INSUFFICIENT_BUFFER
                 #~ if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
                     #~ raise IOError("failed to get details for %s (%s)" % (devinfo, szHardwareID.value))
                 # ignore errors and still include the port in the list, friendly name will be same as port name
-                yield string(port_name_buffer), 'n/a', szHardwareID_str
-            else:
-                yield string(port_name_buffer), string(szFriendlyName), szHardwareID_str
-
+            yield info
         SetupDiDestroyDeviceInfoList(g_hdi)
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
