@@ -13,123 +13,77 @@
 
 import glob
 import os
-import re
-import subprocess
 
 
-def read_command(argv):
-    """run a command and return its output"""
-    try:
-        return subprocess.check_output(argv, stderr=subprocess.STDOUT).strip().decode('ascii', 'replace')
-    except subprocess.SubprocessError as e:
-        raise IOError('command %r failed: %s' % (argv, e))
+class SysFS(object):
+    """Wrapper for easy sysfs access and device info"""
 
+    def __init__(self, dev_path):
+        self.dev = dev_path
+        self.name = os.path.basename(self.dev)
+        self.subsystem = None
+        self.device_path = None
+        self.usb_device_path = None
+        if os.path.exists('/sys/class/tty/%s/device' % (self.name,)):
+            self.device_path = os.path.realpath('/sys/class/tty/%s/device' % (self.name,))
+            self.subsystem = os.path.basename(os.path.realpath(os.path.join(self.device_path, 'subsystem')))
+        if self.subsystem in 'usb-serial':
+            self.usb_device_path = os.path.dirname(os.path.dirname(self.device_path))
+        if self.subsystem in 'usb':
+            self.usb_device_path = os.path.dirname(self.device_path)
+        #~ print repr(self.__dict__)
 
-def read_line(*args):
-    """\
-    Helper function to read a single line from a file.
-    One or more parameters are allowed, they are joined with os.path.join.
-    Returns None on errors..
-    """
-    try:
-        with open(os.path.join(*args)) as f:
-            line = f.readline().strip()
-        return line
-    except IOError:
-        return None
+    def read_line(self, *args):
+        """\
+        Helper function to read a single line from a file.
+        One or more parameters are allowed, they are joined with os.path.join.
+        Returns None on errors..
+        """
+        try:
+            with open(os.path.join(*args)) as f:
+                line = f.readline().strip()
+            return line
+        except IOError:
+            return None
 
+    def describe(self):
+        """Get a human readable string"""
+        if self.subsystem == 'usb-serial':
+            return '{} - {}'.format(
+                    self.read_line(self.usb_device_path, 'manufacturer'),
+                    self.read_line(self.usb_device_path, 'product'),
+                    )
+        elif self.subsystem == 'usb':  # CDC/ACM devices
+            return self.read_line(self.device_path, 'interface')
+        elif self.subsystem == 'pnp':  # PCI based devices
+            return self.name
+        else:
+            return 'n/a'
 
-def re_group(regexp, text):
-    """search for regexp in text, return 1st group on match"""
-    m = re.search(regexp, text)
-    if m:
-        return m.group(1)
-    else:
-        return None
+    def hwinfo(self):
+        """Get a hardware description string"""
+        if self.subsystem in ('usb', 'usb-serial'):
+            snr = self.read_line(self.usb_device_path, 'serial')
+            return 'USB VID:PID={}:{}{}'.format(
+                    self.read_line(self.usb_device_path, 'idVendor'),
+                    self.read_line(self.usb_device_path, 'idProduct'),
+                    ' SER={}'.format(snr) if snr is not None else '',
+                    )
+        elif self.subsystem == 'pnp':  # PCI based devices
+            return self.read_line(self.device_path, 'id')
+        else:
+            return 'n/a'
 
-
-# try to extract descriptions from sysfs. this was done by experimenting,
-# no guarantee that it works for all devices or in the future...
-
-def usb_sysfs_hw_string(sysfs_path):
-    """given a path to a usb device in sysfs, return a string describing it"""
-    bus, dev = os.path.basename(os.path.realpath(sysfs_path)).split('-')
-    snr = read_line(sysfs_path, 'serial')
-    if snr is not None:
-        snr_txt = ' SNR=%s' % (snr,)
-    else:
-        snr_txt = ''
-    return 'USB VID:PID=%s:%s%s' % (
-            read_line(sysfs_path, 'idVendor'),
-            read_line(sysfs_path, 'idProduct'),
-            snr_txt
-            )
-
-
-def usb_lsusb_string(sysfs_path):
-    base = os.path.basename(os.path.realpath(sysfs_path))
-    bus = base.split('-')[0]
-    try:
-        dev = int(read_line(sysfs_path, 'devnum'))
-        desc = read_command(['lsusb', '-v', '-s', '%s:%s' % (bus, dev)])
-    except IOError:
-        return base
-    else:
-        # descriptions from device
-        iManufacturer = re_group('iManufacturer\s+\w+ (.+)', desc)
-        iProduct = re_group('iProduct\s+\w+ (.+)', desc)
-        iSerial = re_group('iSerial\s+\w+ (.+)', desc) or ''
-        # descriptions from kernel
-        idVendor = re_group('idVendor\s+0x\w+ (.+)', desc)
-        idProduct = re_group('idProduct\s+0x\w+ (.+)', desc)
-        # create descriptions. prefer text from device, fall back to the others
-        return '%s %s %s' % (iManufacturer or idVendor, iProduct or idProduct, iSerial)
-
-
-def describe(device):
-    """\
-    Get a human readable description.
-    For USB-Serial devices try to run lsusb to get a human readable description.
-    For USB-CDC devices read the description from sysfs.
-    """
-    base = os.path.basename(device)
-    # USB-Serial devices
-    sys_dev_path = '/sys/class/tty/%s/device/driver/%s' % (base, base)
-    if os.path.exists(sys_dev_path):
-        sys_usb = os.path.dirname(os.path.dirname(os.path.realpath(sys_dev_path)))
-        return usb_lsusb_string(sys_usb)
-    # USB-CDC devices
-    sys_dev_path = '/sys/class/tty/%s/device/interface' % (base,)
-    if os.path.exists(sys_dev_path):
-        return read_line(sys_dev_path)
-    # USB Product Information
-    sys_dev_path = '/sys/class/tty/%s/device' % (base,)
-    if os.path.exists(sys_dev_path):
-        product_name_file = os.path.dirname(os.path.realpath(sys_dev_path)) + "/product"
-        if os.path.exists(product_name_file):
-            return read_line(product_name_file)
-    return base
-
-
-def hwinfo(device):
-    """Try to get a HW identification using sysfs"""
-    base = os.path.basename(device)
-    if os.path.exists('/sys/class/tty/%s/device' % (base,)):
-        # PCI based devices
-        sys_id_path = '/sys/class/tty/%s/device/id' % (base,)
-        if os.path.exists(sys_id_path):
-            return read_line(sys_id_path)
-        # USB-Serial devices
-        sys_dev_path = '/sys/class/tty/%s/device/driver/%s' % (base, base)
-        if os.path.exists(sys_dev_path):
-            sys_usb = os.path.dirname(os.path.dirname(os.path.realpath(sys_dev_path)))
-            return usb_sysfs_hw_string(sys_usb)
-        # USB-CDC devices
-        if base.startswith('ttyACM'):
-            sys_dev_path = '/sys/class/tty/%s/device' % (base,)
-            if os.path.exists(sys_dev_path):
-                return usb_sysfs_hw_string(sys_dev_path + '/..')
-    return 'n/a'    # XXX directly remove these from the list?
+    def __getitem__(self, index):
+        """Item access: backwards compatible -> (port, desc, hwid)"""
+        if index == 0:
+            return self.dev
+        elif index == 1:
+            return self.describe()
+        elif index == 2:
+            return self.hwinfo()
+        else:
+            raise IndexError('{} > 2'.format(index))
 
 
 def comports():
@@ -137,7 +91,9 @@ def comports():
     devices.extend(glob.glob('/dev/ttyUSB*'))   # usb-serial with own driver
     devices.extend(glob.glob('/dev/ttyACM*'))   # usb-serial with CDC-ACM profile
     devices.extend(glob.glob('/dev/rfcomm*'))   # BT serial devices
-    return [(d, describe(d), hwinfo(d)) for d in devices]
+    return [info
+            for info in [SysFS(d) for d in devices]
+            if info.subsystem != "platform"]    # hide non-present internal serial ports
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
