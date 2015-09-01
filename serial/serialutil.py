@@ -416,7 +416,7 @@ class SerialBase(io.RawIOBase):
 
     _SAVED_SETTINGS = ('baudrate', 'bytesize', 'parity', 'stopbits', 'xonxoff',
                        'dsrdtr', 'rtscts', 'timeout', 'write_timeout',
-                       'inter_character_timeout')
+                       'inter_byte_timeout')
 
     def get_settings(self):
         """\
