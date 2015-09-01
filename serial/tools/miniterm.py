@@ -666,7 +666,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
     parser.add_argument(
             "port",
             nargs='?',
-            help="serial port name",
+            help="serial port name ('-' to show port list)",
             default=default_port)
 
     parser.add_argument(
@@ -782,7 +782,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         parser.error('--exit-char can not be the same as --menu-char')
 
     # no port given on command line -> ask user now
-    if args.port is None:
+    if args.port is None or args.port == '-':
         try:
             args.port = ask_for_port()
         except KeyboardInterrupt:
