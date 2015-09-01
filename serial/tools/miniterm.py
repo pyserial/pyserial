@@ -278,15 +278,38 @@ TRANSFORMATIONS = {
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-def dump_port_list():
-    if comports:
-        sys.stderr.write('\n--- Available ports:\n')
-        for port, desc, hwid in sorted(comports()):
-            #~ sys.stderr.write('--- %-20s %s [%s]\n' % (port, desc, hwid))
-            sys.stderr.write('--- %-20s %s\n' % (port, desc))
+def ask_for_port():
+    """\
+    Show a list of ports and ask the user for a choice. To make selection
+    easier on systems with long device names, also allow the input of an
+    index.
+    """
+    sys.stderr.write('\n--- Available ports:\n')
+    ports = []
+    for n, (port, desc, hwid) in enumerate(sorted(comports()), 1):
+        #~ sys.stderr.write('--- %-20s %s [%s]\n' % (port, desc, hwid))
+        sys.stderr.write('--- {:2}: {:20} {}\n'.format(n, port, desc))
+        ports.append(port)
+    while True:
+        port = raw_input('--- Enter port index or full name: ')
+        try:
+            index = int(port) - 1
+            if not 0 <= index < len(ports):
+                sys.stderr.write('--- Invalid index!\n')
+                continue
+        except ValueError:
+            pass
+        else:
+            port = ports[index]
+        return port
 
 
 class Miniterm(object):
+    """\
+    Terminal application. Copy data from serial port to console and vice versa.
+    Handle special keys from the console to show menu etc.
+    """
+
     def __init__(self, serial_instance, echo=False, eol='crlf', filters=()):
         self.console = Console()
         self.serial = serial_instance
@@ -511,12 +534,9 @@ class Miniterm(object):
         #~ elif c == '\x01':                       # CTRL+A -> cycle escape mode
         #~ elif c == '\x0c':                       # CTRL+L -> cycle linefeed mode
         elif c in 'pP':                         # P -> change port
-            dump_port_list()
-            sys.stderr.write('--- Enter port name: ')
-            sys.stderr.flush()
             with self.console:
                 try:
-                    port = sys.stdin.readline().strip()
+                    port = ask_for_port()
                 except KeyboardInterrupt:
                     port = None
             if port and port != self.serial.port:
@@ -528,10 +548,10 @@ class Miniterm(object):
                     new_serial = serial.serial_for_url(port, do_not_open=True)
                     # restore settings and open
                     new_serial.applySettingsDict(settings)
+                    new_serial.rts = self.serial.rts
+                    new_serial.dtr = self.serial.dtr
                     new_serial.open()
-                    new_serial.setRTS(self.rts_state)
-                    new_serial.setDTR(self.dtr_state)
-                    new_serial.setBreak(self.break_state)
+                    new_serial.break_condition = self.serial.break_condition
                 except Exception as e:
                     sys.stderr.write('--- ERROR opening new port: {} ---\n'.format(e))
                     new_serial.close()
@@ -763,8 +783,14 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
 
     # no port given on command line -> ask user now
     if args.port is None:
-        dump_port_list()
-        args.port = raw_input('Enter port name:')
+        try:
+            args.port = ask_for_port()
+        except KeyboardInterrupt:
+            sys.stderr.write('\n')
+            parser.error('user aborted and port is not given')
+        else:
+            if not args.port:
+                parser.error('port is not given')
 
     if args.filter:
         if 'help' in args.filter:
