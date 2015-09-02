@@ -303,7 +303,7 @@ class SerialBase(io.RawIOBase):
     @property
     def inter_byte_timeout(self):
         """Get the current inter-character timeout setting."""
-        return self._interCharTimeout
+        return self._inter_byte_timeout
 
     @inter_byte_timeout.setter
     def inter_byte_timeout(self, ic_timeout):
@@ -544,11 +544,11 @@ class SerialBase(io.RawIOBase):
 
     @property
     def interCharTimeout(self):
-        return self.inter_character_timeout
+        return self.inter_byte_timeout
 
     @interCharTimeout.setter
     def interCharTimeout(self, interCharTimeout):
-        self.inter_character_timeout = interCharTimeout
+        self.inter_byte_timeout = interCharTimeout
 
     def getSettingsDict(self):
         return self.get_settings()
