@@ -29,7 +29,7 @@ PORT = 0
 
 
 SETTINGS = ('baudrate', 'bytesize', 'parity', 'stopbits', 'xonxoff',
-            'dsrdtr', 'rtscts', 'timeout', 'writeTimeout', 'interCharTimeout')
+            'dsrdtr', 'rtscts', 'timeout', 'write_timeout', 'inter_byte_timeout')
 
 
 class Test_SettingsDict(unittest.TestCase):
@@ -44,24 +44,24 @@ class Test_SettingsDict(unittest.TestCase):
 
     def test_getsettings(self):
         """the settings dict reflects the current settings"""
-        d = self.s.getSettingsDict()
+        d = self.s.get_settings()
         for setting in SETTINGS:
             self.failUnlessEqual(getattr(self.s, setting), d[setting])
 
     def test_partial_settings(self):
         """partial settings dictionaries are also accepted"""
-        d = self.s.getSettingsDict()
+        d = self.s.get_settings()
         del d['baudrate']
         del d['bytesize']
-        self.s.applySettingsDict(d)
+        self.s.apply_settings(d)
         for setting in d:
             self.failUnlessEqual(getattr(self.s, setting), d[setting])
 
     def test_unknown_settings(self):
         """unknown settings are ignored"""
-        d = self.s.getSettingsDict()
+        d = self.s.get_settings()
         d['foobar'] = 'ignore me'
-        self.s.applySettingsDict(d)
+        self.s.apply_settings(d)
 
 
 if __name__ == '__main__':

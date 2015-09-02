@@ -9,7 +9,6 @@ summary.
 import unittest
 import sys
 import os
-import time
 
 # inject local copy to avoid testing the installed version instead of the
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))

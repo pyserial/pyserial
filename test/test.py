@@ -72,7 +72,7 @@ class Test4_Nonblocking(unittest.TestCase):
             self.s.write(block)
             # there might be a small delay until the character is ready (especially on win32)
             time.sleep(0.05)
-            self.failUnlessEqual(self.s.inWaiting(), length, "expected exactly %d character for inWainting()" % length)
+            self.failUnlessEqual(self.s.in_waiting, length, "expected exactly %d character for inWainting()" % length)
             self.failUnlessEqual(self.s.read(length), block)#, "expected a %r which was written before" % block)
         self.failUnlessEqual(self.s.read(1), data(''), "expected empty buffer after all sent chars are read")
 
@@ -148,8 +148,8 @@ class Test2_Forever(unittest.TestCase):
         self.s.close()
 
     def test1_inWaitingEmpty(self):
-        """no timeout: after port open, the input buffer must be empty (inWaiting)"""
-        self.failUnlessEqual(self.s.inWaiting(), 0, "expected empty buffer")
+        """no timeout: after port open, the input buffer must be empty (in_waiting)"""
+        self.failUnlessEqual(self.s.in_waiting, 0, "expected empty buffer")
 
     def test2_Loopback(self):
         """no timeout: each sent character should return (binary test).
@@ -159,9 +159,9 @@ class Test2_Forever(unittest.TestCase):
             self.s.write(block)
             # there might be a small delay until the character is ready (especially on win32 and rfc2217)
             time.sleep(0.05)
-            self.failUnlessEqual(self.s.inWaiting(), length)#, "expected exactly %d character for inWainting()" % length)
+            self.failUnlessEqual(self.s.in_waiting, length)#, "expected exactly %d character for inWainting()" % length)
             self.failUnlessEqual(self.s.read(length), block) #, "expected %r which was written before" % block)
-        self.failUnlessEqual(self.s.inWaiting(), 0, "expected empty buffer after all sent chars are read")
+        self.failUnlessEqual(self.s.in_waiting, 0, "expected empty buffer after all sent chars are read")
 
 
 class Test0_DataWires(unittest.TestCase):
@@ -174,25 +174,25 @@ class Test0_DataWires(unittest.TestCase):
 
     def test1_RTS(self):
         """Test RTS/CTS"""
-        self.s.setRTS(0)
+        self.s.rts = False
         time.sleep(1.1)
-        self.failUnless(not self.s.getCTS(), "CTS -> 0")
-        self.s.setRTS(1)
+        self.failUnless(not self.s.cts, "CTS -> 0")
+        self.s.rts = True
         time.sleep(1.1)
-        self.failUnless(self.s.getCTS(), "CTS -> 1")
+        self.failUnless(self.s.cts, "CTS -> 1")
 
     def test2_DTR(self):
         """Test DTR/DSR"""
-        self.s.setDTR(0)
+        self.s.dtr = False
         time.sleep(1.1)
-        self.failUnless(not self.s.getDSR(), "DSR -> 0")
-        self.s.setDTR(1)
+        self.failUnless(not self.s.dsr, "DSR -> 0")
+        self.s.dtr = True
         time.sleep(1.1)
-        self.failUnless(self.s.getDSR(), "DSR -> 1")
+        self.failUnless(self.s.dsr, "DSR -> 1")
 
     def test3_RI(self):
         """Test RI"""
-        self.failUnless(not self.s.getRI(), "RI -> 0")
+        self.failUnless(not self.s.ri, "RI -> 0")
 
 
 class Test_MoreTimeouts(unittest.TestCase):
