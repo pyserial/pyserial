@@ -538,6 +538,7 @@ Bugfixes (posix):
 - clear OCRNL/ONLCR flags (CR/LF translation settings)
 - [Feature pyserial:38] RS485 Support
 - [Bug pyserial:170] list_ports_posix not working properly for Cygwin
+- [Bug pyserial:187] improve support for FreeBSD (list_ports_posix)
 
 Bugfixes (win32):
 

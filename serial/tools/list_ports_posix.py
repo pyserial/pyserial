@@ -47,7 +47,7 @@ elif plat[:3] == 'bsd' or  \
         plat[:7] == 'freebsd':
 
     def comports():
-        devices = glob.glob('/dev/cuad*')
+        devices = glob.glob('/dev/cua*[!.init][!.lock]')
         return [(d, d, d) for d in devices]
 
 elif plat[:6] == 'darwin':   # OS X (confirmed)
