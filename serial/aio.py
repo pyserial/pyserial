@@ -97,7 +97,7 @@ if __name__ == '__main__':
         def connection_made(self, transport):
             self.transport = transport
             print('port opened', transport)
-            transport.serial.setRTS(0)
+            transport.serial.rts = False
             transport.write(b'hello world\n')
 
         def data_received(self, data):
