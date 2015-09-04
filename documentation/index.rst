@@ -25,8 +25,10 @@ Contents:
 
     pyserial
     shortintro
-    examples
     pyserial_api
+    tools
+    url_handlers
+    examples
     appendix
 
 Indices and tables
