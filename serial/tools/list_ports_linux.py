@@ -83,6 +83,12 @@ class SysFS(object):
         else:
             return 'n/a'
 
+    def __eq__(self, other):
+        return self.dev == other.dev
+
+    def __lt__(self, other):
+        return self.dev < other.dev
+
     def __getitem__(self, index):
         """Item access: backwards compatible -> (port, desc, hwid)"""
         if index == 0:
