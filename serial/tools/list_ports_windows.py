@@ -22,6 +22,22 @@ import serial
 from serial.win32 import ULONG_PTR
 
 
+def numsplit(text):
+    """\
+    Convert string into a list of texts and numbers in order to support a
+    natural sorting.
+    """
+    result = []
+    for group in re.split(r'(\d+)', text):
+        if group:
+            try:
+                group = int(group)
+            except ValueError:
+                pass
+            result.append(group)
+    return result
+
+
 def ValidHandle(value, func, arguments):
     if value == 0:
         raise ctypes.WinError()
@@ -169,7 +185,7 @@ class WinInfo(object):
             return self.hwid
 
     def __eq__(self, other):
-        return self.dev == other.dev
+        return numsplit(self.dev) < numsplit(other.dev)
 
     def __lt__(self, other):
         return self.dev < other.dev
@@ -234,7 +250,6 @@ def comports():
             # and hope that other "unknown" names are serial ports...
             if string(port_name_buffer).startswith('LPT'):
                 continue
-
 
             # hardware ID
             szHardwareID = byte_buffer(250)

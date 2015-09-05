@@ -12,7 +12,24 @@
 # SPDX-License-Identifier:    BSD-3-Clause
 
 import glob
+import re
 import os
+
+
+def numsplit(text):
+    """\
+    Convert string into a list of texts and numbers in order to support a
+    natural sorting.
+    """
+    result = []
+    for group in re.split(r'(\d+)', text):
+        if group:
+            try:
+                group = int(group)
+            except ValueError:
+                pass
+            result.append(group)
+    return result
 
 
 class SysFS(object):
@@ -87,7 +104,7 @@ class SysFS(object):
         return self.dev == other.dev
 
     def __lt__(self, other):
-        return self.dev < other.dev
+        return numsplit(self.dev) < numsplit(other.dev)
 
     def __getitem__(self, index):
         """Item access: backwards compatible -> (port, desc, hwid)"""
