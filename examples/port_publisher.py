@@ -37,8 +37,7 @@ except ImportError:
         DBUS_INTERFACE_SERVER = "org.freedesktop.Avahi.Server"
         DBUS_INTERFACE_ENTRY_GROUP = DBUS_NAME + ".EntryGroup"
         IF_UNSPEC = -1
-        PROTO_UNSPEC, PROTO_INET, PROTO_INET6  = -1, 0, 1
-
+        PROTO_UNSPEC, PROTO_INET, PROTO_INET6 = -1, 0, 1
 
 
 class ZeroconfService:
@@ -90,7 +89,6 @@ class ZeroconfService:
         return "%r @ %s:%s (%s)" % (self.name, self.host, self.port, self.stype)
 
 
-
 class Forwarder(ZeroconfService):
     """\
     Single port serial<->TCP/IP forarder that depends on an external select
@@ -113,13 +111,14 @@ class Forwarder(ZeroconfService):
         self.serial.timeout = 0
         self.socket = None
         self.server_socket = None
-        self.rfc2217 = None # instantiate later, when connecting
+        self.rfc2217 = None  # instantiate later, when connecting
 
     def __del__(self):
         try:
-            if self.alive: self.close()
+            if self.alive:
+                self.close()
         except:
-            pass # XXX errors on shutdown
+            pass  # XXX errors on shutdown
 
     def open(self):
         """open serial port, start network server and publish service"""
@@ -128,12 +127,12 @@ class Forwarder(ZeroconfService):
 
         # open serial port
         try:
+            self.serial.rts = False
             self.serial.open()
-            self.serial.setRTS(False)
         except Exception as msg:
             self.handle_serial_error(msg)
 
-        self.serial_settings_backup = self.serial.getSettingsDict()
+        self.serial_settings_backup = self.serial.get_settings()
 
         # start the socket server
         # XXX add IPv6 support: use getaddrinfo for socket options, bind to multiple sockets?
@@ -149,7 +148,7 @@ class Forwarder(ZeroconfService):
         )
         self.server_socket.setblocking(0)
         try:
-            self.server_socket.bind( ('', self.network_port) )
+            self.server_socket.bind(('', self.network_port))
             self.server_socket.listen(1)
         except socket.error as msg:
             self.handle_server_error()
@@ -169,7 +168,8 @@ class Forwarder(ZeroconfService):
             self.log.info("%s: closing..." % (self.device, ))
         self.alive = False
         self.unpublish()
-        if self.server_socket: self.server_socket.close()
+        if self.server_socket:
+            self.server_socket.close()
         if self.socket:
             self.handle_disconnect()
         self.serial.close()
@@ -210,7 +210,6 @@ class Forwarder(ZeroconfService):
             # check the server socket
             read_map[self.server_socket] = self.handle_connect
             error_map[self.server_socket] = self.handle_server_error
-
 
     def handle_serial_read(self):
         """Reading from serial port"""
@@ -293,8 +292,8 @@ class Forwarder(ZeroconfService):
             self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             if self.log is not None:
                 self.log.warning('%s: Connected by %s:%s' % (self.device, addr[0], addr[1]))
-            self.serial.setRTS(True)
-            self.serial.setDTR(True)
+            self.serial.rts = True
+            self.serial.dtr = True
             if self.log is not None:
                 self.rfc2217 = serial.rfc2217.PortManager(self.serial, self, logger=log.getChild(self.device))
             else:
@@ -313,11 +312,11 @@ class Forwarder(ZeroconfService):
         """Socket gets disconnected"""
         # signal disconnected terminal with control lines
         try:
-            self.serial.setRTS(False)
-            self.serial.setDTR(False)
+            self.serial.rts = False
+            self.serial.dtr = False
         finally:
             # restore original port configuration in case it was changed
-            self.serial.applySettingsDict(self.serial_settings_backup)
+            self.serial.apply_settings(self.serial_settings_backup)
             # stop RFC 2217 state machine
             self.rfc2217 = None
             # clear send buffer
@@ -339,7 +338,7 @@ def test():
 
 if __name__ == '__main__':
     import logging
-    import optparse
+    import argparse
 
     VERBOSTIY = [
             logging.ERROR,      # 0
@@ -348,86 +347,86 @@ if __name__ == '__main__':
             logging.DEBUG,      # 3
             ]
 
-    parser = optparse.OptionParser(usage="""\
-%prog [options]
+    parser = argparse.ArgumentParser(usage="""\
+%(prog)s [options]
 
 Announce the existence of devices using zeroconf and provide
 a TCP/IP <-> serial port gateway (implements RFC 2217).
 
-Note that the TCP/IP server is not protected. Everyone can connect
-to it!
-
 If running as daemon, write to syslog. Otherwise write to stdout.
+""",
+        epilog="""\
+NOTE: no security measures are implemented. Anyone can remotely connect
+to this service over the network.
+
+Only one connection at once, per port, is supported. When the connection is
+terminated, it waits for the next connect.
 """)
 
-    group = optparse.OptionGroup(parser, "Serial Port Settings")
+    group = parser.add_argument_group("serial port settings")
 
-    group.add_option("--ports-regex",
-            dest="ports_regex",
-            help="specify a regex to search against the serial devices and their descriptions (default: %default)",
+    group.add_argument(
+            "--ports-regex",
+            help="specify a regex to search against the serial devices and their descriptions (default: %(default)s)",
             default='/dev/ttyUSB[0-9]+',
             metavar="REGEX")
 
-    parser.add_option_group(group)
+    group = parser.add_argument_group("network settings")
 
-    group = optparse.OptionGroup(parser, "Network Settings")
-
-    group.add_option("--tcp-port",
+    group.add_argument(
+            "--tcp-port",
             dest="base_port",
-            help="specify lowest TCP port number (default: %default)",
+            help="specify lowest TCP port number (default: %(default)s)",
             default=7000,
-            type='int',
+            type=int,
             metavar="PORT")
 
-    parser.add_option_group(group)
+    group = parser.add_argument_group("daemon")
 
-    group = optparse.OptionGroup(parser, "Daemon")
-
-    group.add_option("-d", "--daemon",
+    group.add_argument(
+            "-d", "--daemon",
             dest="daemonize",
             action="store_true",
             help="start as daemon",
             default=False)
 
-    group.add_option("--pidfile",
-            dest="pid_file",
+    group.add_argument(
+            "--pidfile",
             help="specify a name for the PID file",
             default=None,
             metavar="FILE")
 
-    parser.add_option_group(group)
+    group = parser.add_argument_group("diagnostics")
 
-    group = optparse.OptionGroup(parser, "Diagnostics")
-
-    group.add_option("-o", "--logfile",
-            dest="log_file",
+    group.add_argument(
+            "-o", "--logfile",
             help="write messages file instead of stdout",
             default=None,
             metavar="FILE")
 
-    group.add_option("-q", "--quiet",
+    group.add_argument(
+            "-q", "--quiet",
             dest="verbosity",
             action="store_const",
             const=0,
             help="suppress most diagnostic messages",
-            default=False)
-
-    group.add_option("-v", "--verbose",
-            dest="verbosity",
-            action="count",
-            help="increase diagnostic messages",
             default=1)
 
-    parser.add_option_group(group)
+    group.add_argument(
+            "-v", "--verbose",
+            dest="verbosity",
+            action="count",
+            help="increase diagnostic messages")
 
-    (options, args) = parser.parse_args()
+
+    args = parser.parse_args()
 
     # set up logging
-    logging.basicConfig(level=VERBOSTIY[min(options.verbosity, len(VERBOSTIY) - 1)])
+    logging.basicConfig(level=VERBOSTIY[min(args.verbosity, len(VERBOSTIY) - 1)])
     log = logging.getLogger('port_publisher')
 
     # redirect output if specified
-    if options.log_file is not None:
+    if args.logfile is not None:
         class WriteFlushed:
             def __init__(self, fileobj):
                 self.fileobj = fileobj
@@ -436,13 +435,12 @@ If running as daemon, write to syslog. Otherwise write to stdout.
                 self.fileobj.flush()
             def close(self):
                 self.fileobj.close()
-        sys.stdout = sys.stderr = WriteFlushed(open(options.log_file, 'a'))
+        sys.stdout = sys.stderr = WriteFlushed(open(args.logfile, 'a'))
         # atexit.register(lambda: sys.stdout.close())
 
-    if options.daemonize:
+    if args.daemonize:
         # if running as daemon is requested, do the fork magic
-        # options.quiet = True
-        import pwd
+        # args.quiet = True
         # do the UNIX double-fork magic, see Stevens' "Advanced
         # Programming in the UNIX Environment" for details (ISBN 0201563177)
         try:
@@ -464,14 +462,14 @@ If running as daemon, write to syslog. Otherwise write to stdout.
             pid = os.fork()
             if pid > 0:
                 # exit from second parent, save eventual PID before
-                if options.pid_file is not None:
-                    open(options.pid_file, 'w').write("%d" % pid)
+                if args.pidfile is not None:
+                    open(args.pidfile, 'w').write("%d" % pid)
                 sys.exit(0)
         except OSError as e:
             log.critical("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
             sys.exit(1)
 
-        if options.log_file is None:
+        if args.logfile is None:
             import syslog
             syslog.openlog("serial port publisher")
             # redirect output to syslog
@@ -519,7 +517,7 @@ If running as daemon, write to syslog. Otherwise write to stdout.
             now = time.time()
             if now > next_check:
                 next_check = now + 5
-                connected = [d for d, p, i in serial.tools.list_ports.grep(options.ports_regex)]
+                connected = [d for d, p, i in serial.tools.list_ports.grep(args.ports_regex)]
                 # Handle devices that are published, but no longer connected
                 for device in set(published).difference(connected):
                     log.info("unpublish: %s" % (published[device]))
@@ -527,7 +525,7 @@ If running as daemon, write to syslog. Otherwise write to stdout.
                 # Handle devices that are connected but not yet published
                 for device in set(connected).difference(published):
                     # Find the first available port, starting from 7000
-                    port = options.base_port
+                    port = args.base_port
                     ports_in_use = [f.network_port for f in published.values()]
                     while port in ports_in_use:
                         port += 1

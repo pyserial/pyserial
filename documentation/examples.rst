@@ -142,6 +142,39 @@ the network sockets and therefore runs on POSIX systems only.
   request from the client (i.e. use the ``poll_modem`` option in the URL when
   using a pySerial client.)
 
+::
+
+    usage: port_publisher.py [options]
+
+    Announce the existence of devices using zeroconf and provide
+    a TCP/IP <-> serial port gateway (implements RFC 2217).
+
+    If running as daemon, write to syslog. Otherwise write to stdout.
+
+    optional arguments:
+      -h, --help            show this help message and exit
+
+    serial port settings:
+      --ports-regex REGEX   specify a regex to search against the serial devices
+                            and their descriptions (default: /dev/ttyUSB[0-9]+)
+
+    network settings:
+      --tcp-port PORT       specify lowest TCP port number (default: 7000)
+
+    daemon:
+      -d, --daemon          start as daemon
+      --pidfile FILE        specify a name for the PID file
+
+    diagnostics:
+      -o FILE, --logfile FILE
+                            write messages file instead of stdout
+      -q, --quiet           suppress most diagnostic messages
+      -v, --verbose         increase diagnostic messages
+
+    NOTE: no security measures are implemented. Anyone can remotely connect to
+    this service over the network. Only one connection at once, per port, is
+    supported. When the connection is terminated, it waits for the next connect.
+
 Requirements:
 
 - Python (>= 2.4)
