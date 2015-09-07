@@ -36,50 +36,34 @@ below gives the client much more control over the remote serial port.
 
 ::
 
-    Usage: tcp_serial_redirect.py [options] [port [baudrate]]
+    usage: tcp_serial_redirect.py [-h] [-q] [--parity {N,E,O,S,M}] [--rtscts]
+                                  [--xonxoff] [--rts RTS] [--dtr DTR]
+                                  [-P LOCALPORT]
+                                  SERIALPORT [BAUDRATE]
 
     Simple Serial to Network (TCP/IP) redirector.
 
-    Options:
+    positional arguments:
+      SERIALPORT            serial port name
+      BAUDRATE              set baud rate, default: 9600
+
+    optional arguments:
       -h, --help            show this help message and exit
       -q, --quiet           suppress non error messages
-      --spy                 peek at the communication and print all data to the
-                            console
 
-      Serial Port:
-        Serial port settings
+    serial port:
+      --parity {N,E,O,S,M}  set parity, one of {N E O S M}, default: N
+      --rtscts              enable RTS/CTS flow control (default off)
+      --xonxoff             enable software flow control (default off)
+      --rts RTS             set initial RTS line state (possible values: 0, 1)
+      --dtr DTR             set initial DTR line state (possible values: 0, 1)
 
-        -p PORT, --port=PORT
-                            port, a number (default 0) or a device name
-        -b BAUDRATE, --baud=BAUDRATE
-                            set baud rate, default: 9600
-        --parity=PARITY     set parity, one of [N, E, O], default=N
-        --rtscts            enable RTS/CTS flow control (default off)
-        --xonxoff           enable software flow control (default off)
-        --rts=RTS_STATE     set initial RTS line state (possible values: 0, 1)
-        --dtr=DTR_STATE     set initial DTR line state (possible values: 0, 1)
-
-      Network settings:
-        Network configuration.
-
-        -P LOCAL_PORT, --localport=LOCAL_PORT
+    network settings:
+      -P LOCALPORT, --localport LOCALPORT
                             local TCP port
-        --rfc2217           allow control commands with Telnet extension RFC-2217
-
-      Newline Settings:
-        Convert newlines between network and serial port. Conversion is
-        normally disabled and can be enabled by --convert.
-
-        -c, --convert       enable newline conversion (default off)
-        --net-nl=NET_NEWLINE
-                            type of newlines that are expected on the network
-                            (default: LF)
-        --ser-nl=SER_NEWLINE
-                            type of newlines that are expected on the serial port
-                            (default: CR+LF)
 
     NOTE: no security measures are implemented. Anyone can remotely connect to
-    this service over the network.  Only one connection at once is supported. When
+    this service over the network. Only one connection at once is supported. When
     the connection is terminated it waits for the next connect.
 
 
@@ -105,17 +89,22 @@ portable (runs on POSIX, Windows, etc).
 
 ::
 
-    Usage: rfc2217_server.py [options] port
+    usage: rfc2217_server.py [-h] [-p TCPPORT] [-v] SERIALPORT
 
     RFC 2217 Serial to Network (TCP/IP) redirector.
 
-    Options:
+    positional arguments:
+      SERIALPORT
+
+    optional arguments:
       -h, --help            show this help message and exit
-      -p LOCAL_PORT, --localport=LOCAL_PORT
-                            local TCP port
+      -p TCPPORT, --localport TCPPORT
+                            local TCP port, default: 2217
+      -v, --verbose         print more diagnostic messages (option can be given
+                            multiple times)
 
     NOTE: no security measures are implemented. Anyone can remotely connect to
-    this service over the network.  Only one connection at once is supported. When
+    this service over the network. Only one connection at once is supported. When
     the connection is terminated it waits for the next connect.
 
 .. versionadded:: 2.5
