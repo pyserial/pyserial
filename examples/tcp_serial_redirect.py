@@ -7,71 +7,31 @@
 # SPDX-License-Identifier:    BSD-3-Clause
 
 import sys
-import os
-import time
-import threading
 import socket
 import serial
+import serial.threaded
 
-class Redirector(object):
-    def __init__(self, serial_instance, socket):
-        self.serial = serial_instance
-        self.socket = socket
 
-    def shortcircuit(self):
-        """connect the serial port to the TCP port by copying everything
-           from one side to the other"""
-        self.alive = True
-        self.thread_read = threading.Thread(target=self.reader)
-        self.thread_read.setDaemon(True)
-        self.thread_read.setName('serial->socket')
-        self.thread_read.start()
-        self.writer()
+class SerialToNet(serial.threaded.Protocol):
+    """serial->socket"""
 
-    def reader(self):
-        """loop forever and copy serial->socket"""
-        while self.alive:
-            try:
-                data = self.serial.read(1)              # read one, blocking
-                n = self.serial.inWaiting()             # look if there is more
-                if n:
-                    data = data + self.serial.read(n)   # and get as much as possible
-                if data:
-                    self.socket.sendall(data)           # send it over TCP
-            except socket.error as msg:
-                sys.stderr.write('ERROR: %s\n' % msg)
-                # probably got disconnected
-                break
-        self.alive = False
+    def __init__(self):
+        self.socket = None
 
-    def writer(self):
-        """loop forever and copy socket->serial"""
-        while self.alive:
-            try:
-                data = self.socket.recv(1024)
-                if not data:
-                    break
-                self.serial.write(data)                 # get a bunch of bytes and send them
-            except socket.error as msg:
-                sys.stderr.write('ERROR: %s\n' % msg)
-                # probably got disconnected
-                break
-        self.alive = False
-        self.thread_read.join()
+    def __call__(self):
+        return self
 
-    def stop(self):
-        """Stop copying"""
-        if self.alive:
-            self.alive = False
-            self.thread_read.join()
+    def data_received(self, data):
+        if self.socket is not None:
+            self.socket.sendall(data)
 
 
 if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(
-        description = "Simple Serial to Network (TCP/IP) redirector.",
-        epilog = """\
+        description="Simple Serial to Network (TCP/IP) redirector.",
+        epilog="""\
 NOTE: no security measures are implemented. Anyone can remotely connect
 to this service over the network.
 
@@ -79,51 +39,60 @@ Only one connection at once is supported. When the connection is terminated
 it waits for the next connect.
 """)
 
-    parser.add_argument('SERIALPORT',
+    parser.add_argument(
+            'SERIALPORT',
             help="serial port name")
 
-    parser.add_argument('BAUDRATE',
+    parser.add_argument(
+            'BAUDRATE',
             type=int,
             nargs='?',
             help='set baud rate, default: %(default)s',
             default=9600)
 
-    parser.add_argument('-q', '--quiet',
+    parser.add_argument(
+            '-q', '--quiet',
             action='store_true',
             help='suppress non error messages',
             default=False)
 
-    group = parser.add_argument_group('serial Port')
+    group = parser.add_argument_group('serial port')
 
-    group.add_argument("--parity",
+    group.add_argument(
+            "--parity",
             choices=['N', 'E', 'O', 'S', 'M'],
             type=lambda c: c.upper(),
             help="set parity, one of {N E O S M}, default: N",
             default='N')
 
-    group.add_argument('--rtscts',
+    group.add_argument(
+            '--rtscts',
             action='store_true',
             help='enable RTS/CTS flow control (default off)',
             default=False)
 
-    group.add_argument('--xonxoff',
+    group.add_argument(
+            '--xonxoff',
             action='store_true',
             help='enable software flow control (default off)',
             default=False)
 
-    group.add_argument('--rts',
+    group.add_argument(
+            '--rts',
             type=int,
             help='set initial RTS line state (possible values: 0, 1)',
             default=None)
 
-    group.add_argument('--dtr',
+    group.add_argument(
+            '--dtr',
             type=int,
             help='set initial DTR line state (possible values: 0, 1)',
             default=None)
 
     group = parser.add_argument_group('network settings')
 
-    group.add_argument('-P', '--localport',
+    group.add_argument(
+            '-P', '--localport',
             type=int,
             help='local TCP port',
             default=7777)
@@ -133,44 +102,61 @@ it waits for the next connect.
     # connect to serial port
     ser = serial.serial_for_url(args.SERIALPORT, do_not_open=True)
     ser.baudrate = args.BAUDRATE
-    ser.parity   = args.parity
-    ser.rtscts   = args.rtscts
-    ser.xonxoff  = args.xonxoff
-    ser.timeout  = 1     # required so that the reader thread can exit
+    ser.parity = args.parity
+    ser.rtscts = args.rtscts
+    ser.xonxoff = args.xonxoff
+
+    if args.rts is not None:
+        ser.rts = args.rts
+
+    if args.dtr is not None:
+        ser.dtr = args.dtr
 
     if not args.quiet:
-        sys.stderr.write("--- TCP/IP to Serial redirector --- type Ctrl-C / BREAK to quit\n")
-        sys.stderr.write("--- %s %s,%s,%s,%s ---\n" % (ser.portstr, ser.baudrate, 8, ser.parity, 1))
+        sys.stderr.write('--- TCP/IP to Serial redirect on {p.name}  {p.baudrate},{p.bytesize},{p.parity},{p.stopbits} ---\n'.format(
+                p=ser))
+        sys.stderr.write("--- type Ctrl-C / BREAK to quit\n")
 
     try:
         ser.open()
     except serial.SerialException as e:
-        sys.stderr.write("Could not open serial port %s: %s\n" % (ser.name, e))
+        sys.stderr.write("Could not open serial port {}: {}\n".format(ser.name, e))
         sys.exit(1)
 
-    if args.rts is not None:
-        ser.setRTS(args.rts)
-
-    if args.dtr is not None:
-        ser.setDTR(args.dtr)
+    ser_to_net = SerialToNet()
+    serial_worker = serial.threaded.SerialPortWorker(ser, ser_to_net)
+    serial_worker.start()
 
     srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     srv.bind(('', args.localport))
     srv.listen(1)
-    while True:
-        try:
-            sys.stderr.write("Waiting for connection on %s...\n" % args.localport)
-            connection, addr = srv.accept()
-            sys.stderr.write('Connected by %s\n' % (addr,))
-            # enter network <-> serial loop
-            r = Redirector(ser, connection)
-            r.shortcircuit()
-            sys.stderr.write('Disconnected\n')
-            connection.close()
-        except KeyboardInterrupt:
-            break
-        except socket.error as msg:
-            sys.stderr.write('ERROR: %s\n' % msg)
+    try:
+        while True:
+            sys.stderr.write("Waiting for connection on {}...\n".format(args.localport))
+            client_socket, addr = srv.accept()
+            sys.stderr.write('Connected by {}\n'.format(addr))
+            try:
+                ser_to_net.socket = client_socket
+                # enter network <-> serial loop
+                while True:
+                    try:
+                        data = client_socket.recv(1024)
+                        if not data:
+                            break
+                        ser.write(data)                 # get a bunch of bytes and send them
+                    except socket.error as msg:
+                        sys.stderr.write('ERROR: %s\n' % msg)
+                        # probably got disconnected
+                        break
+            except socket.error as msg:
+                sys.stderr.write('ERROR: {}\n'.format(msg))
+            finally:
+                ser_to_net.socket = None
+                sys.stderr.write('Disconnected\n')
+                client_socket.close()
+    except KeyboardInterrupt:
+        pass
 
     sys.stderr.write('\n--- exit ---\n')
-
+    serial_worker.stop()
