@@ -21,6 +21,11 @@ except (NameError, AttributeError):
     class memoryview(object):
         pass
 
+try:
+    unicode
+except (NameError, AttributeError):
+    unicode = str       # for Python 3
+
 
 # "for byte in data" fails for python3 as it returns ints instead of bytes
 def iterbytes(b):
@@ -47,6 +52,8 @@ def to_bytes(seq):
         return bytes(seq)
     elif isinstance(seq, memoryview):
         return seq.tobytes()
+    elif isinstance(seq, unicode):
+        raise TypeError('unicode strings are not supported, please encode to bytes: %r' % (seq,))
     else:
         b = bytearray()
         for item in seq:
