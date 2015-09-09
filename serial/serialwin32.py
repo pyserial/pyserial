@@ -319,7 +319,7 @@ class Serial(SerialBase):
         Flush of file like objects. In this case, wait until all data
         is written.
         """
-        while self.outWaiting():
+        while self.out_waiting:
             time.sleep(0.05)
         # XXX could also use WaitCommEvent with mask EV_TXEMPTY, but it would
         # require overlapped IO and its also only possible to set a single mask
