@@ -96,6 +96,7 @@ if os.name == 'nt':
             # the change of the code page is not propagated to Python, manually fix it
             sys.stderr = codecs.getwriter('UTF-8')(Out(sys.stderr.fileno()), 'replace')
             sys.stdout = self.output
+            self.output.encoding = 'UTF-8' # needed for input
 
         def __del__(self):
             ctypes.windll.kernel32.SetConsoleOutputCP(self._saved_ocp)
