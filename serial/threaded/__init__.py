@@ -66,7 +66,7 @@ class SerialPortWorker(threading.Thread):
         self.serial.timeout = 1
         while self.alive and self.serial.is_open:
             try:
-                # read all that is there or wait for one byte
+                # read all that is there or wait for one byte (blocking)
                 data = self.serial.read(self.serial.in_waiting or 1)
             except serial.SerialException:
                 # probably some IO problem such as disconnected USB serial
