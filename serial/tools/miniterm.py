@@ -105,9 +105,9 @@ if os.name == 'nt':
         def getkey(self):
             while True:
                 z = msvcrt.getwch()
-                if z == u'\r':
-                    return u'\n'
-                elif z in u'\x00\x0e':    # functions keys, ignore
+                if z == unichr(13):
+                    return unichr(10)
+                elif z in (unichr(0), unichr(0x0e)):    # functions keys, ignore
                     msvcrt.getwch()
                 else:
                     return z
@@ -136,8 +136,8 @@ elif os.name == 'posix':
 
         def getkey(self):
             c = self.enc_stdin.read(1)
-            if c == u'\x7f':
-                c = u'\b'    # map the BS key (which yields DEL) to backspace
+            if c == unichr(0x7f):
+                c = unichr(8)    # map the BS key (which yields DEL) to backspace
             return c
 
         def cleanup(self):
