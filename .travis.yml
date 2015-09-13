@@ -1,0 +1,13 @@
+# Copyright Roger Meier <r.meier@siemens.com>
+# SPDX-License-Identifier:    BSD-3-Clause
+
+language: python
+
+python:
+  - 2.6
+  - 2.7
+  - 3.2
+  - pypy
+
+script:
+  - python setup.py install
