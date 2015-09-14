@@ -1,6 +1,6 @@
-==========================
- pySerial  |build-status|
-==========================
+=================================
+ pySerial  |build-status| |docs|
+=================================
 
 Overview
 ========
@@ -43,4 +43,6 @@ Windows installers are also available (see download link above).
 .. |build-status| image:: https://travis-ci.org/pyserial/pyserial.svg?branch=master
    :target: https://travis-ci.org/pyserial/pyserial
    :alt: Build status
-
+.. |docs| image:: https://readthedocs.org/projects/pyserial/badge/?version=latest
+   :target: pyserial.readthedocs.org/
+   :alt: Documentation
