@@ -1,6 +1,6 @@
-==========
- pySerial
-==========
+==========================
+ pySerial  |build-status|
+==========================
 
 Overview
 ========
@@ -40,3 +40,7 @@ Windows installers are also available (see download link above).
 .. _examples: https://github.com/pyserial/pyserial/blob/master/examples
 .. _Python: http://python.org/
 .. _Sphinx: http://sphinx-doc.org/
+.. |build-status| image:: https://travis-ci.org/pyserial/pyserial.svg?branch=master
+   :target: https://travis-ci.org/pyserial/pyserial
+   :alt: Build status
+
