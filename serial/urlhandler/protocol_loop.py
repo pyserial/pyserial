@@ -76,6 +76,7 @@ class Serial(SerialBase):
         self.reset_output_buffer()
 
     def close(self):
+        self.is_open = False
         self.queue.put(None)
         super(Serial, self).close()
 
@@ -129,21 +130,28 @@ class Serial(SerialBase):
         """
         if not self.is_open:
             raise portNotOpenError
-        if self._timeout is not None:
+        if self._timeout is not None and self._timeout != 0:
             timeout = time.time() + self._timeout
         else:
             timeout = None
         data = bytearray()
         while size > 0 and self.is_open:
             try:
-                data += self.queue.get(timeout=self._timeout)  # XXX inter char timeout
+                b = self.queue.get(timeout=self._timeout)  # XXX inter char timeout
             except queue.Empty:
-                break
+                if self._timeout == 0:
+                    break
             else:
-                size -= 1
+                if data is not None:
+                    data += b
+                    size -= 1
+                else:
+                    break
             # check for timeout now, after data has been read.
             # useful for timeout = 0 (non blocking) read
             if timeout and time.time() > timeout:
+                if self.logger:
+                    self.logger.info('read timeout')
                 break
         return bytes(data)
 
