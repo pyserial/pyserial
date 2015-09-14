@@ -511,9 +511,10 @@ Version 3.0a    2015-xx-xx
   The support for earlier Python versions than 2.7 is removed, please refer to
   the pyserial-legacy (V2.x) series if older Python versions are a
   requirement).
+- API changes: properties for ``rts``, ``dtr``, ``cts``, ``dsr``, ``cd``, ``ri``,
+  ``in_waiting`` (instead of get/set functions)
 - remove file ``FileLike`` class, add ``read_until`` and ``iread_until`` to
   ``SerialBase``
-- remove set* functions, please use the properties instead
 - RS485 support changed (``rts_toggle`` removed, added ``serial.rs485`` module
   and ``rs485_mode`` property)
 - ``socket://`` and ``rfc2217://`` handlers use the IPv6 compatible
