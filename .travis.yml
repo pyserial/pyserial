@@ -13,3 +13,4 @@ python:
 
 script:
   - python setup.py install
+  - python test/test.py loop://
