@@ -185,10 +185,10 @@ class WinInfo(object):
             return self.hwid
 
     def __eq__(self, other):
-        return numsplit(self.dev) < numsplit(other.dev)
+        return self.dev == other.dev
 
     def __lt__(self, other):
-        return self.dev < other.dev
+        return numsplit(self.dev) < numsplit(other.dev)
 
     def __getitem__(self, index):
         """Item access: backwards compatible -> (port, desc, hwid)"""
