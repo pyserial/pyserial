@@ -44,5 +44,5 @@ Windows installers are also available (see download link above).
    :target: https://travis-ci.org/pyserial/pyserial
    :alt: Build status
 .. |docs| image:: https://readthedocs.org/projects/pyserial/badge/?version=latest
-   :target: pyserial.readthedocs.org/
+   :target: http://pyserial.readthedocs.org/
    :alt: Documentation
