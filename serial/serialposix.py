@@ -310,7 +310,7 @@ class Serial(SerialBase, PlatformSpecific):
             self.is_open = True
         if not self._dsrdtr:
             self._update_dtr_state()
-        if not self.rtscts:
+        if not self._rtscts:
             self._update_rts_state()
         self.reset_input_buffer()
 

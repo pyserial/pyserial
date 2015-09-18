@@ -77,7 +77,10 @@ class Serial(SerialBase):
 
     def close(self):
         self.is_open = False
-        self.queue.put(None)
+        try:
+            self.queue.put_nowait(None)
+        except queue.Full:
+            pass
         super(Serial, self).close()
 
     def _reconfigure_port(self):
