@@ -13,9 +13,9 @@ import System.IO.Ports
 from serial.serialutil import *
 
 
-def device(portnum):
-    """Turn a port number into a device name"""
-    return System.IO.Ports.SerialPort.GetPortNames()[portnum]
+#~ def device(portnum):
+    #~ """Turn a port number into a device name"""
+    #~ return System.IO.Ports.SerialPort.GetPortNames()[portnum]
 
 
 # must invoke function with byte array, make a helper to convert strings
@@ -37,22 +37,22 @@ class Serial(SerialBase):
         """
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
-        if self._isOpen:
+        if self.is_open:
             raise SerialException("Port is already open.")
         try:
             self._port_handle = System.IO.Ports.SerialPort(self.portstr)
-        except Exception, msg:
+        except Exception as msg:
             self._port_handle = None
             raise SerialException("could not open port %s: %s" % (self.portstr, msg))
 
         self._reconfigurePort()
         self._port_handle.Open()
-        self._isOpen = True
+        self.is_open = True
+        if not self._dsrdtr:
+            self._update_dtr_state()
         if not self._rtscts:
-            self.setRTS(True)
-            self.setDTR(True)
-        self.flushInput()
-        self.flushOutput()
+            self._update_rts_state()
+        self.reset_input_buffer()
 
     def _reconfigurePort(self):
         """Set communication parameters on opened port."""
@@ -69,16 +69,16 @@ class Serial(SerialBase):
         # if self._timeout != 0 and self._interCharTimeout is not None:
             # timeouts = (int(self._interCharTimeout * 1000),) + timeouts[1:]
 
-        if self._writeTimeout is None:
+        if self._write_timeout is None:
             self._port_handle.WriteTimeout = System.IO.Ports.SerialPort.InfiniteTimeout
         else:
-            self._port_handle.WriteTimeout = int(self._writeTimeout*1000)
+            self._port_handle.WriteTimeout = int(self._write_timeout*1000)
 
 
         # Setup the connection info.
         try:
             self._port_handle.BaudRate = self._baudrate
-        except IOError, e:
+        except IOError as e:
             # catch errors from illegal baudrate settings
             raise ValueError(str(e))
 
@@ -129,7 +129,7 @@ class Serial(SerialBase):
 
     def close(self):
         """Close port"""
-        if self._isOpen:
+        if self.is_open:
             if self._port_handle:
                 try:
                     self._port_handle.Close()
@@ -137,19 +137,15 @@ class Serial(SerialBase):
                     # ignore errors. can happen for unplugged USB serial devices
                     pass
                 self._port_handle = None
-            self._isOpen = False
-
-    def makeDeviceName(self, port):
-        try:
-            return device(port)
-        except TypeError, e:
-            raise SerialException(str(e))
+            self.is_open = False
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-    def inWaiting(self):
+    @property
+    def in_waiting(self):
         """Return the number of characters currently in the input buffer."""
-        if not self._port_handle: raise portNotOpenError
+        if not self._port_handle:
+            raise portNotOpenError
         return self._port_handle.BytesToRead
 
     def read(self, size=1):
@@ -158,14 +154,15 @@ class Serial(SerialBase):
         return less characters as requested. With no timeout it will block
         until the requested number of bytes is read.
         """
-        if not self._port_handle: raise portNotOpenError
+        if not self._port_handle:
+            raise portNotOpenError
         # must use single byte reads as this is the only way to read
         # without applying encodings
         data = bytearray()
         while size:
             try:
                 data.append(self._port_handle.ReadByte())
-            except System.TimeoutException, e:
+            except System.TimeoutException as e:
                 break
             else:
                 size -= 1
@@ -173,77 +170,80 @@ class Serial(SerialBase):
 
     def write(self, data):
         """Output the given string over the serial port."""
-        if not self._port_handle: raise portNotOpenError
+        if not self._port_handle:
+            raise portNotOpenError
         #~ if not isinstance(data, (bytes, bytearray)):
             #~ raise TypeError('expected %s or bytearray, got %s' % (bytes, type(data)))
         try:
             # must call overloaded method with byte array argument
             # as this is the only one not applying encodings
             self._port_handle.Write(as_byte_array(data), 0, len(data))
-        except System.TimeoutException, e:
+        except System.TimeoutException as e:
             raise writeTimeoutError
         return len(data)
 
-    def flushInput(self):
+    def reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
-        if not self._port_handle: raise portNotOpenError
+        if not self._port_handle:
+            raise portNotOpenError
         self._port_handle.DiscardInBuffer()
 
-    def flushOutput(self):
+    def reset_output_buffer(self):
         """\
         Clear output buffer, aborting the current output and
         discarding all that is in the buffer.
         """
-        if not self._port_handle: raise portNotOpenError
+        if not self._port_handle:
+            raise portNotOpenError
         self._port_handle.DiscardOutBuffer()
 
-    def sendBreak(self, duration=0.25):
-        """\
-        Send break condition. Timed, returns to idle state after given
-        duration.
-        """
-        if not self._port_handle: raise portNotOpenError
-        import time
-        self._port_handle.BreakState = True
-        time.sleep(duration)
-        self._port_handle.BreakState = False
-
-    def setBreak(self, level=True):
+    def _update_break_state(self):
         """
         Set break: Controls TXD. When active, to transmitting is possible.
         """
-        if not self._port_handle: raise portNotOpenError
-        self._port_handle.BreakState = bool(level)
+        if not self._port_handle:
+            raise portNotOpenError
+        self._port_handle.BreakState = bool(self._break_state)
 
-    def setRTS(self, level=True):
+    def _update_rts_state(self):
         """Set terminal status line: Request To Send"""
-        if not self._port_handle: raise portNotOpenError
-        self._port_handle.RtsEnable = bool(level)
+        if not self._port_handle:
+            raise portNotOpenError
+        self._port_handle.RtsEnable = bool(self._rts_state)
 
-    def setDTR(self, level=True):
+    def _update_dtr_state(self):
         """Set terminal status line: Data Terminal Ready"""
-        if not self._port_handle: raise portNotOpenError
-        self._port_handle.DtrEnable = bool(level)
+        if not self._port_handle:
+            raise portNotOpenError
+        self._port_handle.DtrEnable = bool(self._dtr_state)
 
-    def getCTS(self):
+    @property
+    def cts(self):
         """Read terminal status line: Clear To Send"""
-        if not self._port_handle: raise portNotOpenError
+        if not self._port_handle:
+            raise portNotOpenError
         return self._port_handle.CtsHolding
 
-    def getDSR(self):
+    @property
+    def dsr(self):
         """Read terminal status line: Data Set Ready"""
-        if not self._port_handle: raise portNotOpenError
+        if not self._port_handle:
+            raise portNotOpenError
         return self._port_handle.DsrHolding
 
-    def getRI(self):
+    @property
+    def ri(self):
         """Read terminal status line: Ring Indicator"""
-        if not self._port_handle: raise portNotOpenError
+        if not self._port_handle:
+            raise portNotOpenError
         #~ return self._port_handle.XXX
         return False #XXX an error would be better
 
-    def getCD(self):
+    @property
+    def cd(self):
         """Read terminal status line: Carrier Detect"""
-        if not self._port_handle: raise portNotOpenError
+        if not self._port_handle:
+            raise portNotOpenError
         return self._port_handle.CDHolding
 
     # - - platform specific - - - -

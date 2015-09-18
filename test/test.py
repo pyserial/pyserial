@@ -29,15 +29,10 @@ import sys
 import serial
 
 # on which port should the tests be performed:
-PORT = 0
+PORT = 'loop://'
 
-if sys.version_info >= (3, 0):
-    def data(string):
-        return bytes(string, 'latin1')
-    bytes_0to255 = bytes(range(256))
-else:
-    def data(string): return string
-    bytes_0to255 = ''.join([chr(x) for x in range(256)])
+# indirection via bytearray b/c bytes(range(256)) does something else in Pyhton 2.7
+bytes_0to255 = bytes(bytearray(range(256)))
 
 
 def segments(data, size=16):
@@ -62,7 +57,7 @@ class Test4_Nonblocking(unittest.TestCase):
 
     def test1_ReadEmpty(self):
         """timeout: After port open, the input buffer must be empty"""
-        self.failUnlessEqual(self.s.read(1), data(''), "expected empty buffer")
+        self.failUnlessEqual(self.s.read(1), b'', "expected empty buffer")
 
     def test2_Loopback(self):
         """timeout: each sent character should return (binary test).
@@ -74,16 +69,16 @@ class Test4_Nonblocking(unittest.TestCase):
             time.sleep(0.05)
             self.failUnlessEqual(self.s.in_waiting, length, "expected exactly %d character for inWainting()" % length)
             self.failUnlessEqual(self.s.read(length), block)#, "expected a %r which was written before" % block)
-        self.failUnlessEqual(self.s.read(1), data(''), "expected empty buffer after all sent chars are read")
+        self.failUnlessEqual(self.s.read(1), b'', "expected empty buffer after all sent chars are read")
 
     def test2_LoopbackTimeout(self):
         """timeout: test the timeout/immediate return.
         partial results should be returned."""
-        self.s.write(data("HELLO"))
+        self.s.write(b"HELLO")
         time.sleep(0.1)    # there might be a small delay until the character is ready (especially on win32 and rfc2217)
         # read more characters as are available to run in the timeout
-        self.failUnlessEqual(self.s.read(10), data('HELLO'), "expected the 'HELLO' which was written before")
-        self.failUnlessEqual(self.s.read(1), data(''), "expected empty buffer after all sent chars are read")
+        self.failUnlessEqual(self.s.read(10), b'HELLO', "expected the 'HELLO' which was written before")
+        self.failUnlessEqual(self.s.read(1), b'', "expected empty buffer after all sent chars are read")
 
 
 class Test3_Timeout(Test4_Nonblocking):
@@ -109,7 +104,7 @@ class SendEvent(threading.Thread):
         time.sleep(self.delay)
         self.x.set()
         if not self.stopped:
-            self.serial.write(data("E"))
+            self.serial.write(b"E")
             self.serial.flush()
 
     def isSet(self):
@@ -135,7 +130,7 @@ class Test1_Forever(unittest.TestCase):
         """no timeout: after port open, the input buffer must be empty (read).
         a character is sent after some time to terminate the test (SendEvent)."""
         c = self.s.read(1)
-        if not (self.event.isSet() and c == data('E')):
+        if not (self.event.isSet() and c == b'E'):
             self.fail("expected marker (evt=%r, c=%r)" % (self.event.isSet(), c))
 
 
@@ -221,7 +216,7 @@ class Test_MoreTimeouts(unittest.TestCase):
         self.s.write(serial.XOFF)
         time.sleep(0.5) # some systems need a little delay so that they can react on XOFF
         t1 = time.time()
-        self.failUnlessRaises(serial.SerialTimeoutException, self.s.write, data("timeout please"*200))
+        self.failUnlessRaises(serial.SerialTimeoutException, self.s.write, b"timeout please"*200)
         t2 = time.time()
         self.failUnless( 0.9 <= (t2-t1) < 2.1, "Timeout not in the given interval (%s)" % (t2-t1))
 
