@@ -149,6 +149,7 @@ INVALID_HANDLE_VALUE = 0
 ERROR_INSUFFICIENT_BUFFER = 122
 SPDRP_HARDWAREID = 1
 SPDRP_FRIENDLYNAME = 12
+SPDRP_LOCATION_PATHS = 35
 DICS_FLAG_GLOBAL = 1
 DIREG_DEV = 0x00000001
 KEY_READ = 0x20019
@@ -168,6 +169,7 @@ class WinInfo(object):
         self.vid = None
         self.pid = None
         self.serial = None
+        self.location = None
 
     def describe(self):
         """Get a human readable string"""
@@ -176,10 +178,11 @@ class WinInfo(object):
     def hwinfo(self):
         """Get a hardware description string"""
         if self.vid is not None:
-            return 'USB VID:PID={}:{}{}'.format(
+            return 'USB VID:PID={}:{}{}{}'.format(
                     self.vid,
                     self.pid,
                     ' SER={}'.format(self.serial) if self.serial is not None else '',
+                    ' LOCATION={}'.format(self.location) if self.location is not None else '',
                     )
         else:
             return self.hwid
@@ -287,6 +290,31 @@ def comports():
                     info.pid = m.group(2)
                     if m.group(4):
                         info.serial = m.group(4)
+                # calculate a location string
+                # XXX was empty in tests with (internal) USB3 hub :(
+                loc_path_str = byte_buffer(250)
+                if SetupDiGetDeviceRegistryProperty(
+                        g_hdi,
+                        ctypes.byref(devinfo),
+                        SPDRP_LOCATION_PATHS,
+                        None,
+                        ctypes.byref(loc_path_str),
+                        ctypes.sizeof(loc_path_str) - 1,
+                        None):
+                    #~ print (string(loc_path_str))
+                    m = re.finditer(r'USBROOT\((\w+)\)|#USB\((\w+)\)', string(loc_path_str))
+                    location = []
+                    for g in m:
+                        if g.group(1):
+                            location.append('%d' % (int(g.group(1)) + 1))
+                        else:
+                            if len(location) > 1:
+                                location.append('.')
+                            else:
+                                location.append('-')
+                            location.append(g.group(2))
+                    if location:
+                        info.location = ''.join(location)
 
             # friendly name
             szFriendlyName = byte_buffer(250)
