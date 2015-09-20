@@ -44,9 +44,9 @@ class SysFS(object):
         if os.path.exists('/sys/class/tty/%s/device' % (self.name,)):
             self.device_path = os.path.realpath('/sys/class/tty/%s/device' % (self.name,))
             self.subsystem = os.path.basename(os.path.realpath(os.path.join(self.device_path, 'subsystem')))
-        if self.subsystem in 'usb-serial':
+        if self.subsystem == 'usb-serial':
             self.usb_device_path = os.path.dirname(os.path.dirname(self.device_path))
-        elif self.subsystem in 'usb':
+        elif self.subsystem == 'usb':
             self.usb_device_path = os.path.dirname(self.device_path)
         else:
             self.usb_device_path = None
@@ -55,10 +55,12 @@ class SysFS(object):
             self.vid = self.read_line(self.usb_device_path, 'idVendor').upper()
             self.pid = self.read_line(self.usb_device_path, 'idProduct').upper()
             self.serial = self.read_line(self.usb_device_path, 'serial')
+            self.location = os.path.basename(self.usb_device_path)
         else:
             self.vid = None
             self.pid = None
             self.serial = None
+            self.location = None
 
     def read_line(self, *args):
         """\
@@ -74,6 +76,20 @@ class SysFS(object):
             return None
 
     def describe(self):
+        if self.subsystem == 'usb-serial':
+            return self.read_line(self.usb_device_path, 'product')
+        elif self.subsystem == 'usb':  # CDC/ACM devices
+            interface = self.read_line(self.device_path, 'interface')
+            if interface is not None:
+                return interface
+            else:
+                return self.read_line(self.usb_device_path, 'product')
+        elif self.subsystem == 'pnp':  # PCI based devices
+            return self.name
+        else:
+            return 'n/a'
+
+    def describe_full(self):
         """Get a human readable string"""
         if self.subsystem == 'usb-serial':
             return '{} - {}'.format(
@@ -81,7 +97,12 @@ class SysFS(object):
                     self.read_line(self.usb_device_path, 'product'),
                     )
         elif self.subsystem == 'usb':  # CDC/ACM devices
-            return self.read_line(self.device_path, 'interface')
+            interface = self.read_line(self.device_path, 'interface')
+            return '{} - {}{}'.format(
+                    self.read_line(self.usb_device_path, 'manufacturer'),
+                    self.read_line(self.usb_device_path, 'product'),
+                    ' - {}'.format(interface) if interface is not None else '',
+                    )
         elif self.subsystem == 'pnp':  # PCI based devices
             return self.name
         else:
@@ -90,10 +111,11 @@ class SysFS(object):
     def hwinfo(self):
         """Get a hardware description string"""
         if self.subsystem in ('usb', 'usb-serial'):
-            return 'USB VID:PID={}:{}{}'.format(
+            return 'USB VID:PID={}:{}{}{}'.format(
                     self.vid,
                     self.pid,
                     ' SER={}'.format(self.serial) if self.serial is not None else '',
+                    ' LOCATION={}'.format(self.location) if self.location is not None else '',
                     )
         elif self.subsystem == 'pnp':  # PCI based devices
             return self.read_line(self.device_path, 'id')
