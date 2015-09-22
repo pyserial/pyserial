@@ -63,10 +63,10 @@ class Test_SerialAndIO(unittest.TestCase):
         self.s.close()
 
     def test_hello_raw(self):
-        self.io.write(r"hello\n")
+        self.io.write(b"hello\n".decode('utf-8'))
         self.io.flush() # it is buffering. required to get the data out
         hello = self.io.readline()
-        self.failUnlessEqual(hello, u"hello\n")
+        self.failUnlessEqual(hello, b"hello\n".decode('utf-8'))
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __name__ == '__main__':

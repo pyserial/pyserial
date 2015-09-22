@@ -564,7 +564,7 @@ class SerialBase(io.RawIOBase):
         self.apply_settings(d)
 
     def isOpen(self):
-        return self._is_open
+        return self.is_open
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     # additional functionality
