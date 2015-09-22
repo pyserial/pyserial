@@ -503,10 +503,10 @@ Bugfixes (cli):
 - [Bug pyserial:159] write() in serialcli.py not working with IronPython 2.7.4
 
 
-Version 3.0a    2015-xx-xx
+Version 3.0a0   2015-09-22
 --------------------------
 
-- Starting from this release, only Python 2.7 and 3.4 (or newer) are supported.
+- Starting from this release, only Python 2.7 and 3.2 (or newer) are supported.
   The source code is compatible to the 2.x and 3.x series without any changes.
   The support for earlier Python versions than 2.7 is removed, please refer to
   the pyserial-legacy (V2.x) series if older Python versions are a
@@ -531,6 +531,8 @@ Version 3.0a    2015-xx-xx
 - miniterm: changed command line options
 - miniterm: support encodings on serial port
 - miniterm: new transformations, by default escape/convert all control characters
+- list_ports: improved, added USB location (Linux, Win32)
+- refactored code
 
 Bugfixes:
 

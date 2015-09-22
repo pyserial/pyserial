@@ -3,7 +3,7 @@
 # serial driver for .NET/Mono (IronPython), .NET >= 2
 # see __init__.py
 #
-# (C) 2008 Chris Liechti <cliechti@gmx.net>
+# (C) 2008-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
