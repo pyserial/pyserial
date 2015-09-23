@@ -477,32 +477,6 @@ Bugfixes (win32):
   port handle open but port not accessible
 
 
-Version 2.8      2014-xx-xx
----------------------------
-- [FTR pyserial:37] Support fileno() function in the socket protocol
-- Posix: [Patch pyserial:31] Mark/space parity on Linux
-- Linux: [Patch pyserial:32] Module list_ports for linux should include the
-  product information as description.
-- Java: fix 2 bugs (stop bits if/else and non-integer timeouts) (Torsten
-  Roemer)
-- update wxSerialConfigDialog.py to use serial.tools.list_ports
-
-Bugfixes:
-
-- [Bug pyserial:157] Implement inWaiting in protocol_socket
-- [Bug pyserial:166] RFC2217 connections always fail
-
-Bugfixes (posix):
-
-- [Bug pyserial:156] PosixSerial.open raises OSError rather than
-  SerialException when port open fails
-- [Bug pyserial:163] serial.tools.list_ports.grep() fails if it encounters None type
-
-Bugfixes (cli):
-
-- [Bug pyserial:159] write() in serialcli.py not working with IronPython 2.7.4
-
-
 Version 3.0a0   2015-09-22
 --------------------------
 
@@ -511,6 +485,7 @@ Version 3.0a0   2015-09-22
   The support for earlier Python versions than 2.7 is removed, please refer to
   the pyserial-legacy (V2.x) series if older Python versions are a
   requirement).
+- Development moved to github, update links in docs.
 - API changes: properties for ``rts``, ``dtr``, ``cts``, ``dsr``, ``cd``, ``ri``,
   ``in_waiting`` (instead of get/set functions)
 - remove file ``FileLike`` class, add ``read_until`` and ``iread_until`` to
@@ -519,28 +494,39 @@ Version 3.0a0   2015-09-22
   and ``rs485_mode`` property)
 - ``socket://`` and ``rfc2217://`` handlers use the IPv6 compatible
   ``socket.create_connection``
-- new URL handler: ``spy:://``
+- New URL handler: ``spy:://``.
 - URL handlers now require the proper format (``?`` and ``&``) for arguments
   instead of ``/`` (e.g. ``rfc2217://localhost:7000?ign_set_control&timeout=5.5``)
-- remove obsolete examples
-- finish update to BSD license
-- update links to point to github
-- [Patch pyserial:34] Improvements to port_publisher.py example
-- [Feature pyserial:39] Support BlueTooth serial port discovery on Linux
+- Remove obsolete examples.
+- Finish update to BSD license.
 - Use setuptools if available, fall back to distutils if unavailable.
 - miniterm: changed command line options
 - miniterm: support encodings on serial port
 - miniterm: new transformations, by default escape/convert all control characters
 - list_ports: improved, added USB location (Linux, Win32)
 - refactored code
+- [FTR pyserial:37] Support fileno() function in the socket protocol
+- Posix: [Patch pyserial:31] Mark/space parity on Linux
+- Linux: [Patch pyserial:32] Module list_ports for linux should include the
+  product information as description.
+- Java: fix 2 bugs (stop bits if/else and non-integer timeouts) (Torsten
+  Roemer)
+- Update wxSerialConfigDialog.py to use serial.tools.list_ports.
+- [Patch pyserial:34] Improvements to port_publisher.py example
+- [Feature pyserial:39] Support BlueTooth serial port discovery on Linux
 
 Bugfixes:
 
+- [Bug pyserial:157] Implement inWaiting in protocol_socket
+- [Bug pyserial:166] RFC2217 connections always fail
 - [Bug pyserial:172] applySettingsDict() throws an error if the settings dictionary is not complete
 - [Bug pyserial:185] SocketSerial.read() never returns data when timeout==0
 
 Bugfixes (posix):
 
+- [Bug pyserial:156] PosixSerial.open raises OSError rather than
+  SerialException when port open fails
+- [Bug pyserial:163] serial.tools.list_ports.grep() fails if it encounters None type
 - fix setXON
 - [Patch pyserial:36 / 38] Make USB information work in python 3.4 and 2.7
 - clear OCRNL/ONLCR flags (CR/LF translation settings)
@@ -551,4 +537,8 @@ Bugfixes (posix):
 Bugfixes (win32):
 
 - [Bug pyserial:169] missing "import time" in serialwin32.py
+
+Bugfixes (cli):
+
+- [Bug pyserial:159] write() in serialcli.py not working with IronPython 2.7.4
 
