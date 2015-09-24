@@ -86,6 +86,8 @@ class SysFS(object):
                 return self.read_line(self.usb_device_path, 'product')
         elif self.subsystem == 'pnp':  # PCI based devices
             return self.name
+        elif self.subsystem == 'amba':  # raspi
+            return self.name
         else:
             return 'n/a'
 
@@ -105,6 +107,8 @@ class SysFS(object):
                     )
         elif self.subsystem == 'pnp':  # PCI based devices
             return self.name
+        elif self.subsystem == 'amba':  # raspi
+            return self.name
         else:
             return 'n/a'
 
@@ -119,6 +123,8 @@ class SysFS(object):
                     )
         elif self.subsystem == 'pnp':  # PCI based devices
             return self.read_line(self.device_path, 'id')
+        elif self.subsystem == 'amba':  # raspi
+            return os.path.basename(self.device_path)
         else:
             return 'n/a'
 
@@ -144,6 +150,7 @@ def comports():
     devices = glob.glob('/dev/ttyS*')           # built-in serial ports
     devices.extend(glob.glob('/dev/ttyUSB*'))   # usb-serial with own driver
     devices.extend(glob.glob('/dev/ttyACM*'))   # usb-serial with CDC-ACM profile
+    devices.extend(glob.glob('/dev/ttyAMA*'))   # ARM internal port (raspi)
     devices.extend(glob.glob('/dev/rfcomm*'))   # BT serial devices
     return [info
             for info in [SysFS(d) for d in devices]
