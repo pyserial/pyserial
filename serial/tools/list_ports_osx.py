@@ -244,8 +244,8 @@ def comports():
                 info.manufacturer = get_string_property(usb_device, "USB Vendor Name")
                 locationID = get_int_property(usb_device, "locationID", kCFNumberSInt32Type)
                 info.location = location_to_string(locationID)
-                info.hwid = info.usb_info()
                 info.interface = search_for_locationID_in_interfaces(serial_interfaces, locationID)
+                info.apply_usb_info()
             ports.append(info)
     return ports
 

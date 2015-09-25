@@ -44,6 +44,12 @@ class ListPortInfo(object):
         self.product = None
         self.interface = None
 
+    def usb_description(self):
+        if self.interface is not None:
+            return '{} - {}'.format(self.product, self.interface)
+        else:
+            return self.product
+
     def usb_info(self):
         return 'USB VID:PID={}:{}{}{}'.format(
                 self.vid,
@@ -51,6 +57,11 @@ class ListPortInfo(object):
                 ' SER={}'.format(self.serial_number) if self.serial_number is not None else '',
                 ' LOCATION={}'.format(self.location) if self.location is not None else '',
                 )
+
+    def apply_usb_info(self):
+        """update description and hwid form USB data"""
+        self.description = self.usb_description()
+        self.hwid = self.usb_info()
 
     def __eq__(self, other):
         return self.device == other.device

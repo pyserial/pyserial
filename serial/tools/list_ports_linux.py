@@ -47,11 +47,7 @@ class SysFS(list_ports_common.ListPortInfo):
             self.interface = self.read_line(self.device_path, 'interface')
 
         if self.subsystem in ('usb', 'usb-serial'):
-            if self.interface is not None:
-                self.description = self.interface
-            else:
-                self.description = self.product
-            self.hwid = self.usb_info()
+            self.apply_usb_info()
         #~ elif self.subsystem in ('pnp', 'amba'):  # PCI based devices, raspi
         elif self.subsystem == 'pnp':  # PCI based devices
             self.description = self.name
