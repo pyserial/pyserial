@@ -20,22 +20,7 @@ from ctypes.wintypes import HKEY
 from ctypes.wintypes import BYTE
 import serial
 from serial.win32 import ULONG_PTR
-
-
-def numsplit(text):
-    """\
-    Convert string into a list of texts and numbers in order to support a
-    natural sorting.
-    """
-    result = []
-    for group in re.split(r'(\d+)', text):
-        if group:
-            try:
-                group = int(group)
-            except ValueError:
-                pass
-            result.append(group)
-    return result
+from serial.tools import list_ports_common
 
 
 def ValidHandle(value, func, arguments):
@@ -159,52 +144,6 @@ Ports = serial.to_bytes([80, 111, 114, 116, 115])  # "Ports"
 PortName = serial.to_bytes([80, 111, 114, 116, 78, 97, 109, 101])  # "PortName"
 
 
-class WinInfo(object):
-    """Wrapper for device info"""
-
-    def __init__(self, dev):
-        self.dev = dev
-        self.description = None
-        self.hwid = None
-        self.vid = None
-        self.pid = None
-        self.serial = None
-        self.location = None
-
-    def describe(self):
-        """Get a human readable string"""
-        return self.description if self.description is not None else 'n/a'
-
-    def hwinfo(self):
-        """Get a hardware description string"""
-        if self.vid is not None:
-            return 'USB VID:PID={}:{}{}{}'.format(
-                    self.vid,
-                    self.pid,
-                    ' SER={}'.format(self.serial) if self.serial is not None else '',
-                    ' LOCATION={}'.format(self.location) if self.location is not None else '',
-                    )
-        else:
-            return self.hwid
-
-    def __eq__(self, other):
-        return self.dev == other.dev
-
-    def __lt__(self, other):
-        return numsplit(self.dev) < numsplit(other.dev)
-
-    def __getitem__(self, index):
-        """Item access: backwards compatible -> (port, desc, hwid)"""
-        if index == 0:
-            return self.dev
-        elif index == 1:
-            return self.describe()
-        elif index == 2:
-            return self.hwinfo()
-        else:
-            raise IndexError('{} > 2'.format(index))
-
-
 def comports():
     GUIDs = (GUID*8)()  # so far only seen one used, so hope 8 are enough...
     guids_size = DWORD()
@@ -278,8 +217,7 @@ def comports():
             # stringify
             szHardwareID_str = string(szHardwareID)
 
-            info = WinInfo(string(port_name_buffer))
-            info.hwid = szHardwareID_str
+            info = list_ports_common.ListPortInfo(string(port_name_buffer))
 
             # in case of USB, make a more readable string, similar to that form
             # that we also generate on other platforms
@@ -289,7 +227,7 @@ def comports():
                     info.vid = m.group(1)
                     info.pid = m.group(2)
                     if m.group(4):
-                        info.serial = m.group(4)
+                        info.serial_number = m.group(4)
                 # calculate a location string
                 # XXX was empty in tests with (internal) USB3 hub :(
                 loc_path_str = byte_buffer(250)
@@ -315,6 +253,9 @@ def comports():
                             location.append(g.group(2))
                     if location:
                         info.location = ''.join(location)
+                info.hwid = info.usb_info()
+            else:
+                info.hwid = szHardwareID_str
 
             # friendly name
             szFriendlyName = byte_buffer(250)

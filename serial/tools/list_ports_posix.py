@@ -23,6 +23,7 @@ currently just identical to the port name.
 import glob
 import sys
 import os
+from serial.tools import list_ports_common
 
 # try to detect the OS so that a device can be selected...
 plat = sys.platform.lower()
@@ -30,58 +31,57 @@ plat = sys.platform.lower()
 if plat[:5] == 'linux':    # Linux (confirmed)
     from serial.tools.list_ports_linux import comports
 
+elif plat[:6] == 'darwin':   # OS X (confirmed)
+    from serial.tools.list_ports_osx import comports
+
 elif plat == 'cygwin':       # cygwin/win32
     # cygwin accepts /dev/com* in many contexts
     # (such as 'open' call, explicit 'ls'), but 'glob.glob'
     # and bare 'ls' do not; so use /dev/ttyS* instead
     def comports():
         devices = glob.glob('/dev/ttyS*')
-        return [(d, d, d) for d in devices]
+        return [list_ports_common.ListPortInfo(d) for d in devices]
 
 elif plat[:7] == 'openbsd':    # OpenBSD
     def comports():
         devices = glob.glob('/dev/cua*')
-        return [(d, d, d) for d in devices]
+        return [list_ports_common.ListPortInfo(d) for d in devices]
 
-elif plat[:3] == 'bsd' or  \
-        plat[:7] == 'freebsd':
+elif plat[:3] == 'bsd' or plat[:7] == 'freebsd':
 
     def comports():
         devices = glob.glob('/dev/cua*[!.init][!.lock]')
-        return [(d, d, d) for d in devices]
-
-elif plat[:6] == 'darwin':   # OS X (confirmed)
-    from serial.tools.list_ports_osx import comports
+        return [list_ports_common.ListPortInfo(d) for d in devices]
 
 elif plat[:6] == 'netbsd':   # NetBSD
     def comports():
         """scan for available ports. return a list of device names."""
         devices = glob.glob('/dev/dty*')
-        return [(d, d, d) for d in devices]
+        return [list_ports_common.ListPortInfo(d) for d in devices]
 
 elif plat[:4] == 'irix':     # IRIX
     def comports():
         """scan for available ports. return a list of device names."""
         devices = glob.glob('/dev/ttyf*')
-        return [(d, d, d) for d in devices]
+        return [list_ports_common.ListPortInfo(d) for d in devices]
 
 elif plat[:2] == 'hp':       # HP-UX (not tested)
     def comports():
         """scan for available ports. return a list of device names."""
         devices = glob.glob('/dev/tty*p0')
-        return [(d, d, d) for d in devices]
+        return [list_ports_common.ListPortInfo(d) for d in devices]
 
 elif plat[:5] == 'sunos':    # Solaris/SunOS
     def comports():
         """scan for available ports. return a list of device names."""
         devices = glob.glob('/dev/tty*c')
-        return [(d, d, d) for d in devices]
+        return [list_ports_common.ListPortInfo(d) for d in devices]
 
 elif plat[:3] == 'aix':      # AIX
     def comports():
         """scan for available ports. return a list of device names."""
         devices = glob.glob('/dev/tty*')
-        return [(d, d, d) for d in devices]
+        return [list_ports_common.ListPortInfo(d) for d in devices]
 
 else:
     # platform detection has failed...
