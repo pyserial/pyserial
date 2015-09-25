@@ -23,6 +23,8 @@
 # Also see the 'IORegistryExplorer' for an idea of what we are actually searching
 
 import ctypes
+from ctypes import util
+
 from serial.tools import list_ports_common
 
 iokit = ctypes.cdll.LoadLibrary(ctypes.util.find_library('IOKit'))
@@ -180,20 +182,52 @@ def GetIOServicesByType(service_type):
     return services
 
 
-def location_to_string(location_number):
-    loc = ['{}-'.format(location_number >> 24)]
-    while location_number & 0xf00000:
+def location_to_string(locationID):
+    """
+    helper to calculate port and bus number from locationID
+    """
+    loc = ['{}-'.format(locationID >> 24)]
+    while locationID & 0xf00000:
         if len(loc) > 1:
             loc.append('.')
-        loc.append('{}'.format((location_number >> 20) & 0xf))
-        location_number <<= 4
+        loc.append('{}'.format((locationID >> 20) & 0xf))
+        locationID <<= 4
     return ''.join(loc)
 
+
+class SuitableSerialInterface(object):
+    pass
+
+def scan_interfaces():
+    """
+    helper function to scan USB interfaces
+    returns a list of SuitableSerialInterface objects with name and id attributes
+    """
+    interfaces = []
+    for service in GetIOServicesByType('IOSerialBSDClient'):
+        device = get_string_property(service, "IOCalloutDevice")
+        if device:
+            usb_device = GetParentDeviceByType(service, "IOUSBInterface")
+            if usb_device:
+                name = get_string_property(usb_device, "USB Interface Name") or None
+                locationID = get_int_property(usb_device, "locationID",kCFNumberSInt32Type) or ''
+                i = SuitableSerialInterface()
+                i.id = locationID
+                i.name = name
+                interfaces.append(i)
+    return interfaces
+
+def search_for_locationID_in_interfaces(serial_interfaces, locationID):
+    for interface in serial_interfaces:
+        if (interface.id == locationID):
+            return interface.name
+    return None
 
 def comports():
     # Scan for all iokit serial ports
     services = GetIOServicesByType('IOSerialBSDClient')
     ports = []
+    serial_interfaces = scan_interfaces()
     for service in services:
         # First, add the callout device file.
         device = get_string_property(service, "IOCalloutDevice")
@@ -201,7 +235,7 @@ def comports():
             info = list_ports_common.ListPortInfo(device)
             # If the serial port is implemented by IOUSBDevice
             usb_device = GetParentDeviceByType(service, "IOUSBDevice")
-            if usb_device is not None:
+            if usb_device:
                 # fetch some useful informations from properties
                 info.vid = get_int_property(usb_device, "idVendor", kCFNumberSInt16Type)
                 info.pid = get_int_property(usb_device, "idProduct", kCFNumberSInt16Type)
@@ -210,8 +244,8 @@ def comports():
                 info.manufacturer = get_string_property(usb_device, "USB Vendor Name")
                 locationID = get_int_property(usb_device, "locationID", kCFNumberSInt32Type)
                 info.location = location_to_string(locationID)
-                #~ bcd = get_int_property(usb_device, "bcdDevice", kCFNumberSInt16Type)
                 info.hwid = info.usb_info()
+                info.interface = search_for_locationID_in_interfaces(serial_interfaces, locationID)
             ports.append(info)
     return ports
 
