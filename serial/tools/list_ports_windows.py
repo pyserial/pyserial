@@ -224,8 +224,8 @@ def comports():
             if szHardwareID_str.startswith('USB'):
                 m = re.search(r'VID_([0-9a-f]{4})&PID_([0-9a-f]{4})(\\(\w+))?', szHardwareID_str, re.I)
                 if m:
-                    info.vid = m.group(1)
-                    info.pid = m.group(2)
+                    info.vid = int(m.group(1), 16)
+                    info.pid = int(m.group(2), 16)
                     if m.group(4):
                         info.serial_number = m.group(4)
                 # calculate a location string

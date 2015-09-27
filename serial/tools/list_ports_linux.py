@@ -38,8 +38,8 @@ class SysFS(list_ports_common.ListPortInfo):
             self.usb_device_path = None
         # fill-in info for USB devices
         if self.usb_device_path is not None:
-            self.vid = self.read_line(self.usb_device_path, 'idVendor').upper()
-            self.pid = self.read_line(self.usb_device_path, 'idProduct').upper()
+            self.vid = int(self.read_line(self.usb_device_path, 'idVendor'), 16)
+            self.pid = int(self.read_line(self.usb_device_path, 'idProduct'), 16)
             self.serial_number = self.read_line(self.usb_device_path, 'serial')
             self.location = os.path.basename(self.usb_device_path)
             self.manufacturer = self.read_line(self.usb_device_path, 'manufacturer')

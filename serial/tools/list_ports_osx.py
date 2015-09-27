@@ -198,6 +198,7 @@ def location_to_string(locationID):
 class SuitableSerialInterface(object):
     pass
 
+
 def scan_interfaces():
     """
     helper function to scan USB interfaces
@@ -210,18 +211,20 @@ def scan_interfaces():
             usb_device = GetParentDeviceByType(service, "IOUSBInterface")
             if usb_device:
                 name = get_string_property(usb_device, "USB Interface Name") or None
-                locationID = get_int_property(usb_device, "locationID",kCFNumberSInt32Type) or ''
+                locationID = get_int_property(usb_device, "locationID", kCFNumberSInt32Type) or ''
                 i = SuitableSerialInterface()
                 i.id = locationID
                 i.name = name
                 interfaces.append(i)
     return interfaces
 
+
 def search_for_locationID_in_interfaces(serial_interfaces, locationID):
     for interface in serial_interfaces:
         if (interface.id == locationID):
             return interface.name
     return None
+
 
 def comports():
     # Scan for all iokit serial ports
