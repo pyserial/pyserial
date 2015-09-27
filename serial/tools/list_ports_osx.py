@@ -242,7 +242,7 @@ def comports():
                 # fetch some useful informations from properties
                 info.vid = get_int_property(usb_device, "idVendor", kCFNumberSInt16Type)
                 info.pid = get_int_property(usb_device, "idProduct", kCFNumberSInt16Type)
-                info.serial_number = get_int_property(usb_device, "iSerialNumber", kCFNumberSInt32Type)
+                info.serial_number = get_string_property(usb_device, "USB Serial Number")
                 info.product = get_string_property(usb_device, "USB Product Name") or 'n/a'
                 info.manufacturer = get_string_property(usb_device, "USB Vendor Name")
                 locationID = get_int_property(usb_device, "locationID", kCFNumberSInt32Type)
