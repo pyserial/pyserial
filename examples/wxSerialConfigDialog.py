@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # A serial port configuration dialog for wxPython. A number of flags can
-# be used to cinfugure the fields that are displayed.
+# be used to configure the fields that are displayed.
 #
 # (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 #
@@ -11,11 +11,11 @@ import wx
 import serial
 import serial.tools.list_ports
 
-SHOW_BAUDRATE   = 1<<0
-SHOW_FORMAT     = 1<<1
-SHOW_FLOW       = 1<<2
-SHOW_TIMEOUT    = 1<<3
-SHOW_ALL = SHOW_BAUDRATE|SHOW_FORMAT|SHOW_FLOW|SHOW_TIMEOUT
+SHOW_BAUDRATE = 1 << 0
+SHOW_FORMAT = 1 << 1
+SHOW_FLOW = 1 << 2
+SHOW_TIMEOUT = 1 << 3
+SHOW_ALL = SHOW_BAUDRATE | SHOW_FORMAT | SHOW_FLOW | SHOW_TIMEOUT
 
 
 class SerialConfigDialog(wx.Dialog):
@@ -24,7 +24,7 @@ class SerialConfigDialog(wx.Dialog):
     When instantiating a class of this dialog, then the "serial" keyword
     argument is mandatory. It is a reference to a serial.Serial instance.
     the optional "show" keyword argument can be used to show/hide different
-    settings. The default is SHOW_ALL which corresponds to 
+    settings. The default is SHOW_ALL which corresponds to
     SHOW_BAUDRATE|SHOW_FORMAT|SHOW_FLOW|SHOW_TIMEOUT. All constants can be
     found in this module (not the class).
     """
@@ -34,9 +34,8 @@ class SerialConfigDialog(wx.Dialog):
         self.serial = kwds['serial']
         del kwds['serial']
         self.show = SHOW_ALL
-        if kwds.has_key('show'):
-            self.show = kwds['show']
-            del kwds['show']
+        if 'show' in kwds:
+            self.show = kwds.pop('show')
         # begin wxGlade: SerialConfigDialog.__init__
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE
         wx.Dialog.__init__(self, *args, **kwds)
@@ -85,7 +84,7 @@ class SerialConfigDialog(wx.Dialog):
         if self.show & SHOW_TIMEOUT:
             self.text_ctrl_timeout.Enable(0)
         self.button_ok.SetDefault()
-        
+
         if not self.show & SHOW_BAUDRATE:
             self.label_1.Hide()
             self.choice_baudrate.Hide()
@@ -207,16 +206,16 @@ class SerialConfigDialog(wx.Dialog):
 
     def OnOK(self, events):
         success = True
-        self.serial.port     = self.ports[self.choice_port.GetSelection()]
+        self.serial.port = self.ports[self.choice_port.GetSelection()]
         if self.show & SHOW_BAUDRATE:
             self.serial.baudrate = self.serial.BAUDRATES[self.choice_baudrate.GetSelection()]
         if self.show & SHOW_FORMAT:
             self.serial.bytesize = self.serial.BYTESIZES[self.choice_databits.GetSelection()]
             self.serial.stopbits = self.serial.STOPBITS[self.choice_stopbits.GetSelection()]
-            self.serial.parity   = self.serial.PARITIES[self.choice_parity.GetSelection()]
+            self.serial.parity = self.serial.PARITIES[self.choice_parity.GetSelection()]
         if self.show & SHOW_FLOW:
-            self.serial.rtscts   = self.checkbox_rtscts.GetValue()
-            self.serial.xonxoff  = self.checkbox_xonxoff.GetValue()
+            self.serial.rtscts = self.checkbox_rtscts.GetValue()
+            self.serial.xonxoff = self.checkbox_xonxoff.GetValue()
         if self.show & SHOW_TIMEOUT:
             if self.checkbox_timeout.GetValue():
                 try:
