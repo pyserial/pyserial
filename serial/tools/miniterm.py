@@ -13,15 +13,15 @@ import threading
 
 import serial
 from serial.tools.list_ports import comports
+from serial.tools import hexlify_codec
+
+codecs.register(lambda c: hexlify_codec.getregentry() if c == 'hexlify' else None)
 
 try:
     raw_input
 except NameError:
     raw_input = input   # in python3 it's "raw"
     unichr = chr
-
-from . import hexlify_codec
-codecs.register(lambda c: hexlify_codec.getregentry() if c == 'hexlify' else None)
 
 
 def key_description(character):
@@ -96,7 +96,7 @@ if os.name == 'nt':
             # the change of the code page is not propagated to Python, manually fix it
             sys.stderr = codecs.getwriter('UTF-8')(Out(sys.stderr.fileno()), 'replace')
             sys.stdout = self.output
-            self.output.encoding = 'UTF-8' # needed for input
+            self.output.encoding = 'UTF-8'  # needed for input
 
         def __del__(self):
             ctypes.windll.kernel32.SetConsoleOutputCP(self._saved_ocp)
