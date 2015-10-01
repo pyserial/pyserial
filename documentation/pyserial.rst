@@ -4,10 +4,11 @@
 
 Overview
 ========
+
 This module encapsulates the access for the serial port. It provides backends
-for Python running on Windows, Linux, BSD (possibly any POSIX compliant
-system), Jython and IronPython (.NET and Mono). The module named "serial"
-automatically selects the appropriate backend.
+for Python_ running on Windows, OSX, Linux, BSD (possibly any POSIX compliant
+system) and IronPython. The module named "serial" automatically selects the
+appropriate backend.
 
 It is released under a free software license, see LICENSE_ for more
 details.
@@ -18,8 +19,10 @@ Other pages (online)
 
 - `project page on GitHub`_
 - `Download Page`_ with releases (PyPi)
-- This page, when viewed online is at http://pythonhosted.org/pyserial/ .
+- This page, when viewed online is at https://pyserial.readthedocs.org/en/latest/ or
+  http://pythonhosted.org/pyserial/ .
 
+.. _Python: http://python.org/
 .. _LICENSE: appendix.html#license
 .. _`project page on GitHub`: https://github.com/pyserial/pyserial/
 .. _`Download Page`: http://pypi.python.org/pypi/pyserial
