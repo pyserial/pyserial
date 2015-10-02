@@ -542,3 +542,12 @@ Bugfixes (cli):
 
 - [Bug pyserial:159] write() in serialcli.py not working with IronPython 2.7.4
 
+
+Version 3.0a1   xxxx-xx-xx
+--------------------------
+
+- list_ports: add ``vid``, ``pid``, ``serial_number``, ``product``,
+  ``manufacturer`` and ``location`` attribute for USB devices.
+- list_ports: update OSX implementation.
+- list_ports: Raspberry Pi: internal port is found.
+
