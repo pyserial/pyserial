@@ -1,16 +1,12 @@
-include README.txt
+include README.rst
 include LICENSE.txt
-include CHANGES.txt
+include CHANGES.rst
 include MANIFEST.in
 include setup.py
 
-include examples/enhancedserial.py
 include examples/port_publisher.py
 include examples/port_publisher.sh
 include examples/rfc2217_server.py
-include examples/scan.py
-include examples/scanlinux.py
-include examples/scanwin32.py
 include examples/setup-miniterm-py2exe.py
 include examples/setup-rfc2217_server-py2exe.py
 include examples/setup-wxTerminal-py2exe.py
@@ -26,6 +22,11 @@ include test/test_advanced.py
 include test/test_high_load.py
 include test/test_iolib.py
 include test/test_readline.py
+include test/test_rs485.py
+include test/test_settings_dict.py
+include test/test_url.py
+include test/handlers/__init__.py
+include test/handlers/protocol_test.py
 
 include documentation/*.rst
 include documentation/pyserial.png
