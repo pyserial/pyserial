@@ -6,10 +6,11 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
-import wx
-import wxSerialConfigDialog
+import codecs
 import serial
 import threading
+import wx
+import wxSerialConfigDialog
 
 # ----------------------------------------------------------------------
 # Create an own event type, so that GUI updates can be delegated
@@ -48,8 +49,10 @@ NEWLINE_CRLF = 2
 
 
 class TerminalSetup:
-    """Placeholder for various terminal settings. Used to pass the
-       options to the TerminalSettingsDialog."""
+    """
+    Placeholder for various terminal settings. Used to pass the
+    options to the TerminalSettingsDialog.
+    """
     def __init__(self):
         self.echo = False
         self.unprintable = False
@@ -183,7 +186,7 @@ class TerminalFrame(wx.Frame):
         self.frame_terminal_menubar.Check(ID_DTR, self.serial.dtr)
 
     def StopThread(self):
-        """Stop the receiver thread, wait util it's finished."""
+        """Stop the receiver thread, wait until it's finished."""
         if self.thread is not None:
             self.alive.clear()          # clear alive event for thread
             self.thread.join()          # wait until thread has finished
@@ -227,7 +230,6 @@ class TerminalFrame(wx.Frame):
 
     def OnSaveAs(self, event):  # wxGlade: TerminalFrame.<event_handler>
         """Save contents of output window."""
-        filename = None
         with wx.FileDialog(
                 None,
                 "Save Text As...",
@@ -237,28 +239,26 @@ class TerminalFrame(wx.Frame):
                 wx.SAVE) as dlg:
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPath()
-
-        if filename is not None:
-            with file(filename, 'w') as f:
-                text = self.text_ctrl_output.GetValue()
-                if type(text) == unicode:
-                    text = text.encode("latin1")    # hm, is that a good asumption?
-                f.write(text)
+                with codecs.open(filename, 'w', encoding='utf-8') as f:
+                    text = self.text_ctrl_output.GetValue().encode("utf-8")
+                    f.write(text)
 
     def OnClear(self, event):  # wxGlade: TerminalFrame.<event_handler>
         """Clear contents of output window."""
         self.text_ctrl_output.Clear()
 
     def OnPortSettings(self, event):  # wxGlade: TerminalFrame.<event_handler>
-        """Show the portsettings dialog. The reader thread is stopped for the
-           settings change."""
+        """
+        Show the port settings dialog. The reader thread is stopped for the
+        settings change.
+        """
         if event is not None:           # will be none when called on startup
             self.StopThread()
             self.serial.close()
         ok = False
         while not ok:
             with wxSerialConfigDialog.SerialConfigDialog(
-                    None,
+                    self,
                     -1,
                     "",
                     show=wxSerialConfigDialog.SHOW_BAUDRATE | wxSerialConfigDialog.SHOW_FORMAT | wxSerialConfigDialog.SHOW_FLOW,
@@ -269,11 +269,11 @@ class TerminalFrame(wx.Frame):
                 try:
                     self.serial.open()
                 except serial.SerialException as e:
-                    with wx.MessageDialog(None, str(e), "Serial Port Error", wx.OK | wx.ICON_ERROR)as dlg:
+                    with wx.MessageDialog(self, str(e), "Serial Port Error", wx.OK | wx.ICON_ERROR)as dlg:
                         dlg.ShowModal()
                 else:
                     self.StartThread()
-                    self.SetTitle("Serial Terminal on %s [%s, %s%s%s%s%s]" % (
+                    self.SetTitle("Serial Terminal on %s [%s,%s,%s,%s%s%s]" % (
                             self.serial.portstr,
                             self.serial.baudrate,
                             self.serial.bytesize,
@@ -293,43 +293,44 @@ class TerminalFrame(wx.Frame):
         Menu point Terminal Settings. Show the settings dialog
         with the current terminal settings.
         """
-        with TerminalSettingsDialog(None, -1, "", settings=self.settings) as dialog:
+        with TerminalSettingsDialog(self, -1, "", settings=self.settings) as dialog:
             dialog.ShowModal()
 
     def OnKey(self, event):
         """\
-        Key event handler. if the key is in the ASCII range, write it to the
+        Key event handler. If the key is in the ASCII range, write it to the
         serial port. Newline handling and local echo is also done here.
         """
-        code = event.GetKeyCode()
-        if code < 256:                          # is it printable?
-            if code == 13:                      # is it a newline? (check for CR which is the RETURN key)
-                if self.settings.echo:          # do echo if needed
-                    self.text_ctrl_output.AppendText('\n')
-                if self.settings.newline == NEWLINE_CR:
-                    self.serial.write('\r')     # send CR
-                elif self.settings.newline == NEWLINE_LF:
-                    self.serial.write('\n')     # send LF
-                elif self.settings.newline == NEWLINE_CRLF:
-                    self.serial.write('\r\n')   # send CR+LF
-            else:
-                char = chr(code)
-                if self.settings.echo:          # do echo if needed
-                    self.text_ctrl_output.WriteText(char)
-                self.serial.write(char)         # send the charcater
+        code = event.GetUnicodeKey()
+        if code < 256:   # XXX bug in some versions of wx returning only capital letters
+            code = event.GetKeyCode()
+        if code == 13:                      # is it a newline? (check for CR which is the RETURN key)
+            if self.settings.echo:          # do echo if needed
+                self.text_ctrl_output.AppendText('\n')
+            if self.settings.newline == NEWLINE_CR:
+                self.serial.write(b'\r')     # send CR
+            elif self.settings.newline == NEWLINE_LF:
+                self.serial.write(b'\n')     # send LF
+            elif self.settings.newline == NEWLINE_CRLF:
+                self.serial.write(b'\r\n')   # send CR+LF
         else:
-            print("Extra Key:", code)
+            char = unichr(code)
+            if self.settings.echo:          # do echo if needed
+                self.WriteText(char)
+            self.serial.write(char.encode('UTF-8', 'replace'))         # send the character
 
-    def OnSerialRead(self, event):
-        """Handle input from the serial port."""
-        text = event.data.decode('UTF-8', 'replace')
+    def WriteText(self, text):
         if self.settings.unprintable:
             text = ''.join([c if (c >= ' ' and c != '\x7f') else unichr(0x2400 + ord(c)) for c in text])
         self.text_ctrl_output.AppendText(text)
 
+    def OnSerialRead(self, event):
+        """Handle input from the serial port."""
+        self.WriteText(event.data.decode('UTF-8', 'replace'))
+
     def ComPortThread(self):
         """\
-        Thread that handles the incomming traffic. Does the basic input
+        Thread that handles the incoming traffic. Does the basic input
         transformation (newlines) and generates an SerialRxEvent
         """
         while self.alive.isSet():
@@ -337,11 +338,11 @@ class TerminalFrame(wx.Frame):
             if b:
                 # newline transformation
                 if self.settings.newline == NEWLINE_CR:
-                    b = b.replace('\r', '\n')
+                    b = b.replace(b'\r', b'\n')
                 elif self.settings.newline == NEWLINE_LF:
                     pass
                 elif self.settings.newline == NEWLINE_CRLF:
-                    b = b.replace('\r\n', '\n')
+                    b = b.replace(b'\r\n', b'\n')
                 event = SerialRxEvent(self.GetId(), b)
                 self.GetEventHandler().AddPendingEvent(event)
                 #~ self.OnSerialRead(text)         # output text in window
