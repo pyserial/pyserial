@@ -9,6 +9,7 @@
 Support threading with serial ports.
 """
 import logging
+import serial
 import threading
 
 
@@ -29,6 +30,47 @@ class Protocol(object):
         Called when the serial port is closed or the reader loop terminated
         otherwise.
         """
+
+
+class Packetizer(Protocol):
+    """read binary packets from serial port"""
+
+    TERMINATOR = b'\0'
+
+    def __init__(self):
+        self.buffer = bytearray()
+        self.transport = None
+
+    def connection_made(self, transport):
+        self.transport = transport
+
+    def connection_lost(self, exc):
+        self.transport = None
+
+    def data_received(self, data):
+        self.line.extend(data)
+        while self.TERMINATOR in self.line:
+            packet, self.buffer = self.buffer.split(self.TERMINATOR)
+            self.handle_packet(packet)
+
+    def handle_packet(self, packet):
+        """Process packets - to be overriden by subclassing"""
+        raise NotImplementedError('please implement functionality in handle_packet')
+
+
+class LineReader(Packetizer):
+    """read (unicode) lines from serial port. the encoding is applied"""
+
+    TERMINATOR = b'\n'
+    ENCODING = 'utf-8'
+    UNICODE_HANDLING = 'replace'
+
+    def handle_packet(self, packet):
+        self.handle_line(packet.decode(self.ENCODING, self.UNICODE_HANDLING).rstrip())
+
+    def handle_line(self, line):
+        """Process one line - to be overriden by subclassing"""
+        raise NotImplementedError('please implement functionality in handle_line')
 
 
 class SerialPortWorker(threading.Thread):
@@ -100,7 +142,6 @@ class SerialPortWorker(threading.Thread):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
 if __name__ == '__main__':
-    import serial
     import sys
     import time
 
