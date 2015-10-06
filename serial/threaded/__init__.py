@@ -48,8 +48,8 @@ class Packetizer(Protocol):
         self.transport = None
 
     def data_received(self, data):
-        self.line.extend(data)
-        while self.TERMINATOR in self.line:
+        self.buffer.extend(data)
+        while self.TERMINATOR in self.buffer:
             packet, self.buffer = self.buffer.split(self.TERMINATOR)
             self.handle_packet(packet)
 
@@ -78,8 +78,8 @@ class SerialPortWorker(threading.Thread):
     Implement a serial port read loop and dispatch to a Protocol instance (like
     the asyncio.Procotol) but do it with threads.
 
-    Calls to close will close the serial port but its also possible to just stop
-    this thread and continue the serial port instance otherwise.
+    Calls to close() will close the serial port but its also possible to just
+    stop() this thread and continue the serial port instance otherwise.
     """
 
     def __init__(self, serial_instance, protocol_factory, use_logging=True):
@@ -96,6 +96,8 @@ class SerialPortWorker(threading.Thread):
         self.use_logging = use_logging
         self.alive = True
         self.lock = threading.Lock()
+        self._connection_made = threading.Event()
+        self.protocol = None
 
     def stop(self):
         self.alive = False
@@ -103,9 +105,10 @@ class SerialPortWorker(threading.Thread):
 
     def run(self):
         """Reader loop"""
-        protocol = self.protocol_factory()
-        protocol.connection_made(self)
+        self.protocol = self.protocol_factory()
+        self.protocol.connection_made(self)
         self.serial.timeout = 1
+        self._connection_made.set()
         while self.alive and self.serial.is_open:
             try:
                 # read all that is there or wait for one byte (blocking)
@@ -120,11 +123,12 @@ class SerialPortWorker(threading.Thread):
                 if data:
                     # make a separated try-except for user called code
                     try:
-                        protocol.data_received(data)
+                        self.protocol.data_received(data)
                     except:
                         if self.use_logging:
                             logging.exception('Error in %s (thread continues):', self.name)
-        protocol.connection_lost(None)
+        self.protocol.connection_lost(None)
+        self.protocol = None
 
     def write(self, data):
         """Thread safe writing (uses lock)"""
@@ -138,6 +142,28 @@ class SerialPortWorker(threading.Thread):
             # first stop reading, so that closing can be done on idle port
             self.stop()
             self.serial.close()
+
+    def connect(self):
+        """
+        Wait until connection is set up and return the transport and protocol
+        instances.
+        """
+        if self.alive:
+            self._connection_made.wait()
+            return (self, self.protocol)
+        else:
+            raise RuntimeError('already stopped')
+
+    # - -  context manager, returns protocol
+
+    def __enter__(self):
+        self.start()
+        self._connection_made.wait()
+        return self.protocol
+
+    def __exit__(self, *args, **kwargs):
+        self.close()
+        
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
