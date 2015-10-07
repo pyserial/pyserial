@@ -41,10 +41,6 @@ class ATProtocol(serial.threaded.LineReader):
         self._event_thread.start()
         self.lock = threading.Lock()
 
-    def connection_made(self, transport):
-        super(ATProtocol, self).connection_made(transport)
-        self.transport = transport
-
     def stop(self):
         """
         Stop the event processing thread, abort pending commands, if any.
@@ -84,7 +80,7 @@ class ATProtocol(serial.threaded.LineReader):
         Set an AT command and wait for the response.
         """
         with self.lock:  # ensure that just one thread is sending commands at once
-            self.transport.write(b'%s\r\n' % (command.encode(self.ENCODING, self.UNICODE_HANDLING),))
+            self.write_line(command)
             lines = []
             while True:
                 try:
@@ -100,13 +96,12 @@ class ATProtocol(serial.threaded.LineReader):
 
 # test
 if __name__ == '__main__':
-    import sys
     import time
 
     class PAN1322(ATProtocol):
         """
         Example communication with PAN1322 BT module.
-        
+
         Some commands do not respond with OK but with a '+...' line. This is
         implemented via command_with_event_response and handle_event, because
         '+...' lines are also used for real events.
@@ -131,7 +126,7 @@ if __name__ == '__main__':
                 mac = ':'.join('%02X' % ord(x) for x in rev.decode('hex')[::-1])
                 self.event_responses.put(mac)
             else:
-                log.warning('unhandled event: %r' % event)
+                logging.warning('unhandled event: %r' % event)
 
         def command_with_event_response(self, command):
             """Send a command that responds with '+...' line"""
@@ -150,7 +145,6 @@ if __name__ == '__main__':
         def get_mac_address(self):
             # requests hardware / calibrationinfo as event
             return self.command_with_event_response("AT+JRBD")
-
 
     ser = serial.serial_for_url('spy://COM1', baudrate=115200, timeout=1)
     #~ ser = serial.Serial('COM1', baudrate=115200, timeout=1)

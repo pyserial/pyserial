@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Working with thrading and pySerial
+# Working with threading and pySerial
 #
 # (C) 2015 Chris Liechti <cliechti@gmx.net>
 #
@@ -33,7 +33,12 @@ class Protocol(object):
 
 
 class Packetizer(Protocol):
-    """read binary packets from serial port"""
+    """
+    Read binary packets from serial port. Packets are expected to be terminates
+    with a TERMINATOR byte (null byte by default).
+
+    The class also keeps track of the transport.
+    """
 
     TERMINATOR = b'\0'
 
@@ -42,52 +47,68 @@ class Packetizer(Protocol):
         self.transport = None
 
     def connection_made(self, transport):
+        """Store transport"""
         self.transport = transport
 
     def connection_lost(self, exc):
+        """Forget transport"""
         self.transport = None
 
     def data_received(self, data):
+        """Buffer received data, find TERMINATOR, call handle_packet"""
         self.buffer.extend(data)
         while self.TERMINATOR in self.buffer:
             packet, self.buffer = self.buffer.split(self.TERMINATOR)
             self.handle_packet(packet)
 
     def handle_packet(self, packet):
-        """Process packets - to be overriden by subclassing"""
+        """Process packets - to be overridden by subclassing"""
         raise NotImplementedError('please implement functionality in handle_packet')
 
 
 class LineReader(Packetizer):
-    """read (unicode) lines from serial port. the encoding is applied"""
+    """
+    Read and write (Unicode) lines from/to serial port.
+    The encoding is applied.
+    """
 
-    TERMINATOR = b'\n'
+    TERMINATOR = b'\r\n'
     ENCODING = 'utf-8'
     UNICODE_HANDLING = 'replace'
 
     def handle_packet(self, packet):
-        self.handle_line(packet.decode(self.ENCODING, self.UNICODE_HANDLING).rstrip())
+        self.handle_line(packet.decode(self.ENCODING, self.UNICODE_HANDLING))
 
     def handle_line(self, line):
-        """Process one line - to be overriden by subclassing"""
+        """Process one line - to be overridden by subclassing"""
         raise NotImplementedError('please implement functionality in handle_line')
+
+    def write_line(self, text):
+        """
+        Write text to the transport. ``text`` is a Unicode string and the encoding
+        is applied before sending ans also the newline is append.
+        """
+        # + is not the best choice but bytes does not support % or .format in py3 and we want a single write call
+        self.transport.write(text.encode(self.ENCODING, self.UNICODE_HANDLING) + self.TERMINATOR)
 
 
 class SerialPortWorker(threading.Thread):
     """\
     Implement a serial port read loop and dispatch to a Protocol instance (like
-    the asyncio.Procotol) but do it with threads.
+    the asyncio.Protocol) but do it with threads.
 
-    Calls to close() will close the serial port but its also possible to just
+    Calls to close() will close the serial port but it is also possible to just
     stop() this thread and continue the serial port instance otherwise.
     """
 
     def __init__(self, serial_instance, protocol_factory, use_logging=True):
         """\
         Initialize thread.
-        Note that the serial_instance' timeout is set to one second!
 
-        When use_logging, log messages are printed on exceptions.
+        Note that the serial_instance' timeout is set to one second!
+        Other settings are not changed.
+
+        When use_logging is true, log messages are printed on exceptions.
         """
         super(SerialPortWorker, self).__init__()
         self.daemon = True
@@ -95,11 +116,12 @@ class SerialPortWorker(threading.Thread):
         self.protocol_factory = protocol_factory
         self.use_logging = use_logging
         self.alive = True
-        self.lock = threading.Lock()
+        self._lock = threading.Lock()
         self._connection_made = threading.Event()
         self.protocol = None
 
     def stop(self):
+        """Stop the reader thread"""
         self.alive = False
         self.join(2)
 
@@ -114,14 +136,14 @@ class SerialPortWorker(threading.Thread):
                 # read all that is there or wait for one byte (blocking)
                 data = self.serial.read(self.serial.in_waiting or 1)
             except serial.SerialException:
-                # probably some IO problem such as disconnected USB serial
+                # probably some I/O problem such as disconnected USB serial
                 # adapters -> exit
                 self.alive = False
                 if self.use_logging:
                     logging.exception('Error in %s (thread stops):', self.name)
             else:
                 if data:
-                    # make a separated try-except for user called code
+                    # make a separated try-except for called used code
                     try:
                         self.protocol.data_received(data)
                     except:
@@ -132,13 +154,13 @@ class SerialPortWorker(threading.Thread):
 
     def write(self, data):
         """Thread safe writing (uses lock)"""
-        with self.lock:
+        with self._lock:
             self.serial.write(data)
 
     def close(self):
         """Close the serial port and exit reader thread (uses lock)"""
         # use the lock to let other threads finish writing
-        with self.lock:
+        with self._lock:
             # first stop reading, so that closing can be done on idle port
             self.stop()
             self.serial.close()
@@ -163,7 +185,7 @@ class SerialPortWorker(threading.Thread):
 
     def __exit__(self, *args, **kwargs):
         self.close()
-        
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
