@@ -98,7 +98,9 @@ def get_string_property(device_type, property):
     output = None
 
     if CFContainer:
-        output = cf.CFStringGetCStringPtr(CFContainer, 0).decode('mac_roman')
+        output = cf.CFStringGetCStringPtr(CFContainer, 0)
+        if output is not None:
+            output = output.decode('mac_roman')
         cf.CFRelease(CFContainer)
     return output
 
