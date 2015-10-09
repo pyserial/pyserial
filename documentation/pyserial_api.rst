@@ -956,6 +956,155 @@ Module functions and attributes
     .. versionadded:: 3.0
 
 
+Threading
+=========
+
+.. module:: serial.threaded
+.. versionadded:: 3.0
+
+.. warning:: This implementation is currently in an experimental state. Use
+    at your own risk.
+
+This module provides classes to simplify working with threads and protocols.
+
+.. class::  Protocol
+
+    Protocol as used by the :class:`SerialPortWorker`. This base class provides empty
+    implementations of all methods.
+
+
+    .. method:: connection_made(transport)
+
+        :param transport: instance used to write to serial port.
+
+        Called when reader thread is started.
+
+    .. method:: data_received(data)
+
+        :param data: received bytes
+
+        Called with snippets received from the serial port.
+
+    .. method:: connection_lost(exc)
+
+        :param exc: Exception if connection was terminated by error else ``None``
+
+        Called when the serial port is closed or the reader loop terminated
+        otherwise.
+
+.. class:: Packetizer(Protocol)
+
+    Read binary packets from serial port. Packets are expected to be terminated
+    with a ``TERMINATOR`` byte (null byte by default).
+
+    The class also keeps track of the transport.
+
+    .. attribute:: TERMINATOR = b'\\0'
+
+    .. method:: __init__()
+
+    .. method:: connection_made(transport)
+
+        Store transport
+
+    .. method:: connection_lost(exc)
+
+        Forget transport
+
+    .. method:: data_received(data)
+
+        Buffer received data and search for ``TERMINATOR``, when found,
+        call :meth:`handle_packet`.
+
+    .. method:: handle_packet(packet)
+
+        Process packets - to be overridden by subclassing.
+
+
+.. class:: LineReader(Packetizer)
+
+    Read and write (Unicode) lines from/to serial port.
+    The encoding is applied.
+
+
+    .. attribute:: TERMINATOR = b'\\r\\n'
+    .. attribute:: ENCODING = 'utf-8'
+    .. attribute:: UNICODE_HANDLING = 'replace'
+
+    .. method:: handle_packet(packet)
+
+    .. method:: handle_line(line)
+
+        :param line: Unicode string with one line (excluding line terminator)
+
+        Process one line - to be overridden by subclassing.
+
+    .. method:: write_line(text)
+
+        :param text: Unicode string with one line (excluding line terminator)
+
+        Write text to the transport. ``text`` is a Unicode string and the encoding
+        is applied before sending ans also the newline is append.
+
+
+.. class:: SerialPortWorker(threading.Thread)
+
+    Implement a serial port read loop and dispatch to a Protocol instance (like
+    the :class:`asyncio.Protocol`) but do it with threads.
+
+    Calls to :meth:`close` will close the serial port but it is also possible to just
+    :meth:`stop` this thread and continue the serial port instance otherwise.
+
+    .. method:: __init__(serial_instance, protocol_factory)
+
+        :param serial_instance: serial port instance (opened) to be used.
+        :param protocol_factory: a callable that returns a Protocol instance
+
+        Initialize thread.
+
+        Note that the ``serial_instance`` timeout is set to one second!
+        Other settings are not changed.
+
+    .. method:: stop()
+
+        Stop the reader thread.
+
+    .. method:: run()
+
+        The actual reader loop driven by the thread. It calls
+        :meth:`Protocol.connection_made`, reads from the serial port calling
+        :meth:`Protocol.data_received` and finally calling :meth:`Protocol.connection_lost`
+        when :meth:`close` is called or an error occurs.
+
+    .. method:: write(data)
+
+        Thread safe writing (uses lock).
+
+    .. method:: close()
+
+        Close the serial port and exit reader thread, calls :meth:`stop` (uses lock).
+
+    .. method:: connect()
+
+        Wait until connection is set up and return the transport and protocol
+        instances.
+
+
+    This class can be used as context manager, in this case it starts
+    the thread and connects automatically. The serial port is closed
+    when the context is left.
+
+    .. method:: __enter__()
+
+        :returns: protocol
+
+        Connect and return protocol instance.
+
+    .. method:: __exit__(exc_type, exc_val, exc_tb)
+
+        Closes serial port.
+
+
 asyncio
 =======
 
