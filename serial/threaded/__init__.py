@@ -8,7 +8,6 @@
 """\
 Support threading with serial ports.
 """
-import logging
 import serial
 import threading
 
@@ -34,7 +33,7 @@ class Protocol(object):
 
 class Packetizer(Protocol):
     """
-    Read binary packets from serial port. Packets are expected to be terminates
+    Read binary packets from serial port. Packets are expected to be terminated
     with a TERMINATOR byte (null byte by default).
 
     The class also keeps track of the transport.
@@ -101,7 +100,7 @@ class SerialPortWorker(threading.Thread):
     stop() this thread and continue the serial port instance otherwise.
     """
 
-    def __init__(self, serial_instance, protocol_factory, use_logging=True):
+    def __init__(self, serial_instance, protocol_factory):
         """\
         Initialize thread.
 
@@ -114,7 +113,6 @@ class SerialPortWorker(threading.Thread):
         self.daemon = True
         self.serial = serial_instance
         self.protocol_factory = protocol_factory
-        self.use_logging = use_logging
         self.alive = True
         self._lock = threading.Lock()
         self._connection_made = threading.Event()
@@ -131,25 +129,26 @@ class SerialPortWorker(threading.Thread):
         self.protocol.connection_made(self)
         self.serial.timeout = 1
         self._connection_made.set()
+        error = None
         while self.alive and self.serial.is_open:
             try:
                 # read all that is there or wait for one byte (blocking)
                 data = self.serial.read(self.serial.in_waiting or 1)
-            except serial.SerialException:
+            except serial.SerialException as e:
                 # probably some I/O problem such as disconnected USB serial
                 # adapters -> exit
-                self.alive = False
-                if self.use_logging:
-                    logging.exception('Error in %s (thread stops):', self.name)
+                error = e
+                break
             else:
                 if data:
                     # make a separated try-except for called used code
                     try:
                         self.protocol.data_received(data)
-                    except:
-                        if self.use_logging:
-                            logging.exception('Error in %s (thread continues):', self.name)
-        self.protocol.connection_lost(None)
+                    except Exception as e:
+                        error = e
+                        break
+        self.alive = False
+        self.protocol.connection_lost(error)
         self.protocol = None
 
     def write(self, data):
@@ -183,7 +182,7 @@ class SerialPortWorker(threading.Thread):
         self._connection_made.wait()
         return self.protocol
 
-    def __exit__(self, *args, **kwargs):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
 
