@@ -106,8 +106,6 @@ class SerialPortWorker(threading.Thread):
 
         Note that the serial_instance' timeout is set to one second!
         Other settings are not changed.
-
-        When use_logging is true, log messages are printed on exceptions.
         """
         super(SerialPortWorker, self).__init__()
         self.daemon = True
@@ -125,11 +123,17 @@ class SerialPortWorker(threading.Thread):
 
     def run(self):
         """Reader loop"""
-        self.protocol = self.protocol_factory()
-        self.protocol.connection_made(self)
         self.serial.timeout = 1
-        self._connection_made.set()
+        self.protocol = self.protocol_factory()
+        try:
+            self.protocol.connection_made(self)
+        except Exception as e:
+            self.alive = False
+            self.protocol.connection_lost(e)
+            self._connection_made.set()
+            return
         error = None
+        self._connection_made.set()
         while self.alive and self.serial.is_open:
             try:
                 # read all that is there or wait for one byte (blocking)
@@ -171,6 +175,8 @@ class SerialPortWorker(threading.Thread):
         """
         if self.alive:
             self._connection_made.wait()
+            if not self.alive:
+                raise RuntimeError('connection_lost already called')
             return (self, self.protocol)
         else:
             raise RuntimeError('already stopped')
@@ -178,11 +184,18 @@ class SerialPortWorker(threading.Thread):
     # - -  context manager, returns protocol
 
     def __enter__(self):
+        """\
+        Enter context handler. May raise RuntimeError in case the connection
+        could not be created.
+        """
         self.start()
         self._connection_made.wait()
+        if not self.alive:
+            raise RuntimeError('connection_lost already called')
         return self.protocol
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """Leave context: close port"""
         self.close()
 
 
@@ -191,22 +204,32 @@ class SerialPortWorker(threading.Thread):
 if __name__ == '__main__':
     import sys
     import time
+    import traceback
 
-    class Output(Protocol):
+    class PrintLines(LineReader):
         def connection_made(self, transport):
-            self.transport = transport
-            sys.stdout.write('port opened: {}\n'.format(transport))
-            transport.serial.rts = False
-            transport.write(b'hello world\n')
+            super(PrintLines, self).connection_made(transport)
+            sys.stdout.write('port opened\n')
+            self.write_line('hello world')
 
-        def data_received(self, data):
-            sys.stdout.write('data received: {}\n'.format(repr(data)))
+        def handle_line(self, data):
+            sys.stdout.write('line received: {}\n'.format(repr(data)))
 
         def connection_lost(self, exc):
+            if exc:
+                traceback.print_exc(exc)
             sys.stdout.write('port closed\n')
 
-    ser = serial.Serial('/dev/ttyUSB0', baudrate=115200, timeout=1)
-    t = SerialPortWorker(ser, Output)
+    ser = serial.serial_for_url('loop://', baudrate=115200, timeout=1)
+    with SerialPortWorker(ser, PrintLines) as protocol:
+        protocol.write_line('hello')
+        time.sleep(2)
+
+    # alternative usage
+    ser = serial.serial_for_url('loop://', baudrate=115200, timeout=1)
+    t = SerialPortWorker(ser, PrintLines)
     t.start()
+    transport, protocol = t.connect()
+    protocol.write_line('hello')
     time.sleep(2)
-    t.stop()
+    t.close()
