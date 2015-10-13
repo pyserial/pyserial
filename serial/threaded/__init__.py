@@ -14,7 +14,7 @@ import threading
 
 class Protocol(object):
     """\
-    Protocol as used by the SerialPortWorker. This base class provides empty
+    Protocol as used by the ReaderThread. This base class provides empty
     implementations of all methods.
     """
 
@@ -91,7 +91,7 @@ class LineReader(Packetizer):
         self.transport.write(text.encode(self.ENCODING, self.UNICODE_HANDLING) + self.TERMINATOR)
 
 
-class SerialPortWorker(threading.Thread):
+class ReaderThread(threading.Thread):
     """\
     Implement a serial port read loop and dispatch to a Protocol instance (like
     the asyncio.Protocol) but do it with threads.
@@ -107,7 +107,7 @@ class SerialPortWorker(threading.Thread):
         Note that the serial_instance' timeout is set to one second!
         Other settings are not changed.
         """
-        super(SerialPortWorker, self).__init__()
+        super(ReaderThread, self).__init__()
         self.daemon = True
         self.serial = serial_instance
         self.protocol_factory = protocol_factory
@@ -221,13 +221,13 @@ if __name__ == '__main__':
             sys.stdout.write('port closed\n')
 
     ser = serial.serial_for_url('loop://', baudrate=115200, timeout=1)
-    with SerialPortWorker(ser, PrintLines) as protocol:
+    with ReaderThread(ser, PrintLines) as protocol:
         protocol.write_line('hello')
         time.sleep(2)
 
     # alternative usage
     ser = serial.serial_for_url('loop://', baudrate=115200, timeout=1)
-    t = SerialPortWorker(ser, PrintLines)
+    t = ReaderThread(ser, PrintLines)
     t.start()
     transport, protocol = t.connect()
     protocol.write_line('hello')

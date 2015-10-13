@@ -969,7 +969,7 @@ This module provides classes to simplify working with threads and protocols.
 
 .. class::  Protocol
 
-    Protocol as used by the :class:`SerialPortWorker`. This base class provides empty
+    Protocol as used by the :class:`ReaderThread`. This base class provides empty
     implementations of all methods.
 
 
@@ -1047,7 +1047,7 @@ This module provides classes to simplify working with threads and protocols.
         is applied before sending ans also the newline is append.
 
 
-.. class:: SerialPortWorker(threading.Thread)
+.. class:: ReaderThread(threading.Thread)
 
     Implement a serial port read loop and dispatch to a Protocol instance (like
     the :class:`asyncio.Protocol`) but do it with threads.
@@ -1121,7 +1121,7 @@ Example::
             sys.stdout.write('port closed\n')
 
     ser = serial.serial_for_url('loop://', baudrate=115200, timeout=1)
-    with SerialPortWorker(ser, PrintLines) as protocol:
+    with ReaderThread(ser, PrintLines) as protocol:
         protocol.write_line('hello')
         time.sleep(2)
 

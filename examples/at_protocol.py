@@ -148,7 +148,7 @@ if __name__ == '__main__':
 
     ser = serial.serial_for_url('spy://COM1', baudrate=115200, timeout=1)
     #~ ser = serial.Serial('COM1', baudrate=115200, timeout=1)
-    with serial.threaded.SerialPortWorker(ser, PAN1322) as bt_module:
+    with serial.threaded.ReaderThread(ser, PAN1322) as bt_module:
         bt_module.reset()
         print("reset OK")
         print("MAC address is", bt_module.get_mac_address())
