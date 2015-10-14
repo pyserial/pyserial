@@ -72,8 +72,8 @@ class TerminalSettingsDialog(wx.Dialog):
         self.checkbox_unprintable = wx.CheckBox(self, -1, "Show unprintable characters")
         self.radio_box_newline = wx.RadioBox(self, -1, "Newline Handling", choices=["CR only", "LF only", "CR+LF"], majorDimension=0, style=wx.RA_SPECIFY_ROWS)
         self.sizer_4_staticbox = wx.StaticBox(self, -1, "Input/Output")
-        self.button_ok = wx.Button(self, -1, "OK")
-        self.button_cancel = wx.Button(self, -1, "Cancel")
+        self.button_ok = wx.Button(self, wx.ID_OK, "")
+        self.button_cancel = wx.Button(self, wx.ID_CANCEL, "")
 
         self.__set_properties()
         self.__do_layout()
@@ -138,7 +138,7 @@ class TerminalFrame(wx.Frame):
         # begin wxGlade: TerminalFrame.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
-
+        
         # Menu Bar
         self.frame_terminal_menubar = wx.MenuBar()
         wxglade_tmp_menu = wx.Menu()
@@ -196,7 +196,7 @@ class TerminalFrame(wx.Frame):
         # begin wxGlade: TerminalFrame.__set_properties
         self.SetTitle("Serial Terminal")
         self.SetSize((546, 383))
-        self.text_ctrl_output.SetFont(wx.Font(11, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, ""))
+        self.text_ctrl_output.SetFont(wx.Font(9, wx.MODERN, wx.NORMAL, wx.NORMAL, 0, ""))
         # end wxGlade
 
     def __do_layout(self):
@@ -263,6 +263,7 @@ class TerminalFrame(wx.Frame):
                     "",
                     show=wxSerialConfigDialog.SHOW_BAUDRATE | wxSerialConfigDialog.SHOW_FORMAT | wxSerialConfigDialog.SHOW_FLOW,
                     serial=self.serial) as dialog_serial_cfg:
+                dialog_serial_cfg.CenterOnParent()
                 result = dialog_serial_cfg.ShowModal()
             # open port if not called on startup, open it on startup and OK too
             if result == wx.ID_OK or event is not None:
@@ -294,6 +295,7 @@ class TerminalFrame(wx.Frame):
         with the current terminal settings.
         """
         with TerminalSettingsDialog(self, -1, "", settings=self.settings) as dialog:
+            dialog.CenterOnParent()
             dialog.ShowModal()
 
     def OnKey(self, event):
