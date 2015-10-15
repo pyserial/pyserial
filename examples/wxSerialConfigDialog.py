@@ -42,7 +42,7 @@ class SerialConfigDialog(wx.Dialog):
         self.label_2 = wx.StaticText(self, -1, "Port")
         self.choice_port = wx.Choice(self, -1, choices=[])
         self.label_1 = wx.StaticText(self, -1, "Baudrate")
-        self.choice_baudrate = wx.Choice(self, -1, choices=["choice 1"])
+        self.combo_box_baudrate = wx.ComboBox(self, -1, choices=[], style=wx.CB_DROPDOWN)
         self.sizer_1_staticbox = wx.StaticBox(self, -1, "Basics")
         self.panel_format = wx.Panel(self, -1)
         self.label_3 = wx.StaticText(self.panel_format, -1, "Data Bits")
@@ -73,7 +73,6 @@ class SerialConfigDialog(wx.Dialog):
     def __set_properties(self):
         # begin wxGlade: SerialConfigDialog.__set_properties
         self.SetTitle("Serial Port Configuration")
-        self.choice_baudrate.SetSelection(0)
         self.choice_databits.SetSelection(0)
         self.choice_stopbits.SetSelection(0)
         self.choice_parity.SetSelection(0)
@@ -87,7 +86,7 @@ class SerialConfigDialog(wx.Dialog):
 
         if not self.show & SHOW_BAUDRATE:
             self.label_1.Hide()
-            self.choice_baudrate.Hide()
+            self.combo_box_baudrate.Hide()
         if not self.show & SHOW_FORMAT:
             self.panel_format.Hide()
         if not self.show & SHOW_TIMEOUT:
@@ -106,13 +105,17 @@ class SerialConfigDialog(wx.Dialog):
                 preferred_index = n
         self.choice_port.SetSelection(preferred_index)
         if self.show & SHOW_BAUDRATE:
+            preferred_index = None
             # fill in baud rates and select current setting
-            self.choice_baudrate.Clear()
+            self.combo_box_baudrate.Clear()
             for n, baudrate in enumerate(self.serial.BAUDRATES):
-                self.choice_baudrate.Append(str(baudrate))
+                self.combo_box_baudrate.Append(str(baudrate))
                 if self.serial.baudrate == baudrate:
-                    index = n
-            self.choice_baudrate.SetSelection(index)
+                    preferred_index = n
+            if preferred_index is not None:
+                self.combo_box_baudrate.SetSelection(preferred_index)
+            else:
+                self.combo_box_baudrate.SetValue(u'%d' % (self.serial.baudrate,))
         if self.show & SHOW_FORMAT:
             # fill in data bits and select current setting
             self.choice_databits.Clear()
@@ -167,7 +170,7 @@ class SerialConfigDialog(wx.Dialog):
         sizer_basics.Add(self.label_2, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 4)
         sizer_basics.Add(self.choice_port, 0, wx.EXPAND, 0)
         sizer_basics.Add(self.label_1, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 4)
-        sizer_basics.Add(self.choice_baudrate, 0, wx.EXPAND, 0)
+        sizer_basics.Add(self.combo_box_baudrate, 0, wx.EXPAND, 0)
         sizer_basics.AddGrowableCol(1)
         sizer_1.Add(sizer_basics, 0, wx.EXPAND, 0)
         sizer_2.Add(sizer_1, 0, wx.EXPAND, 0)
@@ -208,7 +211,19 @@ class SerialConfigDialog(wx.Dialog):
         success = True
         self.serial.port = self.ports[self.choice_port.GetSelection()]
         if self.show & SHOW_BAUDRATE:
-            self.serial.baudrate = self.serial.BAUDRATES[self.choice_baudrate.GetSelection()]
+            #~ self.serial.baudrate = self.serial.BAUDRATES[self.combo_box_baudrate.GetSelection()]
+            try:
+                b = int(self.combo_box_baudrate.GetValue())
+            except ValueError:
+                with wx.MessageDialog(
+                        self,
+                        'Baudrate must be a numeric value',
+                        'Value Error',
+                        wx.OK | wx.ICON_ERROR) as dlg:
+                    dlg.ShowModal()
+                success = False
+            else:
+                self.serial.baudrate = b
         if self.show & SHOW_FORMAT:
             self.serial.bytesize = self.serial.BYTESIZES[self.choice_databits.GetSelection()]
             self.serial.stopbits = self.serial.STOPBITS[self.choice_stopbits.GetSelection()]
