@@ -50,35 +50,31 @@ def serial_for_url(url, *args, **kwargs):
     ``protocol_handler_packages.append("my_handlers")`` would extend the search
     path so that ``serial_for_url("foobar://"))`` would work.
     """
-    # check remove extra parameter to not confuse the Serial class
-    do_open = 'do_not_open' not in kwargs or not kwargs['do_not_open']
-    if 'do_not_open' in kwargs:
-        del kwargs['do_not_open']
-    # the default is to use the native version
-    klass = Serial   # 'native' implementation
-    # check port type and get class
+    # check and remove extra parameter to not confuse the Serial class
+    do_open = not kwargs.pop('do_not_open', False)
+    # the default is to use the native implementation
+    klass = Serial
     try:
         url_lowercase = url.lower()
     except AttributeError:
         # it's not a string, use default
         pass
     else:
+        # if it is an URL, try to import the handler module from the list of possible packages
         if '://' in url_lowercase:
             protocol = url_lowercase.split('://', 1)[0]
             module_name = '.protocol_%s' % (protocol,)
             for package_name in protocol_handler_packages:
-                package = importlib.import_module(package_name)
                 try:
+                    package = importlib.import_module(package_name)
                     handler_module = importlib.import_module(module_name, package_name)
                 except ImportError:
-                    pass
+                    continue
                 else:
                     klass = handler_module.Serial
                     break
             else:
                 raise ValueError('invalid URL, protocol %r not known' % (protocol,))
-        else:
-            klass = Serial   # 'native' implementation
     # instantiate and open when desired
     instance = klass(None, *args, **kwargs)
     instance.port = url
