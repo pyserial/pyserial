@@ -716,6 +716,60 @@ class PosixPollSerial(Serial):
         return bytes(read)
 
 
+class VTIMESerial(Serial):
+    """\
+    Implement timeout using vtime of tty device instead of using select.
+    This means that no inter character timeout can be specified and that
+    the error handling is degraded.
+
+    Overall timeout is disabled when inter-character timeout is used.
+    """
+
+    def _reconfigure_port(self):
+        """Set communication parameters on opened port."""
+        super(VTIMESerial, self)._reconfigure_port()
+        fcntl.fcntl(self.fd, fcntl.F_SETFL, 0) # clear O_NONBLOCK
+
+        if self._inter_byte_timeout is not None:
+            vmin = 1
+            vtime = int(self._inter_byte_timeout * 10)
+        else:
+            vmin = 0
+            vtime = int(self._timeout * 10)
+        try:
+            orig_attr = termios.tcgetattr(self.fd)
+            iflag, oflag, cflag, lflag, ispeed, ospeed, cc = orig_attr
+        except termios.error as msg:      # if a port is nonexistent but has a /dev file, it'll fail here
+            raise serial.SerialException("Could not configure port: %s" % msg)
+
+        if vtime < 0 or vtime > 255:
+            raise ValueError('Invalid vtime: %r' % vtime)
+        cc[termios.VTIME] = vtime
+        cc[termios.VMIN] = vmin
+
+        termios.tcsetattr(
+                self.fd,
+                termios.TCSANOW,
+                [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
+
+
+    def read(self, size=1):
+        """\
+        Read size bytes from the serial port. If a timeout is set it may
+        return less characters as requested. With no timeout it will block
+        until the requested number of bytes is read.
+        """
+        if not self.is_open:
+            raise portNotOpenError
+        read = bytearray()
+        while len(read) < size:
+            buf = os.read(self.fd, size - len(read))
+            if not buf:
+                break
+            read.extend(buf)
+        return bytes(read)
+
+
 if __name__ == '__main__':
     s = Serial(0,
                baudrate=19200,         # baud rate
