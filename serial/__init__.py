@@ -71,7 +71,10 @@ def serial_for_url(url, *args, **kwargs):
                 except ImportError:
                     continue
                 else:
-                    klass = handler_module.Serial
+                    if hasattr(handler_module, 'serial_class_for_url'):
+                        url, klass = handler_module.serial_class_for_url(url)
+                    else:
+                        klass = handler_module.Serial
                     break
             else:
                 raise ValueError('invalid URL, protocol %r not known' % (protocol,))
