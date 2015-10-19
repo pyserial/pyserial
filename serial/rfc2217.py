@@ -1007,7 +1007,7 @@ class PortManager(object):
 
         socket.sendall(escape(data))
         """
-        for byte in data:
+        for byte in iterbytes(data):
             if byte == IAC:
                 yield IAC
                 yield IAC
