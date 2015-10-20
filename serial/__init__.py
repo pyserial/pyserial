@@ -13,7 +13,7 @@ import sys
 from serial.serialutil import *
 #~ SerialBase, SerialException, to_bytes, iterbytes
 
-VERSION = '3.0a1'
+VERSION = '3.0b1'
 
 if sys.platform == 'cli':
     from serial.serialcli import Serial
