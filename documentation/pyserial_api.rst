@@ -694,8 +694,8 @@ on regular serial ports.
 
 .. class:: rfc2217.Serial
 
-    This implements a :rfc:`2217` compatible client. Port names are URLs_ in the
-    form: ``rfc2217://<host>:<port>[?<option>[&<option>]]``
+    This implements a :rfc:`2217` compatible client. Port names are :ref:`URL
+    <URLs>` in the form: ``rfc2217://<host>:<port>[?<option>[&<option>]]``
 
     This class API is compatible to :class:`Serial` with a few exceptions:
 

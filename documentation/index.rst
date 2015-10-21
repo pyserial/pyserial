@@ -16,6 +16,7 @@ Other pages (online)
 - This page, when viewed online is at https://pyserial.readthedocs.org/en/latest/ or
   http://pythonhosted.org/pyserial/ .
 
+.. _Python: http://python.org/
 .. _`project page on GitHub`: https://github.com/pyserial/
 .. _`Download Page`: http://pypi.python.org/pypi/pyserial
 
