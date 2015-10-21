@@ -186,6 +186,32 @@ Outputs::
 .. versionadded:: 3.0
 
 
+``alt://``
+==========
+This handler allows to select alternate implementations of the native serial port.
+
+Currently only the Posix platform provides alternative implementations.
+
+``PosixPollSerial``
+    Poll based read implementation. Not all systems support poll properly.
+    However this one has better handling of errors, such as a device
+    disconnecting while it's in use (e.g. USB-serial unplugged).
+
+``VTIMESerial``
+    Implement timeout using ``VTIME``/``VMIN`` of tty device instead of using
+    ``select``.  This means that inter character timeout and overall timeout
+    can not be used at the same time. Overall timeout is disabled when
+    inter-character timeout is used.  The error handling is degraded.
+
+ 
+Examples::
+
+    alt:///dev/ttyUSB0?class=PosixPollSerial
+    alt:///dev/ttyUSB0?class=VTIMESerial
+
+.. versionadded:: 3.0
+
+
 Examples
 ========
 
@@ -196,5 +222,6 @@ Examples
 - ``loop://?logging=debug``
 - ``hwgrep://0451:f432`` (USB VID:PID)
 - ``spy://COM54?file=log.txt``
+- ``alt:///dev/ttyUSB0?class=PosixPollSerial``
 
 
