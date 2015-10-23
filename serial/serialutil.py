@@ -7,6 +7,7 @@
 # SPDX-License-Identifier:    BSD-3-Clause
 
 import io
+import time
 
 # ``memoryview`` was introduced in Python 2.7 and ``bytes(some_memoryview)``
 # isn't returning the contents (very unfortunate). Therefore we need special
@@ -65,7 +66,7 @@ def to_bytes(seq):
         return bytes(b)
 
 # create control bytes
-XON  = to_bytes([17])
+XON = to_bytes([17])
 XOFF = to_bytes([19])
 
 CR = to_bytes([13])
@@ -109,8 +110,8 @@ class SerialBase(io.RawIOBase):
                  576000, 921600, 1000000, 1152000, 1500000, 2000000, 2500000,
                  3000000, 3500000, 4000000)
     BYTESIZES = (FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS)
-    PARITIES  = (PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE)
-    STOPBITS  = (STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO)
+    PARITIES = (PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE)
+    STOPBITS = (STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO)
 
     def __init__(self,
                  port=None,             # number of device, numbering starts at
@@ -139,7 +140,7 @@ class SerialBase(io.RawIOBase):
         self._port = None       # correct value is assigned below through properties
         self._baudrate = None   # correct value is assigned below through properties
         self._bytesize = None   # correct value is assigned below through properties
-        self._parity  = None    # correct value is assigned below through properties
+        self._parity = None     # correct value is assigned below through properties
         self._stopbits = None   # correct value is assigned below through properties
         self._timeout = None    # correct value is assigned below through properties
         self._write_timeout = None  # correct value is assigned below through properties
@@ -280,7 +281,8 @@ class SerialBase(io.RawIOBase):
                 timeout + 1     # test if it's a number, will throw a TypeError if not...
             except TypeError:
                 raise ValueError("Not a valid timeout: %r" % (timeout,))
-            if timeout < 0: raise ValueError("Not a valid timeout: %r" % (timeout,))
+            if timeout < 0:
+                raise ValueError("Not a valid timeout: %r" % (timeout,))
         self._timeout = timeout
         if self.is_open:
             self._reconfigure_port()
@@ -460,7 +462,6 @@ class SerialBase(io.RawIOBase):
                 self.rtscts,
                 self.dsrdtr,
         )
-
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     # compatibility with io library
