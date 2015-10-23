@@ -164,7 +164,7 @@ class SerialBase(io.RawIOBase):
         self.xonxoff = xonxoff
         self.rtscts = rtscts
         self.dsrdtr = dsrdtr
-        self.inter_character_timeout = inter_byte_timeout
+        self.inter_byte_timeout = inter_byte_timeout
 
         if port is not None:
             self.open()
