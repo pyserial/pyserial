@@ -86,7 +86,7 @@ Native ports
         - ``timeout = 0``:     non-blocking mode (return immediately on read)
         - ``timeout = x``:     set timeout to ``x`` seconds (float allowed)
 
-        Writes are blocking by default, unless *write_imeout* is set. For
+        Writes are blocking by default, unless *write_timeout* is set. For
         possible values refer to the list for *timeout* above.
 
         Note that enabling both flow control methods (*xonxoff* and *rtscts*)
