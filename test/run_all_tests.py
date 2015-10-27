@@ -1,5 +1,9 @@
 #! /usr/bin/env python
-
+#
+# This file is part of pySerial - Cross platform serial port support for Python
+# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 """\
 UnitTest runner. This one searches for all files named test_*.py and collects
 all test cases from these files. Finally it runs all tests and prints a
