@@ -1,10 +1,9 @@
 #! /usr/bin/env python
-# Python Serial Port Extension for Win32, Linux, BSD, Jython
-# see __init__.py
 #
+# This file is part of pySerial - Cross platform serial port support for Python
 # (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
-# this is distributed under a free software license, see license.txt
-
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 """\
 Some tests for the serial module.
 Part of pyserial (http://pyserial.sf.net)  (C)2001-2015 cliechti@gmx.net
