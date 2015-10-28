@@ -570,6 +570,9 @@ class SerialBase(io.RawIOBase):
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     # additional functionality
 
+    def read_all(self):
+        return self.read(self.in_waiting)
+
     def read_until(self, terminator=LF, size=None):
         """\
         Read until a termination sequence is found ('\n' by default), the size
