@@ -571,6 +571,9 @@ class SerialBase(io.RawIOBase):
     # additional functionality
 
     def read_all(self):
+        """\
+        Read all bytes currently available in the buffer of the OS.
+        """
         return self.read(self.in_waiting)
 
     def read_until(self, terminator=LF, size=None):
