@@ -11,6 +11,7 @@
 
 import ctypes
 import time
+import math
 from serial import win32
 
 import serial
@@ -110,7 +111,7 @@ class Serial(SerialBase):
         elif self._timeout == 0:
             timeouts = (win32.MAXDWORD, 0, 0, 0, 0)
         else:
-            timeouts = (0, 0, int(self._timeout * 1000), 0, 0)
+            timeouts = (0, 0, math.ceil(self._timeout * 1000), 0, 0)
         if self._timeout != 0 and self._inter_byte_timeout is not None:
             timeouts = (int(self._inter_byte_timeout * 1000),) + timeouts[1:]
 
@@ -271,20 +272,22 @@ class Serial(SerialBase):
                 if n > 0:
                     buf = ctypes.create_string_buffer(n)
                     rc = win32.DWORD()
-                    err = win32.ReadFile(self._port_handle, buf, n, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
-                    if not err and win32.GetLastError() != win32.ERROR_IO_PENDING:
+                    readFinishedCorrectly = win32.ReadFile(self._port_handle, buf, n, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
+                    err = win32.GetLastError()
+                    if not readFinishedCorrectly and err and err != win32.ERROR_IO_PENDING:
                         raise SerialException("ReadFile failed (%r)" % ctypes.WinError())
-                    err = win32.WaitForSingleObject(self._overlapped_read.hEvent, win32.INFINITE)
+                    win32.WaitForSingleObject(self._overlapped_read.hEvent, win32.INFINITE)
                     read = buf.raw[:rc.value]
                 else:
                     read = bytes()
             else:
                 buf = ctypes.create_string_buffer(size)
                 rc = win32.DWORD()
-                err = win32.ReadFile(self._port_handle, buf, size, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
-                if not err and win32.GetLastError() != win32.ERROR_IO_PENDING:
+                readFinishedCorrectly = win32.ReadFile(self._port_handle, buf, size, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
+                err = win32.GetLastError()
+                if not readFinishedCorrectly and err and err != win32.ERROR_IO_PENDING:
                     raise SerialException("ReadFile failed (%r)" % ctypes.WinError())
-                err = win32.GetOverlappedResult(self._port_handle, ctypes.byref(self._overlapped_read), ctypes.byref(rc), True)
+                readFinishedCorrectly = win32.GetOverlappedResult(self._port_handle, ctypes.byref(self._overlapped_read), ctypes.byref(rc), True)
                 read = buf.raw[:rc.value]
         else:
             read = bytes()
