@@ -378,6 +378,11 @@ class Serial(SerialBase):
     BAUDRATES = (50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
                  9600, 19200, 38400, 57600, 115200)
 
+    def __init__(self, *args, **kwargs):
+        super(Serial, self).__init__(*args, **kwargs)
+        self._thread = None
+        self._socket = None
+
     def open(self):
         """\
         Open port with current settings. This may throw a SerialException

@@ -556,3 +556,11 @@ Version 3.0b1   2015-10-19
 - posix: add experimental implementation ``VTIMESerial``
 - new URL handler ``alt://`` to select alternative implementations
 
+
+Version 3.0b2   2015-11-xx
+--------------------------
+
+- minor fixes to setup.py (file list), inter_byte_timeout (not stored when
+  passed to __init__), rfc2217 (behavor of close when open failed),
+  list_ports (__str__)
+

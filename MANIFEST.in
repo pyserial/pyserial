@@ -17,17 +17,18 @@ include examples/wxSerialConfigDialog.wxg
 include examples/wxTerminal.py
 include examples/wxTerminal.wxg
 
+include test/handlers/__init__.py
+include test/handlers/protocol_test.py
 include test/run_all_tests.py
-include test/test.py
 include test/test_advanced.py
 include test/test_high_load.py
 include test/test_iolib.py
+include test/test.py
 include test/test_readline.py
+include test/test_rfc2217.py
 include test/test_rs485.py
 include test/test_settings_dict.py
 include test/test_url.py
-include test/handlers/__init__.py
-include test/handlers/protocol_test.py
 
 include documentation/*.rst
 include documentation/pyserial.png
