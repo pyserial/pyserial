@@ -271,20 +271,20 @@ class Serial(SerialBase):
                 if n > 0:
                     buf = ctypes.create_string_buffer(n)
                     rc = win32.DWORD()
-                    err = win32.ReadFile(self._port_handle, buf, n, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
-                    if not err and win32.GetLastError() != win32.ERROR_IO_PENDING:
+                    read_ok = win32.ReadFile(self._port_handle, buf, n, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
+                    if not read_ok and win32.GetLastError() not in (win32.ERROR_SUCCESS, win32.ERROR_IO_PENDING):
                         raise SerialException("ReadFile failed (%r)" % ctypes.WinError())
-                    err = win32.WaitForSingleObject(self._overlapped_read.hEvent, win32.INFINITE)
+                    win32.WaitForSingleObject(self._overlapped_read.hEvent, win32.INFINITE)
                     read = buf.raw[:rc.value]
                 else:
                     read = bytes()
             else:
                 buf = ctypes.create_string_buffer(size)
                 rc = win32.DWORD()
-                err = win32.ReadFile(self._port_handle, buf, size, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
-                if not err and win32.GetLastError() != win32.ERROR_IO_PENDING:
+                read_ok = win32.ReadFile(self._port_handle, buf, size, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
+                if not read_ok and win32.GetLastError() not in (win32.ERROR_SUCCESS, win32.ERROR_IO_PENDING):
                     raise SerialException("ReadFile failed (%r)" % ctypes.WinError())
-                err = win32.GetOverlappedResult(self._port_handle, ctypes.byref(self._overlapped_read), ctypes.byref(rc), True)
+                win32.GetOverlappedResult(self._port_handle, ctypes.byref(self._overlapped_read), ctypes.byref(rc), True)
                 read = buf.raw[:rc.value]
         else:
             read = bytes()
