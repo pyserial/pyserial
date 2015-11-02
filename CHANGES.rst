@@ -566,5 +566,5 @@ Version 3.0b2   2015-11-xx
 
 Bugfixes (win32):
 
-- [#27] fix race condition in ``read()``
+- [#27] fix race condition in ``read()``, fix minimal timeout issue
 

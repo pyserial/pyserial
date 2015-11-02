@@ -105,22 +105,23 @@ class Serial(SerialBase):
         # (ReadIntervalTimeout,ReadTotalTimeoutMultiplier,
         #  ReadTotalTimeoutConstant,WriteTotalTimeoutMultiplier,
         #  WriteTotalTimeoutConstant)
+        timouts = win32.COMMTIMEOUTS()
         if self._timeout is None:
-            timeouts = (0, 0, 0, 0, 0)
+            pass  # default of all zeros is OK
         elif self._timeout == 0:
-            timeouts = (win32.MAXDWORD, 0, 0, 0, 0)
+            timeouts.ReadIntervalTimeout = win32.MAXDWORD
         else:
-            timeouts = (0, 0, int(self._timeout * 1000), 0, 0)
+            timeouts.ReadTotalTimeoutConstant = max(int(self._timeout * 1000), 1)
         if self._timeout != 0 and self._inter_byte_timeout is not None:
-            timeouts = (int(self._inter_byte_timeout * 1000),) + timeouts[1:]
+            timeouts.ReadIntervalTimeout = max(int(self._inter_byte_timeout * 1000), 1)
 
         if self._write_timeout is None:
             pass
         elif self._write_timeout == 0:
-            timeouts = timeouts[:-2] + (0, win32.MAXDWORD)
+            timeouts.WriteTotalTimeoutConstant = win32.MAXDWORD
         else:
-            timeouts = timeouts[:-2] + (0, int(self._write_timeout * 1000))
-        win32.SetCommTimeouts(self._port_handle, ctypes.byref(win32.COMMTIMEOUTS(*timeouts)))
+            timeouts.WriteTotalTimeoutConstant = max(int(self._write_timeout * 1000), 1)
+        win32.SetCommTimeouts(self._port_handle, ctypes.byref(timeouts))
 
         win32.SetCommMask(self._port_handle, win32.EV_ERR)
 
