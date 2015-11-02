@@ -273,7 +273,8 @@ class Serial(SerialBase):
                     buf = ctypes.create_string_buffer(n)
                     rc = win32.DWORD()
                     writeFinishedCorrectly = win32.ReadFile(self._port_handle, buf, n, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
-                    if not writeFinishedCorrectly and win32.GetLastError() != win32.ERROR_IO_PENDING:
+                    err = win32.GetLastError()
+                    if not writeFinishedCorrectly and err and err != win32.ERROR_IO_PENDING
                         raise SerialException("ReadFile failed (%r)" % ctypes.WinError())
                     win32.WaitForSingleObject(self._overlapped_read.hEvent, win32.INFINITE)
                     read = buf.raw[:rc.value]
