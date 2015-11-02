@@ -272,9 +272,9 @@ class Serial(SerialBase):
                 if n > 0:
                     buf = ctypes.create_string_buffer(n)
                     rc = win32.DWORD()
-                    writeFinishedCorrectly = win32.ReadFile(self._port_handle, buf, n, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
+                    readFinishedCorrectly = win32.ReadFile(self._port_handle, buf, n, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
                     err = win32.GetLastError()
-                    if not writeFinishedCorrectly and err and err != win32.ERROR_IO_PENDING:
+                    if not readFinishedCorrectly and err and err != win32.ERROR_IO_PENDING:
                         raise SerialException("ReadFile failed (%r)" % ctypes.WinError())
                     win32.WaitForSingleObject(self._overlapped_read.hEvent, win32.INFINITE)
                     read = buf.raw[:rc.value]
@@ -283,11 +283,11 @@ class Serial(SerialBase):
             else:
                 buf = ctypes.create_string_buffer(size)
                 rc = win32.DWORD()
-                writeFinishedCorrectly = win32.ReadFile(self._port_handle, buf, size, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
+                readFinishedCorrectly = win32.ReadFile(self._port_handle, buf, size, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
                 err = win32.GetLastError()
-                if not writeFinishedCorrectly and err and err != win32.ERROR_IO_PENDING:
+                if not readFinishedCorrectly and err and err != win32.ERROR_IO_PENDING:
                     raise SerialException("ReadFile failed (%r)" % ctypes.WinError())
-                writeFinishedCorrectly = win32.GetOverlappedResult(self._port_handle, ctypes.byref(self._overlapped_read), ctypes.byref(rc), True)
+                readFinishedCorrectly = win32.GetOverlappedResult(self._port_handle, ctypes.byref(self._overlapped_read), ctypes.byref(rc), True)
                 read = buf.raw[:rc.value]
         else:
             read = bytes()
