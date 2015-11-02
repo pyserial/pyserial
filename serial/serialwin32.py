@@ -11,6 +11,7 @@
 
 import ctypes
 import time
+import math
 from serial import win32
 
 import serial
@@ -110,7 +111,7 @@ class Serial(SerialBase):
         elif self._timeout == 0:
             timeouts = (win32.MAXDWORD, 0, 0, 0, 0)
         else:
-            timeouts = (0, 0, int(self._timeout * 1000), 0, 0)
+            timeouts = (0, 0, math.ceil(self._timeout * 1000), 0, 0)
         if self._timeout != 0 and self._inter_byte_timeout is not None:
             timeouts = (int(self._inter_byte_timeout * 1000),) + timeouts[1:]
 
