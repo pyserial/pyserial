@@ -105,7 +105,7 @@ class Serial(SerialBase):
         # (ReadIntervalTimeout,ReadTotalTimeoutMultiplier,
         #  ReadTotalTimeoutConstant,WriteTotalTimeoutMultiplier,
         #  WriteTotalTimeoutConstant)
-        timouts = win32.COMMTIMEOUTS()
+        timeouts = win32.COMMTIMEOUTS()
         if self._timeout is None:
             pass  # default of all zeros is OK
         elif self._timeout == 0:
