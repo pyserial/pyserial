@@ -11,7 +11,6 @@
 
 import ctypes
 import time
-import math
 from serial import win32
 
 import serial
@@ -106,22 +105,23 @@ class Serial(SerialBase):
         # (ReadIntervalTimeout,ReadTotalTimeoutMultiplier,
         #  ReadTotalTimeoutConstant,WriteTotalTimeoutMultiplier,
         #  WriteTotalTimeoutConstant)
+        timouts = win32.COMMTIMEOUTS()
         if self._timeout is None:
-            timeouts = (0, 0, 0, 0, 0)
+            pass  # default of all zeros is OK
         elif self._timeout == 0:
-            timeouts = (win32.MAXDWORD, 0, 0, 0, 0)
+            timeouts.ReadIntervalTimeout = win32.MAXDWORD
         else:
-            timeouts = (0, 0, math.ceil(self._timeout * 1000), 0, 0)
+            timeouts.ReadTotalTimeoutConstant = max(int(self._timeout * 1000), 1)
         if self._timeout != 0 and self._inter_byte_timeout is not None:
-            timeouts = (int(self._inter_byte_timeout * 1000),) + timeouts[1:]
+            timeouts.ReadIntervalTimeout = max(int(self._inter_byte_timeout * 1000), 1)
 
         if self._write_timeout is None:
             pass
         elif self._write_timeout == 0:
-            timeouts = timeouts[:-2] + (0, win32.MAXDWORD)
+            timeouts.WriteTotalTimeoutConstant = win32.MAXDWORD
         else:
-            timeouts = timeouts[:-2] + (0, int(self._write_timeout * 1000))
-        win32.SetCommTimeouts(self._port_handle, ctypes.byref(win32.COMMTIMEOUTS(*timeouts)))
+            timeouts.WriteTotalTimeoutConstant = max(int(self._write_timeout * 1000), 1)
+        win32.SetCommTimeouts(self._port_handle, ctypes.byref(timeouts))
 
         win32.SetCommMask(self._port_handle, win32.EV_ERR)
 
@@ -272,9 +272,8 @@ class Serial(SerialBase):
                 if n > 0:
                     buf = ctypes.create_string_buffer(n)
                     rc = win32.DWORD()
-                    readFinishedCorrectly = win32.ReadFile(self._port_handle, buf, n, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
-                    err = win32.GetLastError()
-                    if not readFinishedCorrectly and err and err != win32.ERROR_IO_PENDING:
+                    read_ok = win32.ReadFile(self._port_handle, buf, n, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
+                    if not read_ok and win32.GetLastError() not in (win32.ERROR_SUCCESS, win32.ERROR_IO_PENDING):
                         raise SerialException("ReadFile failed (%r)" % ctypes.WinError())
                     win32.WaitForSingleObject(self._overlapped_read.hEvent, win32.INFINITE)
                     read = buf.raw[:rc.value]
@@ -283,11 +282,10 @@ class Serial(SerialBase):
             else:
                 buf = ctypes.create_string_buffer(size)
                 rc = win32.DWORD()
-                readFinishedCorrectly = win32.ReadFile(self._port_handle, buf, size, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
-                err = win32.GetLastError()
-                if not readFinishedCorrectly and err and err != win32.ERROR_IO_PENDING:
+                read_ok = win32.ReadFile(self._port_handle, buf, size, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
+                if not read_ok and win32.GetLastError() not in (win32.ERROR_SUCCESS, win32.ERROR_IO_PENDING):
                     raise SerialException("ReadFile failed (%r)" % ctypes.WinError())
-                readFinishedCorrectly = win32.GetOverlappedResult(self._port_handle, ctypes.byref(self._overlapped_read), ctypes.byref(rc), True)
+                win32.GetOverlappedResult(self._port_handle, ctypes.byref(self._overlapped_read), ctypes.byref(rc), True)
                 read = buf.raw[:rc.value]
         else:
             read = bytes()

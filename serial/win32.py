@@ -210,6 +210,7 @@ FILE_FLAG_OVERLAPPED = 1073741824  # Variable c_int
 EV_DSR = 16  # Variable c_int
 MAXDWORD = 4294967295  # Variable c_uint
 EV_RLSD = 32  # Variable c_int
+ERROR_SUCCESS = 0
 ERROR_IO_PENDING = 997  # Variable c_long
 MS_CTS_ON = 16  # Variable c_ulong
 EV_EVENT1 = 2048  # Variable c_int
