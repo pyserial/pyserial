@@ -14,7 +14,7 @@ serial.tools.list_ports``). It also contains the following functions.
 
 .. function:: comports()
 
-    :return: an iterable.
+    :return: an iterable that yields :class:`ListPortInfo` objects.
 
     The function returns an iterable that yields tuples of three strings:
 
@@ -40,12 +40,67 @@ serial.tools.list_ports``). It also contains the following functions.
 .. function:: grep(regexp)
 
     :param regexp: regular expression (see stdlib :mod:`re`)
-    :return: filtered sequence, see :func:`comports`.
+    :return: an iterable that yields :class:`ListPortInfo` objects, see also :func:`comports`.
 
     Search for ports using a regular expression. Port name, description and
     hardware ID are searched (case insensitive). The function returns an
     iterable that contains the same tuples that :func:`comport` generates but
     only those that match the regexp.
+
+.. class:: ListPortInfo
+
+    This objects holds information about a serial port. It supports indexed
+    access for backwards compatibility, as in ``port, desc, hwid = info``.
+
+    .. attribute:: device
+
+        Full device name/path, e.g. ``/dev/ttyUSB0``. This is also the
+        information returned as first element when accessed by index.
+
+    .. attribute:: name
+
+        Short device name, e.g. ``ttyUSB0``.
+
+    .. attribute:: description
+
+        Human readable description or ``n/a``. This is also the information
+        returned as second element when accessed by index.
+
+    .. attribute:: hwid
+
+        Technical description or ``n/a``. This is also the information
+        returned as third element when accessed by index.
+
+    USB specific data, these are all ``None`` if it is not a USB device (or the
+    platform does not support extended info)
+
+    .. attribute:: vid
+
+        USB Vendor ID (string of hex digits)
+
+    .. attribute:: pid
+
+        USB product ID (string of hex digits)
+
+    .. attribute:: serial_number
+
+        USB serial number as a string
+
+    .. attribute:: location
+
+        USB device location string ("<bus>-<port>[-<port>]...")
+
+    .. attribute:: manufacturer
+
+        USB manufacturer string, as reported by device
+
+    .. attribute:: product
+
+        USB product string, as reported by device
+
+    .. attribute:: interface
+
+        Interface specifc description, e.g. used in compound USB devices.
 
 
 Command line usage
@@ -76,6 +131,7 @@ Examples:
     python -m serial.tools.list_ports 1234:5678 -q -n 2
 
 .. versionadded:: 2.6
+.. versionchanged:: 3.0 returning ListPortInfo objects instead of a tuple
 
 
 .. _miniterm:
