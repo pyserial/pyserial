@@ -42,9 +42,10 @@ def grep(regexp):
     same tuples as comport() would do.
     """
     r = re.compile(regexp, re.I)
-    for port, desc, hwid in comports():
+    for info in comports():
+        port, desc, hwid = info
         if r.search(port) or r.search(desc) or r.search(hwid):
-            yield port, desc, hwid
+            yield info
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
