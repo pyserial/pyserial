@@ -435,11 +435,10 @@ class Serial(SerialBase, PlatformSpecific):
             raise ValueError('Invalid vtime: %r' % vtime)
         cc[termios.VTIME] = vtime
         # activate settings
-        if [iflag, oflag, cflag, lflag, ispeed, ospeed, cc] != orig_attr:
-            termios.tcsetattr(
-                    self.fd,
-                    termios.TCSANOW,
-                    [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
+        termios.tcsetattr(
+            self.fd,
+            termios.TCSANOW,
+            [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
 
         # apply custom baud rate, if any
         if custom_baud is not None:
