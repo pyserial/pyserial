@@ -296,7 +296,7 @@ class Serial(SerialBase, PlatformSpecific):
         #~ fcntl.fcntl(self.fd, fcntl.F_SETFL, 0)  # set blocking
 
         try:
-            self._reconfigure_port()
+            self._reconfigure_port(force_update=True)
         except:
             try:
                 os.close(self.fd)
@@ -314,7 +314,7 @@ class Serial(SerialBase, PlatformSpecific):
             self._update_rts_state()
         self.reset_input_buffer()
 
-    def _reconfigure_port(self):
+    def _reconfigure_port(self, force_update=False):
         """Set communication parameters on opened port."""
         if self.fd is None:
             raise SerialException("Can only operate on a valid file descriptor")
@@ -435,7 +435,7 @@ class Serial(SerialBase, PlatformSpecific):
             raise ValueError('Invalid vtime: %r' % vtime)
         cc[termios.VTIME] = vtime
         # activate settings
-        if [iflag, oflag, cflag, lflag, ispeed, ospeed, cc] != orig_attr:
+        if force_update or [iflag, oflag, cflag, lflag, ispeed, ospeed, cc] != orig_attr:
             termios.tcsetattr(
                     self.fd,
                     termios.TCSANOW,
@@ -725,7 +725,7 @@ class VTIMESerial(Serial):
     Overall timeout is disabled when inter-character timeout is used.
     """
 
-    def _reconfigure_port(self):
+    def _reconfigure_port(self, force_update=True):
         """Set communication parameters on opened port."""
         super(VTIMESerial, self)._reconfigure_port()
         fcntl.fcntl(self.fd, fcntl.F_SETFL, 0) # clear O_NONBLOCK
