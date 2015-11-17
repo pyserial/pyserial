@@ -17,7 +17,7 @@ implementation. It should be possible to get that working though.
 """
 import asyncio
 import serial
-import logger
+import logging
 
 
 class SerialTransport(asyncio.Transport):
@@ -64,7 +64,7 @@ class SerialTransport(asyncio.Transport):
         self._paused = True
         self._loop.remove_reader(self._sock_fd)
         if self._loop.get_debug():
-            logger.debug("%r pauses reading", self)
+            logging.debug("%r pauses reading", self)
 
     def resume_reading(self):
         if not self._paused:
@@ -74,7 +74,7 @@ class SerialTransport(asyncio.Transport):
             return
         self._loop.add_reader(self._sock_fd, self._read_ready)
         if self._loop.get_debug():
-            logger.debug("%r resumes reading", self)
+            logging.debug("%r resumes reading", self)
 
     #~ def set_write_buffer_limits(self, high=None, low=None):
     #~ def get_write_buffer_size(self):
