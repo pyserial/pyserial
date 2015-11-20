@@ -49,7 +49,7 @@ serial.tools.list_ports``). It also contains the following functions.
 
 .. class:: ListPortInfo
 
-    This objects holds information about a serial port. It supports indexed
+    This object holds information about a serial port. It supports indexed
     access for backwards compatibility, as in ``port, desc, hwid = info``.
 
     .. attribute:: device
@@ -72,19 +72,19 @@ serial.tools.list_ports``). It also contains the following functions.
         returned as third element when accessed by index.
 
     USB specific data, these are all ``None`` if it is not a USB device (or the
-    platform does not support extended info)
+    platform does not support extended info).
 
     .. attribute:: vid
 
-        USB Vendor ID (string of hex digits)
+        USB Vendor ID (integer, 0...65535).
 
     .. attribute:: pid
 
-        USB product ID (string of hex digits)
+        USB product ID (integer, 0...65535).
 
     .. attribute:: serial_number
 
-        USB serial number as a string
+        USB serial number as a string.
 
     .. attribute:: location
 
@@ -92,16 +92,20 @@ serial.tools.list_ports``). It also contains the following functions.
 
     .. attribute:: manufacturer
 
-        USB manufacturer string, as reported by device
+        USB manufacturer string, as reported by device.
 
     .. attribute:: product
 
-        USB product string, as reported by device
+        USB product string, as reported by device.
 
     .. attribute:: interface
 
         Interface specifc description, e.g. used in compound USB devices.
 
+    Comparison operators are implemented such that the ``ListPortInfo`` objects
+    can be sorted by ``device``. Strings are split into groups of numbers and
+    text so that the order is "natural" (i.e. ``com1`` < ``com2`` <
+    ``com10``).
 
 Command line usage
 
