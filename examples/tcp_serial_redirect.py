@@ -124,7 +124,7 @@ it waits for the next connect.
         sys.exit(1)
 
     ser_to_net = SerialToNet()
-    serial_worker = serial.threaded.SerialPortWorker(ser, ser_to_net)
+    serial_worker = serial.threaded.ReaderThread(ser, ser_to_net)
     serial_worker.start()
 
     srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
