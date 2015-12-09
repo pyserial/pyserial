@@ -171,6 +171,16 @@ class SerialBase(io.RawIOBase):
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
+    def open(self):
+        """Opens the Port"""
+        raise NotImplementedError("This function must be implemented in the subclass")
+
+    def close(self):
+        """Closes the Port"""
+        raise NotImplementedError("This function must be implemented in the subclass")
+
+    #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
     @property
     def port(self):
         """\
