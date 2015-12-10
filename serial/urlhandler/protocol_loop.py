@@ -47,6 +47,8 @@ class Serial(SerialBase):
     def __init__(self, *args, **kwargs):
         super(Serial, self).__init__(*args, **kwargs)
         self.buffer_size = 4096
+        self.queue = None
+        self.logger = None
 
     def open(self):
         """\
@@ -76,11 +78,12 @@ class Serial(SerialBase):
         self.reset_output_buffer()
 
     def close(self):
-        self.is_open = False
-        try:
-            self.queue.put_nowait(None)
-        except queue.Full:
-            pass
+        if self.is_open:
+            self.is_open = False
+            try:
+                self.queue.put_nowait(None)
+            except queue.Full:
+                pass
         super(Serial, self).close()
 
     def _reconfigure_port(self):
