@@ -56,7 +56,7 @@ class Test4_Nonblocking(unittest.TestCase):
 
     def test1_ReadEmpty(self):
         """timeout: After port open, the input buffer must be empty"""
-        self.failUnlessEqual(self.s.read(1), b'', "expected empty buffer")
+        self.assertEqual(self.s.read(1), b'', "expected empty buffer")
 
     def test2_Loopback(self):
         """timeout: each sent character should return (binary test).
@@ -66,9 +66,9 @@ class Test4_Nonblocking(unittest.TestCase):
             self.s.write(block)
             # there might be a small delay until the character is ready (especially on win32)
             time.sleep(0.05)
-            self.failUnlessEqual(self.s.in_waiting, length, "expected exactly %d character for inWainting()" % length)
-            self.failUnlessEqual(self.s.read(length), block)#, "expected a %r which was written before" % block)
-        self.failUnlessEqual(self.s.read(1), b'', "expected empty buffer after all sent chars are read")
+            self.assertEqual(self.s.in_waiting, length, "expected exactly %d character for inWainting()" % length)
+            self.assertEqual(self.s.read(length), block)#, "expected a %r which was written before" % block)
+        self.assertEqual(self.s.read(1), b'', "expected empty buffer after all sent chars are read")
 
     def test2_LoopbackTimeout(self):
         """timeout: test the timeout/immediate return.
@@ -76,8 +76,8 @@ class Test4_Nonblocking(unittest.TestCase):
         self.s.write(b"HELLO")
         time.sleep(0.1)    # there might be a small delay until the character is ready (especially on win32 and rfc2217)
         # read more characters as are available to run in the timeout
-        self.failUnlessEqual(self.s.read(10), b'HELLO', "expected the 'HELLO' which was written before")
-        self.failUnlessEqual(self.s.read(1), b'', "expected empty buffer after all sent chars are read")
+        self.assertEqual(self.s.read(10), b'HELLO', "expected the 'HELLO' which was written before")
+        self.assertEqual(self.s.read(1), b'', "expected empty buffer after all sent chars are read")
 
 
 class Test3_Timeout(Test4_Nonblocking):
@@ -143,7 +143,7 @@ class Test2_Forever(unittest.TestCase):
 
     def test1_inWaitingEmpty(self):
         """no timeout: after port open, the input buffer must be empty (in_waiting)"""
-        self.failUnlessEqual(self.s.in_waiting, 0, "expected empty buffer")
+        self.assertEqual(self.s.in_waiting, 0, "expected empty buffer")
 
     def test2_Loopback(self):
         """no timeout: each sent character should return (binary test).
@@ -153,9 +153,9 @@ class Test2_Forever(unittest.TestCase):
             self.s.write(block)
             # there might be a small delay until the character is ready (especially on win32 and rfc2217)
             time.sleep(0.05)
-            self.failUnlessEqual(self.s.in_waiting, length)#, "expected exactly %d character for inWainting()" % length)
-            self.failUnlessEqual(self.s.read(length), block) #, "expected %r which was written before" % block)
-        self.failUnlessEqual(self.s.in_waiting, 0, "expected empty buffer after all sent chars are read")
+            self.assertEqual(self.s.in_waiting, length)#, "expected exactly %d character for inWainting()" % length)
+            self.assertEqual(self.s.read(length), block) #, "expected %r which was written before" % block)
+        self.assertEqual(self.s.in_waiting, 0, "expected empty buffer after all sent chars are read")
 
 
 class Test0_DataWires(unittest.TestCase):
@@ -170,23 +170,23 @@ class Test0_DataWires(unittest.TestCase):
         """Test RTS/CTS"""
         self.s.rts = False
         time.sleep(1.1)
-        self.failUnless(not self.s.cts, "CTS -> 0")
+        self.assertTrue(not self.s.cts, "CTS -> 0")
         self.s.rts = True
         time.sleep(1.1)
-        self.failUnless(self.s.cts, "CTS -> 1")
+        self.assertTrue(self.s.cts, "CTS -> 1")
 
     def test2_DTR(self):
         """Test DTR/DSR"""
         self.s.dtr = False
         time.sleep(1.1)
-        self.failUnless(not self.s.dsr, "DSR -> 0")
+        self.assertTrue(not self.s.dsr, "DSR -> 0")
         self.s.dtr = True
         time.sleep(1.1)
-        self.failUnless(self.s.dsr, "DSR -> 1")
+        self.assertTrue(self.s.dsr, "DSR -> 1")
 
     def test3_RI(self):
         """Test RI"""
-        self.failUnless(not self.s.ri, "RI -> 0")
+        self.assertTrue(not self.s.ri, "RI -> 0")
 
 
 class Test_MoreTimeouts(unittest.TestCase):
@@ -215,9 +215,9 @@ class Test_MoreTimeouts(unittest.TestCase):
         self.s.write(serial.XOFF)
         time.sleep(0.5) # some systems need a little delay so that they can react on XOFF
         t1 = time.time()
-        self.failUnlessRaises(serial.SerialTimeoutException, self.s.write, b"timeout please"*200)
+        self.assertRaises(serial.SerialTimeoutException, self.s.write, b"timeout please"*200)
         t2 = time.time()
-        self.failUnless( 0.9 <= (t2-t1) < 2.1, "Timeout not in the given interval (%s)" % (t2-t1))
+        self.assertTrue( 0.9 <= (t2-t1) < 2.1, "Timeout not in the given interval (%s)" % (t2-t1))
 
 
 if __name__ == '__main__':

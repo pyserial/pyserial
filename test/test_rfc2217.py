@@ -18,12 +18,12 @@ class Test_RFC2217(unittest.TestCase):
     def test_failed_connection(self):
         # connection to closed port
         s = serial.serial_for_url('rfc2217://127.99.99.99:2217', do_not_open=True)
-        self.failUnlessRaises(serial.SerialException, s.open)
+        self.assertRaises(serial.SerialException, s.open)
         self.assertFalse(s.is_open)
         s.close() # no errors expected
         # invalid address
         s = serial.serial_for_url('rfc2217://127goingtofail', do_not_open=True)
-        self.failUnlessRaises(serial.SerialException, s.open)
+        self.assertRaises(serial.SerialException, s.open)
         self.assertFalse(s.is_open)
         s.close() # no errors expected
         # close w/o open is also OK

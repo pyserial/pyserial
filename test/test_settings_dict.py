@@ -30,7 +30,7 @@ class Test_SettingsDict(unittest.TestCase):
         ser = serial.serial_for_url(PORT, do_not_open=True)
         d = ser.get_settings()
         for setting in SETTINGS:
-            self.failUnlessEqual(getattr(ser, setting), d[setting])
+            self.assertEqual(getattr(ser, setting), d[setting])
 
     def test_partial_settings(self):
         """partial settings dictionaries are also accepted"""
@@ -40,7 +40,7 @@ class Test_SettingsDict(unittest.TestCase):
         del d['bytesize']
         ser.apply_settings(d)
         for setting in d:
-            self.failUnlessEqual(getattr(ser, setting), d[setting])
+            self.assertEqual(getattr(ser, setting), d[setting])
 
     def test_unknown_settings(self):
         """unknown settings are ignored"""
@@ -66,7 +66,7 @@ class Test_SettingsDict(unittest.TestCase):
             kwargs = {'do_not_open':True, setting:value}
             ser = serial.serial_for_url(PORT, **kwargs)
             d = ser.get_settings()
-            self.failUnlessEqual(getattr(ser, setting), value)
+            self.assertEqual(getattr(ser, setting), value)
 
 if __name__ == '__main__':
     import sys

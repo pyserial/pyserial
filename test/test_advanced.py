@@ -39,14 +39,14 @@ class Test_ChangeAttributes(unittest.TestCase):
         self.s.port = PORT
         # portstr has to be set
         if isinstance(PORT, str):
-            self.failUnlessEqual(self.s.portstr.lower(), PORT.lower())
+            self.assertEqual(self.s.portstr.lower(), PORT.lower())
         else:
-            self.failUnlessEqual(self.s.portstr, serial.device(PORT))
+            self.assertEqual(self.s.portstr, serial.device(PORT))
         # test internals
-        self.failUnlessEqual(self.s._port, PORT)
+        self.assertEqual(self.s._port, PORT)
         # test on the fly change
         self.s.open()
-        self.failUnless(self.s.isOpen())
+        self.assertTrue(self.s.isOpen())
         #~ try:
             #~ self.s.port = 0
         #~ except serial.SerialException: # port not available on system
@@ -68,7 +68,7 @@ class Test_ChangeAttributes(unittest.TestCase):
         self.s.port = PORT
         self.s.open()
         # calling open for a second time is an error
-        self.failUnlessRaises(serial.SerialException, self.s.open)
+        self.assertRaises(serial.SerialException, self.s.open)
 
 
     def test_BaudrateSetting(self):
@@ -77,12 +77,12 @@ class Test_ChangeAttributes(unittest.TestCase):
         for baudrate in (300, 9600, 19200, 115200):
             self.s.baudrate = baudrate
             # test get method
-            self.failUnlessEqual(self.s.baudrate, baudrate)
+            self.assertEqual(self.s.baudrate, baudrate)
             # test internals
-            self.failUnlessEqual(self.s._baudrate, baudrate)
+            self.assertEqual(self.s._baudrate, baudrate)
         # test illegal values
         for illegal_value in (-300, -1, 'a', None):
-            self.failUnlessRaises(ValueError, setattr, self.s, 'baudrate', illegal_value)
+            self.assertRaises(ValueError, setattr, self.s, 'baudrate', illegal_value)
 
     # skip this test as pyserial now tries to set even non standard baud rates.
     # therefore the test can not choose a value that fails on any system.
@@ -91,59 +91,59 @@ class Test_ChangeAttributes(unittest.TestCase):
         self.s.port = PORT
         self.s.open()
         for illegal_value in (500000, 576000, 921600, 92160):
-            self.failUnlessRaises(ValueError, setattr, self.s, 'baudrate', illegal_value)
+            self.assertRaises(ValueError, setattr, self.s, 'baudrate', illegal_value)
 
     def test_BytesizeSetting(self):
         for bytesize in (5,6,7,8):
             self.s.bytesize = bytesize
             # test get method
-            self.failUnlessEqual(self.s.bytesize, bytesize)
+            self.assertEqual(self.s.bytesize, bytesize)
             # test internals
-            self.failUnlessEqual(self.s._bytesize, bytesize)
+            self.assertEqual(self.s._bytesize, bytesize)
         # test illegal values
         for illegal_value in (0, 1, 3, 4, 9, 10, 'a', None):
-            self.failUnlessRaises(ValueError, setattr, self.s, 'bytesize', illegal_value)
+            self.assertRaises(ValueError, setattr, self.s, 'bytesize', illegal_value)
 
     def test_ParitySetting(self):
         for parity in (serial.PARITY_NONE, serial.PARITY_EVEN, serial.PARITY_ODD):
             self.s.parity = parity
             # test get method
-            self.failUnlessEqual(self.s.parity, parity)
+            self.assertEqual(self.s.parity, parity)
             # test internals
-            self.failUnlessEqual(self.s._parity, parity)
+            self.assertEqual(self.s._parity, parity)
         # test illegal values
         for illegal_value in (0, 57, 'a', None):
-            self.failUnlessRaises(ValueError, setattr, self.s, 'parity', illegal_value)
+            self.assertRaises(ValueError, setattr, self.s, 'parity', illegal_value)
 
     def test_StopbitsSetting(self):
         for stopbits in (1, 2):
             self.s.stopbits = stopbits
             # test get method
-            self.failUnlessEqual(self.s.stopbits, stopbits)
+            self.assertEqual(self.s.stopbits, stopbits)
             # test internals
-            self.failUnlessEqual(self.s._stopbits, stopbits)
+            self.assertEqual(self.s._stopbits, stopbits)
         # test illegal values
         for illegal_value in (0, 3, 2.5, 57, 'a', None):
-            self.failUnlessRaises(ValueError, setattr, self.s, 'stopbits', illegal_value)
+            self.assertRaises(ValueError, setattr, self.s, 'stopbits', illegal_value)
 
     def test_TimeoutSetting(self):
         for timeout in (None, 0, 1, 3.14159, 10, 1000, 3600):
             self.s.timeout = timeout
             # test get method
-            self.failUnlessEqual(self.s.timeout, timeout)
+            self.assertEqual(self.s.timeout, timeout)
             # test internals
-            self.failUnlessEqual(self.s._timeout, timeout)
+            self.assertEqual(self.s._timeout, timeout)
         # test illegal values
         for illegal_value in (-1, 'a'):
-            self.failUnlessRaises(ValueError, setattr, self.s, 'timeout', illegal_value)
+            self.assertRaises(ValueError, setattr, self.s, 'timeout', illegal_value)
 
     def test_XonXoffSetting(self):
         for xonxoff in (True, False):
             self.s.xonxoff = xonxoff
             # test get method
-            self.failUnlessEqual(self.s.xonxoff, xonxoff)
+            self.assertEqual(self.s.xonxoff, xonxoff)
             # test internals
-            self.failUnlessEqual(self.s._xonxoff, xonxoff)
+            self.assertEqual(self.s._xonxoff, xonxoff)
         # no illegal values here, normal rules for the boolean value of an
         # object are used thus all objects have a truth value.
 
@@ -151,9 +151,9 @@ class Test_ChangeAttributes(unittest.TestCase):
         for rtscts in (True, False):
             self.s.rtscts = rtscts
             # test get method
-            self.failUnlessEqual(self.s.rtscts, rtscts)
+            self.assertEqual(self.s.rtscts, rtscts)
             # test internals
-            self.failUnlessEqual(self.s._rtscts, rtscts)
+            self.assertEqual(self.s._rtscts, rtscts)
         # no illegal values here, normal rules for the boolean value of an
         # object are used thus all objects have a truth value.
 
@@ -161,17 +161,17 @@ class Test_ChangeAttributes(unittest.TestCase):
     # now, already sets a port
     def disabled_test_UnconfiguredPort(self):
         # an unconfigured port cannot be opened
-        self.failUnlessRaises(serial.SerialException, self.s.open)
+        self.assertRaises(serial.SerialException, self.s.open)
 
     def test_PortOpenClose(self):
         self.s.port = PORT
         for i in range(3):
             # open the port and check flag
-            self.failUnless(not self.s.isOpen())
+            self.assertTrue(not self.s.isOpen())
             self.s.open()
-            self.failUnless(self.s.isOpen())
+            self.assertTrue(self.s.isOpen())
             self.s.close()
-            self.failUnless(not self.s.isOpen())
+            self.assertTrue(not self.s.isOpen())
 
 
 if __name__ == '__main__':

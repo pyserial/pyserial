@@ -28,14 +28,14 @@ class Test_RS485_settings(unittest.TestCase):
     def test_enable_RS485(self):
         # XXX open() port - but will result in fail for most HW...
         #~ self.s.open()
-        self.failUnlessEqual(self.s._rs485_mode, None, 'RS485 is disabled by default')
-        self.failUnlessEqual(self.s.rs485_mode, None, 'RS485 is disabled by default')
+        self.assertEqual(self.s._rs485_mode, None, 'RS485 is disabled by default')
+        self.assertEqual(self.s.rs485_mode, None, 'RS485 is disabled by default')
         self.s.rs485_mode = serial.rs485.RS485Settings()
-        self.failUnless(self.s._rs485_mode is not None, 'RS485 is enabled')
-        self.failUnless(self.s.rs485_mode is not None, 'RS485 is enabled')
+        self.assertTrue(self.s._rs485_mode is not None, 'RS485 is enabled')
+        self.assertTrue(self.s.rs485_mode is not None, 'RS485 is enabled')
         self.s.rs485_mode = None
-        self.failUnlessEqual(self.s._rs485_mode, None, 'RS485 is disabled again')
-        self.failUnlessEqual(self.s.rs485_mode, None, 'RS485 is disabled again')
+        self.assertEqual(self.s._rs485_mode, None, 'RS485 is disabled again')
+        self.assertEqual(self.s.rs485_mode, None, 'RS485 is disabled again')
 
 
 class Test_RS485_class(unittest.TestCase):
@@ -50,7 +50,7 @@ class Test_RS485_class(unittest.TestCase):
     def test_RS485_class(self):
         self.s.rs485_mode = serial.rs485.RS485Settings()
         self.s.write(b'hello')
-        self.failUnlessEqual(self.s.read(5), b'hello')
+        self.assertEqual(self.s.read(5), b'hello')
 
 
 

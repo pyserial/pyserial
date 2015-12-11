@@ -29,12 +29,12 @@ class Test_URL(unittest.TestCase):
 
     def test_bad_url(self):
         """invalid protocol specified"""
-        self.failUnlessRaises(ValueError, serial.serial_for_url, "imnotknown://")
+        self.assertRaises(ValueError, serial.serial_for_url, "imnotknown://")
 
     def test_custom_url(self):
         """custom protocol handlers"""
         # it's unknown
-        self.failUnlessRaises(ValueError, serial.serial_for_url, "test://")
+        self.assertRaises(ValueError, serial.serial_for_url, "test://")
         # add search path
         serial.protocol_handler_packages.append('handlers')
         # now it should work
@@ -42,7 +42,7 @@ class Test_URL(unittest.TestCase):
         # remove our handler again
         serial.protocol_handler_packages.remove('handlers')
         # so it should not work anymore
-        self.failUnlessRaises(ValueError, serial.serial_for_url, "test://")
+        self.assertRaises(ValueError, serial.serial_for_url, "test://")
 
 
 if __name__ == '__main__':
