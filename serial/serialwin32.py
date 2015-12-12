@@ -217,7 +217,7 @@ class Serial(SerialBase):
         comDCB.XoffChar = serial.XOFF
 
         if not win32.SetCommState(self._port_handle, ctypes.byref(comDCB)):
-            raise ValueError("Cannot configure port, some setting was wrong. Original message: %r" % ctypes.WinError())
+            raise SerialException("Cannot configure port, something went wrong. Original message: %r" % ctypes.WinError())
 
     #~ def __del__(self):
         #~ self.close()
