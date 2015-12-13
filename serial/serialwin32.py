@@ -275,7 +275,7 @@ class Serial(SerialBase):
                     read_ok = win32.ReadFile(self._port_handle, buf, n, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
                     if not read_ok and win32.GetLastError() not in (win32.ERROR_SUCCESS, win32.ERROR_IO_PENDING):
                         raise SerialException("ReadFile failed (%r)" % ctypes.WinError())
-                    win32.WaitForSingleObject(self._overlapped_read.hEvent, win32.INFINITE)
+                    win32.GetOverlappedResult(self._port_handle, ctypes.byref(self._overlapped_read), ctypes.byref(rc), True)
                     read = buf.raw[:rc.value]
                 else:
                     read = bytes()
@@ -441,3 +441,4 @@ if __name__ == '__main__':
     s.port = 0
     s.open()
     sys.stdout.write("%s\n" % s)
+    
