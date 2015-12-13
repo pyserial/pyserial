@@ -540,6 +540,9 @@ class Serial(SerialBase, PlatformSpecific):
             except OSError as v:
                 if v.errno != errno.EAGAIN:
                     raise SerialException('write failed: %s' % (v,))
+                # still calculate and check timeout
+                if timeout and timeout - time.time() < 0:
+                    raise writeTimeoutError
         return len(data)
 
     def flush(self):
