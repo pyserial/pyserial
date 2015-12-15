@@ -475,9 +475,11 @@ class Serial(SerialBase, PlatformSpecific):
         if not self.is_open:
             raise portNotOpenError
         read = bytearray()
+        timeout = self._timeout
         while len(read) < size:
             try:
-                ready, _, _ = select.select([self.fd], [], [], self._timeout)
+                start_time = time.time()
+                ready, _, _ = select.select([self.fd], [], [], timeout)
                 # If select was used with a timeout, and the timeout occurs, it
                 # returns with empty lists -> thus abort read operation.
                 # For timeout == 0 (non-blocking operation) also abort when
@@ -493,6 +495,10 @@ class Serial(SerialBase, PlatformSpecific):
                     # but reading returns nothing.
                     raise SerialException('device reports readiness to read but returned no data (device disconnected or multiple access on port?)')
                 read.extend(buf)
+                if timeout is not None:
+                    timeout -= time.time() - start_time
+                    if timeout <= 0:
+                        break
             except OSError as e:
                 # this is for Python 3.x where select.error is a subclass of
                 # OSError ignore EAGAIN errors. all other errors are shown
