@@ -1,10 +1,10 @@
 #! python
-# Python Serial Port Extension for Win32, Linux, BSD, Jython
-# serial driver for win32
-# see __init__.py
+#
+# backend for Windows ("win32" incl. 32/64 bit support)
 #
 # (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 #
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # SPDX-License-Identifier:    BSD-3-Clause
 #
 # Initial patch to use ctypes by Giovanni Bajo <rasky@develer.com>

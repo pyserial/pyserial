@@ -1,3 +1,11 @@
+#! python
+#
+# This is a codec to create and decode hexdumps with spaces between characters. used by miniterm.
+#
+# This file is part of pySerial. https://github.com/pyserial/pyserial
+# (C) 2011 Chris Liechti <cliechti@gmx.net>
+#
+# SPDX-License-Identifier:    BSD-3-Clause
 """\
 Python 'hex' Codec - 2-digit hex with spaces content transfer encoding.
 """

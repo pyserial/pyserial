@@ -2,6 +2,7 @@
 #
 # Very simple serial terminal
 #
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C)2002-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause

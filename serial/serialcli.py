@@ -1,8 +1,8 @@
 #! python
-# Python Serial Port Extension for Win32, Linux, BSD, Jython and .NET/Mono
-# serial driver for .NET/Mono (IronPython), .NET >= 2
-# see __init__.py
 #
+# Backend for .NET/Mono (IronPython), .NET >= 2
+#
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2008-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause

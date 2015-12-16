@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 #
-# portable serial port access with python
-#
 # This is a module that gathers a list of serial ports including details on
 # GNU/Linux systems.
-# The comports function is expected to return an iterable that yields tuples of
-# 3 strings: port name, human readable description and a hardware ID.
 #
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2011-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause

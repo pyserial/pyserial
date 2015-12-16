@@ -2,6 +2,7 @@
 #
 # Working with threading and pySerial
 #
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause

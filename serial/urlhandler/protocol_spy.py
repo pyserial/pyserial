@@ -1,13 +1,11 @@
 #! python
 #
-# Python Serial Port Extension for Win32, Linux, BSD, Jython
-# see __init__.py
-#
 # This module implements a special URL handler that wraps an other port,
 # print the traffic for debugging purposes. With this, it is possible
 # to debug the serial port traffic on every application that uses
 # serial_for_url.
 #
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause

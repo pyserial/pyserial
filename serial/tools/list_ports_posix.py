@@ -1,13 +1,9 @@
 #!/usr/bin/env python
-
-# portable serial port access with python
-
+#
 # This is a module that gathers a list of serial ports on POSIXy systems.
 # For some specific implementations, see also list_ports_linux, list_ports_osx
 #
-# this is a wrapper module for different platform implementations of the
-# port enumeration feature
-#
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2011-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause

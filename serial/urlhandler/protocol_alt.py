@@ -1,11 +1,9 @@
 #! python
 #
-# Python Serial Port Extension for Win32, Linux, BSD, Jython
-# see __init__.py
-#
-# This module implements a special URL handler that allows selection of
+# This module implements a special URL handler that allows selecting an
 # alternate implementation provided by some backends.
 #
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause

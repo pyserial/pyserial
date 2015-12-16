@@ -1,9 +1,8 @@
 #!jython
 #
-# Python Serial Port Extension for Win32, Linux, BSD, Jython
-# module for serial IO for Jython and JavaComm
-# see __init__.py
+# Backend Jython with JavaComm
 #
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2002-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 #
-# portable serial port access with python
-# this is a wrapper module for different platform implementations
+# This is a wrapper module for different platform implementations
 #
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause

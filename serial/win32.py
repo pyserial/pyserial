@@ -1,5 +1,8 @@
 #! python
 #
+# Constants and types for use with Windows API, used by serialwin32.py
+#
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause

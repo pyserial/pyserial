@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 #
-# portable serial port access with python
-#
 # This is a helper module for the various platform dependent list_port
 # implementations.
 #
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause

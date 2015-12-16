@@ -1,7 +1,8 @@
 #! python
-# Python Serial Port Extension for Win32, Linux, BSD, Jython
-# see __init__.py
 #
+# Base class and support functions used by various backends.
+#
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause

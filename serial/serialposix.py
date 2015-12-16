@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 #
-# Python Serial Port Extension for Win32, Linux, BSD, Jython
-# module for serial IO for POSIX compatible systems, like Linux
-# see __init__.py
+# backend for serial IO for POSIX compatible systems, like Linux, OSX
 #
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause

@@ -3,6 +3,7 @@
 # Enumerate serial ports on Windows including a human readable description
 # and hardware information.
 #
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
