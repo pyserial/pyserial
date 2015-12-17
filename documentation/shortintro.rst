@@ -10,7 +10,7 @@ Open port at "9600,8,N,1", no timeout::
     >>> import serial
     >>> ser = serial.Serial('/dev/ttyUSB0')  # open serial port
     >>> print(ser.name)         # check which port was really used
-    >>> ser.write(b"hello")     # write a string
+    >>> ser.write(b'hello')     # write a string
     >>> ser.close()             # close port
 
 Open named port at "19200,8,N,1", 1s timeout::
@@ -43,6 +43,15 @@ Get a Serial instance and configure/open it later::
     >>> ser.close()
     >>> ser.is_open
     False
+
+Also supported with context manager::
+
+    serial.Serial() as ser:
+        ser.baudrate = 19200
+        ser.port = 'COM1'
+        ser.open()
+        ser.write(b'hello')
+
 
 Readline
 ========

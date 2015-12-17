@@ -139,7 +139,9 @@ Native ports
             In case a write timeout is configured for the port and the time is
             exceeded.
 
-        Write the string *data* to the port.
+        Write the bytes *data* to the port. This should be of type ``bytes``
+        (or compatible such as ``bytearray`` or ``memoryview``). Unicode
+        strings must be encoded (e.g. ``'hello'.encode('utf-8'``).
 
         .. versionchanged:: 2.5
             Accepts instances of :class:`bytes` and :class:`bytearray` when
