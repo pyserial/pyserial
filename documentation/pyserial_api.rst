@@ -80,14 +80,20 @@ Native ports
         OSX >= Tiger, Windows). Though, even on these platforms some serial
         ports may reject non-standard values.
 
-        Possible values for the parameter *timeout*:
+        Possible values for the parameter *timeout* which controls the behavior
+        of :meth:`read`:
 
-        - ``timeout = None``:  wait forever
-        - ``timeout = 0``:     non-blocking mode (return immediately on read)
+        - ``timeout = None``:  wait forever / until requested number of bytes
+          are received
+        - ``timeout = 0``:     non-blocking mode, return immediately in any case,
+          returning zero or more, up to the requested number of bytes
         - ``timeout = x``:     set timeout to ``x`` seconds (float allowed)
+          returns immediately when the requested number of bytes are available,
+          otherwise wait until the timeout expires and return all bytes that
+          were received until then.
 
-        Writes are blocking by default, unless *write_timeout* is set. For
-        possible values refer to the list for *timeout* above.
+        :meth:`write` is blocking by default, unless *write_timeout* is set.
+        For possible values refer to the list for *timeout* above.
 
         Note that enabling both flow control methods (*xonxoff* and *rtscts*)
         together may not be supported. It is common to use one of the methods
@@ -101,6 +107,7 @@ Native ports
 
         .. versionchanged:: 2.5
             *dsrdtr* now defaults to ``False`` (instead of *None*)
+        .. versionchanged:: 3.0 numbers as *port* argument are no longer supported
 
     .. method:: open()
 
@@ -122,6 +129,7 @@ Native ports
 
         :param size: Number of bytes to read.
         :return: Bytes read from the port.
+        :rtype: bytes
 
         Read *size* bytes from the serial port. If a timeout is set it may
         return less characters as requested. With no timeout it will block
@@ -135,6 +143,7 @@ Native ports
 
         :param data: Data to send.
         :return: Number of bytes written.
+        :rtype: int
         :exception SerialTimeoutException:
             In case a write timeout is configured for the port and the time is
             exceeded.
@@ -143,7 +152,7 @@ Native ports
         (or compatible such as ``bytearray`` or ``memoryview``). Unicode
         strings must be encoded (e.g. ``'hello'.encode('utf-8'``).
 
-        .. versionchanged:: 2.5
+    .. versionchanged:: 2.5
             Accepts instances of :class:`bytes` and :class:`bytearray` when
             available (Python 2.6 and newer) and :class:`str` otherwise.
 
@@ -365,7 +374,7 @@ Native ports
         :setter: Disable (``None``) or enable the RS485 settings
         :type: :class:`rs485.RS485Settings` or ``None``
         :platform: Posix (Linux, limited set of hardware)
-        :platform: Windows (RTS on TX only possible)
+        :platform: Windows (only RTS on TX possible)
 
         Attribute to configure RS485 support. When set to an instance of
         :class:`rs485.RS485Settings` and supported by OS, RTS will be active
@@ -380,9 +389,9 @@ Native ports
 
     .. attribute:: BAUDRATES
 
-        A list of valid baud rates. The list may be incomplete such that higher
-        baud rates may be supported by the device and that values in between the
-        standard baud rates are supported. (Read Only).
+        A list of valid baud rates. The list may be incomplete, such that higher
+        and/or intermediate baud rates may also be supported by the device
+        (Read Only).
 
     .. attribute:: BYTESIZES
 
@@ -432,6 +441,7 @@ Native ports
     .. method:: get_settings()
 
         :return: a dictionary with current port settings.
+        :rtype: dict
 
         Get a dictionary with port settings. This is useful to backup the
         current settings so that a later point in time they can be restored
@@ -440,18 +450,20 @@ Native ports
         Note that control lines (RTS/DTR) are part of the settings.
 
         .. versionadded:: 2.5
+        .. versionchanged:: 3.0 renamed from ``getSettingsDict``
 
     .. method:: apply_settings(d)
 
-        :param d: a dictionary with port settings.
+        :param dict d: a dictionary with port settings.
 
         Applies a dictionary that was created by :meth:`get_settings`. Only
-        changes are applied and when a key is missing it means that the setting
-        stays unchanged.
+        changes are applied and when a key is missing, it means that the
+        setting stays unchanged.
 
         Note that control lines (RTS/DTR) are not changed.
 
         .. versionadded:: 2.5
+        .. versionchanged:: 3.0 renamed from ``applySettingsDict``
 
     Platform specific methods.
 
@@ -477,7 +489,7 @@ Native ports
     .. method:: set_input_flow_control(enable)
 
         :platform: Posix
-        :param enable: Set flow control state.
+        :param bool enable: Set flow control state.
 
         Manually control flow - when software flow control is enabled.
 
@@ -490,7 +502,7 @@ Native ports
 
         :platform: Posix (HW and SW flow control)
         :platform: Windows (SW flow control only)
-        :param enable: Set flow control state.
+        :param bool enable: Set flow control state.
 
         Manually control flow of outgoing data - when hardware or software flow
         control is enabled.
