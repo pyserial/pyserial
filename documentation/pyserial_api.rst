@@ -62,7 +62,7 @@ Native ports
 
         The port is immediately opened on object creation, when a *port* is
         given. It is not opened when *port* is :const:`None` and a successive call
-        to :meth:`open` will be needed.
+        to :meth:`open` is required.
 
         *port* is a device name: depending on operating system. e.g.
         ``/dev/ttyUSB0`` on GNU/Linux or ``COM3`` on Windows.
@@ -176,6 +176,7 @@ Native ports
     .. attribute:: out_waiting
 
         :getter: Get the number of bytes in the output buffer
+        :type: int
         :platform: Posix
         :platform: Windows
 
@@ -199,7 +200,7 @@ Native ports
 
     .. method:: send_break(duration=0.25)
 
-        :param duration: Time (float) to activate the BREAK condition.
+        :param float duration: Time to activate the BREAK condition.
 
         Send break condition. Timed, returns to idle state after given
         duration.
@@ -239,6 +240,7 @@ Native ports
     .. attribute:: name
 
         :getter: Device name.
+        :type: str
 
         .. versionadded:: 2.5
 
@@ -276,6 +278,8 @@ Native ports
 
 
     .. attribute:: port
+
+        :type: str
 
         Read or write port. When the port is already open, it will be closed
         and reopened with the new setting.
@@ -436,7 +440,10 @@ Native ports
 
         .. versionadded:: 2.5
 
-    The port settings can be read and written as dictionary.
+    The port settings can be read and written as dictionary. The following
+    keys are supported: ``write_timeout``, ``inter_byte_timeout``,
+    ``dsrdtr``, ``baudrate``, ``timeout``, ``parity``, ``bytesize``,
+    ``rtscts``, ``stopbits``, ``xonxoff``
 
     .. method:: get_settings()
 
@@ -713,7 +720,7 @@ on regular serial ports.
 
     This class API is compatible to :class:`Serial` with a few exceptions:
 
-    - write_timeout is not implemented
+    - ``write_timeout`` is not implemented
     - The current implementation starts a thread that keeps reading from the
       (internal) socket. The thread is managed automatically by the
       :class:`rfc2217.Serial` port object on :meth:`open`/:meth:`close`.
@@ -731,7 +738,7 @@ on regular serial ports.
     - The network layer also has buffers. This means that :meth:`flush`,
       :meth:`reset_input_buffer` and :meth:`reset_output_buffer` may work with
       additional delay.  Likewise :attr:`in_waiting` returns the size of the
-      data arrived at the object internal buffer and excludes any bytes in the
+      data arrived at the objects internal buffer and excludes any bytes in the
       network buffers or any server side buffer.
     - Closing and immediately reopening the same port may fail due to time
       needed by the server to get ready again.
@@ -785,7 +792,7 @@ on regular serial ports.
         (RTS/DTR) send BREAK etc. when the corresponding commands are found by
         the :meth:`filter` method.
 
-        The *connection* object must implement a :meth:`write(data)` function.
+        The *connection* object must implement a :meth:`write` function.
         This function must ensure that *data* is written at once (no user data
         mixed in, i.e. it must be thread-safe). All data must be sent in its
         raw form (:meth:`escape` must not be used) as it is used to send Telnet
@@ -944,7 +951,7 @@ Module functions and attributes
 
 .. function:: to_bytes(sequence)
 
-    :param sequence: String or list of integers
+    :param sequence: bytes, bytearray or memoryview
     :returns: an instance of ``bytes``
 
     Convert a sequence to a ``bytes`` type. This is used to write code that is
@@ -958,9 +965,9 @@ Module functions and attributes
 
     .. versionadded:: 2.5
 
-.. function:: iterbytes(b)
+.. function:: iterbytes(sequence)
 
-    :param b: bytes, bytearray or memoryview
+    :param sequence: bytes, bytearray or memoryview
     :returns: a generator that yields bytes
 
     Some versions of Python (3.x) would return integers instead of bytes when
