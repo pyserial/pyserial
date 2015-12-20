@@ -1002,7 +1002,7 @@ This module provides classes to simplify working with threads and protocols.
 
     .. method:: data_received(data)
 
-        :param data: received bytes
+        :param bytes data: received bytes
 
         Called with snippets received from the serial port.
 
@@ -1026,15 +1026,17 @@ This module provides classes to simplify working with threads and protocols.
 
     .. method:: connection_made(transport)
 
-        Store transport
+        Stores transport.
 
     .. method:: connection_lost(exc)
 
-        Forget transport
+        Forgets transport.
 
     .. method:: data_received(data)
 
-        Buffer received data and search for ``TERMINATOR``, when found,
+        :param bytes data: partial received data
+
+        Buffer received data and search for :attr:`TERMINATOR`, when found,
         call :meth:`handle_packet`.
 
     .. method:: handle_packet(packet)
@@ -1056,16 +1058,17 @@ This module provides classes to simplify working with threads and protocols.
 
     .. method:: handle_line(line)
 
-        :param line: Unicode string with one line (excluding line terminator)
+        :param str line: Unicode string with one line (excluding line terminator)
 
         Process one line - to be overridden by subclassing.
 
     .. method:: write_line(text)
 
-        :param text: Unicode string with one line (excluding line terminator)
+        :param str text: Unicode string with one line (excluding line terminator)
 
-        Write text to the transport. ``text`` is a Unicode string and the encoding
-        is applied before sending ans also the newline is append.
+        Write *text* to the transport. *text* is expected to be a Unicode
+        string and the encoding is applied before sending and also the
+        :attr:`TERMINATOR` (new line) is appended.
 
 
 .. class:: ReaderThread(threading.Thread)
@@ -1073,8 +1076,9 @@ This module provides classes to simplify working with threads and protocols.
     Implement a serial port read loop and dispatch to a Protocol instance (like
     the :class:`asyncio.Protocol`) but do it with threads.
 
-    Calls to :meth:`close` will close the serial port but it is also possible to just
-    :meth:`stop` this thread and continue the serial port instance otherwise.
+    Calls to :meth:`close` will close the serial port but it is also possible
+    to just :meth:`stop` this thread and continue to use the serial port
+    instance otherwise.
 
     .. method:: __init__(serial_instance, protocol_factory)
 
@@ -1083,7 +1087,7 @@ This module provides classes to simplify working with threads and protocols.
 
         Initialize thread.
 
-        Note that the ``serial_instance`` timeout is set to one second!
+        Note that the ``serial_instance`` 's timeout is set to one second!
         Other settings are not changed.
 
     .. method:: stop()
@@ -1094,10 +1098,12 @@ This module provides classes to simplify working with threads and protocols.
 
         The actual reader loop driven by the thread. It calls
         :meth:`Protocol.connection_made`, reads from the serial port calling
-        :meth:`Protocol.data_received` and finally calling :meth:`Protocol.connection_lost`
+        :meth:`Protocol.data_received` and finally calls :meth:`Protocol.connection_lost`
         when :meth:`close` is called or an error occurs.
 
     .. method:: write(data)
+
+        :param bytes data: data to write
 
         Thread safe writing (uses lock).
 
