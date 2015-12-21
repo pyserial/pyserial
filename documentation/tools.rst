@@ -44,8 +44,8 @@ serial.tools.list_ports``). It also contains the following functions.
 
     Search for ports using a regular expression. Port name, description and
     hardware ID are searched (case insensitive). The function returns an
-    iterable that contains the same tuples that :func:`comport` generates but
-    only those that match the regexp.
+    iterable that contains the same tuples that :func:`comport` generates, but
+    includes only those entries that match the regexp.
 
 .. class:: ListPortInfo
 
@@ -107,7 +107,8 @@ serial.tools.list_ports``). It also contains the following functions.
     text so that the order is "natural" (i.e. ``com1`` < ``com2`` <
     ``com10``).
 
-Command line usage
+
+**Command line usage**
 
 Help for ``python -m serial.tools.list_ports``::
 
@@ -128,14 +129,23 @@ Examples:
 
 - List all ports with details::
 
-    python -m serial.tools.list_ports -v
+    $ python -m serial.tools.list_ports -v
+    /dev/ttyS0
+        desc: ttyS0
+        hwid: PNP0501
+    /dev/ttyUSB0
+        desc: CP2102 USB to UART Bridge Controller
+        hwid: USB VID:PID=10C4:EA60 SER=0001 LOCATION=2-1.6
+    2 ports found
+
 
 - List the 2nd port matching a USB VID:PID pattern::
 
-    python -m serial.tools.list_ports 1234:5678 -q -n 2
+    $ python -m serial.tools.list_ports 1234:5678 -q -n 2
+    /dev/ttyUSB1
 
 .. versionadded:: 2.6
-.. versionchanged:: 3.0 returning ListPortInfo objects instead of a tuple
+.. versionchanged:: 3.0 returning ``ListPortInfo`` objects instead of a tuple
 
 
 .. _miniterm:

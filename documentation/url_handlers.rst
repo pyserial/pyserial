@@ -1,10 +1,10 @@
+.. _URLs:
+
 ==============
  URL Handlers
 ==============
 
 .. module:: serial
-
-.. _URLs:
 
 Overview
 ========
