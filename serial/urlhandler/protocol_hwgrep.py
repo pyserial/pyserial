@@ -8,7 +8,16 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 #
-# URL format:    hwgrep://regexp
+# URL format:    hwgrep://<regexp>&<option>
+#
+# where <regexp> is a Python regexp according to the re module
+#
+# violating the normal definition for URLs, the charachter `&` is used to
+# separate parameters from the arguments (instead of `?`, but the question mark
+# is heavily used in regexp'es)
+#
+# options:
+# n=<N>     pick the N'th entry instead of the first one (numbering starts at 1)
 
 import serial
 import serial.tools.list_ports
@@ -34,8 +43,27 @@ class Serial(serial.Serial):
         """extract host and port from an URL string"""
         if url.lower().startswith("hwgrep://"):
             url = url[9:]
+        n = 0
+        args = url.split('&')
+        regexp = args.pop(0)
+        for arg in args:
+            if '=' in arg:
+                option, value = arg.split('=', 1)
+            else:
+                option = arg
+                value = None
+            if option == 'n':
+                # pick n'th element
+                n = int(value) - 1
+                if n < 1:
+                    raise ValueError('option "n" expects a positive integer larger than 1: %r' % (value,))
+            else:
+                raise ValueError('unknown option: %r' % (option,))
         # use a for loop to get the 1st element from the generator
-        for port, desc, hwid in serial.tools.list_ports.grep(url):
+        for port, desc, hwid in sorted(serial.tools.list_ports.grep(regexp)):
+            if n:
+                n -= 1
+                continue
             return port
         else:
             raise serial.SerialException('no ports found matching regexp %r' % (url,))
