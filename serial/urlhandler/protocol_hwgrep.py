@@ -18,6 +18,7 @@
 #
 # options:
 # n=<N>     pick the N'th entry instead of the first one (numbering starts at 1)
+# skip_busy tries to open port to check if it is busy, fails on posix as ports are not locked!
 
 import serial
 import serial.tools.list_ports
@@ -44,6 +45,7 @@ class Serial(serial.Serial):
         if url.lower().startswith("hwgrep://"):
             url = url[9:]
         n = 0
+        test_open = False
         args = url.split('&')
         regexp = args.pop(0)
         for arg in args:
@@ -57,10 +59,21 @@ class Serial(serial.Serial):
                 n = int(value) - 1
                 if n < 1:
                     raise ValueError('option "n" expects a positive integer larger than 1: %r' % (value,))
+            elif option == 'skip_busy':
+                # open to test if port is available. not the nicest way..
+                test_open = True
             else:
                 raise ValueError('unknown option: %r' % (option,))
         # use a for loop to get the 1st element from the generator
         for port, desc, hwid in sorted(serial.tools.list_ports.grep(regexp)):
+            if test_open:
+                try:
+                    s = serial.Serial(port)
+                except serial.SerialException:
+                    # it has some error, skip this one
+                    continue
+                else:
+                    s.close()
             if n:
                 n -= 1
                 continue
