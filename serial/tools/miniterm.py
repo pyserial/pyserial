@@ -711,6 +711,12 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
             help="set initial DTR line state (possible values: 0, 1)",
             default=default_dtr)
 
+    group.add_argument(
+            "--ask",
+            action="store_true",
+            help="ask again for port when open fails",
+            default=False)
+
     group = parser.add_argument_group("data handling")
 
     group.add_argument(
@@ -783,17 +789,6 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
     if args.menu_char == args.exit_char:
         parser.error('--exit-char can not be the same as --menu-char')
 
-    # no port given on command line -> ask user now
-    if args.port is None or args.port == '-':
-        try:
-            args.port = ask_for_port()
-        except KeyboardInterrupt:
-            sys.stderr.write('\n')
-            parser.error('user aborted and port is not given')
-        else:
-            if not args.port:
-                parser.error('port is not given')
-
     if args.filter:
         if 'help' in args.filter:
             sys.stderr.write('Available filters:\n')
@@ -806,31 +801,47 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
     else:
         filters = ['default']
 
-    try:
-        serial_instance = serial.serial_for_url(
-                args.port,
-                args.baudrate,
-                parity=args.parity,
-                rtscts=args.rtscts,
-                xonxoff=args.xonxoff,
-                timeout=1,
-                do_not_open=True)
+    while True:
+        # no port given on command line -> ask user now
+        if args.port is None or args.port == '-':
+            try:
+                args.port = ask_for_port()
+            except KeyboardInterrupt:
+                sys.stderr.write('\n')
+                parser.error('user aborted and port is not given')
+            else:
+                if not args.port:
+                    parser.error('port is not given')
+        try:
+            serial_instance = serial.serial_for_url(
+                    args.port,
+                    args.baudrate,
+                    parity=args.parity,
+                    rtscts=args.rtscts,
+                    xonxoff=args.xonxoff,
+                    timeout=1,
+                    do_not_open=True)
 
-        if args.dtr is not None:
-            if not args.quiet:
-                sys.stderr.write('--- forcing DTR {}\n'.format('active' if args.dtr else 'inactive'))
-            serial_instance.dtr = args.dtr
-        if args.rts is not None:
-            if not args.quiet:
-                sys.stderr.write('--- forcing RTS {}\n'.format('active' if args.rts else 'inactive'))
-            serial_instance.rts = args.rts
+            if args.dtr is not None:
+                if not args.quiet:
+                    sys.stderr.write('--- forcing DTR {}\n'.format('active' if args.dtr else 'inactive'))
+                serial_instance.dtr = args.dtr
+            if args.rts is not None:
+                if not args.quiet:
+                    sys.stderr.write('--- forcing RTS {}\n'.format('active' if args.rts else 'inactive'))
+                serial_instance.rts = args.rts
 
-        serial_instance.open()
-    except serial.SerialException as e:
-        sys.stderr.write('could not open port {}: {}\n'.format(repr(args.port), e))
-        if args.develop:
-            raise
-        sys.exit(1)
+            serial_instance.open()
+        except serial.SerialException as e:
+            sys.stderr.write('could not open port {}: {}\n'.format(repr(args.port), e))
+            if args.develop:
+                raise
+            if not args.ask:
+                sys.exit(1)
+            else:
+                args.port = '-'
+        else:
+            break
 
     miniterm = Miniterm(
             serial_instance,
