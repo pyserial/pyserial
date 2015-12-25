@@ -196,6 +196,7 @@ Command line options ``python -m serial.tools.miniterm -h``::
       --xonxoff             enable software flow control (default off)
       --rts RTS             set initial RTS line state (possible values: 0, 1)
       --dtr DTR             set initial DTR line state (possible values: 0, 1)
+      --ask                 ask again for port when open fails
 
     data handling:
       -e, --echo            enable local echo (default off)
@@ -251,4 +252,5 @@ running shows the help text::
 .. versionchanged:: 3.0
     Apply encoding on serial port, convert to Unicode for console.
     Added new filters, default to stripping terminal control sequences.
+    Added --ask option.
 
