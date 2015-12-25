@@ -13,7 +13,7 @@ The function :func:`serial_for_url` accepts the following types of URLs:
 - ``rfc2217://<host>:<port>[?<option>[&<option>...]]``
 - ``socket://<host>:<port>[?logging={debug|info|warning|error}]``
 - ``loop://[?logging={debug|info|warning|error}]``
-- ``hwgrep://<regexp>``
+- ``hwgrep://<regexp>[&skip_busy][&n=N]``
 - ``spy://port[?option[=value][&option[=value]]]``
 
 .. versionchanged:: 3.0 Options are specified with ``?`` and ``&`` instead of ``/``
@@ -98,8 +98,12 @@ Supported options in the URL are:
 ``hwgrep://``
 =============
 This type uses :mod:`serial.tools.list_ports` to obtain a list of ports and
-searches the list for matches by a regexp (see :py:mod:`re`) that follows
-the slashes.
+searches the list for matches by a regexp that follows the slashes (see Pythons
+:py:mod:`re` module for detailed syntax information).
+
+Note that options are separated using the character ``&``, this also applies to
+the first, where URLs usually use ``?``. This exception is made as the question
+mark is used in regexp itself.
 
 Depending on the capabilities of the list_ports module on the system, it is
 possible to search for the description or hardware ID of a device, e.g. USB
@@ -108,6 +112,13 @@ VID:PID or texts.
 Unfortunately, on some systems list_ports only lists a subset of the port
 names with no additional information. Currently, on Windows and Linux and
 OSX it should find additional information.
+
+Supported options in the URL are:
+
+- ``n=N``: pick the N'th entry instead of the first
+- ``skip_busy``: skip ports that can not be opened, e.g. because they are
+  already in use. This may not work as expected on platforms where the file is
+  not locked automatically (e.g. Posix).
 
 
 ``spy://``
