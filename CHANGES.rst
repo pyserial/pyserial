@@ -562,9 +562,20 @@ Version 3.0b2   2015-11-xx
 
 - minor fixes to setup.py (file list), inter_byte_timeout (not stored when
   passed to __init__), rfc2217 (behavior of close when open failed),
-  list_ports (__str__)
+  list_ports (__str__), loop://, renamed ReaderThread
+- hwgrep:// can pick n'th port, skip busy ports
+- miniterm: --ask option added
+
+Bugfixes (posix):
+
+- [#26/#30] always call tcsettattr on open
+- [#42] fix disregard read timeout if there is more data
+- [#45] check for write timeout, even if EAGAIN was rised
 
 Bugfixes (win32):
 
 - [#27] fix race condition in ``read()``, fix minimal timeout issue
+- race condition in nonblocking case
+- [#49] change exception type in case SetCommState fails
+- [#50] fixed issue with 0 timeout on windows 10
 
