@@ -557,13 +557,13 @@ Version 3.0b1   2015-10-19
 - new URL handler ``alt://`` to select alternative implementations
 
 
-Version 3.0b2   2015-11-xx
---------------------------
+Version 3.0   2015-12-28
+------------------------
 
 - minor fixes to setup.py (file list), inter_byte_timeout (not stored when
   passed to __init__), rfc2217 (behavior of close when open failed),
   list_ports (__str__), loop://, renamed ReaderThread
-- hwgrep:// can pick n'th port, skip busy ports
+- hwgrep:// added options to pick n'th port, skip busy ports
 - miniterm: --ask option added
 
 Bugfixes (posix):
