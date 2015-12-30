@@ -46,8 +46,10 @@ class ListPortInfo(object):
     def usb_description(self):
         if self.interface is not None:
             return '{} - {}'.format(self.product, self.interface)
-        else:
+        elif self.product is not None:
             return self.product
+        else:
+            return self.name
 
     def usb_info(self):
         return 'USB VID:PID={:04X}:{:04X}{}{}'.format(
