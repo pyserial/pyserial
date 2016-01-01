@@ -523,8 +523,8 @@ terminated, it waits for the next connect.
                     log.info("unpublish: %s" % (published[device]))
                     unpublish(published[device])
                 # Handle devices that are connected but not yet published
-                for device in set(connected).difference(published):
-                    # Find the first available port, starting from 7000
+                for device in sorted(set(connected).difference(published)):
+                    # Find the first available port, starting from specified number
                     port = args.base_port
                     ports_in_use = [f.network_port for f in published.values()]
                     while port in ports_in_use:
@@ -534,8 +534,7 @@ terminated, it waits for the next connect.
                             "%s on %s" % (device, hostname),
                             port,
                             on_close=unpublish,
-                            log=log
-                    )
+                            log=log)
                     log.warning("publish: %s" % (published[device]))
                     published[device].open()
 
@@ -549,8 +548,7 @@ terminated, it waits for the next connect.
                     read_map.keys(),
                     write_map.keys(),
                     error_map.keys(),
-                    5
-            )
+                    5)
             # select_end = time.time()
             # print "select used %.3f s" % (select_end - select_start)
             for reader in readers:
