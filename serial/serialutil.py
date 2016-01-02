@@ -123,13 +123,14 @@ class SerialBase(io.RawIOBase):
                  baudrate=9600,         # baud rate
                  bytesize=EIGHTBITS,    # number of data bits
                  parity=PARITY_NONE,    # enable parity checking
-                 stopbits=STOPBITS_ONE,  # number of stop bits
+                 stopbits=STOPBITS_ONE, # number of stop bits
                  timeout=None,          # set a timeout value, None to wait forever
                  xonxoff=False,         # enable software flow control
                  rtscts=False,          # enable RTS/CTS flow control
                  write_timeout=None,    # set a timeout for writes
                  dsrdtr=False,          # None: use rtscts setting, dsrdtr override if True or False
-                 inter_byte_timeout=None  # Inter-character timeout, None to disable
+                 inter_byte_timeout=None, # Inter-character timeout, None to disable
+                 **kwargs
                  ):
         """\
         Initialize comm port object. If a port is given, then the port will be
@@ -138,17 +139,18 @@ class SerialBase(io.RawIOBase):
         """
 
         self.is_open = False
-        self._port = None       # correct value is assigned below through properties
-        self._baudrate = None   # correct value is assigned below through properties
-        self._bytesize = None   # correct value is assigned below through properties
-        self._parity = None     # correct value is assigned below through properties
-        self._stopbits = None   # correct value is assigned below through properties
-        self._timeout = None    # correct value is assigned below through properties
-        self._write_timeout = None  # correct value is assigned below through properties
-        self._xonxoff = None    # correct value is assigned below through properties
-        self._rtscts = None     # correct value is assigned below through properties
-        self._dsrdtr = None     # correct value is assigned below through properties
-        self._inter_byte_timeout = None  # correct value is assigned below through properties
+        # correct values are assigned below through properties
+        self._port = None
+        self._baudrate = None
+        self._bytesize = None
+        self._parity = None
+        self._stopbits = None
+        self._timeout = None
+        self._write_timeout = None
+        self._xonxoff = None
+        self._rtscts = None
+        self._dsrdtr = None
+        self._inter_byte_timeout = None
         self._rs485_mode = None  # disabled by default
         self._rts_state = True
         self._dtr_state = True
@@ -166,6 +168,13 @@ class SerialBase(io.RawIOBase):
         self.rtscts = rtscts
         self.dsrdtr = dsrdtr
         self.inter_byte_timeout = inter_byte_timeout
+        # watch for backward compatible kwargs
+        if 'writeTimeout' in kwargs:
+            self.write_timeout = kwargs.pop('writeTimeout')
+        if 'interCharTimeout' in kwargs:
+            self.inter_byte_timeout = kwargs.pop('interCharTimeout')
+        if kwargs:
+            raise ValueError('unexpected keyword arguments: %r' % (kwargs,))
 
         if port is not None:
             self.open()
