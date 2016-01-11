@@ -230,7 +230,6 @@ def comports():
                     if m.group(4):
                         info.serial_number = m.group(4)
                 # calculate a location string
-                # XXX was empty in tests with (internal) USB3 hub :(
                 loc_path_str = byte_buffer(250)
                 if SetupDiGetDeviceRegistryProperty(
                         g_hdi,
@@ -254,6 +253,15 @@ def comports():
                             location.append(g.group(2))
                     if location:
                         info.location = ''.join(location)
+                info.hwid = info.usb_info()
+            elif szHardwareID_str.startswith('FTDIBUS'):
+                m = re.search(r'VID_([0-9a-f]{4})\+PID_([0-9a-f]{4})(\+(\w+))?', szHardwareID_str, re.I)
+                if m:
+                    info.vid = int(m.group(1), 16)
+                    info.pid = int(m.group(2), 16)
+                    if m.group(4):
+                        info.serial_number = m.group(4)
+                # USB location is hidden by FDTI driver :(
                 info.hwid = info.usb_info()
             else:
                 info.hwid = szHardwareID_str
