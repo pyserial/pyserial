@@ -579,3 +579,15 @@ Bugfixes (win32):
 - [#49] change exception type in case SetCommState fails
 - [#50] fixed issue with 0 timeout on windows 10
 
+
+Version 3.0.1   2016-01-11
+--------------------------
+
+- special case for FDTIBUS in list_ports on win32
+
+Bugfixes:
+
+- ``Serial`` keyword arguments, more on backward compatibility, fix #55
+- list_ports: return name if product is None, fix for #54
+- port_publisher: restore some sorting of ports
+
