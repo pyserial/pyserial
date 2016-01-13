@@ -13,10 +13,7 @@ import io
 import os
 import re
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup, find_packages
 
 
 def read(*names, **kwargs):
@@ -57,7 +54,7 @@ setup(
     author="Chris Liechti",
     author_email="cliechti@gmx.net",
     url="https://github.com/pyserial/pyserial",
-    packages=['serial', 'serial.tools', 'serial.urlhandler', 'serial.threaded'],
+    packages = find_packages(),
     license="BSD",
     long_description="""\
 Python Serial Port Extension for Win32, OSX, Linux, BSD, Jython, IronPython
@@ -95,5 +92,10 @@ Latest:
         'Topic :: Terminals :: Serial',
     ],
     platforms='any',
-    scripts=['serial/tools/miniterm.py'],
+    entry_points={
+        'console_scripts': [
+            'list_serial_ports = serial.tools.list_ports:main',
+            'miniterm = serial.tools.miniterm:main',
+        ],
+    },
 )
