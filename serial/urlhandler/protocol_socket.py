@@ -133,6 +133,9 @@ class Serial(SerialBase):
         lr, lw, lx = select.select([self._socket], [], [], 0)
         return len(lr)
 
+    # select based implementation, similar to posix, but only using socket API
+    # to be portable, additionally handle socket timeout which is used to
+    # emulate write timeouts
     def read(self, size=1):
         """\
         Read size bytes from the serial port. If a timeout is set it may
@@ -141,31 +144,46 @@ class Serial(SerialBase):
         """
         if not self.is_open:
             raise portNotOpenError
-        data = bytearray()
-        if self._timeout is not None:
-            timeout = time.time() + self._timeout
-        else:
-            timeout = None
-        while len(data) < size:
+        read = bytearray()
+        timeout = self._timeout
+        while len(read) < size:
             try:
-                # an implementation with internal buffer would be better
-                # performing...
-                block = self._socket.recv(size - len(data))
-                if block:
-                    data.extend(block)
-                else:
-                    # no data -> EOF (connection probably closed)
-                    break
+                start_time = time.time()
+                ready, _, _ = select.select([self._socket], [], [], timeout)
+                # If select was used with a timeout, and the timeout occurs, it
+                # returns with empty lists -> thus abort read operation.
+                # For timeout == 0 (non-blocking operation) also abort when
+                # there is nothing to read.
+                if not ready:
+                    break   # timeout
+                buf = self._socket.recv(size - len(read))
+                # read should always return some data as select reported it was
+                # ready to read when we get to this point, unless it is EOF
+                if not buf:
+                    raise SerialException('socket disconnected')
+                read.extend(buf)
+                if timeout is not None:
+                    timeout -= time.time() - start_time
+                    if timeout <= 0:
+                        break
             except socket.timeout:
-                # just need to get out of recv from time to time to check if
-                # still alive and timeout did not expire
+                # timeout is used for write support, just go reading again
                 pass
             except socket.error as e:
                 # connection fails -> terminate loop
                 raise SerialException('connection failed (%s)' % e)
-            if timeout is not None and time.time() > timeout:
-                break
-        return bytes(data)
+            except OSError as e:
+                # this is for Python 3.x where select.error is a subclass of
+                # OSError ignore EAGAIN errors. all other errors are shown
+                if e.errno != errno.EAGAIN:
+                    raise SerialException('read failed: %s' % (e,))
+            except select.error as e:
+                # this is for Python 2.x
+                # ignore EAGAIN errors. all other errors are shown
+                # see also http://www.python.org/dev/peps/pep-3151/#select
+                if e[0] != errno.EAGAIN:
+                    raise SerialException('read failed: %s' % (e,))
+        return bytes(read)
 
     def write(self, data):
         """\
