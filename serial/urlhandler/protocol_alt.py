@@ -41,7 +41,12 @@ def serial_class_for_url(url):
                 raise ValueError('unknown option: %r' % (option,))
     except ValueError as e:
         raise serial.SerialException('expected a string in the form "alt://port[?option[=value][&option[=value]]]": %s' % e)
-    return (''.join([parts.netloc, parts.path]), getattr(serial, class_name))
+    if not hasattr(serial, class_name):
+        raise ValueError('unknown class: %r' % (class_name,))
+    cls = getattr(serial, class_name)
+    if not issubclass(cls, serial.Serial):
+        raise ValueError('class %r is not an instance of Serial' % (class_name,))
+    return (''.join([parts.netloc, parts.path]), cls)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __name__ == '__main__':
