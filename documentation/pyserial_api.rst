@@ -1041,6 +1041,8 @@ This module provides classes to simplify working with threads and protocols.
 
     .. method:: handle_packet(packet)
 
+        :param bytes packet: a packet as defined by ``TERMINATOR``
+
         Process packets - to be overridden by subclassing.
 
 
@@ -1051,10 +1053,23 @@ This module provides classes to simplify working with threads and protocols.
 
 
     .. attribute:: TERMINATOR = b'\\r\\n'
+
+        Line ending.
+
     .. attribute:: ENCODING = 'utf-8'
+
+        Encoding of the send and received data.
+
     .. attribute:: UNICODE_HANDLING = 'replace'
 
+        Unicode error handly policy.
+
     .. method:: handle_packet(packet)
+
+        :param bytes packet: a packet as defined by ``TERMINATOR``
+
+        In this case it will be a line, calls :meth:`handle_line` after applying
+        the :attr:`ENCODING`.
 
     .. method:: handle_line(line)
 
