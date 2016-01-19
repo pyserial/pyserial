@@ -36,21 +36,28 @@ class SerialTransport(asyncio.Transport):
     def __repr__(self):
         return '{self.__class__.__name__}({self._loop}, {self._protocol}, {self.serial})'.format(self=self)
 
-    def close(self):
+    def close(self, exc=None):
         if self._closing:
             return
         self._closing = True
         self._loop.remove_reader(self.serial.fd)
         self.serial.close()
-        self._loop.call_soon(self._protocol.connection_lost, None)
+        self._loop.call_soon(self._protocol.connection_lost, exc)
 
     def _read_ready(self):
-        data = self.serial.read(1024)
-        if data:
-            self._protocol.data_received(data)
+        try:
+            data = self.serial.read(1024)
+        except serial.SerialException as e:
+            self.close(exc=e)
+        else:
+            if data:
+                self._protocol.data_received(data)
 
     def write(self, data):
-        self.serial.write(data)
+        try:
+            self.serial.write(data)
+        except serial.SerialException as e:
+            self.close(exc=e)
 
     def can_write_eof(self):
         return False
