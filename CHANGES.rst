@@ -583,11 +583,19 @@ Bugfixes (win32):
 Version 3.0.1   2016-01-11
 --------------------------
 
-- special case for FDTIBUS in list_ports on win32
+- special case for FDTIBUS in list_ports on win32 (#61)
 
 Bugfixes:
 
 - ``Serial`` keyword arguments, more on backward compatibility, fix #55
 - list_ports: return name if product is None, fix for #54
 - port_publisher: restore some sorting of ports
+
+
+Version 3.x.y   2016-xx-xx
+--------------------------
+
+- Improve error handling in ``alt://`` handler
+- ``socket://`` internally used select, imroves timeout behavior
+- aio: catch errors and close connection, fixes #68
 
