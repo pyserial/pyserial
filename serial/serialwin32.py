@@ -39,6 +39,11 @@ class Serial(SerialBase):
             raise SerialException("Port must be configured before it can be used.")
         if self.is_open:
             raise SerialException("Port is already open.")
+        # if RTS and/or DTR are not set before open, they default to True
+        if self._rts_state is None:
+            self._rts_state = True
+        if self._dtr_state is None:
+            self._dtr_state = True
         # the "\\.\COMx" format is required for devices other than COM1-COM8
         # not all versions of windows seem to support this properly
         # so that the first few ports are used with the DOS device name

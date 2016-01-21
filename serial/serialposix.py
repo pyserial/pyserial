@@ -594,17 +594,19 @@ class Serial(SerialBase, PlatformSpecific):
 
     def _update_rts_state(self):
         """Set terminal status line: Request To Send"""
-        if self._rts_state:
-            fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_RTS_str)
-        else:
-            fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_RTS_str)
+        if self._rts_state is not None:
+            if self._rts_state:
+                fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_RTS_str)
+            else:
+                fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_RTS_str)
 
     def _update_dtr_state(self):
         """Set terminal status line: Data Terminal Ready"""
-        if self._dtr_state:
-            fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_DTR_str)
-        else:
-            fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_DTR_str)
+        if self._dtr_state is not None:
+            if self._dtr_state:
+                fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_DTR_str)
+            else:
+                fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_DTR_str)
 
     @property
     def cts(self):

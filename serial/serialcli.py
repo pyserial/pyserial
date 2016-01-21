@@ -59,6 +59,12 @@ class Serial(SerialBase):
         if not self._port_handle:
             raise SerialException("Can only operate on a valid port handle")
 
+        # if RTS and/or DTR are not set before open, they default to True
+        if self._rts_state is None:
+            self._rts_state = True
+        if self._dtr_state is None:
+            self._dtr_state = True
+
         #~ self._port_handle.ReceivedBytesThreshold = 1
 
         if self._timeout is None:

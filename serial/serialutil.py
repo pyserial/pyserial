@@ -152,8 +152,8 @@ class SerialBase(io.RawIOBase):
         self._dsrdtr = None
         self._inter_byte_timeout = None
         self._rs485_mode = None  # disabled by default
-        self._rts_state = True
-        self._dtr_state = True
+        self._rts_state = None
+        self._dtr_state = None
         self._break_state = False
 
         # assign values using get/set methods using the properties feature
