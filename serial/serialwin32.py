@@ -24,11 +24,10 @@ class Serial(SerialBase):
                  9600, 19200, 38400, 57600, 115200)
 
     def __init__(self, *args, **kwargs):
-        super(SerialBase, self).__init__()
         self._port_handle = None
         self._overlapped_read = None
         self._overlapped_write = None
-        SerialBase.__init__(self, *args, **kwargs)
+        super(Serial, self).__init__(*args, **kwargs)
 
     def open(self):
         """\
