@@ -45,6 +45,12 @@ class Serial(SerialBase):
             self._port_handle = None
             raise SerialException("could not open port %s: %s" % (self.portstr, msg))
 
+        # if RTS and/or DTR are not set before open, they default to True
+        if self._rts_state is None:
+            self._rts_state = True
+        if self._dtr_state is None:
+            self._dtr_state = True
+
         self._reconfigurePort()
         self._port_handle.Open()
         self.is_open = True
@@ -58,12 +64,6 @@ class Serial(SerialBase):
         """Set communication parameters on opened port."""
         if not self._port_handle:
             raise SerialException("Can only operate on a valid port handle")
-
-        # if RTS and/or DTR are not set before open, they default to True
-        if self._rts_state is None:
-            self._rts_state = True
-        if self._dtr_state is None:
-            self._dtr_state = True
 
         #~ self._port_handle.ReceivedBytesThreshold = 1
 
