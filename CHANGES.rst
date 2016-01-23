@@ -479,7 +479,6 @@ Bugfixes (win32):
 
 Version 3.0a0   2015-09-22
 --------------------------
-
 - Starting from this release, only Python 2.7 and 3.2 (or newer) are supported.
   The source code is compatible to the 2.x and 3.x series without any changes.
   The support for earlier Python versions than 2.7 is removed, please refer to
@@ -545,7 +544,6 @@ Bugfixes (cli):
 
 Version 3.0b1   2015-10-19
 --------------------------
-
 - list_ports: add ``vid``, ``pid``, ``serial_number``, ``product``,
   ``manufacturer`` and ``location`` attribute for USB devices.
 - list_ports: update OSX implementation.
@@ -559,7 +557,6 @@ Version 3.0b1   2015-10-19
 
 Version 3.0   2015-12-28
 ------------------------
-
 - minor fixes to setup.py (file list), inter_byte_timeout (not stored when
   passed to __init__), rfc2217 (behavior of close when open failed),
   list_ports (__str__), loop://, renamed ReaderThread
@@ -570,7 +567,7 @@ Bugfixes (posix):
 
 - [#26/#30] always call tcsettattr on open
 - [#42] fix disregard read timeout if there is more data
-- [#45] check for write timeout, even if EAGAIN was rised
+- [#45] check for write timeout, even if EAGAIN was raised
 
 Bugfixes (win32):
 
@@ -582,7 +579,6 @@ Bugfixes (win32):
 
 Version 3.0.1   2016-01-11
 --------------------------
-
 - special case for FDTIBUS in list_ports on win32 (#61)
 
 Bugfixes:
@@ -594,8 +590,14 @@ Bugfixes:
 
 Version 3.x.y   2016-xx-xx
 --------------------------
+Improvements:
 
-- Improve error handling in ``alt://`` handler
-- ``socket://`` internally used select, imroves timeout behavior
-- aio: catch errors and close connection, fixes #68
+- improve error handling in ``alt://`` handler
+- ``socket://`` internally used select, improves timeout behavior
+- initial state of RTS/DTR: revert to "no change on open" on Posix, unless a
+  value is set explicitly.
+
+Bugfixes:
+
+- [#68] aio: catch errors and close connection
 
