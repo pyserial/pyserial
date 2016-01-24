@@ -341,11 +341,11 @@ if __name__ == '__main__':
     import argparse
 
     VERBOSTIY = [
-            logging.ERROR,      # 0
-            logging.WARNING,    # 1 (default)
-            logging.INFO,       # 2
-            logging.DEBUG,      # 3
-            ]
+        logging.ERROR,      # 0
+        logging.WARNING,    # 1 (default)
+        logging.INFO,       # 2
+        logging.DEBUG,      # 3
+        ]
 
     parser = argparse.ArgumentParser(usage="""\
 %(prog)s [options]
@@ -355,7 +355,7 @@ a TCP/IP <-> serial port gateway (implements RFC 2217).
 
 If running as daemon, write to syslog. Otherwise write to stdout.
 """,
-        epilog="""\
+            epilog="""\
 NOTE: no security measures are implemented. Anyone can remotely connect
 to this service over the network.
 
@@ -418,7 +418,6 @@ terminated, it waits for the next connect.
             action="count",
             help="increase diagnostic messages")
 
-
     args = parser.parse_args()
 
     # set up logging
@@ -430,9 +429,11 @@ terminated, it waits for the next connect.
         class WriteFlushed:
             def __init__(self, fileobj):
                 self.fileobj = fileobj
+
             def write(self, s):
                 self.fileobj.write(s)
                 self.fileobj.flush()
+
             def close(self):
                 self.fileobj.close()
         sys.stdout = sys.stderr = WriteFlushed(open(args.logfile, 'a'))
@@ -472,24 +473,28 @@ terminated, it waits for the next connect.
         if args.logfile is None:
             import syslog
             syslog.openlog("serial port publisher")
+
             # redirect output to syslog
             class WriteToSysLog:
                 def __init__(self):
                     self.buffer = ''
+
                 def write(self, s):
                     self.buffer += s
                     if '\n' in self.buffer:
                         output, self.buffer = self.buffer.split('\n', 1)
                         syslog.syslog(output)
+
                 def flush(self):
                     syslog.syslog(self.buffer)
                     self.buffer = ''
+
                 def close(self):
                     self.flush()
             sys.stdout = sys.stderr = WriteToSysLog()
 
             # ensure the that the daemon runs a normal user, if run as root
-        #if os.getuid() == 0:
+        # if os.getuid() == 0:
             #    name, passwd, uid, gid, desc, home, shell = pwd.getpwnam('someuser')
             #    os.setgid(gid)     # set group first
             #    os.setuid(uid)     # set user

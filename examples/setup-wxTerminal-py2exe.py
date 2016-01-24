@@ -17,25 +17,25 @@ sys.argv.append('py2exe')
 icon = os.path.join(os.path.dirname(sys.executable), 'py.ico')
 
 setup(
-    options = {'py2exe': {
+    options={'py2exe': {
         'excludes': ['javax.comm'],
         'optimize': 2,
         'dist_dir': 'dist',
         }
     },
 
-    name = "wxTerminal",
-    windows = [
+    name="wxTerminal",
+    windows=[
         {
             'script': "wxTerminal.py",
             'icon_resources': [(0x0004, icon)]
         },
     ],
-    zipfile = "stuff.lib",
+    zipfile="stuff.lib",
 
-    description = "Simple serial terminal application",
-    version = "0.1",
-    author = "Chris Liechti",
-    author_email = "cliechti@gmx.net",
-    url = "https://github.com/pyserial/pyserial/",
+    description="Simple serial terminal application",
+    version="0.1",
+    author="Chris Liechti",
+    author_email="cliechti@gmx.net",
+    url="https://github.com/pyserial/pyserial/",
 )

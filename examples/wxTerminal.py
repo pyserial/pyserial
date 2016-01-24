@@ -138,7 +138,7 @@ class TerminalFrame(wx.Frame):
         # begin wxGlade: TerminalFrame.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
-        
+
         # Menu Bar
         self.frame_terminal_menubar = wx.MenuBar()
         wxglade_tmp_menu = wx.Menu()
@@ -347,7 +347,6 @@ class TerminalFrame(wx.Frame):
                     b = b.replace(b'\r\n', b'\n')
                 event = SerialRxEvent(self.GetId(), b)
                 self.GetEventHandler().AddPendingEvent(event)
-                #~ self.OnSerialRead(text)         # output text in window
 
     def OnRTS(self, event):  # wxGlade: TerminalFrame.<event_handler>
         self.serial.rts = event.IsChecked()
