@@ -16,6 +16,7 @@
 # options:
 # - "debug" print diagnostic messages
 
+import errno
 import logging
 import select
 import socket

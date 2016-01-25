@@ -16,9 +16,6 @@
 #   use poll based implementation on Posix (Linux):
 #   python -m serial.tools.miniterm alt:///dev/ttyUSB0?class=PosixPollSerial
 
-import sys
-import time
-
 import serial
 
 try:
@@ -50,5 +47,5 @@ def serial_class_for_url(url):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __name__ == '__main__':
-    s = serial_for_url('alt:///dev/ttyS0?class=PosixPollSerial')
+    s = serial.serial_for_url('alt:///dev/ttyS0?class=PosixPollSerial')
     print(s)

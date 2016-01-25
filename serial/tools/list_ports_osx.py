@@ -22,7 +22,6 @@
 # Also see the 'IORegistryExplorer' for an idea of what we are actually searching
 
 import ctypes
-from ctypes import util
 
 from serial.tools import list_ports_common
 

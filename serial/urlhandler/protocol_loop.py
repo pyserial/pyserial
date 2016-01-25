@@ -25,7 +25,7 @@ try:
 except ImportError:
     import Queue as queue
 
-from serial.serialutil import *
+from serial.serialutil import SerialBase, SerialException, to_bytes, iterbytes, writeTimeoutError
 
 # map log level names to constants. used in from_url()
 LOGGER_LEVELS = {
