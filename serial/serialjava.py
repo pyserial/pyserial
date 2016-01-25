@@ -267,4 +267,3 @@ if __name__ == '__main__':
     sys.stdio.write('%r\n' % s.read(5))
     sys.stdio.write('%s\n' % s.in_waiting())
     del s
-

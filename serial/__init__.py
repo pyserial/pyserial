@@ -23,7 +23,7 @@ else:
     if os.name == 'nt':  # sys.platform == 'win32':
         from serial.serialwin32 import Serial
     elif os.name == 'posix':
-        from serial.serialposix import Serial, PosixPollSerial, VTIMESerial
+        from serial.serialposix import Serial, PosixPollSerial, VTIMESerial # noqa
     elif os.name == 'java':
         from serial.serialjava import Serial
     else:
@@ -66,7 +66,7 @@ def serial_for_url(url, *args, **kwargs):
             module_name = '.protocol_%s' % (protocol,)
             for package_name in protocol_handler_packages:
                 try:
-                    package = importlib.import_module(package_name)
+                    importlib.import_module(package_name)
                     handler_module = importlib.import_module(module_name, package_name)
                 except ImportError:
                     continue

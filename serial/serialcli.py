@@ -7,7 +7,6 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
-import clr
 import System
 import System.IO.Ports
 from serial.serialutil import *
@@ -168,7 +167,7 @@ class Serial(SerialBase):
         while size:
             try:
                 data.append(self._port_handle.ReadByte())
-            except System.TimeoutException as e:
+            except System.TimeoutException:
                 break
             else:
                 size -= 1
@@ -184,7 +183,7 @@ class Serial(SerialBase):
             # must call overloaded method with byte array argument
             # as this is the only one not applying encodings
             self._port_handle.Write(as_byte_array(data), 0, len(data))
-        except System.TimeoutException as e:
+        except System.TimeoutException:
             raise writeTimeoutError
         return len(data)
 
@@ -273,4 +272,3 @@ if __name__ == '__main__':
     s.port = 0
     s.open()
     sys.stdio.write('%s\n' % s)
-
