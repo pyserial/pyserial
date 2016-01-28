@@ -7,7 +7,8 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
-from ctypes import *
+from ctypes import c_ulong, c_void_p, c_int64, c_char, \
+                   WinDLL, sizeof, Structure, Union, POINTER
 from ctypes.wintypes import HANDLE
 from ctypes.wintypes import BOOL
 from ctypes.wintypes import LPCWSTR
