@@ -22,11 +22,14 @@ from serial.tools import list_ports_windows
 SERIAL_REGISTRY_PATH = 'HARDWARE\\DEVICEMAP\\SERIALCOMM'
 
 
-def regval_to_ListPortInfo(winport):
+def regval_to_listport(winport):
     """Convert a windows port from registry key to pyserial's ListPortInfo.
 
     Args:
         winport (tuple): Windows registry value (description, device, value).
+
+    Returns:
+        listport (ListPortInfo): comport device details.
     """
     # Create the ListPortInfo
     description, device, _ = winport
@@ -37,7 +40,7 @@ def regval_to_ListPortInfo(winport):
     listport.description = "{} ({})".format(description, device)
 
     return listport
-# end regval_to_ListPortInfo
+# end regval_to_listport
 
 
 def winreg_comports():
@@ -67,7 +70,7 @@ def winreg_comports():
         for i in range(num_values):        
             # get registry value for the comport
             value = winreg.EnumValue(key, i)
-            yield regval_to_ListPortInfo(value)
+            yield regval_to_listport(value)
 
         # Close the registry key
         winreg.CloseKey(key)
