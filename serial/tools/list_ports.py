@@ -24,7 +24,7 @@ import re
 #~ if sys.platform == 'cli':
 #~ else:
 if os.name == 'nt':  # sys.platform == 'win32':
-    from serial.tools.list_ports_windows import comports
+    from serial.tools.list_ports_winreg import comports
 elif os.name == 'posix':
     from serial.tools.list_ports_posix import comports
 #~ elif os.name == 'java':
