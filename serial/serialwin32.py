@@ -271,26 +271,17 @@ class Serial(SerialBase):
             comstat = win32.COMSTAT()
             if not win32.ClearCommError(self._port_handle, ctypes.byref(flags), ctypes.byref(comstat)):
                 raise SerialException('call to ClearCommError failed')
-            if self.timeout == 0:
-                n = min(comstat.cbInQue, size)
-                if n > 0:
-                    buf = ctypes.create_string_buffer(n)
-                    rc = win32.DWORD()
-                    read_ok = win32.ReadFile(self._port_handle, buf, n, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
-                    if not read_ok and win32.GetLastError() not in (win32.ERROR_SUCCESS, win32.ERROR_IO_PENDING):
-                        raise SerialException("ReadFile failed (%r)" % ctypes.WinError())
-                    win32.GetOverlappedResult(self._port_handle, ctypes.byref(self._overlapped_read), ctypes.byref(rc), True)
-                    read = buf.raw[:rc.value]
-                else:
-                    read = bytes()
-            else:
-                buf = ctypes.create_string_buffer(size)
+            n = min(comstat.cbInQue, size) if self.timeout == 0 else size
+            if n > 0:
+                buf = ctypes.create_string_buffer(n)
                 rc = win32.DWORD()
-                read_ok = win32.ReadFile(self._port_handle, buf, size, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
+                read_ok = win32.ReadFile(self._port_handle, buf, n, ctypes.byref(rc), ctypes.byref(self._overlapped_read))
                 if not read_ok and win32.GetLastError() not in (win32.ERROR_SUCCESS, win32.ERROR_IO_PENDING):
                     raise SerialException("ReadFile failed (%r)" % ctypes.WinError())
                 win32.GetOverlappedResult(self._port_handle, ctypes.byref(self._overlapped_read), ctypes.byref(rc), True)
                 read = buf.raw[:rc.value]
+            else:
+                read = bytes()
         else:
             read = bytes()
         return bytes(read)
