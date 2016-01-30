@@ -253,22 +253,3 @@ class Serial(SerialBase):
 
     # - - platform specific - - - -
     # none
-
-
-# Nur Testfunktion!!
-if __name__ == '__main__':
-    import sys
-
-    s = Serial(0)
-    sys.stdio.write('%s\n' % s)
-
-    s = Serial()
-    sys.stdio.write('%s\n' % s)
-
-
-    s.baudrate = 19200
-    s.databits = 7
-    s.close()
-    s.port = 0
-    s.open()
-    sys.stdio.write('%s\n' % s)

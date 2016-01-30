@@ -778,23 +778,3 @@ class VTIMESerial(Serial):
                 break
             read.extend(buf)
         return bytes(read)
-
-
-if __name__ == '__main__':
-    s = Serial(0,
-               baudrate=19200,         # baud rate
-               bytesize=serial.EIGHTBITS,     # number of data bits
-               parity=serial.PARITY_EVEN,     # enable parity checking
-               stopbits=serial.STOPBITS_ONE,  # number of stop bits
-               timeout=3,              # set a timeout value, None for waiting forever
-               xonxoff=0,              # enable software flow control
-               rtscts=0,               # enable RTS/CTS flow control
-               )
-    s.rts = True
-    s.dtr = True
-    s.reset_input_buffer()
-    s.reset_output_buffer()
-    s.write('hello')
-    sys.stdout.write('%r\n' % s.read(5))
-    sys.stdout.write('%s\n' % s.inWaiting())
-    del s

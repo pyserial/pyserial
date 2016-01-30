@@ -419,20 +419,3 @@ class Serial(SerialBase):
         if not win32.ClearCommError(self._port_handle, ctypes.byref(flags), ctypes.byref(comstat)):
             raise SerialException('call to ClearCommError failed')
         return comstat.cbOutQue
-
-
-# Nur Testfunktion!!
-if __name__ == '__main__':
-    import sys
-    s = Serial(0)
-    sys.stdout.write("%s\n" % s)
-
-    s = Serial()
-    sys.stdout.write("%s\n" % s)
-
-    s.baudrate = 19200
-    s.databits = 7
-    s.close()
-    s.port = 0
-    s.open()
-    sys.stdout.write("%s\n" % s)
