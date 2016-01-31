@@ -30,10 +30,8 @@ def is_64bit():
 # is either 32 or 64 bits, depending on the type of windows...
 # so test if this a 32 bit windows...
 if is_64bit():
-    # assume 64 bits
     ULONG_PTR = c_int64
 else:
-    # 32 bits
     ULONG_PTR = c_ulong
 
 

@@ -44,7 +44,7 @@ REGSAM = ACCESS_MASK
 
 def byte_buffer(length):
     """Get a buffer for a string"""
-    return (BYTE*length)()
+    return (BYTE * length)()
 
 
 def string(buffer):
@@ -61,7 +61,7 @@ class GUID(ctypes.Structure):
         ('Data1', DWORD),
         ('Data2', WORD),
         ('Data3', WORD),
-        ('Data4', BYTE*8),
+        ('Data4', BYTE * 8),
     ]
 
     def __str__(self):
@@ -146,7 +146,7 @@ PortName = serial.to_bytes([80, 111, 114, 116, 78, 97, 109, 101])  # "PortName"
 
 
 def comports():
-    GUIDs = (GUID*8)()  # so far only seen one used, so hope 8 are enough...
+    GUIDs = (GUID * 8)()  # so far only seen one used, so hope 8 are enough...
     guids_size = DWORD()
     if not SetupDiClassGuidsFromName(
             Ports,
