@@ -738,7 +738,7 @@ class VTIMESerial(Serial):
     def _reconfigure_port(self, force_update=True):
         """Set communication parameters on opened port."""
         super(VTIMESerial, self)._reconfigure_port()
-        fcntl.fcntl(self.fd, fcntl.F_SETFL, 0) # clear O_NONBLOCK
+        fcntl.fcntl(self.fd, fcntl.F_SETFL, 0)  # clear O_NONBLOCK
 
         if self._inter_byte_timeout is not None:
             vmin = 1
@@ -761,7 +761,6 @@ class VTIMESerial(Serial):
                 self.fd,
                 termios.TCSANOW,
                 [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
-
 
     def read(self, size=1):
         """\

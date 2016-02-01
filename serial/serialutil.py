@@ -115,25 +115,21 @@ class SerialBase(io.RawIOBase):
     STOPBITS = (STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO)
 
     def __init__(self,
-                 port=None,             # number of device, numbering starts at
-                                        # zero. if everything fails, the user
-                                        # can specify a device string, note
-                                        # that this isn't portable anymore
-                                        # port will be opened if one is specified
-                 baudrate=9600,         # baud rate
-                 bytesize=EIGHTBITS,    # number of data bits
-                 parity=PARITY_NONE,    # enable parity checking
-                 stopbits=STOPBITS_ONE, # number of stop bits
-                 timeout=None,          # set a timeout value, None to wait forever
-                 xonxoff=False,         # enable software flow control
-                 rtscts=False,          # enable RTS/CTS flow control
-                 write_timeout=None,    # set a timeout for writes
-                 dsrdtr=False,          # None: use rtscts setting, dsrdtr override if True or False
-                 inter_byte_timeout=None, # Inter-character timeout, None to disable
+                 port=None,
+                 baudrate=9600,
+                 bytesize=EIGHTBITS,
+                 parity=PARITY_NONE,
+                 stopbits=STOPBITS_ONE,
+                 timeout=None,
+                 xonxoff=False,
+                 rtscts=False,
+                 write_timeout=None,
+                 dsrdtr=False,
+                 inter_byte_timeout=None,
                  **kwargs
                  ):
         """\
-        Initialize comm port object. If a port is given, then the port will be
+        Initialize comm port object. If a "port" is given, then the port will be
         opened immediately. Otherwise a Serial port object in closed state
         is returned.
         """
@@ -212,7 +208,6 @@ class SerialBase(io.RawIOBase):
         if was_open:
             self.open()
 
-
     @property
     def baudrate(self):
         """Get the current baud rate setting."""
@@ -236,7 +231,6 @@ class SerialBase(io.RawIOBase):
             if self.is_open:
                 self._reconfigure_port()
 
-
     @property
     def bytesize(self):
         """Get the current byte size setting."""
@@ -250,8 +244,6 @@ class SerialBase(io.RawIOBase):
         self._bytesize = bytesize
         if self.is_open:
             self._reconfigure_port()
-
-
 
     @property
     def parity(self):
@@ -267,8 +259,6 @@ class SerialBase(io.RawIOBase):
         if self.is_open:
             self._reconfigure_port()
 
-
-
     @property
     def stopbits(self):
         """Get the current stop bits setting."""
@@ -282,7 +272,6 @@ class SerialBase(io.RawIOBase):
         self._stopbits = stopbits
         if self.is_open:
             self._reconfigure_port()
-
 
     @property
     def timeout(self):
@@ -302,7 +291,6 @@ class SerialBase(io.RawIOBase):
         self._timeout = timeout
         if self.is_open:
             self._reconfigure_port()
-
 
     @property
     def write_timeout(self):
@@ -324,7 +312,6 @@ class SerialBase(io.RawIOBase):
         if self.is_open:
             self._reconfigure_port()
 
-
     @property
     def inter_byte_timeout(self):
         """Get the current inter-character timeout setting."""
@@ -345,7 +332,6 @@ class SerialBase(io.RawIOBase):
         if self.is_open:
             self._reconfigure_port()
 
-
     @property
     def xonxoff(self):
         """Get the current XON/XOFF setting."""
@@ -358,7 +344,6 @@ class SerialBase(io.RawIOBase):
         if self.is_open:
             self._reconfigure_port()
 
-
     @property
     def rtscts(self):
         """Get the current RTS/CTS flow control setting."""
@@ -370,7 +355,6 @@ class SerialBase(io.RawIOBase):
         self._rtscts = rtscts
         if self.is_open:
             self._reconfigure_port()
-
 
     @property
     def dsrdtr(self):
@@ -388,7 +372,6 @@ class SerialBase(io.RawIOBase):
             self._dsrdtr = dsrdtr
         if self.is_open:
             self._reconfigure_port()
-
 
     @property
     def rts(self):
