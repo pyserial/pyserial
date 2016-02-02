@@ -82,11 +82,11 @@ from serial.serialutil import SerialBase, SerialException, to_bytes, iterbytes, 
 
 # map log level names to constants. used in from_url()
 LOGGER_LEVELS = {
-        'debug': logging.DEBUG,
-        'info': logging.INFO,
-        'warning': logging.WARNING,
-        'error': logging.ERROR,
-        }
+    'debug': logging.DEBUG,
+    'info': logging.INFO,
+    'warning': logging.WARNING,
+    'error': logging.ERROR,
+}
 
 
 # telnet protocol characters
@@ -429,13 +429,13 @@ class Serial(SerialBase):
             'datasize': TelnetSubnegotiation(self, 'datasize', SET_DATASIZE, SERVER_SET_DATASIZE),
             'parity':   TelnetSubnegotiation(self, 'parity',   SET_PARITY,   SERVER_SET_PARITY),
             'stopsize': TelnetSubnegotiation(self, 'stopsize', SET_STOPSIZE, SERVER_SET_STOPSIZE),
-            }
+        }
         # There are more subnegotiation objects, combine all in one dictionary
         # for easy access
         self._rfc2217_options = {
             'purge':    TelnetSubnegotiation(self, 'purge',    PURGE_DATA,   SERVER_PURGE_DATA),
             'control':  TelnetSubnegotiation(self, 'control',  SET_CONTROL,  SERVER_SET_CONTROL),
-            }
+        }
         self._rfc2217_options.update(self._rfc2217_port_settings)
         # cache for line and modem states that the server sends to us
         self._linestate = 0
@@ -931,7 +931,7 @@ class PortManager(object):
             TelnetOption(self, 'they-BINARY', BINARY, DO, DONT, WILL, WONT, REQUESTED),
             TelnetOption(self, 'we-RFC2217', COM_PORT_OPTION, WILL, WONT, DO, DONT, REQUESTED, self._client_ok),
             TelnetOption(self, 'they-RFC2217', COM_PORT_OPTION, DO, DONT, WILL, WONT, INACTIVE, self._client_ok),
-            ]
+        ]
 
         # negotiate Telnet/RFC2217 -> send initial requests
         if self.logger:
@@ -994,9 +994,8 @@ class PortManager(object):
         if modemstate != self.last_modemstate or force_notification:
             if (self._client_is_rfc2217 and (modemstate & self.modemstate_mask)) or force_notification:
                 self.rfc2217SendSubnegotiation(
-                    SERVER_NOTIFY_MODEMSTATE,
-                    to_bytes([modemstate & self.modemstate_mask])
-                    )
+                        SERVER_NOTIFY_MODEMSTATE,
+                        to_bytes([modemstate & self.modemstate_mask]))
                 if self.logger:
                     self.logger.info("NOTIFY_MODEMSTATE: %s" % (modemstate,))
             # save last state, but forget about deltas.
@@ -1154,9 +1153,8 @@ class PortManager(object):
                     if self.logger:
                         self.logger.info("%s parity: %s" % ('set' if parity else 'get', self.serial.parity))
                 self.rfc2217SendSubnegotiation(
-                    SERVER_SET_PARITY,
-                    struct.pack(b"!B", RFC2217_PARITY_MAP[self.serial.parity])
-                    )
+                        SERVER_SET_PARITY,
+                        struct.pack(b"!B", RFC2217_PARITY_MAP[self.serial.parity]))
             elif suboption[1:2] == SET_STOPSIZE:
                 backup = self.serial.stopbits
                 try:
@@ -1171,9 +1169,8 @@ class PortManager(object):
                     if self.logger:
                         self.logger.info("%s stop bits: %s" % ('set' if stopbits else 'get', self.serial.stopbits))
                 self.rfc2217SendSubnegotiation(
-                    SERVER_SET_STOPSIZE,
-                    struct.pack(b"!B", RFC2217_STOPBIT_MAP[self.serial.stopbits])
-                    )
+                        SERVER_SET_STOPSIZE,
+                        struct.pack(b"!B", RFC2217_STOPBIT_MAP[self.serial.stopbits]))
             elif suboption[1:2] == SET_CONTROL:
                 if suboption[2:3] == SET_CONTROL_REQ_FLOW_SETTING:
                     if self.serial.xonxoff:
