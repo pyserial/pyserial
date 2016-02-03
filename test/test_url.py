@@ -15,8 +15,6 @@ Cover some of the aspects of serial_for_url and the extension mechanism.
 """
 
 import unittest
-import time
-import sys
 import serial
 
 
@@ -25,7 +23,7 @@ class Test_URL(unittest.TestCase):
 
     def test_loop(self):
         """loop interface"""
-        s = serial.serial_for_url('loop://', do_not_open=True)
+        serial.serial_for_url('loop://', do_not_open=True)
 
     def test_bad_url(self):
         """invalid protocol specified"""
@@ -38,7 +36,7 @@ class Test_URL(unittest.TestCase):
         # add search path
         serial.protocol_handler_packages.append('handlers')
         # now it should work
-        s = serial.serial_for_url("test://")
+        serial.serial_for_url("test://")
         # remove our handler again
         serial.protocol_handler_packages.remove('handlers')
         # so it should not work anymore

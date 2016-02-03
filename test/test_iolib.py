@@ -27,7 +27,7 @@ On a 9 pole DSUB these are the pins (2-3) (4-6) (7-8)
 import unittest
 import sys
 
-if __name__ == '__main__'  and sys.version_info < (2, 6):
+if __name__ == '__main__' and sys.version_info < (2, 6):
     sys.stderr.write("""\
 ==============================================================================
 WARNING: this test is intended for Python 2.6 and newer where the io library
@@ -44,11 +44,13 @@ import serial
 # like u'nicode' strings with the prefix and it is not providing an unicode
 # function ('str' is now what 'unicode' used to be)
 if sys.version_info >= (3, 0):
-    def unicode(x): return x
+    def unicode(x):
+        return x
 
 
 # on which port should the tests be performed:
 PORT = 0
+
 
 class Test_SerialAndIO(unittest.TestCase):
 
@@ -62,7 +64,7 @@ class Test_SerialAndIO(unittest.TestCase):
 
     def test_hello_raw(self):
         self.io.write(b"hello\n".decode('utf-8'))
-        self.io.flush() # it is buffering. required to get the data out
+        self.io.flush()  # it is buffering. required to get the data out
         hello = self.io.readline()
         self.assertEqual(hello, b"hello\n".decode('utf-8'))
 

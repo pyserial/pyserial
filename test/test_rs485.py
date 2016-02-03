@@ -15,6 +15,7 @@ import serial.rs485
 # on which port should the tests be performed:
 PORT = 0
 
+
 class Test_RS485_settings(unittest.TestCase):
     """Test RS485 related functionality"""
 
@@ -51,7 +52,6 @@ class Test_RS485_class(unittest.TestCase):
         self.s.rs485_mode = serial.rs485.RS485Settings()
         self.s.write(b'hello')
         self.assertEqual(self.s.read(5), b'hello')
-
 
 
 if __name__ == '__main__':
