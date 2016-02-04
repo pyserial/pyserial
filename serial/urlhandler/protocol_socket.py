@@ -30,11 +30,11 @@ from serial.serialutil import SerialBase, SerialException, portNotOpenError, to_
 
 # map log level names to constants. used in from_url()
 LOGGER_LEVELS = {
-        'debug': logging.DEBUG,
-        'info': logging.INFO,
-        'warning': logging.WARNING,
-        'error': logging.ERROR,
-        }
+    'debug': logging.DEBUG,
+    'info': logging.INFO,
+    'warning': logging.WARNING,
+    'error': logging.ERROR,
+}
 
 POLL_TIMEOUT = 2
 

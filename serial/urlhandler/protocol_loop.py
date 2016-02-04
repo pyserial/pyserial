@@ -29,11 +29,11 @@ from serial.serialutil import SerialBase, SerialException, to_bytes, iterbytes, 
 
 # map log level names to constants. used in from_url()
 LOGGER_LEVELS = {
-        'debug': logging.DEBUG,
-        'info': logging.INFO,
-        'warning': logging.WARNING,
-        'error': logging.ERROR,
-        }
+    'debug': logging.DEBUG,
+    'info': logging.INFO,
+    'warning': logging.WARNING,
+    'error': logging.ERROR,
+}
 
 
 class Serial(SerialBase):
@@ -169,7 +169,7 @@ class Serial(SerialBase):
             raise portNotOpenError
         data = to_bytes(data)
         # calculate aprox time that would be used to send the data
-        time_used_to_send = 10.0*len(data) / self._baudrate
+        time_used_to_send = 10.0 * len(data) / self._baudrate
         # when a write timeout is configured check if we would be successful
         # (not sending anything, not even the part that would have time)
         if self._write_timeout is not None and time_used_to_send > self._write_timeout:
