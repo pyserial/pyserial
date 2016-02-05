@@ -122,7 +122,7 @@ if __name__ == '__main__':
         def handle_event(self, event):
             """Handle events and command responses starting with '+...'"""
             if event.startswith('+RRBDRES') and self._awaiting_response_for.startswith('AT+JRBD'):
-                rev = event[9:9+12]
+                rev = event[9:9 + 12]
                 mac = ':'.join('%02X' % ord(x) for x in rev.decode('hex')[::-1])
                 self.event_responses.put(mac)
             else:

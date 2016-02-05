@@ -6,7 +6,6 @@
 
 from distutils.core import setup
 import sys
-import py2exe
 
 sys.path.insert(0, '..')
 

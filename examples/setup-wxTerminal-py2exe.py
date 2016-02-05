@@ -7,7 +7,6 @@
 from distutils.core import setup
 import os
 import sys
-import py2exe
 
 # this script is only useful for py2exe so just run that distutils command.
 # that allows to run it with a simple double click.
@@ -17,10 +16,11 @@ sys.argv.append('py2exe')
 icon = os.path.join(os.path.dirname(sys.executable), 'py.ico')
 
 setup(
-    options={'py2exe': {
-        'excludes': ['javax.comm'],
-        'optimize': 2,
-        'dist_dir': 'dist',
+    options={
+        'py2exe': {
+            'excludes': ['javax.comm'],
+            'optimize': 2,
+            'dist_dir': 'dist',
         }
     },
 
