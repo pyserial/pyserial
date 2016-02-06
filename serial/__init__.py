@@ -31,8 +31,8 @@ else:
 
 
 protocol_handler_packages = [
-        'serial.urlhandler',
-        ]
+    'serial.urlhandler',
+]
 
 
 def serial_for_url(url, *args, **kwargs):

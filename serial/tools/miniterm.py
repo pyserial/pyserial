@@ -72,7 +72,7 @@ class ConsoleBase(object):
         self.setup()
 
 
-if os.name == 'nt':
+if os.name == 'nt':  # noqa
     import msvcrt
     import ctypes
 
@@ -190,10 +190,11 @@ class NoTerminal(Transform):
     """remove typical terminal control codes from input"""
 
     REPLACEMENT_MAP = dict((x, 0x2400 + x) for x in range(32) if unichr(x) not in '\r\n\b\t')
-    REPLACEMENT_MAP.update({
+    REPLACEMENT_MAP.update(
+        {
             0x7F: 0x2421,  # DEL
             0x9B: 0x2425,  # CSI
-            })
+        })
 
     def rx(self, text):
         return text.translate(self.REPLACEMENT_MAP)
@@ -205,11 +206,12 @@ class NoControls(NoTerminal):
     """Remove all control codes, incl. CR+LF"""
 
     REPLACEMENT_MAP = dict((x, 0x2400 + x) for x in range(32))
-    REPLACEMENT_MAP.update({
+    REPLACEMENT_MAP.update(
+        {
             32: 0x2423,    # visual space
             0x7F: 0x2421,  # DEL
             0x9B: 0x2425,  # CSI
-            })
+        })
 
 
 class Printable(Transform):
@@ -264,19 +266,19 @@ class DebugIO(Transform):
 # - insert newline after: a) timeout b) packet end character
 
 EOL_TRANSFORMATIONS = {
-        'crlf': CRLF,
-        'cr': CR,
-        'lf': LF,
-        }
+    'crlf': CRLF,
+    'cr': CR,
+    'lf': LF,
+}
 
 TRANSFORMATIONS = {
-        'direct': Transform,    # no transformation
-        'default': NoTerminal,
-        'nocontrol': NoControls,
-        'printable': Printable,
-        'colorize': Colorize,
-        'debug': DebugIO,
-        }
+    'direct': Transform,    # no transformation
+    'default': NoTerminal,
+    'nocontrol': NoControls,
+    'printable': Printable,
+    'colorize': Colorize,
+    'debug': DebugIO,
+}
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -387,9 +389,6 @@ class Miniterm(object):
             pass
         sys.stderr.write('--- software flow control: {}\n'.format('active' if self.serial.xonxoff else 'inactive'))
         sys.stderr.write('--- hardware flow control: {}\n'.format('active' if self.serial.rtscts else 'inactive'))
-        #~ sys.stderr.write('--- data escaping: %s  linefeed: %s\n' % (
-                #~ REPR_MODES[self.repr_mode],
-                #~ LF_MODES[self.convert_outgoing]))
         sys.stderr.write('--- serial input encoding: {}\n'.format(self.input_encoding))
         sys.stderr.write('--- serial output encoding: {}\n'.format(self.output_encoding))
         sys.stderr.write('--- EOL: {}\n'.format(self.eol.upper()))
@@ -641,19 +640,18 @@ class Miniterm(object):
 ---    x X        disable/enable software flow control
 ---    r R        disable/enable hardware flow control
 """.format(
-                version=getattr(serial, 'VERSION', 'unknown version'),
-                exit=key_description(self.exit_character),
-                menu=key_description(self.menu_character),
-                rts=key_description('\x12'),
-                dtr=key_description('\x04'),
-                brk=key_description('\x02'),
-                echo=key_description('\x05'),
-                info=key_description('\x09'),
-                upload=key_description('\x15'),
-                repr=key_description('\x01'),
-                filter=key_description('\x06'),
-                eol=key_description('\x0c'),
-                )
+            version=getattr(serial, 'VERSION', 'unknown version'),
+            exit=key_description(self.exit_character),
+            menu=key_description(self.menu_character),
+            rts=key_description('\x12'),
+            dtr=key_description('\x04'),
+            brk=key_description('\x02'),
+            echo=key_description('\x05'),
+            info=key_description('\x09'),
+            upload=key_description('\x15'),
+            repr=key_description('\x01'),
+            filter=key_description('\x06'),
+            eol=key_description('\x0c'))
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

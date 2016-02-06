@@ -24,7 +24,7 @@ from serial.tools import list_ports_common
 # try to detect the OS so that a device can be selected...
 plat = sys.platform.lower()
 
-if plat[:5] == 'linux':    # Linux (confirmed)
+if plat[:5] == 'linux':    # Linux (confirmed)  # noqa
     from serial.tools.list_ports_linux import comports
 
 elif plat[:6] == 'darwin':   # OS X (confirmed)
@@ -44,7 +44,6 @@ elif plat[:7] == 'openbsd':    # OpenBSD
         return [list_ports_common.ListPortInfo(d) for d in devices]
 
 elif plat[:3] == 'bsd' or plat[:7] == 'freebsd':
-
     def comports():
         devices = glob.glob('/dev/cua*[!.init][!.lock]')
         return [list_ports_common.ListPortInfo(d) for d in devices]

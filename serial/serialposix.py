@@ -56,7 +56,7 @@ and with a bit luck you can get this module running...
 # for the platform
 plat = sys.platform.lower()
 
-if plat[:5] == 'linux':    # Linux (confirmed)
+if plat[:5] == 'linux':    # Linux (confirmed)  # noqa
     import array
 
     # baudrate ioctls

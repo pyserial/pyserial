@@ -11,15 +11,11 @@ import System
 import System.IO.Ports
 from serial.serialutil import *
 
-
-#~ def device(portnum):
-    #~ """Turn a port number into a device name"""
-    #~ return System.IO.Ports.SerialPort.GetPortNames()[portnum]
-
-
 # must invoke function with byte array, make a helper to convert strings
 # to byte arrays
 sab = System.Array[System.Byte]
+
+
 def as_byte_array(string):
     return sab([ord(x) for x in string])  # XXX will require adaption when run with a 3.x compatible IronPython
 

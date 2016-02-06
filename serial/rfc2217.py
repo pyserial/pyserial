@@ -493,7 +493,7 @@ class Serial(SerialBase):
 
         # Setup the connection
         # to get good performance, all parameter changes are sent first...
-        if not 0 < self._baudrate < 2**32:
+        if not 0 < self._baudrate < 2 ** 32:
             raise ValueError("invalid baudrate: %r" % (self._baudrate))
         self._rfc2217_port_settings['baudrate'].set(struct.pack(b'!I', self._baudrate))
         self._rfc2217_port_settings['datasize'].set(struct.pack(b'!B', self._bytesize))
@@ -858,7 +858,7 @@ class Serial(SerialBase):
         not.
         """
         #~ if self._remote_suspend_flow:
-            #~ wait---
+        #~     wait---
 
     def getModemState(self):
         """\
@@ -975,10 +975,10 @@ class PortManager(object):
 
     def check_modem_lines(self, force_notification=False):
         modemstate = (
-                (self.serial.getCTS() and MODEMSTATE_MASK_CTS) |
-                (self.serial.getDSR() and MODEMSTATE_MASK_DSR) |
-                (self.serial.getRI() and MODEMSTATE_MASK_RI) |
-                (self.serial.getCD() and MODEMSTATE_MASK_CD))
+            (self.serial.getCTS() and MODEMSTATE_MASK_CTS) |
+            (self.serial.getDSR() and MODEMSTATE_MASK_DSR) |
+            (self.serial.getRI() and MODEMSTATE_MASK_RI) |
+            (self.serial.getCD() and MODEMSTATE_MASK_CD))
         # check what has changed
         deltas = modemstate ^ (self.last_modemstate or 0)  # when last is None -> 0
         if deltas & MODEMSTATE_MASK_CTS:
