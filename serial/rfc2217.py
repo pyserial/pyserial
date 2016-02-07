@@ -199,7 +199,8 @@ MODEMSTATE_MASK_CTS_CHANGE = 1      # Delta Clear-To-Send
 
 PURGE_RECEIVE_BUFFER = b'\x01'      # Purge access server receive data buffer
 PURGE_TRANSMIT_BUFFER = b'\x02'     # Purge access server transmit data buffer
-PURGE_BOTH_BUFFERS = b'\x03'        # Purge both the access server receive data buffer and the access server transmit data buffer
+PURGE_BOTH_BUFFERS = b'\x03'        # Purge both the access server receive data
+                                    # buffer and the access server transmit data buffer
 
 
 RFC2217_PARITY_MAP = {
@@ -233,7 +234,8 @@ REALLY_INACTIVE = 'REALLY_INACTIVE'
 class TelnetOption(object):
     """Manage a single telnet option, keeps track of DO/DONT WILL/WONT."""
 
-    def __init__(self, connection, name, option, send_yes, send_no, ack_yes, ack_no, initial_state, activation_callback=None):
+    def __init__(self, connection, name, option, send_yes, send_no, ack_yes,
+                 ack_no, initial_state, activation_callback=None):
         """\
         Initialize option.
         :param connection: connection used to transmit answers
