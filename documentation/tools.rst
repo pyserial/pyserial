@@ -171,7 +171,7 @@ Command line options can be given so that binary data including escapes for
 terminals are escaped or output as hex.
 
 Miniterm supports :rfc:`2217` remote serial ports and raw sockets using :ref:`URLs`
-such as ``rfc2217:://<host>:<port>`` respectively ``socket://<host>:<port>`` as
+such as ``rfc2217://<host>:<port>`` respectively ``socket://<host>:<port>`` as
 *port* argument when invoking.
 
 Command line options ``python -m serial.tools.miniterm -h``::
