@@ -61,9 +61,7 @@ def hexdump(data):
     offset = 0
     for h, a in sixteen(data):
         if h is None:
-            yield (offset, ' '.join([
-                    ''.join(values),
-                    ''.join(ascii)]))
+            yield (offset, ' '.join([''.join(values), ''.join(ascii)]))
             del values[:]
             del ascii[:]
             offset += 0x10
@@ -162,7 +160,10 @@ class Serial(serial.Serial):
         """extract host and port from an URL string"""
         parts = urlparse.urlsplit(url)
         if parts.scheme != 'spy':
-            raise serial.SerialException('expected a string in the form "spy://port[?option[=value][&option[=value]]]": not starting with spy:// (%r)' % (parts.scheme,))
+            raise serial.SerialException(
+                'expected a string in the form '
+                '"spy://port[?option[=value][&option[=value]]]": '
+                'not starting with spy:// (%r)' % (parts.scheme,))
         # process options now, directly altering self
         formatter = FormatHexdump
         color = False
@@ -180,7 +181,9 @@ class Serial(serial.Serial):
                 else:
                     raise ValueError('unknown option: %r' % (option,))
         except ValueError as e:
-            raise serial.SerialException('expected a string in the form "spy://port[?option[=value][&option[=value]]]": %s' % e)
+            raise serial.SerialException(
+                'expected a string in the form '
+                '"spy://port[?option[=value][&option[=value]]]": %s' % e)
         self.formatter = formatter(output, color)
         return ''.join([parts.netloc, parts.path])
 

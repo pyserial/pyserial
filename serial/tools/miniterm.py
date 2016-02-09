@@ -757,16 +757,14 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
             type=int,
             metavar='NUM',
             help="Unicode of special character that is used to exit the application, default: %(default)s",
-            default=0x1d  # GS/CTRL+]
-            )
+            default=0x1d)  # GS/CTRL+]
 
     group.add_argument(
             "--menu-char",
             type=int,
             metavar='NUM',
             help="Unicode code of special character that is used to control miniterm (menu), default: %(default)s",
-            default=0x14  # Menu: CTRL+T
-            )
+            default=0x14)  # Menu: CTRL+T
 
     group = parser.add_argument_group("diagnostics")
 
@@ -859,8 +857,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
                 key_description(miniterm.exit_character),
                 key_description(miniterm.menu_character),
                 key_description(miniterm.menu_character),
-                key_description('\x08'),
-                ))
+                key_description('\x08')))
 
     miniterm.start()
     try:

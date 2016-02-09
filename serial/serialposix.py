@@ -492,7 +492,9 @@ class Serial(SerialBase, PlatformSpecific):
                     # Disconnected devices, at least on Linux, show the
                     # behavior that they are always ready to read immediately
                     # but reading returns nothing.
-                    raise SerialException('device reports readiness to read but returned no data (device disconnected or multiple access on port?)')
+                    raise SerialException(
+                        'device reports readiness to read but returned no data '
+                        '(device disconnected or multiple access on port?)')
                 read.extend(buf)
                 if timeout is not None:
                     timeout -= time.time() - start_time

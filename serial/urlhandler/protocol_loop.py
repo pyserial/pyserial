@@ -90,7 +90,7 @@ class Serial(SerialBase):
         protocol all settings are ignored!
         """
         # not that's it of any real use, but it helps in the unit tests
-        if not isinstance(self._baudrate, numbers.Integral) or not 0 < self._baudrate < 2**32:
+        if not isinstance(self._baudrate, numbers.Integral) or not 0 < self._baudrate < 2 ** 32:
             raise ValueError("invalid baudrate: %r" % (self._baudrate))
         if self.logger:
             self.logger.info('_reconfigure_port()')

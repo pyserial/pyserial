@@ -56,8 +56,7 @@ class ListPortInfo(object):
                 self.vid,
                 self.pid,
                 ' SER={}'.format(self.serial_number) if self.serial_number is not None else '',
-                ' LOCATION={}'.format(self.location) if self.location is not None else '',
-                )
+                ' LOCATION={}'.format(self.location) if self.location is not None else '')
 
     def apply_usb_info(self):
         """update description and hwid from USB data"""

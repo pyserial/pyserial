@@ -15,8 +15,8 @@ import serial
 
 HEXDIGITS = '0123456789ABCDEF'
 
-### Codec APIs
 
+# Codec APIs
 
 def hex_encode(input, errors='strict'):
     return (serial.to_bytes([int(h, 16) for h in input.split()]), len(input))
@@ -84,7 +84,8 @@ class StreamReader(Codec, codecs.StreamReader):
     pass
 
 
-### encodings module API
+# encodings module API
+
 def getregentry():
     return codecs.CodecInfo(
         name='hexlify',
