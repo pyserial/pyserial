@@ -9,6 +9,7 @@
 #
 # Initial patch to use ctypes by Giovanni Bajo <rasky@develer.com>
 
+# pylint: disable=invalid-name,too-few-public-methods
 import ctypes
 import time
 from serial import win32

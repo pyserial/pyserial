@@ -145,6 +145,7 @@ class FormatHexdump(object):
 
 class Serial(serial.Serial):
     """Just inherit the native Serial port implementation and patch the port property."""
+    # pylint: disable=no-member
 
     def __init__(self, *args, **kwargs):
         super(Serial, self).__init__(*args, **kwargs)

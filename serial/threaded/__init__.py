@@ -203,6 +203,7 @@ class ReaderThread(threading.Thread):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
 if __name__ == '__main__':
+    # pylint: disable=wrong-import-position
     import sys
     import time
     import traceback

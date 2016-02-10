@@ -26,11 +26,12 @@ import serial.tools.list_ports
 try:
     basestring
 except NameError:
-    basestring = str    # python 3
+    basestring = str    # python 3  pylint: disable=redefined-builtin
 
 
 class Serial(serial.Serial):
     """Just inherit the native Serial port implementation and patch the port property."""
+    # pylint: disable=no-member
 
     @serial.Serial.port.setter
     def port(self, value):

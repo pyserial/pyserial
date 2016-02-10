@@ -15,6 +15,7 @@ from serial.serialutil import *
 
 VERSION = '3.1a0'
 
+# pylint: disable=wrong-import-position
 if sys.platform == 'cli':
     from serial.serialcli import Serial
 else:

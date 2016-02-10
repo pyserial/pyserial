@@ -20,13 +20,13 @@ try:
 except (NameError, AttributeError):
     # implementation does not matter as we do not realy use it.
     # it just must not inherit from something else we might care for.
-    class memoryview(object):
+    class memoryview(object):   # pylint: disable=redefined-builtin,invalid-name
         pass
 
 try:
     unicode
 except (NameError, AttributeError):
-    unicode = str       # for Python 3
+    unicode = str       # for Python 3, pylint: disable=redefined-builtin,invalid-name
 
 
 # "for byte in data" fails for python3 as it returns ints instead of bytes
@@ -510,6 +510,7 @@ class SerialBase(io.RawIOBase):
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     # backwards compatibility / deprecated functions
+    # pylint: disable=invalid-name,missing-docstring
 
     def flushInput(self):
         self.reset_input_buffer()
