@@ -8,6 +8,7 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
+# pylint: disable=invalid-name,too-few-public-methods
 import re
 import ctypes
 from ctypes.wintypes import BOOL
@@ -158,10 +159,10 @@ def comports():
     # repeat for all possible GUIDs
     for index in range(guids_size.value):
         g_hdi = SetupDiGetClassDevs(
-                ctypes.byref(GUIDs[index]),
-                None,
-                NULL,
-                DIGCF_PRESENT)  # was DIGCF_PRESENT|DIGCF_DEVICEINTERFACE which misses CDC ports
+            ctypes.byref(GUIDs[index]),
+            None,
+            NULL,
+            DIGCF_PRESENT)  # was DIGCF_PRESENT|DIGCF_DEVICEINTERFACE which misses CDC ports
 
         devinfo = SP_DEVINFO_DATA()
         devinfo.cbSize = ctypes.sizeof(devinfo)
@@ -171,21 +172,21 @@ def comports():
 
             # get the real com port name
             hkey = SetupDiOpenDevRegKey(
-                    g_hdi,
-                    ctypes.byref(devinfo),
-                    DICS_FLAG_GLOBAL,
-                    0,
-                    DIREG_DEV,  # DIREG_DRV for SW info
-                    KEY_READ)
+                g_hdi,
+                ctypes.byref(devinfo),
+                DICS_FLAG_GLOBAL,
+                0,
+                DIREG_DEV,  # DIREG_DRV for SW info
+                KEY_READ)
             port_name_buffer = byte_buffer(250)
             port_name_length = ULONG(ctypes.sizeof(port_name_buffer))
             RegQueryValueEx(
-                    hkey,
-                    PortName,
-                    None,
-                    None,
-                    ctypes.byref(port_name_buffer),
-                    ctypes.byref(port_name_length))
+                hkey,
+                PortName,
+                None,
+                None,
+                ctypes.byref(port_name_buffer),
+                ctypes.byref(port_name_length))
             RegCloseKey(hkey)
 
             # unfortunately does this method also include parallel ports.

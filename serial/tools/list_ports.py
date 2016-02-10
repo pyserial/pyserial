@@ -54,24 +54,24 @@ def main():
     parser = argparse.ArgumentParser(description='Serial port enumeration')
 
     parser.add_argument(
-            'regexp',
-            nargs='?',
-            help='only show ports that match this regex')
+        'regexp',
+        nargs='?',
+        help='only show ports that match this regex')
 
     parser.add_argument(
-            '-v', '--verbose',
-            action='store_true',
-            help='show more messages')
+        '-v', '--verbose',
+        action='store_true',
+        help='show more messages')
 
     parser.add_argument(
-            '-q', '--quiet',
-            action='store_true',
-            help='suppress all messages')
+        '-q', '--quiet',
+        action='store_true',
+        help='suppress all messages')
 
     parser.add_argument(
-            '-n',
-            type=int,
-            help='only output the N-th entry')
+        '-n',
+        type=int,
+        help='only output the N-th entry')
 
     args = parser.parse_args()
 
