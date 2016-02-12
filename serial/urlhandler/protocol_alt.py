@@ -16,19 +16,21 @@
 #   use poll based implementation on Posix (Linux):
 #   python -m serial.tools.miniterm alt:///dev/ttyUSB0?class=PosixPollSerial
 
-import serial
-
 try:
     import urlparse
 except ImportError:
     import urllib.parse as urlparse
+
+import serial
 
 
 def serial_class_for_url(url):
     """extract host and port from an URL string"""
     parts = urlparse.urlsplit(url)
     if parts.scheme != 'alt':
-        raise serial.SerialException('expected a string in the form "alt://port[?option[=value][&option[=value]]]": not starting with alt:// (%r)' % (parts.scheme,))
+        raise serial.SerialException(
+            'expected a string in the form "alt://port[?option[=value][&option[=value]]]": '
+            'not starting with alt:// (%r)' % (parts.scheme,))
     class_name = 'Serial'
     try:
         for option, values in urlparse.parse_qs(parts.query, True).items():
@@ -37,7 +39,9 @@ def serial_class_for_url(url):
             else:
                 raise ValueError('unknown option: %r' % (option,))
     except ValueError as e:
-        raise serial.SerialException('expected a string in the form "alt://port[?option[=value][&option[=value]]]": %s' % e)
+        raise serial.SerialException(
+            'expected a string in the form '
+            '"alt://port[?option[=value][&option[=value]]]": %s' % e)
     if not hasattr(serial, class_name):
         raise ValueError('unknown class: %r' % (class_name,))
     cls = getattr(serial, class_name)

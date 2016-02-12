@@ -55,13 +55,13 @@ class Serial(SerialBase):
             # for like COMnotanumber
             pass
         self._port_handle = win32.CreateFile(
-                port,
-                win32.GENERIC_READ | win32.GENERIC_WRITE,
-                0,  # exclusive access
-                None,  # no security
-                win32.OPEN_EXISTING,
-                win32.FILE_ATTRIBUTE_NORMAL | win32.FILE_FLAG_OVERLAPPED,
-                0)
+            port,
+            win32.GENERIC_READ | win32.GENERIC_WRITE,
+            0,  # exclusive access
+            None,  # no security
+            win32.OPEN_EXISTING,
+            win32.FILE_ATTRIBUTE_NORMAL | win32.FILE_FLAG_OVERLAPPED,
+            0)
         if self._port_handle == win32.INVALID_HANDLE_VALUE:
             self._port_handle = None    # 'cause __del__ is called anyway
             raise SerialException("could not open port %r: %r" % (self.portstr, ctypes.WinError()))
@@ -85,9 +85,9 @@ class Serial(SerialBase):
             # Clear buffers:
             # Remove anything that was there
             win32.PurgeComm(
-                    self._port_handle,
-                    win32.PURGE_TXCLEAR | win32.PURGE_TXABORT |
-                    win32.PURGE_RXCLEAR | win32.PURGE_RXABORT)
+                self._port_handle,
+                win32.PURGE_TXCLEAR | win32.PURGE_TXABORT |
+                win32.PURGE_RXCLEAR | win32.PURGE_RXABORT)
         except:
             try:
                 self._close()
@@ -277,18 +277,18 @@ class Serial(SerialBase):
                 buf = ctypes.create_string_buffer(n)
                 rc = win32.DWORD()
                 read_ok = win32.ReadFile(
-                        self._port_handle,
-                        buf,
-                        n,
-                        ctypes.byref(rc),
-                        ctypes.byref(self._overlapped_read))
+                    self._port_handle,
+                    buf,
+                    n,
+                    ctypes.byref(rc),
+                    ctypes.byref(self._overlapped_read))
                 if not read_ok and win32.GetLastError() not in (win32.ERROR_SUCCESS, win32.ERROR_IO_PENDING):
                     raise SerialException("ReadFile failed (%r)" % ctypes.WinError())
                 win32.GetOverlappedResult(
-                        self._port_handle,
-                        ctypes.byref(self._overlapped_read),
-                        ctypes.byref(rc),
-                        True)
+                    self._port_handle,
+                    ctypes.byref(self._overlapped_read),
+                    ctypes.byref(rc),
+                    True)
                 read = buf.raw[:rc.value]
             else:
                 read = bytes()

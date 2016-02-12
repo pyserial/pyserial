@@ -34,10 +34,10 @@ def iterbytes(b):
     """Iterate over bytes, returning bytes instead of ints (python3)"""
     if isinstance(b, memoryview):
         b = b.tobytes()
-    x = 0
+    i = 0
     while True:
-        a = b[x:x + 1]
-        x += 1
+        a = b[i:i + 1]
+        i += 1
         if a:
             yield a
         else:
@@ -126,8 +126,7 @@ class SerialBase(io.RawIOBase):
                  write_timeout=None,
                  dsrdtr=False,
                  inter_byte_timeout=None,
-                 **kwargs
-                 ):
+                 **kwargs):
         """\
         Initialize comm port object. If a "port" is given, then the port will be
         opened immediately. Otherwise a Serial port object in closed state
@@ -135,6 +134,8 @@ class SerialBase(io.RawIOBase):
         """
 
         self.is_open = False
+        self.portstr = None
+        self.name = None
         # correct values are assigned below through properties
         self._port = None
         self._baudrate = None
@@ -464,6 +465,7 @@ class SerialBase(io.RawIOBase):
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     # compatibility with io library
+    # pylint: disable=invalid-name,missing-docstring
 
     def readable(self):
         return True
@@ -510,7 +512,6 @@ class SerialBase(io.RawIOBase):
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     # backwards compatibility / deprecated functions
-    # pylint: disable=invalid-name,missing-docstring
 
     def flushInput(self):
         self.reset_input_buffer()

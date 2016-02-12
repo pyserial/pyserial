@@ -12,6 +12,7 @@
 #
 # references: http://www.easysw.com/~mike/serial/serial.html
 
+# pylint: disable=abstract-method
 import errno
 import fcntl
 import os
@@ -436,9 +437,9 @@ class Serial(SerialBase, PlatformSpecific):
         # activate settings
         if force_update or [iflag, oflag, cflag, lflag, ispeed, ospeed, cc] != orig_attr:
             termios.tcsetattr(
-                    self.fd,
-                    termios.TCSANOW,
-                    [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
+                self.fd,
+                termios.TCSANOW,
+                [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
 
         # apply custom baud rate, if any
         if custom_baud is not None:

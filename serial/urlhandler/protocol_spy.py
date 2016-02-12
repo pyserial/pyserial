@@ -80,18 +80,21 @@ class FormatRaw(object):
         self.tx_color = '\x1b[31m'
 
     def rx(self, data):
+        """show received data"""
         if self.color:
             self.output.write(self.rx_color)
         self.output.write(data)
         self.output.flush()
 
     def tx(self, data):
+        """show transmitted data"""
         if self.color:
             self.output.write(self.tx_color)
         self.output.write(data)
         self.output.flush()
 
     def control(self, name, value):
+        """(do not) show control calls"""
         pass
 
 
@@ -123,6 +126,7 @@ class FormatHexdump(object):
         self.output.flush()
 
     def rx(self, data):
+        """show received data as hex dump"""
         if self.color:
             self.output.write(self.rx_color)
         if data:
@@ -132,12 +136,14 @@ class FormatHexdump(object):
             self.write_line(time.time() - self.start_time, 'RX', '<empty>')
 
     def tx(self, data):
+        """show transmitted data as hex dump"""
         if self.color:
             self.output.write(self.tx_color)
         for offset, row in hexdump(data):
             self.write_line(time.time() - self.start_time, 'TX', '{:04X}  '.format(offset), row)
 
     def control(self, name, value):
+        """show control calls"""
         if self.color:
             self.output.write(self.control_color)
         self.write_line(time.time() - self.start_time, name, value)
@@ -262,6 +268,6 @@ class Serial(serial.Serial):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __name__ == '__main__':
-    s = Serial(None)
-    s.port = 'spy:///dev/ttyS0'
-    print(s)
+    ser = Serial(None)
+    ser.port = 'spy:///dev/ttyS0'
+    print(ser)

@@ -7,7 +7,8 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
-# pylint: disable=invalid-name,too-few-public-methods
+# pylint: disable=invalid-name,too-few-public-methods,protected-access,too-many-instance-attributes
+
 from ctypes import c_ulong, c_void_p, c_int64, c_char, \
                    WinDLL, sizeof, Structure, Union, POINTER
 from ctypes.wintypes import HANDLE
