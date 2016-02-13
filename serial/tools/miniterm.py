@@ -16,11 +16,14 @@ import serial
 from serial.tools.list_ports import comports
 from serial.tools import hexlify_codec
 
+# pylint: disable=wrong-import-order,wrong-import-position
+
 codecs.register(lambda c: hexlify_codec.getregentry() if c == 'hexlify' else None)
 
 try:
     raw_input
 except NameError:
+    # pylint: disable=redefined-builtin,invalid-name
     raw_input = input   # in python3 it's "raw"
     unichr = chr
 
@@ -55,14 +58,14 @@ class ConsoleBase(object):
         """Read a single key from the console"""
         return None
 
-    def write_bytes(self, s):
+    def write_bytes(self, byte_string):
         """Write bytes (already encoded)"""
-        self.byte_output.write(s)
+        self.byte_output.write(byte_string)
         self.byte_output.flush()
 
-    def write(self, s):
+    def write(self, text):
         """Write string"""
-        self.output.write(s)
+        self.output.write(text)
         self.output.flush()
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
@@ -82,6 +85,8 @@ if os.name == 'nt':  # noqa
     import ctypes
 
     class Out(object):
+        """file-like wrapper that uses os.write"""
+
         def __init__(self, fd):
             self.fd = fd
 
@@ -214,7 +219,7 @@ class NoControls(NoTerminal):
     REPLACEMENT_MAP = dict((x, 0x2400 + x) for x in range(32))
     REPLACEMENT_MAP.update(
         {
-            32: 0x2423,    # visual space
+            0x20: 0x2423,  # visual space
             0x7F: 0x2421,  # DEL
             0x9B: 0x2425,  # CSI
         })
@@ -225,13 +230,13 @@ class Printable(Transform):
 
     def rx(self, text):
         r = []
-        for t in text:
-            if ' ' <= t < '\x7f' or t in '\r\n\b\t':
-                r.append(t)
-            elif t < ' ':
-                r.append(unichr(0x2400 + ord(t)))
+        for c in text:
+            if ' ' <= c < '\x7f' or c in '\r\n\b\t':
+                r.append(c)
+            elif c < ' ':
+                r.append(unichr(0x2400 + ord(c)))
             else:
-                r.extend(unichr(0x2080 + ord(d) - 48) for d in '{:d}'.format(ord(t)))
+                r.extend(unichr(0x2080 + ord(d) - 48) for d in '{:d}'.format(ord(c)))
                 r.append(' ')
         return ''.join(r)
 
@@ -352,6 +357,7 @@ class Miniterm(object):
         self.receiver_thread.join()
 
     def start(self):
+        """start worker threads"""
         self.alive = True
         self._start_reader()
         # enter console->serial loop
@@ -361,28 +367,34 @@ class Miniterm(object):
         self.console.setup()
 
     def stop(self):
+        """set flag to stop worker threads"""
         self.alive = False
 
     def join(self, transmit_only=False):
+        """wait for worker threads to terminate"""
         self.transmitter_thread.join()
         if not transmit_only:
             self.receiver_thread.join()
 
     def update_transformations(self):
+        """take list of transformation classes and instantiate them for rx and tx"""
         transformations = [EOL_TRANSFORMATIONS[self.eol]] + [TRANSFORMATIONS[f]
                                                              for f in self.filters]
         self.tx_transformations = [t() for t in transformations]
         self.rx_transformations = list(reversed(self.tx_transformations))
 
     def set_rx_encoding(self, encoding, errors='replace'):
+        """set encoding for received data"""
         self.input_encoding = encoding
         self.rx_decoder = codecs.getincrementaldecoder(encoding)(errors)
 
     def set_tx_encoding(self, encoding, errors='replace'):
+        """set encoding for transmitted data"""
         self.output_encoding = encoding
         self.tx_encoder = codecs.getincrementalencoder(encoding)(errors)
 
     def dump_port_settings(self):
+        """Write current settings to sys.stderr"""
         sys.stderr.write("\n--- Settings: {p.name}  {p.baudrate},{p.bytesize},{p.parity},{p.stopbits}\n".format(
             p=self.serial))
         sys.stderr.write('--- RTS: {:8}  DTR: {:8}  BREAK: {:8}\n'.format(
@@ -626,6 +638,7 @@ class Miniterm(object):
             sys.stderr.write('--- unknown menu character {} --\n'.format(key_description(c)))
 
     def get_help_text(self):
+        """return the help text"""
         # help text, starts with blank line!
         return """
 --- pySerial ({version}) - miniterm - help
@@ -651,25 +664,26 @@ class Miniterm(object):
 ---    b          change baud rate
 ---    x X        disable/enable software flow control
 ---    r R        disable/enable hardware flow control
-""".format(
-            version=getattr(serial, 'VERSION', 'unknown version'),
-            exit=key_description(self.exit_character),
-            menu=key_description(self.menu_character),
-            rts=key_description('\x12'),
-            dtr=key_description('\x04'),
-            brk=key_description('\x02'),
-            echo=key_description('\x05'),
-            info=key_description('\x09'),
-            upload=key_description('\x15'),
-            repr=key_description('\x01'),
-            filter=key_description('\x06'),
-            eol=key_description('\x0c'))
+""".format(version=getattr(serial, 'VERSION', 'unknown version'),
+           exit=key_description(self.exit_character),
+           menu=key_description(self.menu_character),
+           rts=key_description('\x12'),
+           dtr=key_description('\x04'),
+           brk=key_description('\x02'),
+           echo=key_description('\x05'),
+           info=key_description('\x09'),
+           upload=key_description('\x15'),
+           repr=key_description('\x01'),
+           filter=key_description('\x06'),
+           eol=key_description('\x0c'))
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # default args can be used to override when calling main() from an other script
 # e.g to create a miniterm-my-device.py
 def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr=None):
+    """Command line tool, entry point"""
+
     import argparse
 
     parser = argparse.ArgumentParser(
