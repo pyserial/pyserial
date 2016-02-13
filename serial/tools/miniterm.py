@@ -594,7 +594,7 @@ class Miniterm(object):
                 try:
                     self.serial.baudrate = int(sys.stdin.readline().strip())
                 except ValueError as e:
-                    sys.stderr.write('--- ERROR setting baudrate: %s ---\n'.format(e))
+                    sys.stderr.write('--- ERROR setting baudrate: {} ---\n'.format(e))
                     self.serial.baudrate = backup
                 else:
                     self.dump_port_settings()
