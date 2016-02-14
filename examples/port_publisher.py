@@ -332,11 +332,11 @@ class Forwarder(ZeroconfService):
 def test():
     service = ZeroconfService(name="TestService", port=3000)
     service.publish()
-    raw_input("Press any key to unpublish the service ")
+    input("Press the ENTER key to unpublish the service ")
     service.unpublish()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # noqa
     import logging
     import argparse
 
@@ -345,9 +345,10 @@ if __name__ == '__main__':
         logging.WARNING,    # 1 (default)
         logging.INFO,       # 2
         logging.DEBUG,      # 3
-        ]
+    ]
 
-    parser = argparse.ArgumentParser(usage="""\
+    parser = argparse.ArgumentParser(
+        usage="""\
 %(prog)s [options]
 
 Announce the existence of devices using zeroconf and provide
@@ -355,7 +356,7 @@ a TCP/IP <-> serial port gateway (implements RFC 2217).
 
 If running as daemon, write to syslog. Otherwise write to stdout.
 """,
-            epilog="""\
+        epilog="""\
 NOTE: no security measures are implemented. Anyone can remotely connect
 to this service over the network.
 
@@ -366,57 +367,57 @@ terminated, it waits for the next connect.
     group = parser.add_argument_group("serial port settings")
 
     group.add_argument(
-            "--ports-regex",
-            help="specify a regex to search against the serial devices and their descriptions (default: %(default)s)",
-            default='/dev/ttyUSB[0-9]+',
-            metavar="REGEX")
+        "--ports-regex",
+        help="specify a regex to search against the serial devices and their descriptions (default: %(default)s)",
+        default='/dev/ttyUSB[0-9]+',
+        metavar="REGEX")
 
     group = parser.add_argument_group("network settings")
 
     group.add_argument(
-            "--tcp-port",
-            dest="base_port",
-            help="specify lowest TCP port number (default: %(default)s)",
-            default=7000,
-            type=int,
-            metavar="PORT")
+        "--tcp-port",
+        dest="base_port",
+        help="specify lowest TCP port number (default: %(default)s)",
+        default=7000,
+        type=int,
+        metavar="PORT")
 
     group = parser.add_argument_group("daemon")
 
     group.add_argument(
-            "-d", "--daemon",
-            dest="daemonize",
-            action="store_true",
-            help="start as daemon",
-            default=False)
+        "-d", "--daemon",
+        dest="daemonize",
+        action="store_true",
+        help="start as daemon",
+        default=False)
 
     group.add_argument(
-            "--pidfile",
-            help="specify a name for the PID file",
-            default=None,
-            metavar="FILE")
+        "--pidfile",
+        help="specify a name for the PID file",
+        default=None,
+        metavar="FILE")
 
     group = parser.add_argument_group("diagnostics")
 
     group.add_argument(
-            "-o", "--logfile",
-            help="write messages file instead of stdout",
-            default=None,
-            metavar="FILE")
+        "-o", "--logfile",
+        help="write messages file instead of stdout",
+        default=None,
+        metavar="FILE")
 
     group.add_argument(
-            "-q", "--quiet",
-            dest="verbosity",
-            action="store_const",
-            const=0,
-            help="suppress most diagnostic messages",
-            default=1)
+        "-q", "--quiet",
+        dest="verbosity",
+        action="store_const",
+        const=0,
+        help="suppress most diagnostic messages",
+        default=1)
 
     group.add_argument(
-            "-v", "--verbose",
-            dest="verbosity",
-            action="count",
-            help="increase diagnostic messages")
+        "-v", "--verbose",
+        dest="verbosity",
+        action="count",
+        help="increase diagnostic messages")
 
     args = parser.parse_args()
 
@@ -535,11 +536,11 @@ terminated, it waits for the next connect.
                     while port in ports_in_use:
                         port += 1
                     published[device] = Forwarder(
-                            device,
-                            "%s on %s" % (device, hostname),
-                            port,
-                            on_close=unpublish,
-                            log=log)
+                        device,
+                        "%s on %s" % (device, hostname),
+                        port,
+                        on_close=unpublish,
+                        log=log)
                     log.warning("publish: %s" % (published[device]))
                     published[device].open()
 
@@ -550,10 +551,10 @@ terminated, it waits for the next connect.
             for publisher in published.values():
                 publisher.update_select_maps(read_map, write_map, error_map)
             readers, writers, errors = select.select(
-                    read_map.keys(),
-                    write_map.keys(),
-                    error_map.keys(),
-                    5)
+                read_map.keys(),
+                write_map.keys(),
+                error_map.keys(),
+                5)
             # select_end = time.time()
             # print "select used %.3f s" % (select_end - select_start)
             for reader in readers:
