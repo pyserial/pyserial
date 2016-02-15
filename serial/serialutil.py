@@ -55,7 +55,7 @@ def to_bytes(seq):
     elif isinstance(seq, memoryview):
         return seq.tobytes()
     elif isinstance(seq, unicode):
-        raise TypeError('unicode strings are not supported, please encode to bytes: %r' % (seq,))
+        raise TypeError('unicode strings are not supported, please encode to bytes: {!r}'.format(seq))
     else:
         b = bytearray()
         for item in seq:
@@ -171,7 +171,7 @@ class SerialBase(io.RawIOBase):
         if 'interCharTimeout' in kwargs:
             self.inter_byte_timeout = kwargs.pop('interCharTimeout')
         if kwargs:
-            raise ValueError('unexpected keyword arguments: %r' % (kwargs,))
+            raise ValueError('unexpected keyword arguments: {!r}'.format(kwargs))
 
         if port is not None:
             self.open()
@@ -224,10 +224,10 @@ class SerialBase(io.RawIOBase):
         try:
             b = int(baudrate)
         except TypeError:
-            raise ValueError("Not a valid baudrate: %r" % (baudrate,))
+            raise ValueError("Not a valid baudrate: {!r}".format(baudrate))
         else:
             if b <= 0:
-                raise ValueError("Not a valid baudrate: %r" % (baudrate,))
+                raise ValueError("Not a valid baudrate: {!r}".format(baudrate))
             self._baudrate = b
             if self.is_open:
                 self._reconfigure_port()
@@ -241,7 +241,7 @@ class SerialBase(io.RawIOBase):
     def bytesize(self, bytesize):
         """Change byte size."""
         if bytesize not in self.BYTESIZES:
-            raise ValueError("Not a valid byte size: %r" % (bytesize,))
+            raise ValueError("Not a valid byte size: {!r}".format(bytesize))
         self._bytesize = bytesize
         if self.is_open:
             self._reconfigure_port()
@@ -255,7 +255,7 @@ class SerialBase(io.RawIOBase):
     def parity(self, parity):
         """Change parity setting."""
         if parity not in self.PARITIES:
-            raise ValueError("Not a valid parity: %r" % (parity,))
+            raise ValueError("Not a valid parity: {!r}".format(parity))
         self._parity = parity
         if self.is_open:
             self._reconfigure_port()
@@ -269,7 +269,7 @@ class SerialBase(io.RawIOBase):
     def stopbits(self, stopbits):
         """Change stop bits size."""
         if stopbits not in self.STOPBITS:
-            raise ValueError("Not a valid stop bit size: %r" % (stopbits,))
+            raise ValueError("Not a valid stop bit size: {!r}".format(stopbits))
         self._stopbits = stopbits
         if self.is_open:
             self._reconfigure_port()
@@ -286,9 +286,9 @@ class SerialBase(io.RawIOBase):
             try:
                 timeout + 1     # test if it's a number, will throw a TypeError if not...
             except TypeError:
-                raise ValueError("Not a valid timeout: %r" % (timeout,))
+                raise ValueError("Not a valid timeout: {!r}".format(timeout))
             if timeout < 0:
-                raise ValueError("Not a valid timeout: %r" % (timeout,))
+                raise ValueError("Not a valid timeout: {!r}".format(timeout))
         self._timeout = timeout
         if self.is_open:
             self._reconfigure_port()
@@ -303,11 +303,11 @@ class SerialBase(io.RawIOBase):
         """Change timeout setting."""
         if timeout is not None:
             if timeout < 0:
-                raise ValueError("Not a valid timeout: %r" % (timeout,))
+                raise ValueError("Not a valid timeout: {!r}".format(timeout))
             try:
                 timeout + 1     # test if it's a number, will throw a TypeError if not...
             except TypeError:
-                raise ValueError("Not a valid timeout: %r" % timeout)
+                raise ValueError("Not a valid timeout: {!r}".format(timeout))
 
         self._write_timeout = timeout
         if self.is_open:
@@ -323,11 +323,11 @@ class SerialBase(io.RawIOBase):
         """Change inter-byte timeout setting."""
         if ic_timeout is not None:
             if ic_timeout < 0:
-                raise ValueError("Not a valid timeout: %r" % ic_timeout)
+                raise ValueError("Not a valid timeout: {!r}".format(ic_timeout))
             try:
                 ic_timeout + 1     # test if it's a number, will throw a TypeError if not...
             except TypeError:
-                raise ValueError("Not a valid timeout: %r" % ic_timeout)
+                raise ValueError("Not a valid timeout: {!r}".format(ic_timeout))
 
         self._inter_byte_timeout = ic_timeout
         if self.is_open:
@@ -448,20 +448,11 @@ class SerialBase(io.RawIOBase):
 
     def __repr__(self):
         """String representation of the current port settings and its state."""
-        return "%s<id=0x%x, open=%s>(port=%r, baudrate=%r, bytesize=%r, parity=%r, stopbits=%r, timeout=%r, xonxoff=%r, rtscts=%r, dsrdtr=%r)" % (
-                self.__class__.__name__,
-                id(self),
-                self.is_open,
-                self.portstr,
-                self.baudrate,
-                self.bytesize,
-                self.parity,
-                self.stopbits,
-                self.timeout,
-                self.xonxoff,
-                self.rtscts,
-                self.dsrdtr,
-        )
+        return '{name}<id=0x{id:x}, open={p.is_open}>(port={p.portstr!r}, ' \
+               'baudrate={p.baudrate!r}, bytesize={p.bytesize!r}, parity={p.parity!r}, ' \
+               'stopbits={p.stopbits!r}, timeout={p.timeout!r}, xonxoff={p.xonxoff!r}, ' \
+               'rtscts={p.rtscts!r}, dsrdtr={p.dsrdtr!r})'.format(
+                   name=self.__class__.__name__, id=id(self), p=self)
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     # compatibility with io library
@@ -612,9 +603,9 @@ class SerialBase(io.RawIOBase):
 if __name__ == '__main__':
     import sys
     s = SerialBase()
-    sys.stdout.write('port name:  %s\n' % s.name)
-    sys.stdout.write('baud rates: %s\n' % s.BAUDRATES)
-    sys.stdout.write('byte sizes: %s\n' % s.BYTESIZES)
-    sys.stdout.write('parities:   %s\n' % s.PARITIES)
-    sys.stdout.write('stop bits:  %s\n' % s.STOPBITS)
-    sys.stdout.write('%s\n' % s)
+    sys.stdout.write('port name:  {}\n'.format(s.name))
+    sys.stdout.write('baud rates: {}\n'.format(s.BAUDRATES))
+    sys.stdout.write('byte sizes: {}\n'.format(s.BYTESIZES))
+    sys.stdout.write('parities:   {}\n'.format(s.PARITIES))
+    sys.stdout.write('stop bits:  {}\n'.format(s.STOPBITS))
+    sys.stdout.write('{}\n'.format(s))
