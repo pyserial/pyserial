@@ -64,7 +64,7 @@ class Serial(SerialBase):
             0)
         if self._port_handle == win32.INVALID_HANDLE_VALUE:
             self._port_handle = None    # 'cause __del__ is called anyway
-            raise SerialException("could not open port %r: %r" % (self.portstr, ctypes.WinError()))
+            raise SerialException("could not open port {!r}: {!r}".format(self.portstr, ctypes.WinError()))
 
         try:
             self._overlapped_read = win32.OVERLAPPED()
@@ -145,7 +145,7 @@ class Serial(SerialBase):
         elif self._bytesize == serial.EIGHTBITS:
             comDCB.ByteSize = 8
         else:
-            raise ValueError("Unsupported number of data bits: %r" % self._bytesize)
+            raise ValueError("Unsupported number of data bits: {!r}".format(self._bytesize))
 
         if self._parity == serial.PARITY_NONE:
             comDCB.Parity = win32.NOPARITY
@@ -163,7 +163,7 @@ class Serial(SerialBase):
             comDCB.Parity = win32.SPACEPARITY
             comDCB.fParity = 1  # Enable Parity Check
         else:
-            raise ValueError("Unsupported parity mode: %r" % self._parity)
+            raise ValueError("Unsupported parity mode: {!r}".format(self._parity))
 
         if self._stopbits == serial.STOPBITS_ONE:
             comDCB.StopBits = win32.ONESTOPBIT
@@ -172,7 +172,7 @@ class Serial(SerialBase):
         elif self._stopbits == serial.STOPBITS_TWO:
             comDCB.StopBits = win32.TWOSTOPBITS
         else:
-            raise ValueError("Unsupported number of stop bits: %r" % self._stopbits)
+            raise ValueError("Unsupported number of stop bits: {!r}".format(self._stopbits))
 
         comDCB.fBinary = 1  # Enable Binary Transmission
         # Char. w/ Parity-Err are replaced with 0xff (if fErrorChar is set to TRUE)
@@ -187,24 +187,24 @@ class Serial(SerialBase):
             # XXX verify if platform really does not have a setting for those
             if not self._rs485_mode.rts_level_for_tx:
                 raise ValueError(
-                        'Unsupported value for RS485Settings.rts_level_for_tx: %r' % (
-                            self._rs485_mode.rts_level_for_tx,))
+                    'Unsupported value for RS485Settings.rts_level_for_tx: {!r}'.format(
+                        self._rs485_mode.rts_level_for_tx,))
             if self._rs485_mode.rts_level_for_rx:
                 raise ValueError(
-                        'Unsupported value for RS485Settings.rts_level_for_rx: %r' % (
-                            self._rs485_mode.rts_level_for_rx,))
+                    'Unsupported value for RS485Settings.rts_level_for_rx: {!r}'.format(
+                        self._rs485_mode.rts_level_for_rx,))
             if self._rs485_mode.delay_before_tx is not None:
                 raise ValueError(
-                        'Unsupported value for RS485Settings.delay_before_tx: %r' % (
-                            self._rs485_mode.delay_before_tx,))
+                    'Unsupported value for RS485Settings.delay_before_tx: {!r}'.format(
+                        self._rs485_mode.delay_before_tx,))
             if self._rs485_mode.delay_before_rx is not None:
                 raise ValueError(
-                        'Unsupported value for RS485Settings.delay_before_rx: %r' % (
-                            self._rs485_mode.delay_before_rx,))
+                    'Unsupported value for RS485Settings.delay_before_rx: {!r}'.format(
+                        self._rs485_mode.delay_before_rx,))
             if self._rs485_mode.loopback:
                 raise ValueError(
-                        'Unsupported value for RS485Settings.loopback: %r' % (
-                            self._rs485_mode.loopback,))
+                    'Unsupported value for RS485Settings.loopback: {!r}'.format(
+                        self._rs485_mode.loopback,))
             comDCB.fRtsControl = win32.RTS_CONTROL_TOGGLE
             comDCB.fOutxCtsFlow = 0
 
@@ -222,7 +222,9 @@ class Serial(SerialBase):
         comDCB.XoffChar = serial.XOFF
 
         if not win32.SetCommState(self._port_handle, ctypes.byref(comDCB)):
-            raise SerialException("Cannot configure port, something went wrong. Original message: %r" % ctypes.WinError())
+            raise SerialException(
+                'Cannot configure port, something went wrong. '
+                'Original message: {!r}'.format(ctypes.WinError()))
 
     #~ def __del__(self):
         #~ self.close()
@@ -283,7 +285,7 @@ class Serial(SerialBase):
                     ctypes.byref(rc),
                     ctypes.byref(self._overlapped_read))
                 if not read_ok and win32.GetLastError() not in (win32.ERROR_SUCCESS, win32.ERROR_IO_PENDING):
-                    raise SerialException("ReadFile failed (%r)" % ctypes.WinError())
+                    raise SerialException("ReadFile failed ({!r})".format(ctypes.WinError()))
                 win32.GetOverlappedResult(
                     self._port_handle,
                     ctypes.byref(self._overlapped_read),
@@ -309,7 +311,7 @@ class Serial(SerialBase):
             n = win32.DWORD()
             err = win32.WriteFile(self._port_handle, data, len(data), ctypes.byref(n), self._overlapped_write)
             if not err and win32.GetLastError() != win32.ERROR_IO_PENDING:
-                raise SerialException("WriteFile failed (%r)" % ctypes.WinError())
+                raise SerialException("WriteFile failed ({!r})".format(ctypes.WinError()))
             if self._write_timeout != 0:  # if blocking (None) or w/ write timeout (>0)
                 # Wait for the write to complete.
                 #~ win32.WaitForSingleObject(self._overlapped_write.hEvent, win32.INFINITE)
