@@ -382,6 +382,19 @@ class Serial(SerialBase):
         super(Serial, self).__init__(*args, **kwargs)
         self._thread = None
         self._socket = None
+        self._linestate = 0
+        self._modemstate = None
+        self._modemstate_expires = 0
+        self._remote_suspend_flow = False
+        self._write_lock = None
+        self.logger = None
+        self._ignore_set_control_answer = False
+        self._poll_modem_state = False
+        self._network_timeout = 3
+        self._telnet_options = None
+        self._rfc2217_port_settings = None
+        self._rfc2217_options = None
+        self._read_buffer = None
 
     def open(self):
         """\
@@ -464,7 +477,8 @@ class Serial(SerialBase):
                 if sum(o.active for o in mandadory_options) == sum(o.state != INACTIVE for o in mandadory_options):
                     break
             else:
-                raise SerialException("Remote does not seem to support RFC2217 or BINARY mode {!r}".format(mandadory_options))
+                raise SerialException(
+                    "Remote does not seem to support RFC2217 or BINARY mode {!r}".format(mandadory_options))
             if self.logger:
                 self.logger.info("Negotiated options: {}".format(self._telnet_options))
 
@@ -543,7 +557,10 @@ class Serial(SerialBase):
         self._socket = None
 
     def from_url(self, url):
-        """extract host and port from an URL string"""
+        """\
+        extract host and port from an URL string, other settings are extracted
+        an stored in instance
+        """
         parts = urlparse.urlsplit(url)
         if parts.scheme != "rfc2217":
             raise SerialException(
@@ -661,7 +678,7 @@ class Serial(SerialBase):
         else:
             self.rfc2217SetControl(SET_CONTROL_RTS_OFF)
 
-    def _update_dtr_state(self, level=True):
+    def _update_dtr_state(self):
         """Set terminal status line: Data Terminal Ready."""
         if not self.is_open:
             raise portNotOpenError
@@ -1001,8 +1018,8 @@ class PortManager(object):
         if modemstate != self.last_modemstate or force_notification:
             if (self._client_is_rfc2217 and (modemstate & self.modemstate_mask)) or force_notification:
                 self.rfc2217SendSubnegotiation(
-                        SERVER_NOTIFY_MODEMSTATE,
-                        to_bytes([modemstate & self.modemstate_mask]))
+                    SERVER_NOTIFY_MODEMSTATE,
+                    to_bytes([modemstate & self.modemstate_mask]))
                 if self.logger:
                     self.logger.info("NOTIFY_MODEMSTATE: {}".format(modemstate))
             # save last state, but forget about deltas.
@@ -1151,7 +1168,7 @@ class PortManager(object):
                 try:
                     parity = struct.unpack(b"!B", suboption[2:3])[0]
                     if parity != 0:
-                            self.serial.parity = RFC2217_REVERSE_PARITY_MAP[parity]
+                        self.serial.parity = RFC2217_REVERSE_PARITY_MAP[parity]
                 except ValueError as e:
                     if self.logger:
                         self.logger.error("failed to set parity: {}".format(e))
@@ -1160,8 +1177,8 @@ class PortManager(object):
                     if self.logger:
                         self.logger.info("{} parity: {}".format('set' if parity else 'get', self.serial.parity))
                 self.rfc2217SendSubnegotiation(
-                        SERVER_SET_PARITY,
-                        struct.pack(b"!B", RFC2217_PARITY_MAP[self.serial.parity]))
+                    SERVER_SET_PARITY,
+                    struct.pack(b"!B", RFC2217_PARITY_MAP[self.serial.parity]))
             elif suboption[1:2] == SET_STOPSIZE:
                 backup = self.serial.stopbits
                 try:
@@ -1176,8 +1193,8 @@ class PortManager(object):
                     if self.logger:
                         self.logger.info("{} stop bits: {}".format('set' if stopbits else 'get', self.serial.stopbits))
                 self.rfc2217SendSubnegotiation(
-                        SERVER_SET_STOPSIZE,
-                        struct.pack(b"!B", RFC2217_STOPBIT_MAP[self.serial.stopbits]))
+                    SERVER_SET_STOPSIZE,
+                    struct.pack(b"!B", RFC2217_STOPBIT_MAP[self.serial.stopbits]))
             elif suboption[1:2] == SET_CONTROL:
                 if suboption[2:3] == SET_CONTROL_REQ_FLOW_SETTING:
                     if self.serial.xonxoff:
@@ -1255,8 +1272,8 @@ class PortManager(object):
             elif suboption[1:2] == NOTIFY_LINESTATE:
                 # client polls for current state
                 self.rfc2217SendSubnegotiation(
-                        SERVER_NOTIFY_LINESTATE,
-                        to_bytes([0]))   # sorry, nothing like that implemented
+                    SERVER_NOTIFY_LINESTATE,
+                    to_bytes([0]))   # sorry, nothing like that implemented
             elif suboption[1:2] == NOTIFY_MODEMSTATE:
                 if self.logger:
                     self.logger.info("request for modem state")
