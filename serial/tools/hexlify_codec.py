@@ -3,11 +3,19 @@
 # This is a codec to create and decode hexdumps with spaces between characters. used by miniterm.
 #
 # This file is part of pySerial. https://github.com/pyserial/pyserial
-# (C) 2011 Chris Liechti <cliechti@gmx.net>
+# (C) 2015-2016 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 """\
 Python 'hex' Codec - 2-digit hex with spaces content transfer encoding.
+
+Encode and decode may be a bit missleading at first sight...
+
+The textual representation is a hex dump: e.g. "40 41"
+The "encoded" data of this is the binary form, e.g. b"@A"
+
+Therefore decoding is binary to text and thus converting binary data to hex dump.
+
 """
 
 import codecs
@@ -18,23 +26,28 @@ HEXDIGITS = '0123456789ABCDEF'
 
 # Codec APIs
 
-def hex_encode(input, errors='strict'):
-    return (serial.to_bytes([int(h, 16) for h in input.split()]), len(input))
+def hex_encode(data, errors='strict'):
+    """'40 41 42' -> '@ab'"""
+    return (serial.to_bytes([int(h, 16) for h in data.split()]), len(data))
 
 
-def hex_decode(input, errors='strict'):
-    return (''.join('{:02X} '.format(b) for b in input), len(input))
+def hex_decode(data, errors='strict'):
+    """'@ab' -> '40 41 42'"""
+    return (''.join('{:02X} '.format(b) for b in data), len(data))
 
 
 class Codec(codecs.Codec):
-    def encode(self, input, errors='strict'):
-        return serial.to_bytes([int(h, 16) for h in input.split()])
+    def encode(self, data, errors='strict'):
+        """'40 41 42' -> '@ab'"""
+        return serial.to_bytes([int(h, 16) for h in data.split()])
 
-    def decode(self, input, errors='strict'):
-        return ''.join('{:02X} '.format(b) for b in input)
+    def decode(self, data, errors='strict'):
+        """'@ab' -> '40 41 42'"""
+        return ''.join('{:02X} '.format(b) for b in data)
 
 
 class IncrementalEncoder(codecs.IncrementalEncoder):
+    """Incremental hex encoder"""
 
     def __init__(self, errors='strict'):
         self.errors = errors
@@ -49,10 +62,15 @@ class IncrementalEncoder(codecs.IncrementalEncoder):
     def setstate(self, state):
         self.state = state
 
-    def encode(self, input, final=False):
+    def encode(self, data, final=False):
+        """\
+        Incremental encode, keep track of digits and emit a byte when a pair
+        of hex digits is found. The space is optional unless the error
+        handling is defined to be 'strict'.
+        """
         state = self.state
         encoded = []
-        for c in input.upper():
+        for c in data.upper():
             if c in HEXDIGITS:
                 z = HEXDIGITS.index(c)
                 if state:
@@ -72,21 +90,21 @@ class IncrementalEncoder(codecs.IncrementalEncoder):
 
 
 class IncrementalDecoder(codecs.IncrementalDecoder):
-    def decode(self, input, final=False):
-        return ''.join('{:02X} '.format(b) for b in input)
+    """Incremental decoder"""
+    def decode(self, data, final=False):
+        return ''.join('{:02X} '.format(b) for b in data)
 
 
 class StreamWriter(Codec, codecs.StreamWriter):
-    pass
+    """Combination of hexlify codec and StreamWriter"""
 
 
 class StreamReader(Codec, codecs.StreamReader):
-    pass
+    """Combination of hexlify codec and StreamReader"""
 
-
-# encodings module API
 
 def getregentry():
+    """encodings module API"""
     return codecs.CodecInfo(
         name='hexlify',
         encode=hex_encode,
