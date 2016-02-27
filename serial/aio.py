@@ -29,9 +29,9 @@ class SerialTransport(asyncio.Transport):
         # XXX how to support url handlers too
         self.serial.timeout = 0
         self.serial.nonblocking()
-        loop.call_soon(protocol.connection_made, self)
+        protocol.connection_made(self)
         # only start reading when connection_made() has been called
-        loop.call_soon(loop.add_reader, self.serial.fd, self._read_ready)
+        loop.add_reader(self.serial.fd, self._read_ready)
 
     def __repr__(self):
         return '{self.__class__.__name__}({self._loop}, {self._protocol}, {self.serial})'.format(self=self)
@@ -94,7 +94,7 @@ def create_serial_connection(loop, protocol_factory, *args, **kwargs):
     ser = serial.serial_for_url(*args, **kwargs)
     protocol = protocol_factory()
     transport = SerialTransport(loop, protocol, ser)
-    return (transport, protocol)
+    return transport, protocol
 
 @asyncio.coroutine
 def open_serial_connection(*args,
