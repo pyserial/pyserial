@@ -96,6 +96,20 @@ def create_serial_connection(loop, protocol_factory, *args, **kwargs):
     transport = SerialTransport(loop, protocol, ser)
     return (transport, protocol)
 
+@asyncio.coroutine
+def open_serial_connection(*args,
+                           loop=None, limit=asyncio.streams._DEFAULT_LIMIT,
+                           **kwds):
+    if loop is None:
+        loop = asyncio.get_event_loop()
+    reader = asyncio.StreamReader(limit=limit, loop=loop)
+    protocol = asyncio.StreamReaderProtocol(reader, loop=loop)
+    transport, _ = yield from create_serial_connection(
+        loop, lambda: protocol, *args, **kwds)
+    writer = asyncio.StreamWriter(transport, protocol, reader, loop)
+    return reader, writer
+
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
 if __name__ == '__main__':
