@@ -15,6 +15,7 @@ Windows event loops can not wait for serial ports with the current
 implementation. It should be possible to get that working though.
 """
 import asyncio
+import os
 import serial
 import logging
 
@@ -27,8 +28,6 @@ class SerialTransport(asyncio.Transport):
         self._closing = False
         self._paused = False
         # XXX how to support url handlers too
-        self.serial.timeout = 0
-        self.serial.nonblocking()
         protocol.connection_made(self)
         # only start reading when connection_made() has been called
         loop.add_reader(self.serial.fd, self._read_ready)
@@ -42,12 +41,12 @@ class SerialTransport(asyncio.Transport):
         self._closing = True
         self._loop.remove_reader(self.serial.fd)
         self.serial.close()
-        self._loop.call_soon(self._protocol.connection_lost, exc)
+        self._protocol.connection_lost(exc)
 
     def _read_ready(self):
         try:
-            data = self.serial.read(1024)
-        except serial.SerialException as e:
+            data = os.read(self.serial.fileno(), 1024)
+        except Exception as e:
             self.close(exc=e)
         else:
             if data:
@@ -56,7 +55,7 @@ class SerialTransport(asyncio.Transport):
     def write(self, data):
         try:
             self.serial.write(data)
-        except serial.SerialException as e:
+        except Exception as e:
             self.close(exc=e)
 
     def can_write_eof(self):

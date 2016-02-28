@@ -651,12 +651,6 @@ class Serial(SerialBase, PlatformSpecific):
         s = fcntl.ioctl(self.fd, TIOCOUTQ, TIOCM_zero_str)
         return struct.unpack('I', s)[0]
 
-    def nonblocking(self):
-        """internal - not portable!"""
-        if not self.is_open:
-            raise portNotOpenError
-        fcntl.fcntl(self.fd, fcntl.F_SETFL, os.O_NONBLOCK)
-
     def fileno(self):
         """\
         For easier use of the serial port instance with select.
