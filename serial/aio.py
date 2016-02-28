@@ -114,4 +114,14 @@ if os.name != "nt":
 else:
     class AsyncSerial(AsyncSerialBase):
         """Requires ProactorEventLoop"""
-        raise NotImplementedError
+        def fileno(self):
+            return self.ser._port_handle
+
+        def read(self, n):
+            return self._loop._proactor.recv(self.fileno(), n)
+
+        def write(self, data):
+            return self._loop._proactor.send(self.fileno(), data)
+
+        def close(self):
+            self.ser.close()
