@@ -1,134 +1,108 @@
-#!/usr/bin/env python3
-#
-# Experimental implementation of asyncio support.
-#
-# This file is part of pySerial. https://github.com/pyserial/pyserial
-# (C) 2015 Chris Liechti <cliechti@gmx.net>
-#
-# SPDX-License-Identifier:    BSD-3-Clause
-"""\
-Support asyncio with serial ports. EXPERIMENTAL
-
-Posix platforms only, Python 3.4+ only.
-
-Windows event loops can not wait for serial ports with the current
-implementation. It should be possible to get that working though.
-"""
 import asyncio
 import os
 import serial
-import logging
 
 
-class SerialTransport(asyncio.Transport):
-    def __init__(self, loop, protocol, serial_instance):
-        self._loop = loop
-        self._protocol = protocol
-        self.serial = serial_instance
-        self._closing = False
-        self._paused = False
-        # XXX how to support url handlers too
-        protocol.connection_made(self)
-        # only start reading when connection_made() has been called
-        loop.add_reader(self.serial.fd, self._read_ready)
-
-    def __repr__(self):
-        return '{self.__class__.__name__}({self._loop}, {self._protocol}, {self.serial})'.format(self=self)
-
-    def close(self, exc=None):
-        if self._closing:
-            return
-        self._closing = True
-        self._loop.remove_reader(self.serial.fd)
-        self.serial.close()
-        self._protocol.connection_lost(exc)
-
-    def _read_ready(self):
-        try:
-            data = os.read(self.serial.fileno(), 1024)
-        except Exception as e:
-            self.close(exc=e)
-        else:
-            if data:
-                self._protocol.data_received(data)
-
-    def write(self, data):
-        try:
-            self.serial.write(data)
-        except Exception as e:
-            self.close(exc=e)
-
-    def can_write_eof(self):
-        return False
-
-    def pause_reading(self):
-        if self._closing:
-            raise RuntimeError('Cannot pause_reading() when closing')
-        if self._paused:
-            raise RuntimeError('Already paused')
-        self._paused = True
-        self._loop.remove_reader(self._sock_fd)
-        if self._loop.get_debug():
-            logging.debug("%r pauses reading", self)
-
-    def resume_reading(self):
-        if not self._paused:
-            raise RuntimeError('Not paused')
-        self._paused = False
-        if self._closing:
-            return
-        self._loop.add_reader(self._sock_fd, self._read_ready)
-        if self._loop.get_debug():
-            logging.debug("%r resumes reading", self)
-
-    #~ def set_write_buffer_limits(self, high=None, low=None):
-    #~ def get_write_buffer_size(self):
-    #~ def writelines(self, list_of_data):
-    #~ def write_eof(self):
-    #~ def abort(self):
+__all__ = ["AsyncSerial"]
 
 
-@asyncio.coroutine
-def create_serial_connection(loop, protocol_factory, *args, **kwargs):
-    ser = serial.serial_for_url(*args, **kwargs)
-    protocol = protocol_factory()
-    transport = SerialTransport(loop, protocol, ser)
-    return transport, protocol
+class _ExactIO:
+    async def read_exactly(self, n):
+        data = bytesarray()
+        while len(data) < n:
+            remaining = n - len(data)
+            data += await self.read(remaining)
+        return data
 
-@asyncio.coroutine
-def open_serial_connection(*args,
-                           loop=None, limit=asyncio.streams._DEFAULT_LIMIT,
-                           **kwds):
-    if loop is None:
-        loop = asyncio.get_event_loop()
-    reader = asyncio.StreamReader(limit=limit, loop=loop)
-    protocol = asyncio.StreamReaderProtocol(reader, loop=loop)
-    transport, _ = yield from create_serial_connection(
-        loop, lambda: protocol, *args, **kwds)
-    writer = asyncio.StreamWriter(transport, protocol, reader, loop)
-    return reader, writer
+    async def write_exactly(self, data):
+        while data:
+            res = await self.write(data)
+            data = data[res:]
 
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# test
-if __name__ == '__main__':
-    class Output(asyncio.Protocol):
-        def connection_made(self, transport):
-            self.transport = transport
-            print('port opened', transport)
-            transport.serial.rts = False
-            transport.write(b'hello world\n')
+if os.name != "nt":
+    class AsyncSerial(_ExactIO):
+        def __init__(self, *args, loop=None, **kwargs):
+            self.ser = serial.serial_for_url(*args, **kwargs)
 
-        def data_received(self, data):
-            print('data received', repr(data))
-            self.transport.close()
+            if loop is None:
+                loop = asyncio.get_event_loop()
+            self._loop = loop
 
-        def connection_lost(self, exc):
-            print('port closed')
-            asyncio.get_event_loop().stop()
+        def __enter__(self):
+            return self
 
-    loop = asyncio.get_event_loop()
-    coro = create_serial_connection(loop, Output, '/dev/ttyUSB0', baudrate=115200)
-    loop.run_until_complete(coro)
-    loop.run_forever()
-    loop.close()
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.close()
+
+        def fileno(self):
+            return self.ser.fd
+
+        def _read_ready(self, future, n):
+            self._loop.remove_reader(self.fileno())
+            if not future.cancelled():
+                try:
+                    res = os.read(self.fileno(), n)
+                except Exception as exc:
+                    future.set_exception(exc)
+                else:
+                    future.set_result(res)
+
+        async def read(self, n):
+            future = asyncio.Future(loop=self._loop)
+
+            if n == 0:
+                future.set_result(b"")
+            else:
+                try:
+                    res = os.read(self.fileno(), n)
+                except Exception as exc:
+                    future.set_exception(exc)
+                else:
+                    if res:
+                        future.set_result(res)
+                    else:
+                        self._loop.add_reader(self.fileno(),
+                                              self._read_ready,
+                                              future, n)
+
+            return await future
+
+        def _write_ready(self, future, data):
+            self._loop.remove_writer(self.fileno())
+            if not future.cancelled():
+                try:
+                    res = os.write(self.fileno(), data)
+                except Exception as exc:
+                    future.set_exception(exc)
+                else:
+                    self._loop.remove_writer(self.fileno())
+                    future.set_result(written + res)
+
+        async def write(self, data):
+            future = asyncio.Future(loop=self._loop)
+
+            if len(data) == 0:
+                future.set_result(0)
+            else:
+                try:
+                    res = os.write(self.fileno(), data)
+                except BlockingIOError:
+                    self._loop.add_writer(self.fileno(),
+                                          self._write_ready,
+                                          future, data)
+                except Exception as exc:
+                    future.set_exception(exc)
+                else:
+                    future.set_result(res)
+
+            return await future
+
+        def close(self):
+            self._loop.remove_reader(self.fileno())
+            self._loop.remove_writer(self.fileno())
+            self.ser.close()
+
+else:
+    class AsyncSerial(_ExactIO):
+        raise NotImplementedError
