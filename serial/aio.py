@@ -6,7 +6,23 @@ import serial
 __all__ = ["AsyncSerial"]
 
 
-class _ExactIO:
+class AsyncSerialBase:
+    def __init__(self, *args, loop=None, **kwargs):
+        self.ser = serial.serial_for_url(*args, **kwargs)
+
+        if loop is None:
+            loop = asyncio.get_event_loop()
+        self._loop = loop
+
+        self.read_future = None
+        self.write_future = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
     async def read_exactly(self, n):
         data = bytesarray()
         while len(data) < n:
@@ -21,34 +37,23 @@ class _ExactIO:
 
 
 if os.name != "nt":
-    class AsyncSerial(_ExactIO):
-        def __init__(self, *args, loop=None, **kwargs):
-            self.ser = serial.serial_for_url(*args, **kwargs)
-
-            if loop is None:
-                loop = asyncio.get_event_loop()
-            self._loop = loop
-
-        def __enter__(self):
-            return self
-
-        def __exit__(self, exc_type, exc_value, traceback):
-            self.close()
-
+    class AsyncSerial(AsyncSerialBase):
         def fileno(self):
             return self.ser.fd
 
-        def _read_ready(self, future, n):
+        def _read_ready(self, n):
             self._loop.remove_reader(self.fileno())
-            if not future.cancelled():
+            if not self.read_future.cancelled():
                 try:
                     res = os.read(self.fileno(), n)
                 except Exception as exc:
-                    future.set_exception(exc)
+                    self.read_future.set_exception(exc)
                 else:
-                    future.set_result(res)
+                    self.read_future.set_result(res)
+            self.read_future = None
 
-        async def read(self, n):
+        def read(self, n):
+            assert self.read_future is None or self.read_future.cancelled()
             future = asyncio.Future(loop=self._loop)
 
             if n == 0:
@@ -62,24 +67,25 @@ if os.name != "nt":
                     if res:
                         future.set_result(res)
                     else:
+                        self.read_future = future
                         self._loop.add_reader(self.fileno(),
-                                              self._read_ready,
-                                              future, n)
+                                              self._read_ready, n)
 
-            return await future
+            return future
 
-        def _write_ready(self, future, data):
+        def _write_ready(self, data):
             self._loop.remove_writer(self.fileno())
-            if not future.cancelled():
+            if not self.write_future.cancelled():
                 try:
                     res = os.write(self.fileno(), data)
                 except Exception as exc:
-                    future.set_exception(exc)
+                    self.write_future.set_exception(exc)
                 else:
-                    self._loop.remove_writer(self.fileno())
-                    future.set_result(written + res)
+                    self.write_future.set_result(res)
+            self.write_future = None
 
-        async def write(self, data):
+        def write(self, data):
+            assert self.write_future is None or self.write_future.cancelled()
             future = asyncio.Future(loop=self._loop)
 
             if len(data) == 0:
@@ -88,21 +94,24 @@ if os.name != "nt":
                 try:
                     res = os.write(self.fileno(), data)
                 except BlockingIOError:
+                    self.write_future = future
                     self._loop.add_writer(self.fileno(),
-                                          self._write_ready,
-                                          future, data)
+                                          self._write_ready, data)
                 except Exception as exc:
                     future.set_exception(exc)
                 else:
                     future.set_result(res)
 
-            return await future
+            return future
 
         def close(self):
-            self._loop.remove_reader(self.fileno())
-            self._loop.remove_writer(self.fileno())
+            if self.read_future is not None:
+                self._loop.remove_reader(self.fileno())
+            if self.write_future is not None:
+                self._loop.remove_writer(self.fileno())
             self.ser.close()
 
 else:
-    class AsyncSerial(_ExactIO):
+    class AsyncSerial(AsyncSerialBase):
+        """Requires ProactorEventLoop"""
         raise NotImplementedError
