@@ -22,10 +22,9 @@ class Redirector(object):
         self.socket = socket
         self._write_lock = threading.Lock()
         self.rfc2217 = serial.rfc2217.PortManager(
-                self.serial,
-                self,
-                logger=logging.getLogger('rfc2217.server') if debug else None
-                )
+            self.serial,
+            self,
+            logger=logging.getLogger('rfc2217.server') if debug else None)
         self.log = logging.getLogger('redirector')
 
     def statusline_poller(self):
@@ -109,31 +108,27 @@ it waits for the next connect.
     parser.add_argument('SERIALPORT')
 
     parser.add_argument(
-            '-p', '--localport',
-            type=int,
-            help='local TCP port, default: %(default)s',
-            metavar='TCPPORT',
-            default=2217
-            )
+        '-p', '--localport',
+        type=int,
+        help='local TCP port, default: %(default)s',
+        metavar='TCPPORT',
+        default=2217)
 
     parser.add_argument(
-            '-v', '--verbose',
-            dest='verbosity',
-            action='count',
-            help='print more diagnostic messages (option can be given multiple times)',
-            default=0
-            )
+        '-v', '--verbose',
+        dest='verbosity',
+        action='count',
+        help='print more diagnostic messages (option can be given multiple times)',
+        default=0)
 
     args = parser.parse_args()
 
     if args.verbosity > 3:
         args.verbosity = 3
-    level = (
-            logging.WARNING,
-            logging.INFO,
-            logging.DEBUG,
-            logging.NOTSET,
-            )[args.verbosity]
+    level = (logging.WARNING,
+             logging.INFO,
+             logging.DEBUG,
+             logging.NOTSET)[args.verbosity]
     logging.basicConfig(level=logging.INFO)
     #~ logging.getLogger('root').setLevel(logging.INFO)
     logging.getLogger('rfc2217').setLevel(level)
@@ -170,10 +165,9 @@ it waits for the next connect.
             ser.dtr = True
             # enter network <-> serial loop
             r = Redirector(
-                    ser,
-                    client_socket,
-                    args.verbosity > 0
-                    )
+                ser,
+                client_socket,
+                args.verbosity > 0)
             try:
                 r.shortcircuit()
             finally:
@@ -192,4 +186,3 @@ it waits for the next connect.
             logging.error(str(msg))
 
     logging.info('--- exit ---')
-

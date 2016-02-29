@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-
-# portable serial port access with python
-# this is a wrapper module for different platform implementations of the
-# port enumeration feature
 #
+# Serial port enumeration. Console tool and backend selection.
+#
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2011-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
@@ -55,31 +54,32 @@ def main():
     parser = argparse.ArgumentParser(description='Serial port enumeration')
 
     parser.add_argument(
-            'regexp',
-            nargs='?',
-            help='only show ports that match this regex')
+        'regexp',
+        nargs='?',
+        help='only show ports that match this regex')
 
     parser.add_argument(
-            '-v', '--verbose',
-            action='store_true',
-            help='show more messages')
+        '-v', '--verbose',
+        action='store_true',
+        help='show more messages')
 
     parser.add_argument(
-            '-q', '--quiet',
-            action='store_true',
-            help='suppress all messages')
+        '-q', '--quiet',
+        action='store_true',
+        help='suppress all messages')
 
     parser.add_argument(
-            '-n',
-            type=int,
-            help='only output the N-th entry')
+        '-n',
+        type=int,
+        help='only output the N-th entry')
 
     args = parser.parse_args()
 
     hits = 0
     # get iteraror w/ or w/o filter
     if args.regexp:
-        sys.stderr.write("Filtered list with regexp: %r\n" % (args.regexp,))
+        if not args.quiet:
+            sys.stderr.write("Filtered list with regexp: %r\n" % (args.regexp,))
         iterator = sorted(grep(args.regexp))
     else:
         iterator = sorted(comports())

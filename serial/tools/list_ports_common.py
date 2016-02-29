@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 #
-# portable serial port access with python
-#
 # This is a helper module for the various platform dependent list_port
 # implementations.
 #
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
@@ -45,18 +44,21 @@ class ListPortInfo(object):
         self.interface = None
 
     def usb_description(self):
+        """return a short string to name the port based on USB info"""
         if self.interface is not None:
             return '{} - {}'.format(self.product, self.interface)
-        else:
+        elif self.product is not None:
             return self.product
+        else:
+            return self.name
 
     def usb_info(self):
+        """return a string with USB related information about device"""
         return 'USB VID:PID={:04X}:{:04X}{}{}'.format(
-                self.vid,
-                self.pid,
-                ' SER={}'.format(self.serial_number) if self.serial_number is not None else '',
-                ' LOCATION={}'.format(self.location) if self.location is not None else '',
-                )
+            self.vid,
+            self.pid,
+            ' SER={}'.format(self.serial_number) if self.serial_number is not None else '',
+            ' LOCATION={}'.format(self.location) if self.location is not None else '')
 
     def apply_usb_info(self):
         """update description and hwid from USB data"""

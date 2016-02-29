@@ -1,12 +1,10 @@
 #! python
 #
-# Python Serial Port Extension for Win32, Linux, BSD, Jython
-# see __init__.py
-#
 # This module implements a RFC2217 compatible client. RF2217 descibes a
 # protocol to access serial ports over TCP/IP and allows setting the baud rate,
 # modem control lines etc.
 #
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
@@ -84,11 +82,11 @@ from serial.serialutil import SerialBase, SerialException, to_bytes, iterbytes, 
 
 # map log level names to constants. used in from_url()
 LOGGER_LEVELS = {
-        'debug': logging.DEBUG,
-        'info': logging.INFO,
-        'warning': logging.WARNING,
-        'error': logging.ERROR,
-        }
+    'debug': logging.DEBUG,
+    'info': logging.INFO,
+    'warning': logging.WARNING,
+    'error': logging.ERROR,
+}
 
 
 # telnet protocol characters
@@ -201,7 +199,8 @@ MODEMSTATE_MASK_CTS_CHANGE = 1      # Delta Clear-To-Send
 
 PURGE_RECEIVE_BUFFER = b'\x01'      # Purge access server receive data buffer
 PURGE_TRANSMIT_BUFFER = b'\x02'     # Purge access server transmit data buffer
-PURGE_BOTH_BUFFERS = b'\x03'        # Purge both the access server receive data buffer and the access server transmit data buffer
+PURGE_BOTH_BUFFERS = b'\x03'        # Purge both the access server receive data
+                                    # buffer and the access server transmit data buffer
 
 
 RFC2217_PARITY_MAP = {
@@ -235,7 +234,8 @@ REALLY_INACTIVE = 'REALLY_INACTIVE'
 class TelnetOption(object):
     """Manage a single telnet option, keeps track of DO/DONT WILL/WONT."""
 
-    def __init__(self, connection, name, option, send_yes, send_no, ack_yes, ack_no, initial_state, activation_callback=None):
+    def __init__(self, connection, name, option, send_yes, send_no, ack_yes,
+                 ack_no, initial_state, activation_callback=None):
         """\
         Initialize option.
         :param connection: connection used to transmit answers
@@ -260,7 +260,7 @@ class TelnetOption(object):
 
     def __repr__(self):
         """String for debug outputs"""
-        return "%s:%s(%s)" % (self.name, self.active, self.state)
+        return "{o.name}:{o.active}({o.state})".format(o=self)
 
     def process_incoming(self, command):
         """\
@@ -277,28 +277,28 @@ class TelnetOption(object):
                 pass
             elif self.state is INACTIVE:
                 self.state = ACTIVE
-                self.connection.telnetSendOption(self.send_yes, self.option)
+                self.connection.telnet_send_option(self.send_yes, self.option)
                 self.active = True
                 if self.activation_callback is not None:
                     self.activation_callback()
             elif self.state is REALLY_INACTIVE:
-                self.connection.telnetSendOption(self.send_no, self.option)
+                self.connection.telnet_send_option(self.send_no, self.option)
             else:
-                raise ValueError('option in illegal state %r' % self)
+                raise ValueError('option in illegal state {!r}'.format(self))
         elif command == self.ack_no:
             if self.state is REQUESTED:
                 self.state = INACTIVE
                 self.active = False
             elif self.state is ACTIVE:
                 self.state = INACTIVE
-                self.connection.telnetSendOption(self.send_no, self.option)
+                self.connection.telnet_send_option(self.send_no, self.option)
                 self.active = False
             elif self.state is INACTIVE:
                 pass
             elif self.state is REALLY_INACTIVE:
                 pass
             else:
-                raise ValueError('option in illegal state %r' % self)
+                raise ValueError('option in illegal state {!r}'.format(self))
 
 
 class TelnetSubnegotiation(object):
@@ -319,7 +319,7 @@ class TelnetSubnegotiation(object):
 
     def __repr__(self):
         """String for debug outputs."""
-        return "%s:%s" % (self.name, self.state)
+        return "{sn.name}:{sn.state}".format(sn=self)
 
     def set(self, value):
         """\
@@ -329,20 +329,20 @@ class TelnetSubnegotiation(object):
         """
         self.value = value
         self.state = REQUESTED
-        self.connection.rfc2217SendSubnegotiation(self.option, self.value)
+        self.connection.rfc2217_send_subnegotiation(self.option, self.value)
         if self.connection.logger:
-            self.connection.logger.debug("SB Requesting %s -> %r" % (self.name, self.value))
+            self.connection.logger.debug("SB Requesting {} -> {!r}".format(self.name, self.value))
 
-    def isReady(self):
+    def is_ready(self):
         """\
         Check if answer from server has been received. when server rejects
         the change, raise a ValueError.
         """
         if self.state == REALLY_INACTIVE:
-            raise ValueError("remote rejected value for option %r" % (self.name))
+            raise ValueError("remote rejected value for option {!r}".format(self.name))
         return self.state == ACTIVE
     # add property to have a similar interface as TelnetOption
-    active = property(isReady)
+    active = property(is_ready)
 
     def wait(self, timeout=3):
         """\
@@ -353,12 +353,12 @@ class TelnetSubnegotiation(object):
         timeout_time = time.time() + timeout
         while time.time() < timeout_time:
             time.sleep(0.05)    # prevent 100% CPU load
-            if self.isReady():
+            if self.is_ready():
                 break
         else:
-            raise SerialException("timeout while waiting for option %r" % (self.name))
+            raise SerialException("timeout while waiting for option {!r}".format(self.name))
 
-    def checkAnswer(self, suboption):
+    def check_answer(self, suboption):
         """\
         Check an incoming subnegotiation block. The parameter already has
         cut off the header like sub option number and com port option value.
@@ -366,10 +366,10 @@ class TelnetSubnegotiation(object):
         if self.value == suboption[:len(self.value)]:
             self.state = ACTIVE
         else:
-            # error propagation done in isReady
+            # error propagation done in is_ready
             self.state = REALLY_INACTIVE
         if self.connection.logger:
-            self.connection.logger.debug("SB Answer %s -> %r -> %s" % (self.name, suboption, self.state))
+            self.connection.logger.debug("SB Answer {} -> {!r} -> {}".format(self.name, suboption, self.state))
 
 
 class Serial(SerialBase):
@@ -382,6 +382,19 @@ class Serial(SerialBase):
         super(Serial, self).__init__(*args, **kwargs)
         self._thread = None
         self._socket = None
+        self._linestate = 0
+        self._modemstate = None
+        self._modemstate_expires = 0
+        self._remote_suspend_flow = False
+        self._write_lock = None
+        self.logger = None
+        self._ignore_set_control_answer = False
+        self._poll_modem_state = False
+        self._network_timeout = 3
+        self._telnet_options = None
+        self._rfc2217_port_settings = None
+        self._rfc2217_options = None
+        self._read_buffer = None
 
     def open(self):
         """\
@@ -401,7 +414,7 @@ class Serial(SerialBase):
             self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         except Exception as msg:
             self._socket = None
-            raise SerialException("Could not open port %s: %s" % (self.portstr, msg))
+            raise SerialException("Could not open port {}: {}".format(self.portstr, msg))
 
         self._socket.settimeout(5)  # XXX good value?
 
@@ -431,13 +444,13 @@ class Serial(SerialBase):
             'datasize': TelnetSubnegotiation(self, 'datasize', SET_DATASIZE, SERVER_SET_DATASIZE),
             'parity':   TelnetSubnegotiation(self, 'parity',   SET_PARITY,   SERVER_SET_PARITY),
             'stopsize': TelnetSubnegotiation(self, 'stopsize', SET_STOPSIZE, SERVER_SET_STOPSIZE),
-            }
+        }
         # There are more subnegotiation objects, combine all in one dictionary
         # for easy access
         self._rfc2217_options = {
             'purge':    TelnetSubnegotiation(self, 'purge',    PURGE_DATA,   SERVER_PURGE_DATA),
             'control':  TelnetSubnegotiation(self, 'control',  SET_CONTROL,  SERVER_SET_CONTROL),
-            }
+        }
         self._rfc2217_options.update(self._rfc2217_port_settings)
         # cache for line and modem states that the server sends to us
         self._linestate = 0
@@ -447,16 +460,16 @@ class Serial(SerialBase):
         self._remote_suspend_flow = False
 
         self.is_open = True
-        self._thread = threading.Thread(target=self._telnetReadLoop)
+        self._thread = threading.Thread(target=self._telnet_read_loop)
         self._thread.setDaemon(True)
-        self._thread.setName('pySerial RFC 2217 reader thread for %s' % (self._port,))
+        self._thread.setName('pySerial RFC 2217 reader thread for {}'.format(self._port))
         self._thread.start()
 
         try:    # must clean-up if open fails
             # negotiate Telnet/RFC 2217 -> send initial requests
             for option in self._telnet_options:
                 if option.state is REQUESTED:
-                    self.telnetSendOption(option.send_yes, option.option)
+                    self.telnet_send_option(option.send_yes, option.option)
             # now wait until important options are negotiated
             timeout_time = time.time() + self._network_timeout
             while time.time() < timeout_time:
@@ -464,9 +477,10 @@ class Serial(SerialBase):
                 if sum(o.active for o in mandadory_options) == sum(o.state != INACTIVE for o in mandadory_options):
                     break
             else:
-                raise SerialException("Remote does not seem to support RFC2217 or BINARY mode %r" % mandadory_options)
+                raise SerialException(
+                    "Remote does not seem to support RFC2217 or BINARY mode {!r}".format(mandadory_options))
             if self.logger:
-                self.logger.info("Negotiated options: %s" % self._telnet_options)
+                self.logger.info("Negotiated options: {}".format(self._telnet_options))
 
             # fine, go on, set RFC 2271 specific things
             self._reconfigure_port()
@@ -495,8 +509,8 @@ class Serial(SerialBase):
 
         # Setup the connection
         # to get good performance, all parameter changes are sent first...
-        if not 0 < self._baudrate < 2**32:
-            raise ValueError("invalid baudrate: %r" % (self._baudrate))
+        if not 0 < self._baudrate < 2 ** 32:
+            raise ValueError("invalid baudrate: {!r}".format(self._baudrate))
         self._rfc2217_port_settings['baudrate'].set(struct.pack(b'!I', self._baudrate))
         self._rfc2217_port_settings['datasize'].set(struct.pack(b'!B', self._bytesize))
         self._rfc2217_port_settings['parity'].set(struct.pack(b'!B', RFC2217_PARITY_MAP[self._parity]))
@@ -505,25 +519,25 @@ class Serial(SerialBase):
         # and now wait until parameters are active
         items = self._rfc2217_port_settings.values()
         if self.logger:
-            self.logger.debug("Negotiating settings: %s" % (items,))
+            self.logger.debug("Negotiating settings: {}".format(items))
         timeout_time = time.time() + self._network_timeout
         while time.time() < timeout_time:
             time.sleep(0.05)    # prevent 100% CPU load
             if sum(o.active for o in items) == len(items):
                 break
         else:
-            raise SerialException("Remote does not accept parameter change (RFC2217): %r" % items)
+            raise SerialException("Remote does not accept parameter change (RFC2217): {!r}".format(items))
         if self.logger:
-            self.logger.info("Negotiated settings: %s" % (items,))
+            self.logger.info("Negotiated settings: {}".format(items))
 
         if self._rtscts and self._xonxoff:
             raise ValueError('xonxoff and rtscts together are not supported')
         elif self._rtscts:
-            self.rfc2217SetControl(SET_CONTROL_USE_HW_FLOW_CONTROL)
+            self.rfc2217_set_control(SET_CONTROL_USE_HW_FLOW_CONTROL)
         elif self._xonxoff:
-            self.rfc2217SetControl(SET_CONTROL_USE_SW_FLOW_CONTROL)
+            self.rfc2217_set_control(SET_CONTROL_USE_SW_FLOW_CONTROL)
         else:
-            self.rfc2217SetControl(SET_CONTROL_USE_NO_FLOW_CONTROL)
+            self.rfc2217_set_control(SET_CONTROL_USE_NO_FLOW_CONTROL)
 
     def close(self):
         """Close port"""
@@ -543,10 +557,16 @@ class Serial(SerialBase):
         self._socket = None
 
     def from_url(self, url):
-        """extract host and port from an URL string"""
+        """\
+        extract host and port from an URL string, other settings are extracted
+        an stored in instance
+        """
         parts = urlparse.urlsplit(url)
         if parts.scheme != "rfc2217":
-            raise SerialException('expected a string in the form "rfc2217://<host>:<port>[?option[&option...]]": not starting with rfc2217:// (%r)' % (parts.scheme,))
+            raise SerialException(
+                'expected a string in the form '
+                '"rfc2217://<host>:<port>[?option[&option...]]": '
+                'not starting with rfc2217:// ({!r})'.format(parts.scheme))
         try:
             # process options now, directly altering self
             for option, values in urlparse.parse_qs(parts.query, True).items():
@@ -562,13 +582,15 @@ class Serial(SerialBase):
                 elif option == 'timeout':
                     self._network_timeout = float(values[0])
                 else:
-                    raise ValueError('unknown option: %r' % (option,))
+                    raise ValueError('unknown option: {!r}'.format(option))
             # get host and port
             host, port = parts.hostname, parts.port
             if not 0 <= port < 65536:
                 raise ValueError("port not in range 0...65535")
         except ValueError as e:
-            raise SerialException('expected a string in the form "rfc2217://<host>:<port>[?option[&option...]]": %s' % e)
+            raise SerialException(
+                'expected a string in the form '
+                '"rfc2217://<host>:<port>[?option[&option...]]": {}'.format(e))
         return (host, port)
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
@@ -610,14 +632,14 @@ class Serial(SerialBase):
             try:
                 self._socket.sendall(to_bytes(data).replace(IAC, IAC_DOUBLED))
             except socket.error as e:
-                raise SerialException("connection failed (socket error): %s" % (e,))
+                raise SerialException("connection failed (socket error): {}".format(e))
         return len(data)
 
     def reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
         if not self.is_open:
             raise portNotOpenError
-        self.rfc2217SendPurge(PURGE_RECEIVE_BUFFER)
+        self.rfc2217_send_purge(PURGE_RECEIVE_BUFFER)
         # empty read buffer
         while self._read_buffer.qsize():
             self._read_buffer.get(False)
@@ -629,7 +651,7 @@ class Serial(SerialBase):
         """
         if not self.is_open:
             raise portNotOpenError
-        self.rfc2217SendPurge(PURGE_TRANSMIT_BUFFER)
+        self.rfc2217_send_purge(PURGE_TRANSMIT_BUFFER)
 
     def _update_break_state(self):
         """\
@@ -639,68 +661,68 @@ class Serial(SerialBase):
         if not self.is_open:
             raise portNotOpenError
         if self.logger:
-            self.logger.info('set BREAK to %s' % ('active' if self._break_state else 'inactive'))
+            self.logger.info('set BREAK to {}'.format('active' if self._break_state else 'inactive'))
         if self._break_state:
-            self.rfc2217SetControl(SET_CONTROL_BREAK_ON)
+            self.rfc2217_set_control(SET_CONTROL_BREAK_ON)
         else:
-            self.rfc2217SetControl(SET_CONTROL_BREAK_OFF)
+            self.rfc2217_set_control(SET_CONTROL_BREAK_OFF)
 
     def _update_rts_state(self):
         """Set terminal status line: Request To Send."""
         if not self.is_open:
             raise portNotOpenError
         if self.logger:
-            self.logger.info('set RTS to %s' % ('active' if self._rts_state else 'inactive'))
+            self.logger.info('set RTS to {}'.format('active' if self._rts_state else 'inactive'))
         if self._rts_state:
-            self.rfc2217SetControl(SET_CONTROL_RTS_ON)
+            self.rfc2217_set_control(SET_CONTROL_RTS_ON)
         else:
-            self.rfc2217SetControl(SET_CONTROL_RTS_OFF)
+            self.rfc2217_set_control(SET_CONTROL_RTS_OFF)
 
-    def _update_dtr_state(self, level=True):
+    def _update_dtr_state(self):
         """Set terminal status line: Data Terminal Ready."""
         if not self.is_open:
             raise portNotOpenError
         if self.logger:
-            self.logger.info('set DTR to %s' % ('active' if self._dtr_state else 'inactive'))
+            self.logger.info('set DTR to {}'.format('active' if self._dtr_state else 'inactive'))
         if self._dtr_state:
-            self.rfc2217SetControl(SET_CONTROL_DTR_ON)
+            self.rfc2217_set_control(SET_CONTROL_DTR_ON)
         else:
-            self.rfc2217SetControl(SET_CONTROL_DTR_OFF)
+            self.rfc2217_set_control(SET_CONTROL_DTR_OFF)
 
     @property
     def cts(self):
         """Read terminal status line: Clear To Send."""
         if not self.is_open:
             raise portNotOpenError
-        return bool(self.getModemState() & MODEMSTATE_MASK_CTS)
+        return bool(self.get_modem_state() & MODEMSTATE_MASK_CTS)
 
     @property
     def dsr(self):
         """Read terminal status line: Data Set Ready."""
         if not self.is_open:
             raise portNotOpenError
-        return bool(self.getModemState() & MODEMSTATE_MASK_DSR)
+        return bool(self.get_modem_state() & MODEMSTATE_MASK_DSR)
 
     @property
     def ri(self):
         """Read terminal status line: Ring Indicator."""
         if not self.is_open:
             raise portNotOpenError
-        return bool(self.getModemState() & MODEMSTATE_MASK_RI)
+        return bool(self.get_modem_state() & MODEMSTATE_MASK_RI)
 
     @property
     def cd(self):
         """Read terminal status line: Carrier Detect."""
         if not self.is_open:
             raise portNotOpenError
-        return bool(self.getModemState() & MODEMSTATE_MASK_CD)
+        return bool(self.get_modem_state() & MODEMSTATE_MASK_CD)
 
     # - - - platform specific - - -
     # None so far
 
     # - - - RFC2217 specific - - -
 
-    def _telnetReadLoop(self):
+    def _telnet_read_loop(self):
         """Read loop for the socket."""
         mode = M_NORMAL
         suboption = None
@@ -715,7 +737,7 @@ class Serial(SerialBase):
                 except socket.error as e:
                     # connection fails -> terminate loop
                     if self.logger:
-                        self.logger.debug("socket error in reader thread: %s" % (e,))
+                        self.logger.debug("socket error in reader thread: {}".format(e))
                     break
                 if not data:
                     break  # lost connection
@@ -746,7 +768,7 @@ class Serial(SerialBase):
                             mode = M_NORMAL
                         elif byte == SE:
                             # sub option end -> process it now
-                            self._telnetProcessSubnegotiation(bytes(suboption))
+                            self._telnet_process_subnegotiation(bytes(suboption))
                             suboption = None
                             mode = M_NORMAL
                         elif byte in (DO, DONT, WILL, WONT):
@@ -755,10 +777,10 @@ class Serial(SerialBase):
                             mode = M_NEGOTIATE
                         else:
                             # other telnet commands
-                            self._telnetProcessCommand(byte)
+                            self._telnet_process_command(byte)
                             mode = M_NORMAL
                     elif mode == M_NEGOTIATE:  # DO, DONT, WILL, WONT was received, option now following
-                        self._telnetNegotiateOption(telnet_command, byte)
+                        self._telnet_negotiate_option(telnet_command, byte)
                         mode = M_NORMAL
         finally:
             self._thread = None
@@ -767,13 +789,13 @@ class Serial(SerialBase):
 
     # - incoming telnet commands and options
 
-    def _telnetProcessCommand(self, command):
+    def _telnet_process_command(self, command):
         """Process commands other than DO, DONT, WILL, WONT."""
         # Currently none. RFC2217 only uses negotiation and subnegotiation.
         if self.logger:
-            self.logger.warning("ignoring Telnet command: %r" % (command,))
+            self.logger.warning("ignoring Telnet command: {!r}".format(command))
 
-    def _telnetNegotiateOption(self, command, option):
+    def _telnet_negotiate_option(self, command, option):
         """Process incoming DO, DONT, WILL, WONT."""
         # check our registered telnet options and forward command to them
         # they know themselves if they have to answer or not
@@ -788,21 +810,21 @@ class Serial(SerialBase):
             # handle unknown options
             # only answer to positive requests and deny them
             if command == WILL or command == DO:
-                self.telnetSendOption((DONT if command == WILL else WONT), option)
+                self.telnet_send_option((DONT if command == WILL else WONT), option)
                 if self.logger:
-                    self.logger.warning("rejected Telnet option: %r" % (option,))
+                    self.logger.warning("rejected Telnet option: {!r}".format(option))
 
-    def _telnetProcessSubnegotiation(self, suboption):
+    def _telnet_process_subnegotiation(self, suboption):
         """Process subnegotiation, the data between IAC SB and IAC SE."""
         if suboption[0:1] == COM_PORT_OPTION:
             if suboption[1:2] == SERVER_NOTIFY_LINESTATE and len(suboption) >= 3:
                 self._linestate = ord(suboption[2:3])  # ensure it is a number
                 if self.logger:
-                    self.logger.info("NOTIFY_LINESTATE: %s" % self._linestate)
+                    self.logger.info("NOTIFY_LINESTATE: {}".format(self._linestate))
             elif suboption[1:2] == SERVER_NOTIFY_MODEMSTATE and len(suboption) >= 3:
                 self._modemstate = ord(suboption[2:3])  # ensure it is a number
                 if self.logger:
-                    self.logger.info("NOTIFY_MODEMSTATE: %s" % self._modemstate)
+                    self.logger.info("NOTIFY_MODEMSTATE: {}".format(self._modemstate))
                 # update time when we think that a poll would make sense
                 self._modemstate_expires = time.time() + 0.3
             elif suboption[1:2] == FLOWCONTROL_SUSPEND:
@@ -813,14 +835,14 @@ class Serial(SerialBase):
                 for item in self._rfc2217_options.values():
                     if item.ack_option == suboption[1:2]:
                         #~ print "processing COM_PORT_OPTION: %r" % list(suboption[1:])
-                        item.checkAnswer(bytes(suboption[2:]))
+                        item.check_answer(bytes(suboption[2:]))
                         break
                 else:
                     if self.logger:
-                        self.logger.warning("ignoring COM_PORT_OPTION: %r" % (suboption,))
+                        self.logger.warning("ignoring COM_PORT_OPTION: {!r}".format(suboption))
         else:
             if self.logger:
-                self.logger.warning("ignoring subnegotiation: %r" % (suboption,))
+                self.logger.warning("ignoring subnegotiation: {!r}".format(suboption))
 
     # - outgoing telnet commands and options
 
@@ -829,21 +851,26 @@ class Serial(SerialBase):
         with self._write_lock:
             self._socket.sendall(data)
 
-    def telnetSendOption(self, action, option):
+    def telnet_send_option(self, action, option):
         """Send DO, DONT, WILL, WONT."""
         self._internal_raw_write(to_bytes([IAC, action, option]))
 
-    def rfc2217SendSubnegotiation(self, option, value=b''):
+    def rfc2217_send_subnegotiation(self, option, value=b''):
         """Subnegotiation of RFC2217 parameters."""
         value = value.replace(IAC, IAC_DOUBLED)
         self._internal_raw_write(to_bytes([IAC, SB, COM_PORT_OPTION, option] + list(value) + [IAC, SE]))
 
-    def rfc2217SendPurge(self, value):
+    def rfc2217_send_purge(self, value):
+        """\
+        Send purge request to the remote.
+        (PURGE_RECEIVE_BUFFER / PURGE_TRANSMIT_BUFFER / PURGE_BOTH_BUFFERS)
+        """
         item = self._rfc2217_options['purge']
         item.set(value)  # transmit desired purge type
         item.wait(self._network_timeout)  # wait for acknowledge from the server
 
-    def rfc2217SetControl(self, value):
+    def rfc2217_set_control(self, value):
+        """transmit change of control line to remote"""
         item = self._rfc2217_options['control']
         item.set(value)  # transmit desired control type
         if self._ignore_set_control_answer:
@@ -854,15 +881,15 @@ class Serial(SerialBase):
         else:
             item.wait(self._network_timeout)  # wait for acknowledge from the server
 
-    def rfc2217FlowServerReady(self):
+    def rfc2217_flow_server_ready(self):
         """\
         check if server is ready to receive data. block for some time when
         not.
         """
         #~ if self._remote_suspend_flow:
-            #~ wait---
+        #~     wait---
 
-    def getModemState(self):
+    def get_modem_state(self):
         """\
         get last modem state (cached value. If value is "old", request a new
         one. This cache helps that we don't issue to many requests when e.g. all
@@ -874,7 +901,7 @@ class Serial(SerialBase):
             if self.logger:
                 self.logger.debug('polling modem state')
             # when it is older, request an update
-            self.rfc2217SendSubnegotiation(NOTIFY_MODEMSTATE)
+            self.rfc2217_send_subnegotiation(NOTIFY_MODEMSTATE)
             timeout_time = time.time() + self._network_timeout
             while time.time() < timeout_time:
                 time.sleep(0.05)    # prevent 100% CPU load
@@ -933,14 +960,14 @@ class PortManager(object):
             TelnetOption(self, 'they-BINARY', BINARY, DO, DONT, WILL, WONT, REQUESTED),
             TelnetOption(self, 'we-RFC2217', COM_PORT_OPTION, WILL, WONT, DO, DONT, REQUESTED, self._client_ok),
             TelnetOption(self, 'they-RFC2217', COM_PORT_OPTION, DO, DONT, WILL, WONT, INACTIVE, self._client_ok),
-            ]
+        ]
 
         # negotiate Telnet/RFC2217 -> send initial requests
         if self.logger:
             self.logger.debug("requesting initial Telnet/RFC 2217 options")
         for option in self._telnet_options:
             if option.state is REQUESTED:
-                self.telnetSendOption(option.send_yes, option.option)
+                self.telnet_send_option(option.send_yes, option.option)
         # issue 1st modem state notification
 
     def _client_ok(self):
@@ -963,11 +990,11 @@ class PortManager(object):
 
     # - outgoing telnet commands and options
 
-    def telnetSendOption(self, action, option):
+    def telnet_send_option(self, action, option):
         """Send DO, DONT, WILL, WONT."""
         self.connection.write(to_bytes([IAC, action, option]))
 
-    def rfc2217SendSubnegotiation(self, option, value=b''):
+    def rfc2217_send_subnegotiation(self, option, value=b''):
         """Subnegotiation of RFC 2217 parameters."""
         value = value.replace(IAC, IAC_DOUBLED)
         self.connection.write(to_bytes([IAC, SB, COM_PORT_OPTION, option] + list(value) + [IAC, SE]))
@@ -976,11 +1003,15 @@ class PortManager(object):
     # establish polling
 
     def check_modem_lines(self, force_notification=False):
+        """\
+        read control lines from serial port and compare the last value sent to remote.
+        send updates on changes.
+        """
         modemstate = (
-                (self.serial.getCTS() and MODEMSTATE_MASK_CTS) |
-                (self.serial.getDSR() and MODEMSTATE_MASK_DSR) |
-                (self.serial.getRI() and MODEMSTATE_MASK_RI) |
-                (self.serial.getCD() and MODEMSTATE_MASK_CD))
+            (self.serial.getCTS() and MODEMSTATE_MASK_CTS) |
+            (self.serial.getDSR() and MODEMSTATE_MASK_DSR) |
+            (self.serial.getRI() and MODEMSTATE_MASK_RI) |
+            (self.serial.getCD() and MODEMSTATE_MASK_CD))
         # check what has changed
         deltas = modemstate ^ (self.last_modemstate or 0)  # when last is None -> 0
         if deltas & MODEMSTATE_MASK_CTS:
@@ -995,12 +1026,11 @@ class PortManager(object):
         # notification. suppress notifications when client is not rfc2217
         if modemstate != self.last_modemstate or force_notification:
             if (self._client_is_rfc2217 and (modemstate & self.modemstate_mask)) or force_notification:
-                self.rfc2217SendSubnegotiation(
+                self.rfc2217_send_subnegotiation(
                     SERVER_NOTIFY_MODEMSTATE,
-                    to_bytes([modemstate & self.modemstate_mask])
-                    )
+                    to_bytes([modemstate & self.modemstate_mask]))
                 if self.logger:
-                    self.logger.info("NOTIFY_MODEMSTATE: %s" % (modemstate,))
+                    self.logger.info("NOTIFY_MODEMSTATE: {}".format(modemstate))
             # save last state, but forget about deltas.
             # otherwise it would also notify about changing deltas which is
             # probably not very useful
@@ -1067,7 +1097,7 @@ class PortManager(object):
                     self.mode = M_NORMAL
                 elif byte == SE:
                     # sub option end -> process it now
-                    self._telnetProcessSubnegotiation(bytes(self.suboption))
+                    self._telnet_process_subnegotiation(bytes(self.suboption))
                     self.suboption = None
                     self.mode = M_NORMAL
                 elif byte in (DO, DONT, WILL, WONT):
@@ -1076,21 +1106,21 @@ class PortManager(object):
                     self.mode = M_NEGOTIATE
                 else:
                     # other telnet commands
-                    self._telnetProcessCommand(byte)
+                    self._telnet_process_command(byte)
                     self.mode = M_NORMAL
             elif self.mode == M_NEGOTIATE:  # DO, DONT, WILL, WONT was received, option now following
-                self._telnetNegotiateOption(self.telnet_command, byte)
+                self._telnet_negotiate_option(self.telnet_command, byte)
                 self.mode = M_NORMAL
 
     # - incoming telnet commands and options
 
-    def _telnetProcessCommand(self, command):
+    def _telnet_process_command(self, command):
         """Process commands other than DO, DONT, WILL, WONT."""
         # Currently none. RFC2217 only uses negotiation and subnegotiation.
         if self.logger:
-            self.logger.warning("ignoring Telnet command: %r" % (command,))
+            self.logger.warning("ignoring Telnet command: {!r}".format(command))
 
-    def _telnetNegotiateOption(self, command, option):
+    def _telnet_negotiate_option(self, command, option):
         """Process incoming DO, DONT, WILL, WONT."""
         # check our registered telnet options and forward command to them
         # they know themselves if they have to answer or not
@@ -1105,15 +1135,15 @@ class PortManager(object):
             # handle unknown options
             # only answer to positive requests and deny them
             if command == WILL or command == DO:
-                self.telnetSendOption((DONT if command == WILL else WONT), option)
+                self.telnet_send_option((DONT if command == WILL else WONT), option)
                 if self.logger:
-                    self.logger.warning("rejected Telnet option: %r" % (option,))
+                    self.logger.warning("rejected Telnet option: {!r}".format(option))
 
-    def _telnetProcessSubnegotiation(self, suboption):
+    def _telnet_process_subnegotiation(self, suboption):
         """Process subnegotiation, the data between IAC SB and IAC SE."""
         if suboption[0:1] == COM_PORT_OPTION:
             if self.logger:
-                self.logger.debug('received COM_PORT_OPTION: %r' % (suboption,))
+                self.logger.debug('received COM_PORT_OPTION: {!r}'.format(suboption))
             if suboption[1:2] == SET_BAUDRATE:
                 backup = self.serial.baudrate
                 try:
@@ -1122,12 +1152,12 @@ class PortManager(object):
                         self.serial.baudrate = baudrate
                 except ValueError as e:
                     if self.logger:
-                        self.logger.error("failed to set baud rate: %s" % (e,))
+                        self.logger.error("failed to set baud rate: {}".format(e))
                     self.serial.baudrate = backup
                 else:
                     if self.logger:
-                        self.logger.info("%s baud rate: %s" % ('set' if baudrate else 'get', self.serial.baudrate))
-                self.rfc2217SendSubnegotiation(SERVER_SET_BAUDRATE, struct.pack(b"!I", self.serial.baudrate))
+                        self.logger.info("{} baud rate: {}".format('set' if baudrate else 'get', self.serial.baudrate))
+                self.rfc2217_send_subnegotiation(SERVER_SET_BAUDRATE, struct.pack(b"!I", self.serial.baudrate))
             elif suboption[1:2] == SET_DATASIZE:
                 backup = self.serial.bytesize
                 try:
@@ -1136,29 +1166,28 @@ class PortManager(object):
                         self.serial.bytesize = datasize
                 except ValueError as e:
                     if self.logger:
-                        self.logger.error("failed to set data size: %s" % (e,))
+                        self.logger.error("failed to set data size: {}".format(e))
                     self.serial.bytesize = backup
                 else:
                     if self.logger:
-                        self.logger.info("%s data size: %s" % ('set' if datasize else 'get', self.serial.bytesize))
-                self.rfc2217SendSubnegotiation(SERVER_SET_DATASIZE, struct.pack(b"!B", self.serial.bytesize))
+                        self.logger.info("{} data size: {}".format('set' if datasize else 'get', self.serial.bytesize))
+                self.rfc2217_send_subnegotiation(SERVER_SET_DATASIZE, struct.pack(b"!B", self.serial.bytesize))
             elif suboption[1:2] == SET_PARITY:
                 backup = self.serial.parity
                 try:
                     parity = struct.unpack(b"!B", suboption[2:3])[0]
                     if parity != 0:
-                            self.serial.parity = RFC2217_REVERSE_PARITY_MAP[parity]
+                        self.serial.parity = RFC2217_REVERSE_PARITY_MAP[parity]
                 except ValueError as e:
                     if self.logger:
-                        self.logger.error("failed to set parity: %s" % (e,))
+                        self.logger.error("failed to set parity: {}".format(e))
                     self.serial.parity = backup
                 else:
                     if self.logger:
-                        self.logger.info("%s parity: %s" % ('set' if parity else 'get', self.serial.parity))
-                self.rfc2217SendSubnegotiation(
+                        self.logger.info("{} parity: {}".format('set' if parity else 'get', self.serial.parity))
+                self.rfc2217_send_subnegotiation(
                     SERVER_SET_PARITY,
-                    struct.pack(b"!B", RFC2217_PARITY_MAP[self.serial.parity])
-                    )
+                    struct.pack(b"!B", RFC2217_PARITY_MAP[self.serial.parity]))
             elif suboption[1:2] == SET_STOPSIZE:
                 backup = self.serial.stopbits
                 try:
@@ -1167,39 +1196,38 @@ class PortManager(object):
                         self.serial.stopbits = RFC2217_REVERSE_STOPBIT_MAP[stopbits]
                 except ValueError as e:
                     if self.logger:
-                        self.logger.error("failed to set stop bits: %s" % (e,))
+                        self.logger.error("failed to set stop bits: {}".format(e))
                     self.serial.stopbits = backup
                 else:
                     if self.logger:
-                        self.logger.info("%s stop bits: %s" % ('set' if stopbits else 'get', self.serial.stopbits))
-                self.rfc2217SendSubnegotiation(
+                        self.logger.info("{} stop bits: {}".format('set' if stopbits else 'get', self.serial.stopbits))
+                self.rfc2217_send_subnegotiation(
                     SERVER_SET_STOPSIZE,
-                    struct.pack(b"!B", RFC2217_STOPBIT_MAP[self.serial.stopbits])
-                    )
+                    struct.pack(b"!B", RFC2217_STOPBIT_MAP[self.serial.stopbits]))
             elif suboption[1:2] == SET_CONTROL:
                 if suboption[2:3] == SET_CONTROL_REQ_FLOW_SETTING:
                     if self.serial.xonxoff:
-                        self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_SW_FLOW_CONTROL)
+                        self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_SW_FLOW_CONTROL)
                     elif self.serial.rtscts:
-                        self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_HW_FLOW_CONTROL)
+                        self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_HW_FLOW_CONTROL)
                     else:
-                        self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_NO_FLOW_CONTROL)
+                        self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_NO_FLOW_CONTROL)
                 elif suboption[2:3] == SET_CONTROL_USE_NO_FLOW_CONTROL:
                     self.serial.xonxoff = False
                     self.serial.rtscts = False
                     if self.logger:
                         self.logger.info("changed flow control to None")
-                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_NO_FLOW_CONTROL)
+                    self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_NO_FLOW_CONTROL)
                 elif suboption[2:3] == SET_CONTROL_USE_SW_FLOW_CONTROL:
                     self.serial.xonxoff = True
                     if self.logger:
                         self.logger.info("changed flow control to XON/XOFF")
-                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_SW_FLOW_CONTROL)
+                    self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_SW_FLOW_CONTROL)
                 elif suboption[2:3] == SET_CONTROL_USE_HW_FLOW_CONTROL:
                     self.serial.rtscts = True
                     if self.logger:
                         self.logger.info("changed flow control to RTS/CTS")
-                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_HW_FLOW_CONTROL)
+                    self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_USE_HW_FLOW_CONTROL)
                 elif suboption[2:3] == SET_CONTROL_REQ_BREAK_STATE:
                     if self.logger:
                         self.logger.warning("requested break state - not implemented")
@@ -1208,12 +1236,12 @@ class PortManager(object):
                     self.serial.setBreak(True)
                     if self.logger:
                         self.logger.info("changed BREAK to active")
-                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_BREAK_ON)
+                    self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_BREAK_ON)
                 elif suboption[2:3] == SET_CONTROL_BREAK_OFF:
                     self.serial.setBreak(False)
                     if self.logger:
                         self.logger.info("changed BREAK to inactive")
-                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_BREAK_OFF)
+                    self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_BREAK_OFF)
                 elif suboption[2:3] == SET_CONTROL_REQ_DTR:
                     if self.logger:
                         self.logger.warning("requested DTR state - not implemented")
@@ -1222,27 +1250,27 @@ class PortManager(object):
                     self.serial.setDTR(True)
                     if self.logger:
                         self.logger.info("changed DTR to active")
-                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_DTR_ON)
+                    self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_DTR_ON)
                 elif suboption[2:3] == SET_CONTROL_DTR_OFF:
                     self.serial.setDTR(False)
                     if self.logger:
                         self.logger.info("changed DTR to inactive")
-                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_DTR_OFF)
+                    self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_DTR_OFF)
                 elif suboption[2:3] == SET_CONTROL_REQ_RTS:
                     if self.logger:
                         self.logger.warning("requested RTS state - not implemented")
                     pass  # XXX needs cached value
-                    #~ self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_RTS_ON)
+                    #~ self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_RTS_ON)
                 elif suboption[2:3] == SET_CONTROL_RTS_ON:
                     self.serial.setRTS(True)
                     if self.logger:
                         self.logger.info("changed RTS to active")
-                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_RTS_ON)
+                    self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_RTS_ON)
                 elif suboption[2:3] == SET_CONTROL_RTS_OFF:
                     self.serial.setRTS(False)
                     if self.logger:
                         self.logger.info("changed RTS to inactive")
-                    self.rfc2217SendSubnegotiation(SERVER_SET_CONTROL, SET_CONTROL_RTS_OFF)
+                    self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_RTS_OFF)
                 #~ elif suboption[2:3] == SET_CONTROL_REQ_FLOW_SETTING_IN:
                 #~ elif suboption[2:3] == SET_CONTROL_USE_NO_FLOW_CONTROL_IN:
                 #~ elif suboption[2:3] == SET_CONTROL_USE_SW_FLOW_CONTOL_IN:
@@ -1252,9 +1280,9 @@ class PortManager(object):
                 #~ elif suboption[2:3] == SET_CONTROL_USE_DSR_FLOW_CONTROL:
             elif suboption[1:2] == NOTIFY_LINESTATE:
                 # client polls for current state
-                self.rfc2217SendSubnegotiation(
-                        SERVER_NOTIFY_LINESTATE,
-                        to_bytes([0]))   # sorry, nothing like that implemented
+                self.rfc2217_send_subnegotiation(
+                    SERVER_NOTIFY_LINESTATE,
+                    to_bytes([0]))   # sorry, nothing like that implemented
             elif suboption[1:2] == NOTIFY_MODEMSTATE:
                 if self.logger:
                     self.logger.info("request for modem state")
@@ -1271,47 +1299,47 @@ class PortManager(object):
             elif suboption[1:2] == SET_LINESTATE_MASK:
                 self.linstate_mask = ord(suboption[2:3])  # ensure it is a number
                 if self.logger:
-                    self.logger.info("line state mask: 0x%02x" % (self.linstate_mask,))
+                    self.logger.info("line state mask: 0x{:02x}".format(self.linstate_mask))
             elif suboption[1:2] == SET_MODEMSTATE_MASK:
                 self.modemstate_mask = ord(suboption[2:3])  # ensure it is a number
                 if self.logger:
-                    self.logger.info("modem state mask: 0x%02x" % (self.modemstate_mask,))
+                    self.logger.info("modem state mask: 0x{:02x}".format(self.modemstate_mask))
             elif suboption[1:2] == PURGE_DATA:
                 if suboption[2:3] == PURGE_RECEIVE_BUFFER:
                     self.serial.reset_input_buffer()
                     if self.logger:
                         self.logger.info("purge in")
-                    self.rfc2217SendSubnegotiation(SERVER_PURGE_DATA, PURGE_RECEIVE_BUFFER)
+                    self.rfc2217_send_subnegotiation(SERVER_PURGE_DATA, PURGE_RECEIVE_BUFFER)
                 elif suboption[2:3] == PURGE_TRANSMIT_BUFFER:
                     self.serial.reset_output_buffer()
                     if self.logger:
                         self.logger.info("purge out")
-                    self.rfc2217SendSubnegotiation(SERVER_PURGE_DATA, PURGE_TRANSMIT_BUFFER)
+                    self.rfc2217_send_subnegotiation(SERVER_PURGE_DATA, PURGE_TRANSMIT_BUFFER)
                 elif suboption[2:3] == PURGE_BOTH_BUFFERS:
                     self.serial.reset_input_buffer()
                     self.serial.reset_output_buffer()
                     if self.logger:
                         self.logger.info("purge both")
-                    self.rfc2217SendSubnegotiation(SERVER_PURGE_DATA, PURGE_BOTH_BUFFERS)
+                    self.rfc2217_send_subnegotiation(SERVER_PURGE_DATA, PURGE_BOTH_BUFFERS)
                 else:
                     if self.logger:
-                        self.logger.error("undefined PURGE_DATA: %r" % list(suboption[2:]))
+                        self.logger.error("undefined PURGE_DATA: {!r}".format(list(suboption[2:])))
             else:
                 if self.logger:
-                    self.logger.error("undefined COM_PORT_OPTION: %r" % list(suboption[1:]))
+                    self.logger.error("undefined COM_PORT_OPTION: {!r}".format(list(suboption[1:])))
         else:
             if self.logger:
-                self.logger.warning("unknown subnegotiation: %r" % (suboption,))
+                self.logger.warning("unknown subnegotiation: {!r}".format(suboption))
 
 
 # simple client test
 if __name__ == '__main__':
     import sys
     s = Serial('rfc2217://localhost:7000', 115200)
-    sys.stdout.write('%s\n' % s)
+    sys.stdout.write('{}\n'.format(s))
 
     sys.stdout.write("write...\n")
     s.write(b"hello\n")
     s.flush()
-    sys.stdout.write("read: %s\n" % s.read(5))
+    sys.stdout.write("read: {}\n".format(s.read(5)))
     s.close()

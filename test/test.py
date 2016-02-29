@@ -36,7 +36,7 @@ bytes_0to255 = bytes(bytearray(range(256)))
 
 def segments(data, size=16):
     for a in range(0, len(data), size):
-        yield data[a:a+size]
+        yield data[a:a + size]
 
 
 class Test4_Nonblocking(unittest.TestCase):
@@ -67,7 +67,7 @@ class Test4_Nonblocking(unittest.TestCase):
             # there might be a small delay until the character is ready (especially on win32)
             time.sleep(0.05)
             self.assertEqual(self.s.in_waiting, length, "expected exactly %d character for inWainting()" % length)
-            self.assertEqual(self.s.read(length), block)#, "expected a %r which was written before" % block)
+            self.assertEqual(self.s.read(length), block)  #, "expected a %r which was written before" % block)
         self.assertEqual(self.s.read(1), b'', "expected empty buffer after all sent chars are read")
 
     def test2_LoopbackTimeout(self):
@@ -113,6 +113,7 @@ class SendEvent(threading.Thread):
         self.stopped = 1
         self.x.wait()
 
+
 class Test1_Forever(unittest.TestCase):
     """Tests a port with no timeout. These tests require that a
     character is sent after some time to stop the test, this is done
@@ -153,8 +154,8 @@ class Test2_Forever(unittest.TestCase):
             self.s.write(block)
             # there might be a small delay until the character is ready (especially on win32 and rfc2217)
             time.sleep(0.05)
-            self.assertEqual(self.s.in_waiting, length)#, "expected exactly %d character for inWainting()" % length)
-            self.assertEqual(self.s.read(length), block) #, "expected %r which was written before" % block)
+            self.assertEqual(self.s.in_waiting, length)  #, "expected exactly %d character for inWainting()" % length)
+            self.assertEqual(self.s.read(length), block)  #, "expected %r which was written before" % block)
         self.assertEqual(self.s.in_waiting, 0, "expected empty buffer after all sent chars are read")
 
 
@@ -213,15 +214,14 @@ class Test_MoreTimeouts(unittest.TestCase):
         self.s.xonxoff = True
         self.s.open()
         self.s.write(serial.XOFF)
-        time.sleep(0.5) # some systems need a little delay so that they can react on XOFF
+        time.sleep(0.5)  # some systems need a little delay so that they can react on XOFF
         t1 = time.time()
-        self.assertRaises(serial.SerialTimeoutException, self.s.write, b"timeout please"*200)
+        self.assertRaises(serial.SerialTimeoutException, self.s.write, b"timeout please" * 200)
         t2 = time.time()
-        self.assertTrue( 0.9 <= (t2-t1) < 2.1, "Timeout not in the given interval (%s)" % (t2-t1))
+        self.assertTrue(0.9 <= (t2 - t1) < 2.1, "Timeout not in the given interval (%s)" % (t2 - t1))
 
 
 if __name__ == '__main__':
-    import sys
     sys.stdout.write(__doc__)
     if len(sys.argv) > 1:
         PORT = sys.argv[1]

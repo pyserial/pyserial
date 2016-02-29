@@ -65,7 +65,7 @@ Application works when .py file is run, but fails when packaged (py2exe etc.)
 User supplied URL handlers
     :func:`serial.serial_for_url` can be used to access "virtual" serial ports
     identified by an :ref:`URL <URLs>` scheme. E.g. for the :rfc:`2217`:
-    ``rfc2217:://``.
+    ``rfc2217://``.
 
     Custom :ref:`URL <URLs>` handlers can be added by extending the module
     search path in :data:`serial.protocol_handler_packages`. This is possible

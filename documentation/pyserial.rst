@@ -115,7 +115,7 @@ Older versions are still available in the old download_ page. pySerial 1.21
 is compatible with Python 2.0 on Windows, Linux and several un*x like systems,
 MacOSX and Jython.
 
-On windows releases older than 2.5 will depend on pywin32_ (previously known as
+On Windows releases older than 2.5 will depend on pywin32_ (previously known as
 win32all)
 
 .. _download: https://pypi.python.org/pypi/pyserial

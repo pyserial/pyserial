@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 #
-# portable serial port access with python
-# this is a wrapper module for different platform implementations
+# This is a wrapper module for different platform implementations
 #
-# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+# This file is part of pySerial. https://github.com/pyserial/pyserial
+# (C) 2001-2016 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
@@ -13,8 +13,9 @@ import sys
 from serial.serialutil import *
 #~ SerialBase, SerialException, to_bytes, iterbytes
 
-VERSION = '3.0b1'
+VERSION = '3.1a0'
 
+# pylint: disable=wrong-import-position
 if sys.platform == 'cli':
     from serial.serialcli import Serial
 else:
@@ -23,7 +24,7 @@ else:
     if os.name == 'nt':  # sys.platform == 'win32':
         from serial.serialwin32 import Serial
     elif os.name == 'posix':
-        from serial.serialposix import Serial, PosixPollSerial, VTIMESerial
+        from serial.serialposix import Serial, PosixPollSerial, VTIMESerial  # noqa
     elif os.name == 'java':
         from serial.serialjava import Serial
     else:
@@ -31,8 +32,8 @@ else:
 
 
 protocol_handler_packages = [
-        'serial.urlhandler',
-        ]
+    'serial.urlhandler',
+]
 
 
 def serial_for_url(url, *args, **kwargs):
@@ -66,7 +67,7 @@ def serial_for_url(url, *args, **kwargs):
             module_name = '.protocol_%s' % (protocol,)
             for package_name in protocol_handler_packages:
                 try:
-                    package = importlib.import_module(package_name)
+                    importlib.import_module(package_name)
                     handler_module = importlib.import_module(module_name, package_name)
                 except ImportError:
                     continue

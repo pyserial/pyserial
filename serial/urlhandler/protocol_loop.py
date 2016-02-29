@@ -1,13 +1,11 @@
 #! python
 #
-# Python Serial Port Extension for Win32, Linux, BSD, Jython
-# see __init__.py
-#
 # This module implements a loop back connection receiving itself what it sent.
 #
 # The purpose of this module is.. well... You can run the unit tests with it.
 # and it was so easy to implement ;-)
 #
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
@@ -27,15 +25,15 @@ try:
 except ImportError:
     import Queue as queue
 
-from serial.serialutil import *
+from serial.serialutil import SerialBase, SerialException, to_bytes, iterbytes, writeTimeoutError, portNotOpenError
 
 # map log level names to constants. used in from_url()
 LOGGER_LEVELS = {
-        'debug': logging.DEBUG,
-        'info': logging.INFO,
-        'warning': logging.WARNING,
-        'error': logging.ERROR,
-        }
+    'debug': logging.DEBUG,
+    'info': logging.INFO,
+    'warning': logging.WARNING,
+    'error': logging.ERROR,
+}
 
 
 class Serial(SerialBase):
@@ -92,7 +90,7 @@ class Serial(SerialBase):
         protocol all settings are ignored!
         """
         # not that's it of any real use, but it helps in the unit tests
-        if not isinstance(self._baudrate, numbers.Integral) or not 0 < self._baudrate < 2**32:
+        if not isinstance(self._baudrate, numbers.Integral) or not 0 < self._baudrate < 2 ** 32:
             raise ValueError("invalid baudrate: %r" % (self._baudrate))
         if self.logger:
             self.logger.info('_reconfigure_port()')
@@ -171,7 +169,7 @@ class Serial(SerialBase):
             raise portNotOpenError
         data = to_bytes(data)
         # calculate aprox time that would be used to send the data
-        time_used_to_send = 10.0*len(data) / self._baudrate
+        time_used_to_send = 10.0 * len(data) / self._baudrate
         # when a write timeout is configured check if we would be successful
         # (not sending anything, not even the part that would have time)
         if self._write_timeout is not None and time_used_to_send > self._write_timeout:

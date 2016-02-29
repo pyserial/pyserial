@@ -16,12 +16,7 @@ serial.tools.list_ports``). It also contains the following functions.
 
     :return: an iterable that yields :class:`ListPortInfo` objects.
 
-    The function returns an iterable that yields tuples of three strings:
-
-    - port name as it can be passed to :class:`serial.Serial` or
-      :func:`serial.serial_for_url`
-    - description in human readable form
-    - sort of hardware ID. E.g. may contain VID:PID of USB-serial adapters.
+    The function returns an iterable that yields :obj:`ListPortInfo` objects.
 
     Items are returned in no particular order. It may make sense to sort the
     items. Also note that the reported strings are different across platforms
@@ -32,7 +27,7 @@ serial.tools.list_ports``). It also contains the following functions.
               (``None``).
 
     :platform: Posix (/dev files)
-    :platform: Linux (/dev files, sysfs and lsusb)
+    :platform: Linux (/dev files, sysfs)
     :platform: OSX (iokit)
     :platform: Windows (setupapi, registry)
 
@@ -40,12 +35,14 @@ serial.tools.list_ports``). It also contains the following functions.
 .. function:: grep(regexp)
 
     :param regexp: regular expression (see stdlib :mod:`re`)
-    :return: an iterable that yields :class:`ListPortInfo` objects, see also :func:`comports`.
+    :return: an iterable that yields :class:`ListPortInfo` objects, see also
+             :func:`comports`.
 
     Search for ports using a regular expression. Port name, description and
     hardware ID are searched (case insensitive). The function returns an
-    iterable that contains the same tuples that :func:`comport` generates but
-    only those that match the regexp.
+    iterable that contains the same data that :func:`comports` generates, but
+    includes only those entries that match the regexp.
+
 
 .. class:: ListPortInfo
 
@@ -71,7 +68,7 @@ serial.tools.list_ports``). It also contains the following functions.
         Technical description or ``n/a``. This is also the information
         returned as third element when accessed by index.
 
-    USB specific data, these are all ``None`` if it is not a USB device (or the
+    USB specific data, these are all ``None`` if it is not an USB device (or the
     platform does not support extended info).
 
     .. attribute:: vid
@@ -102,12 +99,13 @@ serial.tools.list_ports``). It also contains the following functions.
 
         Interface specifc description, e.g. used in compound USB devices.
 
-    Comparison operators are implemented such that the ``ListPortInfo`` objects
+    Comparison operators are implemented such that the :obj:`ListPortInfo` objects
     can be sorted by ``device``. Strings are split into groups of numbers and
     text so that the order is "natural" (i.e. ``com1`` < ``com2`` <
     ``com10``).
 
-Command line usage
+
+**Command line usage**
 
 Help for ``python -m serial.tools.list_ports``::
 
@@ -128,14 +126,23 @@ Examples:
 
 - List all ports with details::
 
-    python -m serial.tools.list_ports -v
+    $ python -m serial.tools.list_ports -v
+    /dev/ttyS0
+        desc: ttyS0
+        hwid: PNP0501
+    /dev/ttyUSB0
+        desc: CP2102 USB to UART Bridge Controller
+        hwid: USB VID:PID=10C4:EA60 SER=0001 LOCATION=2-1.6
+    2 ports found
+
 
 - List the 2nd port matching a USB VID:PID pattern::
 
-    python -m serial.tools.list_ports 1234:5678 -q -n 2
+    $ python -m serial.tools.list_ports 1234:5678 -q -n 2
+    /dev/ttyUSB1
 
 .. versionadded:: 2.6
-.. versionchanged:: 3.0 returning ListPortInfo objects instead of a tuple
+.. versionchanged:: 3.0 returning ``ListPortInfo`` objects instead of a tuple
 
 
 .. _miniterm:
@@ -145,11 +152,15 @@ serial.tools.miniterm
 .. module:: serial.tools.miniterm
 
 This is a console application that provides a small terminal application.
+
 Miniterm itself does not implement any terminal features such as VT102
 compatibility. However it may inherit these features from the terminal it is run.
 For example on GNU/Linux running from an xterm it will support the escape
 sequences of the xterm. On Windows the typical console window is dumb and does
 not support any escapes. When ANSI.sys is loaded it supports some escapes.
+
+The default is to filter terminal control characters, see ``--filter`` for
+different options.
 
 Miniterm::
 
@@ -160,7 +171,7 @@ Command line options can be given so that binary data including escapes for
 terminals are escaped or output as hex.
 
 Miniterm supports :rfc:`2217` remote serial ports and raw sockets using :ref:`URLs`
-such as ``rfc2217:://<host>:<port>`` respectively ``socket://<host>:<port>`` as
+such as ``rfc2217://<host>:<port>`` respectively ``socket://<host>:<port>`` as
 *port* argument when invoking.
 
 Command line options ``python -m serial.tools.miniterm -h``::
@@ -186,6 +197,7 @@ Command line options ``python -m serial.tools.miniterm -h``::
       --xonxoff             enable software flow control (default off)
       --rts RTS             set initial RTS line state (possible values: 0, 1)
       --dtr DTR             set initial DTR line state (possible values: 0, 1)
+      --ask                 ask again for port when open fails
 
     data handling:
       -e, --echo            enable local echo (default off)
@@ -207,8 +219,18 @@ Command line options ``python -m serial.tools.miniterm -h``::
       --develop             show Python traceback on error
 
 
-Miniterm supports some control functions. Typing :kbd:`Ctrl+T Ctrl+H` when it is
-running shows the help text::
+Available filters (``--filter`` option):
+
+- ``colorize``: Apply different colors for received and echo
+- ``debug``: Print what is sent and received
+- ``default``: remove typical terminal control codes from input
+- ``direct``: do-nothing: forward all data unchanged
+- ``nocontrol``: Remove all control codes, incl. ``CR+LF``
+- ``printable``: Show decimal code for all non-ASCII characters and replace most control codes
+
+
+Miniterm supports some control functions while being connected.
+Typing :kbd:`Ctrl+T Ctrl+H` when it is running shows the help text::
 
     --- pySerial (3.0a) - miniterm - help
     ---
@@ -241,4 +263,5 @@ running shows the help text::
 .. versionchanged:: 3.0
     Apply encoding on serial port, convert to Unicode for console.
     Added new filters, default to stripping terminal control sequences.
+    Added ``--ask`` option.
 

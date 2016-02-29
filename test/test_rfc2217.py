@@ -12,6 +12,7 @@ import unittest
 import serial
 import serial.rfc2217
 
+
 class Test_RFC2217(unittest.TestCase):
     """Test RFC 2217 related functionality"""
 
@@ -20,16 +21,16 @@ class Test_RFC2217(unittest.TestCase):
         s = serial.serial_for_url('rfc2217://127.99.99.99:2217', do_not_open=True)
         self.assertRaises(serial.SerialException, s.open)
         self.assertFalse(s.is_open)
-        s.close() # no errors expected
+        s.close()  # no errors expected
         # invalid address
         s = serial.serial_for_url('rfc2217://127goingtofail', do_not_open=True)
         self.assertRaises(serial.SerialException, s.open)
         self.assertFalse(s.is_open)
-        s.close() # no errors expected
+        s.close()  # no errors expected
         # close w/o open is also OK
         s = serial.serial_for_url('rfc2217://irrelevant', do_not_open=True)
         self.assertFalse(s.is_open)
-        s.close() # no errors expected
+        s.close()  # no errors expected
 
 
 if __name__ == '__main__':

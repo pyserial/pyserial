@@ -332,22 +332,23 @@ class Forwarder(ZeroconfService):
 def test():
     service = ZeroconfService(name="TestService", port=3000)
     service.publish()
-    raw_input("Press any key to unpublish the service ")
+    input("Press the ENTER key to unpublish the service ")
     service.unpublish()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # noqa
     import logging
     import argparse
 
     VERBOSTIY = [
-            logging.ERROR,      # 0
-            logging.WARNING,    # 1 (default)
-            logging.INFO,       # 2
-            logging.DEBUG,      # 3
-            ]
+        logging.ERROR,      # 0
+        logging.WARNING,    # 1 (default)
+        logging.INFO,       # 2
+        logging.DEBUG,      # 3
+    ]
 
-    parser = argparse.ArgumentParser(usage="""\
+    parser = argparse.ArgumentParser(
+        usage="""\
 %(prog)s [options]
 
 Announce the existence of devices using zeroconf and provide
@@ -366,58 +367,57 @@ terminated, it waits for the next connect.
     group = parser.add_argument_group("serial port settings")
 
     group.add_argument(
-            "--ports-regex",
-            help="specify a regex to search against the serial devices and their descriptions (default: %(default)s)",
-            default='/dev/ttyUSB[0-9]+',
-            metavar="REGEX")
+        "--ports-regex",
+        help="specify a regex to search against the serial devices and their descriptions (default: %(default)s)",
+        default='/dev/ttyUSB[0-9]+',
+        metavar="REGEX")
 
     group = parser.add_argument_group("network settings")
 
     group.add_argument(
-            "--tcp-port",
-            dest="base_port",
-            help="specify lowest TCP port number (default: %(default)s)",
-            default=7000,
-            type=int,
-            metavar="PORT")
+        "--tcp-port",
+        dest="base_port",
+        help="specify lowest TCP port number (default: %(default)s)",
+        default=7000,
+        type=int,
+        metavar="PORT")
 
     group = parser.add_argument_group("daemon")
 
     group.add_argument(
-            "-d", "--daemon",
-            dest="daemonize",
-            action="store_true",
-            help="start as daemon",
-            default=False)
+        "-d", "--daemon",
+        dest="daemonize",
+        action="store_true",
+        help="start as daemon",
+        default=False)
 
     group.add_argument(
-            "--pidfile",
-            help="specify a name for the PID file",
-            default=None,
-            metavar="FILE")
+        "--pidfile",
+        help="specify a name for the PID file",
+        default=None,
+        metavar="FILE")
 
     group = parser.add_argument_group("diagnostics")
 
     group.add_argument(
-            "-o", "--logfile",
-            help="write messages file instead of stdout",
-            default=None,
-            metavar="FILE")
+        "-o", "--logfile",
+        help="write messages file instead of stdout",
+        default=None,
+        metavar="FILE")
 
     group.add_argument(
-            "-q", "--quiet",
-            dest="verbosity",
-            action="store_const",
-            const=0,
-            help="suppress most diagnostic messages",
-            default=1)
+        "-q", "--quiet",
+        dest="verbosity",
+        action="store_const",
+        const=0,
+        help="suppress most diagnostic messages",
+        default=1)
 
     group.add_argument(
-            "-v", "--verbose",
-            dest="verbosity",
-            action="count",
-            help="increase diagnostic messages")
-
+        "-v", "--verbose",
+        dest="verbosity",
+        action="count",
+        help="increase diagnostic messages")
 
     args = parser.parse_args()
 
@@ -430,9 +430,11 @@ terminated, it waits for the next connect.
         class WriteFlushed:
             def __init__(self, fileobj):
                 self.fileobj = fileobj
+
             def write(self, s):
                 self.fileobj.write(s)
                 self.fileobj.flush()
+
             def close(self):
                 self.fileobj.close()
         sys.stdout = sys.stderr = WriteFlushed(open(args.logfile, 'a'))
@@ -472,24 +474,28 @@ terminated, it waits for the next connect.
         if args.logfile is None:
             import syslog
             syslog.openlog("serial port publisher")
+
             # redirect output to syslog
             class WriteToSysLog:
                 def __init__(self):
                     self.buffer = ''
+
                 def write(self, s):
                     self.buffer += s
                     if '\n' in self.buffer:
                         output, self.buffer = self.buffer.split('\n', 1)
                         syslog.syslog(output)
+
                 def flush(self):
                     syslog.syslog(self.buffer)
                     self.buffer = ''
+
                 def close(self):
                     self.flush()
             sys.stdout = sys.stderr = WriteToSysLog()
 
             # ensure the that the daemon runs a normal user, if run as root
-        #if os.getuid() == 0:
+        # if os.getuid() == 0:
             #    name, passwd, uid, gid, desc, home, shell = pwd.getpwnam('someuser')
             #    os.setgid(gid)     # set group first
             #    os.setuid(uid)     # set user
@@ -523,19 +529,18 @@ terminated, it waits for the next connect.
                     log.info("unpublish: %s" % (published[device]))
                     unpublish(published[device])
                 # Handle devices that are connected but not yet published
-                for device in set(connected).difference(published):
-                    # Find the first available port, starting from 7000
+                for device in sorted(set(connected).difference(published)):
+                    # Find the first available port, starting from specified number
                     port = args.base_port
                     ports_in_use = [f.network_port for f in published.values()]
                     while port in ports_in_use:
                         port += 1
                     published[device] = Forwarder(
-                            device,
-                            "%s on %s" % (device, hostname),
-                            port,
-                            on_close=unpublish,
-                            log=log
-                    )
+                        device,
+                        "%s on %s" % (device, hostname),
+                        port,
+                        on_close=unpublish,
+                        log=log)
                     log.warning("publish: %s" % (published[device]))
                     published[device].open()
 
@@ -546,11 +551,10 @@ terminated, it waits for the next connect.
             for publisher in published.values():
                 publisher.update_select_maps(read_map, write_map, error_map)
             readers, writers, errors = select.select(
-                    read_map.keys(),
-                    write_map.keys(),
-                    error_map.keys(),
-                    5
-            )
+                read_map.keys(),
+                write_map.keys(),
+                error_map.keys(),
+                5)
             # select_end = time.time()
             # print "select used %.3f s" % (select_end - select_start)
             for reader in readers:

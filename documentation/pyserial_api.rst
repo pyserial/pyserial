@@ -62,7 +62,7 @@ Native ports
 
         The port is immediately opened on object creation, when a *port* is
         given. It is not opened when *port* is :const:`None` and a successive call
-        to :meth:`open` will be needed.
+        to :meth:`open` is required.
 
         *port* is a device name: depending on operating system. e.g.
         ``/dev/ttyUSB0`` on GNU/Linux or ``COM3`` on Windows.
@@ -80,14 +80,20 @@ Native ports
         OSX >= Tiger, Windows). Though, even on these platforms some serial
         ports may reject non-standard values.
 
-        Possible values for the parameter *timeout*:
+        Possible values for the parameter *timeout* which controls the behavior
+        of :meth:`read`:
 
-        - ``timeout = None``:  wait forever
-        - ``timeout = 0``:     non-blocking mode (return immediately on read)
+        - ``timeout = None``:  wait forever / until requested number of bytes
+          are received
+        - ``timeout = 0``:     non-blocking mode, return immediately in any case,
+          returning zero or more, up to the requested number of bytes
         - ``timeout = x``:     set timeout to ``x`` seconds (float allowed)
+          returns immediately when the requested number of bytes are available,
+          otherwise wait until the timeout expires and return all bytes that
+          were received until then.
 
-        Writes are blocking by default, unless *write_timeout* is set. For
-        possible values refer to the list for *timeout* above.
+        :meth:`write` is blocking by default, unless *write_timeout* is set.
+        For possible values refer to the list for *timeout* above.
 
         Note that enabling both flow control methods (*xonxoff* and *rtscts*)
         together may not be supported. It is common to use one of the methods
@@ -101,6 +107,7 @@ Native ports
 
         .. versionchanged:: 2.5
             *dsrdtr* now defaults to ``False`` (instead of *None*)
+        .. versionchanged:: 3.0 numbers as *port* argument are no longer supported
 
     .. method:: open()
 
@@ -122,6 +129,7 @@ Native ports
 
         :param size: Number of bytes to read.
         :return: Bytes read from the port.
+        :rtype: bytes
 
         Read *size* bytes from the serial port. If a timeout is set it may
         return less characters as requested. With no timeout it will block
@@ -135,13 +143,16 @@ Native ports
 
         :param data: Data to send.
         :return: Number of bytes written.
+        :rtype: int
         :exception SerialTimeoutException:
             In case a write timeout is configured for the port and the time is
             exceeded.
 
-        Write the string *data* to the port.
+        Write the bytes *data* to the port. This should be of type ``bytes``
+        (or compatible such as ``bytearray`` or ``memoryview``). Unicode
+        strings must be encoded (e.g. ``'hello'.encode('utf-8'``).
 
-        .. versionchanged:: 2.5
+    .. versionchanged:: 2.5
             Accepts instances of :class:`bytes` and :class:`bytearray` when
             available (Python 2.6 and newer) and :class:`str` otherwise.
 
@@ -165,6 +176,7 @@ Native ports
     .. attribute:: out_waiting
 
         :getter: Get the number of bytes in the output buffer
+        :type: int
         :platform: Posix
         :platform: Windows
 
@@ -188,7 +200,7 @@ Native ports
 
     .. method:: send_break(duration=0.25)
 
-        :param duration: Time (float) to activate the BREAK condition.
+        :param float duration: Time to activate the BREAK condition.
 
         Send break condition. Timed, returns to idle state after given
         duration.
@@ -228,6 +240,7 @@ Native ports
     .. attribute:: name
 
         :getter: Device name.
+        :type: str
 
         .. versionadded:: 2.5
 
@@ -265,6 +278,8 @@ Native ports
 
 
     .. attribute:: port
+
+        :type: str
 
         Read or write port. When the port is already open, it will be closed
         and reopened with the new setting.
@@ -363,7 +378,7 @@ Native ports
         :setter: Disable (``None``) or enable the RS485 settings
         :type: :class:`rs485.RS485Settings` or ``None``
         :platform: Posix (Linux, limited set of hardware)
-        :platform: Windows (RTS on TX only possible)
+        :platform: Windows (only RTS on TX possible)
 
         Attribute to configure RS485 support. When set to an instance of
         :class:`rs485.RS485Settings` and supported by OS, RTS will be active
@@ -378,9 +393,9 @@ Native ports
 
     .. attribute:: BAUDRATES
 
-        A list of valid baud rates. The list may be incomplete such that higher
-        baud rates may be supported by the device and that values in between the
-        standard baud rates are supported. (Read Only).
+        A list of valid baud rates. The list may be incomplete, such that higher
+        and/or intermediate baud rates may also be supported by the device
+        (Read Only).
 
     .. attribute:: BYTESIZES
 
@@ -425,11 +440,15 @@ Native ports
 
         .. versionadded:: 2.5
 
-    The port settings can be read and written as dictionary.
+    The port settings can be read and written as dictionary. The following
+    keys are supported: ``write_timeout``, ``inter_byte_timeout``,
+    ``dsrdtr``, ``baudrate``, ``timeout``, ``parity``, ``bytesize``,
+    ``rtscts``, ``stopbits``, ``xonxoff``
 
     .. method:: get_settings()
 
         :return: a dictionary with current port settings.
+        :rtype: dict
 
         Get a dictionary with port settings. This is useful to backup the
         current settings so that a later point in time they can be restored
@@ -438,18 +457,20 @@ Native ports
         Note that control lines (RTS/DTR) are part of the settings.
 
         .. versionadded:: 2.5
+        .. versionchanged:: 3.0 renamed from ``getSettingsDict``
 
     .. method:: apply_settings(d)
 
-        :param d: a dictionary with port settings.
+        :param dict d: a dictionary with port settings.
 
         Applies a dictionary that was created by :meth:`get_settings`. Only
-        changes are applied and when a key is missing it means that the setting
-        stays unchanged.
+        changes are applied and when a key is missing, it means that the
+        setting stays unchanged.
 
         Note that control lines (RTS/DTR) are not changed.
 
         .. versionadded:: 2.5
+        .. versionchanged:: 3.0 renamed from ``applySettingsDict``
 
     Platform specific methods.
 
@@ -475,7 +496,7 @@ Native ports
     .. method:: set_input_flow_control(enable)
 
         :platform: Posix
-        :param enable: Set flow control state.
+        :param bool enable: Set flow control state.
 
         Manually control flow - when software flow control is enabled.
 
@@ -488,7 +509,7 @@ Native ports
 
         :platform: Posix (HW and SW flow control)
         :platform: Windows (SW flow control only)
-        :param enable: Set flow control state.
+        :param bool enable: Set flow control state.
 
         Manually control flow of outgoing data - when hardware or software flow
         control is enabled.
@@ -699,7 +720,7 @@ on regular serial ports.
 
     This class API is compatible to :class:`Serial` with a few exceptions:
 
-    - write_timeout is not implemented
+    - ``write_timeout`` is not implemented
     - The current implementation starts a thread that keeps reading from the
       (internal) socket. The thread is managed automatically by the
       :class:`rfc2217.Serial` port object on :meth:`open`/:meth:`close`.
@@ -717,7 +738,7 @@ on regular serial ports.
     - The network layer also has buffers. This means that :meth:`flush`,
       :meth:`reset_input_buffer` and :meth:`reset_output_buffer` may work with
       additional delay.  Likewise :attr:`in_waiting` returns the size of the
-      data arrived at the object internal buffer and excludes any bytes in the
+      data arrived at the objects internal buffer and excludes any bytes in the
       network buffers or any server side buffer.
     - Closing and immediately reopening the same port may fail due to time
       needed by the server to get ready again.
@@ -771,7 +792,7 @@ on regular serial ports.
         (RTS/DTR) send BREAK etc. when the corresponding commands are found by
         the :meth:`filter` method.
 
-        The *connection* object must implement a :meth:`write(data)` function.
+        The *connection* object must implement a :meth:`write` function.
         This function must ensure that *data* is written at once (no user data
         mixed in, i.e. it must be thread-safe). All data must be sent in its
         raw form (:meth:`escape` must not be used) as it is used to send Telnet
@@ -930,7 +951,7 @@ Module functions and attributes
 
 .. function:: to_bytes(sequence)
 
-    :param sequence: String or list of integers
+    :param sequence: bytes, bytearray or memoryview
     :returns: an instance of ``bytes``
 
     Convert a sequence to a ``bytes`` type. This is used to write code that is
@@ -944,9 +965,9 @@ Module functions and attributes
 
     .. versionadded:: 2.5
 
-.. function:: iterbytes(b)
+.. function:: iterbytes(sequence)
 
-    :param b: bytes, bytearray or memoryview
+    :param sequence: bytes, bytearray or memoryview
     :returns: a generator that yields bytes
 
     Some versions of Python (3.x) would return integers instead of bytes when
@@ -981,7 +1002,7 @@ This module provides classes to simplify working with threads and protocols.
 
     .. method:: data_received(data)
 
-        :param data: received bytes
+        :param bytes data: received bytes
 
         Called with snippets received from the serial port.
 
@@ -1005,18 +1026,22 @@ This module provides classes to simplify working with threads and protocols.
 
     .. method:: connection_made(transport)
 
-        Store transport
+        Stores transport.
 
     .. method:: connection_lost(exc)
 
-        Forget transport
+        Forgets transport.
 
     .. method:: data_received(data)
 
-        Buffer received data and search for ``TERMINATOR``, when found,
+        :param bytes data: partial received data
+
+        Buffer received data and search for :attr:`TERMINATOR`, when found,
         call :meth:`handle_packet`.
 
     .. method:: handle_packet(packet)
+
+        :param bytes packet: a packet as defined by ``TERMINATOR``
 
         Process packets - to be overridden by subclassing.
 
@@ -1028,23 +1053,37 @@ This module provides classes to simplify working with threads and protocols.
 
 
     .. attribute:: TERMINATOR = b'\\r\\n'
+
+        Line ending.
+
     .. attribute:: ENCODING = 'utf-8'
+
+        Encoding of the send and received data.
+
     .. attribute:: UNICODE_HANDLING = 'replace'
+
+        Unicode error handly policy.
 
     .. method:: handle_packet(packet)
 
+        :param bytes packet: a packet as defined by ``TERMINATOR``
+
+        In this case it will be a line, calls :meth:`handle_line` after applying
+        the :attr:`ENCODING`.
+
     .. method:: handle_line(line)
 
-        :param line: Unicode string with one line (excluding line terminator)
+        :param str line: Unicode string with one line (excluding line terminator)
 
         Process one line - to be overridden by subclassing.
 
     .. method:: write_line(text)
 
-        :param text: Unicode string with one line (excluding line terminator)
+        :param str text: Unicode string with one line (excluding line terminator)
 
-        Write text to the transport. ``text`` is a Unicode string and the encoding
-        is applied before sending ans also the newline is append.
+        Write *text* to the transport. *text* is expected to be a Unicode
+        string and the encoding is applied before sending and also the
+        :attr:`TERMINATOR` (new line) is appended.
 
 
 .. class:: ReaderThread(threading.Thread)
@@ -1052,8 +1091,9 @@ This module provides classes to simplify working with threads and protocols.
     Implement a serial port read loop and dispatch to a Protocol instance (like
     the :class:`asyncio.Protocol`) but do it with threads.
 
-    Calls to :meth:`close` will close the serial port but it is also possible to just
-    :meth:`stop` this thread and continue the serial port instance otherwise.
+    Calls to :meth:`close` will close the serial port but it is also possible
+    to just :meth:`stop` this thread and continue to use the serial port
+    instance otherwise.
 
     .. method:: __init__(serial_instance, protocol_factory)
 
@@ -1062,7 +1102,7 @@ This module provides classes to simplify working with threads and protocols.
 
         Initialize thread.
 
-        Note that the ``serial_instance`` timeout is set to one second!
+        Note that the ``serial_instance`` 's timeout is set to one second!
         Other settings are not changed.
 
     .. method:: stop()
@@ -1073,10 +1113,12 @@ This module provides classes to simplify working with threads and protocols.
 
         The actual reader loop driven by the thread. It calls
         :meth:`Protocol.connection_made`, reads from the serial port calling
-        :meth:`Protocol.data_received` and finally calling :meth:`Protocol.connection_lost`
+        :meth:`Protocol.data_received` and finally calls :meth:`Protocol.connection_lost`
         when :meth:`close` is called or an error occurs.
 
     .. method:: write(data)
+
+        :param bytes data: data to write
 
         Thread safe writing (uses lock).
 

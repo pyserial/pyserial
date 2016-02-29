@@ -24,16 +24,16 @@ import serial
 version = serial.VERSION
 
 setup(
-    name = "pyserial",
-    description = "Python Serial Port Extension",
-    version = version,
-    author = "Chris Liechti",
-    author_email = "cliechti@gmx.net",
-    url = "https://github.com/pyserial/pyserial",
-    packages = ['serial', 'serial.tools', 'serial.urlhandler', 'serial.threaded'],
-    license = "Python",
-    long_description = "Python Serial Port Extension for Win32, OSX, Linux, BSD, Jython, IronPython",
-    classifiers = [
+    name="pyserial",
+    description="Python Serial Port Extension",
+    version=version,
+    author="Chris Liechti",
+    author_email="cliechti@gmx.net",
+    url="https://github.com/pyserial/pyserial",
+    packages=['serial', 'serial.tools', 'serial.urlhandler', 'serial.threaded'],
+    license="Python",
+    long_description="Python Serial Port Extension for Win32, OSX, Linux, BSD, Jython, IronPython",
+    classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Intended Audience :: End Users/Desktop',
@@ -55,6 +55,6 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Terminals :: Serial',
     ],
-    platforms = 'any',
-    scripts = ['serial/tools/miniterm.py'],
+    platforms='any',
+    scripts=['serial/tools/miniterm.py'],
 )

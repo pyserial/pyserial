@@ -1,9 +1,8 @@
 #!jython
 #
-# Python Serial Port Extension for Win32, Linux, BSD, Jython
-# module for serial IO for Jython and JavaComm
-# see __init__.py
+# Backend Jython with JavaComm
 #
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2002-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
@@ -248,24 +247,3 @@ class Serial(SerialBase):
         if not self.sPort:
             raise portNotOpenError
         self.sPort.isCD()
-
-
-if __name__ == '__main__':
-    s = Serial(0,
-         baudrate=19200,        # baudrate
-         bytesize=EIGHTBITS,    # number of databits
-         parity=PARITY_EVEN,    # enable parity checking
-         stopbits=STOPBITS_ONE, # number of stopbits
-         timeout=3,             # set a timeout value, None for waiting forever
-         xonxoff=0,             # enable software flow control
-         rtscts=0,              # enable RTS/CTS flow control
-    )
-    s.setRTS(1)
-    s.setDTR(1)
-    s.reset_input_buffer()
-    s.reset_output_buffer()
-    s.write('hello')
-    sys.stdio.write('%r\n' % s.read(5))
-    sys.stdio.write('%s\n' % s.in_waiting())
-    del s
-

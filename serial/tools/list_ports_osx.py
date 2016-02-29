@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 #
-# portable serial port access with python
-#
 # This is a module that gathers a list of serial ports including details on OSX
 #
 # code originally from https://github.com/makerbot/pyserial/tree/master/serial/tools
 # with contributions from cibomahto, dgs3, FarMcKon, tedbrandston
 # and modifications by cliechti, hoihu, hardkrash
 #
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2013-2015
 #
 # SPDX-License-Identifier:    BSD-3-Clause
@@ -23,7 +22,6 @@
 # Also see the 'IORegistryExplorer' for an idea of what we are actually searching
 
 import ctypes
-from ctypes import util
 
 from serial.tools import list_ports_common
 

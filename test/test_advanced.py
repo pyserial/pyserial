@@ -25,6 +25,7 @@ import serial
 # on which port should the tests be performed:
 PORT = 0
 
+
 class Test_ChangeAttributes(unittest.TestCase):
     """Test with timeouts"""
 
@@ -70,7 +71,6 @@ class Test_ChangeAttributes(unittest.TestCase):
         # calling open for a second time is an error
         self.assertRaises(serial.SerialException, self.s.open)
 
-
     def test_BaudrateSetting(self):
         self.s.port = PORT
         self.s.open()
@@ -94,7 +94,7 @@ class Test_ChangeAttributes(unittest.TestCase):
             self.assertRaises(ValueError, setattr, self.s, 'baudrate', illegal_value)
 
     def test_BytesizeSetting(self):
-        for bytesize in (5,6,7,8):
+        for bytesize in (5, 6, 7, 8):
             self.s.bytesize = bytesize
             # test get method
             self.assertEqual(self.s.bytesize, bytesize)

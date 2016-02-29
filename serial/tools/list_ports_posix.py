@@ -1,13 +1,9 @@
 #!/usr/bin/env python
-
-# portable serial port access with python
-
+#
 # This is a module that gathers a list of serial ports on POSIXy systems.
 # For some specific implementations, see also list_ports_linux, list_ports_osx
 #
-# this is a wrapper module for different platform implementations of the
-# port enumeration feature
-#
+# This file is part of pySerial. https://github.com/pyserial/pyserial
 # (C) 2011-2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
@@ -28,7 +24,7 @@ from serial.tools import list_ports_common
 # try to detect the OS so that a device can be selected...
 plat = sys.platform.lower()
 
-if plat[:5] == 'linux':    # Linux (confirmed)
+if plat[:5] == 'linux':    # Linux (confirmed)  # noqa
     from serial.tools.list_ports_linux import comports
 
 elif plat[:6] == 'darwin':   # OS X (confirmed)
@@ -48,7 +44,6 @@ elif plat[:7] == 'openbsd':    # OpenBSD
         return [list_ports_common.ListPortInfo(d) for d in devices]
 
 elif plat[:3] == 'bsd' or plat[:7] == 'freebsd':
-
     def comports():
         devices = glob.glob('/dev/cua*[!.init][!.lock]')
         return [list_ports_common.ListPortInfo(d) for d in devices]

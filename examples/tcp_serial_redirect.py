@@ -26,11 +26,11 @@ class SerialToNet(serial.threaded.Protocol):
             self.socket.sendall(data)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # noqa
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Simple Serial to Network (TCP/IP) redirector.",
+        description='Simple Serial to Network (TCP/IP) redirector.',
         epilog="""\
 NOTE: no security measures are implemented. Anyone can remotely connect
 to this service over the network.
@@ -40,62 +40,62 @@ it waits for the next connect.
 """)
 
     parser.add_argument(
-            'SERIALPORT',
-            help="serial port name")
+        'SERIALPORT',
+        help="serial port name")
 
     parser.add_argument(
-            'BAUDRATE',
-            type=int,
-            nargs='?',
-            help='set baud rate, default: %(default)s',
-            default=9600)
+        'BAUDRATE',
+        type=int,
+        nargs='?',
+        help='set baud rate, default: %(default)s',
+        default=9600)
 
     parser.add_argument(
-            '-q', '--quiet',
-            action='store_true',
-            help='suppress non error messages',
-            default=False)
+        '-q', '--quiet',
+        action='store_true',
+        help='suppress non error messages',
+        default=False)
 
     group = parser.add_argument_group('serial port')
 
     group.add_argument(
-            "--parity",
-            choices=['N', 'E', 'O', 'S', 'M'],
-            type=lambda c: c.upper(),
-            help="set parity, one of {N E O S M}, default: N",
-            default='N')
+        "--parity",
+        choices=['N', 'E', 'O', 'S', 'M'],
+        type=lambda c: c.upper(),
+        help="set parity, one of {N E O S M}, default: N",
+        default='N')
 
     group.add_argument(
-            '--rtscts',
-            action='store_true',
-            help='enable RTS/CTS flow control (default off)',
-            default=False)
+        '--rtscts',
+        action='store_true',
+        help='enable RTS/CTS flow control (default off)',
+        default=False)
 
     group.add_argument(
-            '--xonxoff',
-            action='store_true',
-            help='enable software flow control (default off)',
-            default=False)
+        '--xonxoff',
+        action='store_true',
+        help='enable software flow control (default off)',
+        default=False)
 
     group.add_argument(
-            '--rts',
-            type=int,
-            help='set initial RTS line state (possible values: 0, 1)',
-            default=None)
+        '--rts',
+        type=int,
+        help='set initial RTS line state (possible values: 0, 1)',
+        default=None)
 
     group.add_argument(
-            '--dtr',
-            type=int,
-            help='set initial DTR line state (possible values: 0, 1)',
-            default=None)
+        '--dtr',
+        type=int,
+        help='set initial DTR line state (possible values: 0, 1)',
+        default=None)
 
     group = parser.add_argument_group('network settings')
 
     group.add_argument(
-            '-P', '--localport',
-            type=int,
-            help='local TCP port',
-            default=7777)
+        '-P', '--localport',
+        type=int,
+        help='local TCP port',
+        default=7777)
 
     args = parser.parse_args()
 
@@ -113,14 +113,14 @@ it waits for the next connect.
         ser.dtr = args.dtr
 
     if not args.quiet:
-        sys.stderr.write('--- TCP/IP to Serial redirect on {p.name}  {p.baudrate},{p.bytesize},{p.parity},{p.stopbits} ---\n'.format(
-                p=ser))
-        sys.stderr.write("--- type Ctrl-C / BREAK to quit\n")
+        sys.stderr.write(
+            '--- TCP/IP to Serial redirect on {p.name}  {p.baudrate},{p.bytesize},{p.parity},{p.stopbits} ---\n'
+            '--- type Ctrl-C / BREAK to quit\n'.format(p=ser))
 
     try:
         ser.open()
     except serial.SerialException as e:
-        sys.stderr.write("Could not open serial port {}: {}\n".format(ser.name, e))
+        sys.stderr.write('Could not open serial port {}: {}\n'.format(ser.name, e))
         sys.exit(1)
 
     ser_to_net = SerialToNet()
@@ -133,7 +133,7 @@ it waits for the next connect.
     srv.listen(1)
     try:
         while True:
-            sys.stderr.write("Waiting for connection on {}...\n".format(args.localport))
+            sys.stderr.write('Waiting for connection on {}...\n'.format(args.localport))
             client_socket, addr = srv.accept()
             sys.stderr.write('Connected by {}\n'.format(addr))
             try:

@@ -211,7 +211,6 @@ class SerialConfigDialog(wx.Dialog):
         success = True
         self.serial.port = self.ports[self.choice_port.GetSelection()]
         if self.show & SHOW_BAUDRATE:
-            #~ self.serial.baudrate = self.serial.BAUDRATES[self.combo_box_baudrate.GetSelection()]
             try:
                 b = int(self.combo_box_baudrate.GetValue())
             except ValueError:

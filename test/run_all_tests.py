@@ -44,7 +44,7 @@ for modulename in [
 verbosity = 1
 if '-v' in sys.argv[1:]:
     verbosity = 2
-    print('-'*78)
+    print('-' * 78)
 
 # run the collected tests
 testRunner = unittest.TextTestRunner(verbosity=verbosity)

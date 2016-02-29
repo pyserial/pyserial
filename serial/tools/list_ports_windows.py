@@ -3,10 +3,12 @@
 # Enumerate serial ports on Windows including a human readable description
 # and hardware information.
 #
-# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+# This file is part of pySerial. https://github.com/pyserial/pyserial
+# (C) 2001-2016 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
+# pylint: disable=invalid-name,too-few-public-methods
 import re
 import ctypes
 from ctypes.wintypes import BOOL
@@ -43,7 +45,7 @@ REGSAM = ACCESS_MASK
 
 def byte_buffer(length):
     """Get a buffer for a string"""
-    return (BYTE*length)()
+    return (BYTE * length)()
 
 
 def string(buffer):
@@ -60,7 +62,7 @@ class GUID(ctypes.Structure):
         ('Data1', DWORD),
         ('Data2', WORD),
         ('Data3', WORD),
-        ('Data4', BYTE*8),
+        ('Data4', BYTE * 8),
     ]
 
     def __str__(self):
@@ -145,7 +147,7 @@ PortName = serial.to_bytes([80, 111, 114, 116, 78, 97, 109, 101])  # "PortName"
 
 
 def comports():
-    GUIDs = (GUID*8)()  # so far only seen one used, so hope 8 are enough...
+    GUIDs = (GUID * 8)()  # so far only seen one used, so hope 8 are enough...
     guids_size = DWORD()
     if not SetupDiClassGuidsFromName(
             Ports,
@@ -157,10 +159,10 @@ def comports():
     # repeat for all possible GUIDs
     for index in range(guids_size.value):
         g_hdi = SetupDiGetClassDevs(
-                ctypes.byref(GUIDs[index]),
-                None,
-                NULL,
-                DIGCF_PRESENT)  # was DIGCF_PRESENT|DIGCF_DEVICEINTERFACE which misses CDC ports
+            ctypes.byref(GUIDs[index]),
+            None,
+            NULL,
+            DIGCF_PRESENT)  # was DIGCF_PRESENT|DIGCF_DEVICEINTERFACE which misses CDC ports
 
         devinfo = SP_DEVINFO_DATA()
         devinfo.cbSize = ctypes.sizeof(devinfo)
@@ -170,21 +172,21 @@ def comports():
 
             # get the real com port name
             hkey = SetupDiOpenDevRegKey(
-                    g_hdi,
-                    ctypes.byref(devinfo),
-                    DICS_FLAG_GLOBAL,
-                    0,
-                    DIREG_DEV,  # DIREG_DRV for SW info
-                    KEY_READ)
+                g_hdi,
+                ctypes.byref(devinfo),
+                DICS_FLAG_GLOBAL,
+                0,
+                DIREG_DEV,  # DIREG_DRV for SW info
+                KEY_READ)
             port_name_buffer = byte_buffer(250)
             port_name_length = ULONG(ctypes.sizeof(port_name_buffer))
             RegQueryValueEx(
-                    hkey,
-                    PortName,
-                    None,
-                    None,
-                    ctypes.byref(port_name_buffer),
-                    ctypes.byref(port_name_length))
+                hkey,
+                PortName,
+                None,
+                None,
+                ctypes.byref(port_name_buffer),
+                ctypes.byref(port_name_length))
             RegCloseKey(hkey)
 
             # unfortunately does this method also include parallel ports.
@@ -229,7 +231,6 @@ def comports():
                     if m.group(4):
                         info.serial_number = m.group(4)
                 # calculate a location string
-                # XXX was empty in tests with (internal) USB3 hub :(
                 loc_path_str = byte_buffer(250)
                 if SetupDiGetDeviceRegistryProperty(
                         g_hdi,
@@ -253,6 +254,15 @@ def comports():
                             location.append(g.group(2))
                     if location:
                         info.location = ''.join(location)
+                info.hwid = info.usb_info()
+            elif szHardwareID_str.startswith('FTDIBUS'):
+                m = re.search(r'VID_([0-9a-f]{4})\+PID_([0-9a-f]{4})(\+(\w+))?', szHardwareID_str, re.I)
+                if m:
+                    info.vid = int(m.group(1), 16)
+                    info.pid = int(m.group(2), 16)
+                    if m.group(4):
+                        info.serial_number = m.group(4)
+                # USB location is hidden by FDTI driver :(
                 info.hwid = info.usb_info()
             else:
                 info.hwid = szHardwareID_str
