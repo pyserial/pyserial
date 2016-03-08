@@ -21,29 +21,36 @@ Therefore decoding is binary to text and thus converting binary data to hex dump
 import codecs
 import serial
 
+
+try:
+    unicode
+except (NameError, AttributeError):
+    unicode = str       # for Python 3, pylint: disable=redefined-builtin,invalid-name
+
+
 HEXDIGITS = '0123456789ABCDEF'
 
 
 # Codec APIs
 
 def hex_encode(data, errors='strict'):
-    """'40 41 42' -> '@ab'"""
+    """'40 41 42' -> b'@ab'"""
     return (serial.to_bytes([int(h, 16) for h in data.split()]), len(data))
 
 
 def hex_decode(data, errors='strict'):
-    """'@ab' -> '40 41 42'"""
-    return (''.join('{:02X} '.format(b) for b in data), len(data))
+    """b'@ab' -> '40 41 42'"""
+    return (unicode(''.join('{:02X} '.format(ord(b)) for b in serial.iterbytes(data))), len(data))
 
 
 class Codec(codecs.Codec):
     def encode(self, data, errors='strict'):
-        """'40 41 42' -> '@ab'"""
+        """'40 41 42' -> b'@ab'"""
         return serial.to_bytes([int(h, 16) for h in data.split()])
 
     def decode(self, data, errors='strict'):
-        """'@ab' -> '40 41 42'"""
-        return ''.join('{:02X} '.format(b) for b in data)
+        """b'@ab' -> '40 41 42'"""
+        return unicode(''.join('{:02X} '.format(ord(b)) for b in serial.iterbytes(data)))
 
 
 class IncrementalEncoder(codecs.IncrementalEncoder):
@@ -92,7 +99,7 @@ class IncrementalEncoder(codecs.IncrementalEncoder):
 class IncrementalDecoder(codecs.IncrementalDecoder):
     """Incremental decoder"""
     def decode(self, data, final=False):
-        return ''.join('{:02X} '.format(b) for b in data)
+        return unicode(''.join('{:02X} '.format(ord(b)) for b in serial.iterbytes(data)))
 
 
 class StreamWriter(Codec, codecs.StreamWriter):
@@ -113,5 +120,5 @@ def getregentry():
         incrementaldecoder=IncrementalDecoder,
         streamwriter=StreamWriter,
         streamreader=StreamReader,
-        _is_text_encoding=True,
+        #~ _is_text_encoding=True,
     )
