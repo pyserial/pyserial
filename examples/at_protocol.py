@@ -143,7 +143,7 @@ if __name__ == '__main__':
             self.command("AT+JRES", response='ROK')      # SW-Reset BT module
 
         def get_mac_address(self):
-            # requests hardware / calibrationinfo as event
+            # requests hardware / calibration info as event
             return self.command_with_event_response("AT+JRBD")
 
     ser = serial.serial_for_url('spy://COM1', baudrate=115200, timeout=1)
