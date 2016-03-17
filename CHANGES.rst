@@ -600,4 +600,8 @@ Improvements:
 Bugfixes:
 
 - [#68] aio: catch errors and close connection
+- [#87] hexlify: update codec for Python 2
 
+Bugfixes (posix):
+
+- [#85] serialposix.py _set_rs485_mode() tries to read non-existing rs485_settings.delay_rts_before_send
