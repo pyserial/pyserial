@@ -1,8 +1,5 @@
 # setup.py for pySerial
 #
-# Windows installer:
-#   "python setup.py bdist_wininst"
-#
 # Direct install (all systems):
 #   "python setup.py install"
 #
@@ -18,8 +15,6 @@ try:
 except ImportError:
     from distutils.core import setup
 
-# importing version does not work with Python 3 as files have not yet been
-# converted.
 import serial
 version = serial.VERSION
 
@@ -31,7 +26,7 @@ setup(
     author_email="cliechti@gmx.net",
     url="https://github.com/pyserial/pyserial",
     packages=['serial', 'serial.tools', 'serial.urlhandler', 'serial.threaded'],
-    license="Python",
+    license="BSD",
     long_description="Python Serial Port Extension for Win32, OSX, Linux, BSD, Jython, IronPython",
     classifiers=[
         'Development Status :: 5 - Production/Stable',
