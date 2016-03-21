@@ -583,15 +583,13 @@ class Serial(SerialBase):
                     self._network_timeout = float(values[0])
                 else:
                     raise ValueError('unknown option: {!r}'.format(option))
-            # get host and port
-            host, port = parts.hostname, parts.port
-            if not 0 <= port < 65536:
+            if not 0 <= parts.port < 65536:
                 raise ValueError("port not in range 0...65535")
         except ValueError as e:
             raise SerialException(
                 'expected a string in the form '
                 '"rfc2217://<host>:<port>[?option[&option...]]": {}'.format(e))
-        return (host, port)
+        return (parts.hostname, parts.port)
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
