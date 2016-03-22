@@ -96,6 +96,37 @@ def create_serial_connection(loop, protocol_factory, *args, **kwargs):
     transport = SerialTransport(loop, protocol, ser)
     return (transport, protocol)
 
+
+@asyncio.coroutine
+def open_serial_connection(*,
+                           loop=None,
+                           limit=asyncio.streams._DEFAULT_LIMIT,
+                           **kwargs):
+    """A wrapper for create_serial_connection() returning a (reader,
+    writer) pair.
+
+    The reader returned is a StreamReader instance; the writer is a
+    StreamWriter instance.
+
+    The arguments are all the usual arguments to Serial(). Additional
+    optional keyword arguments are loop (to set the event loop instance
+    to use) and limit (to set the buffer limit passed to the
+    StreamReader.
+
+    This function is a coroutine.
+    """
+    if loop is None:
+        loop = asyncio.get_event_loop()
+    reader = asyncio.StreamReader(limit=limit, loop=loop)
+    protocol = asyncio.StreamReaderProtocol(reader, loop=loop)
+    transport, _ = yield from create_serial_connection(
+        loop=loop,
+        protocol_factory=lambda: protocol,
+        **kwargs)
+    writer = asyncio.StreamWriter(transport, protocol, reader, loop)
+    return reader, writer
+
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
 if __name__ == '__main__':
