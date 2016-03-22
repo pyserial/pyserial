@@ -68,7 +68,7 @@ class SerialTransport(asyncio.Transport):
         if self._paused:
             raise RuntimeError('Already paused')
         self._paused = True
-        self._loop.remove_reader(self._sock_fd)
+        self._loop.remove_reader(self.serial.fd)
         if self._loop.get_debug():
             logging.debug("%r pauses reading", self)
 
@@ -78,7 +78,7 @@ class SerialTransport(asyncio.Transport):
         self._paused = False
         if self._closing:
             return
-        self._loop.add_reader(self._sock_fd, self._read_ready)
+        self._loop.add_reader(self.serial.fd, self._read_ready)
         if self._loop.get_debug():
             logging.debug("%r resumes reading", self)
 
