@@ -21,6 +21,7 @@ import logging
 
 class SerialTransport(asyncio.Transport):
     def __init__(self, loop, protocol, serial_instance):
+        super().__init__()
         self._loop = loop
         self._protocol = protocol
         self.serial = serial_instance
