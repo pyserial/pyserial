@@ -131,6 +131,7 @@ if plat[:5] == 'linux':    # Linux (confirmed)  # noqa
             buf = array.array('i', [0] * 8)  # flags, delaytx, delayrx, padding
             try:
                 fcntl.ioctl(self.fd, TIOCGRS485, buf)
+                buf[0] |= SER_RS485_ENABLED
                 if rs485_settings is not None:
                     if rs485_settings.loopback:
                         buf[0] |= SER_RS485_RX_DURING_TX
