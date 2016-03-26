@@ -521,14 +521,17 @@ class Serial(SerialBase, PlatformSpecific):
             raise portNotOpenError
         d = to_bytes(data)
         tx_len = len(d)
-        if self._write_timeout is not None and self._write_timeout > 0:
-            timeout = time.time() + self._write_timeout
-        else:
-            timeout = None
+        timeout = self._write_timeout
+        if timeout and timeout > 0:   # Avoid comparing None with zero
+            timeout += time.time()
         while tx_len > 0:
             try:
                 n = os.write(self.fd, d)
-                if timeout:
+                if timeout == 0:
+                    # Zero timeout indicates non-blocking - simply return the
+                    # number of bytes of data actually written
+                    return n
+                elif timeout and timeout > 0:  # Avoid comparing None with zero
                     # when timeout is set, use select to wait for being ready
                     # with the time left as timeout
                     timeleft = timeout - time.time()
@@ -538,6 +541,7 @@ class Serial(SerialBase, PlatformSpecific):
                     if not ready:
                         raise writeTimeoutError
                 else:
+                    assert timeout is None
                     # wait for write operation
                     _, ready, _ = select.select([], [self.fd], [], None)
                     if not ready:
