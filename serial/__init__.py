@@ -13,7 +13,9 @@ import sys
 from serial.serialutil import *
 #~ SerialBase, SerialException, to_bytes, iterbytes
 
-VERSION = '3.1a0'
+__version__ = '3.1a0'
+
+VERSION = __version__
 
 # pylint: disable=wrong-import-position
 if sys.platform == 'cli':
