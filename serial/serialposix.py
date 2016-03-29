@@ -712,7 +712,7 @@ class PosixPollSerial(Serial):
         return less characters as requested. With no timeout it will block
         until the requested number of bytes is read.
         """
-        if self.fd is None:
+        if not self.is_open:
             raise portNotOpenError
         read = bytearray()
         poll = select.poll()

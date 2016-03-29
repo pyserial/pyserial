@@ -145,7 +145,7 @@ class Serial(SerialBase):
     @property
     def in_waiting(self):
         """Return the number of characters currently in the input buffer."""
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         return self._port_handle.BytesToRead
 
@@ -155,7 +155,7 @@ class Serial(SerialBase):
         return less characters as requested. With no timeout it will block
         until the requested number of bytes is read.
         """
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         # must use single byte reads as this is the only way to read
         # without applying encodings
@@ -171,7 +171,7 @@ class Serial(SerialBase):
 
     def write(self, data):
         """Output the given string over the serial port."""
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         #~ if not isinstance(data, (bytes, bytearray)):
             #~ raise TypeError('expected %s or bytearray, got %s' % (bytes, type(data)))
@@ -185,7 +185,7 @@ class Serial(SerialBase):
 
     def reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         self._port_handle.DiscardInBuffer()
 
@@ -194,7 +194,7 @@ class Serial(SerialBase):
         Clear output buffer, aborting the current output and
         discarding all that is in the buffer.
         """
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         self._port_handle.DiscardOutBuffer()
 
@@ -202,40 +202,40 @@ class Serial(SerialBase):
         """
         Set break: Controls TXD. When active, to transmitting is possible.
         """
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         self._port_handle.BreakState = bool(self._break_state)
 
     def _update_rts_state(self):
         """Set terminal status line: Request To Send"""
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         self._port_handle.RtsEnable = bool(self._rts_state)
 
     def _update_dtr_state(self):
         """Set terminal status line: Data Terminal Ready"""
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         self._port_handle.DtrEnable = bool(self._dtr_state)
 
     @property
     def cts(self):
         """Read terminal status line: Clear To Send"""
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         return self._port_handle.CtsHolding
 
     @property
     def dsr(self):
         """Read terminal status line: Data Set Ready"""
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         return self._port_handle.DsrHolding
 
     @property
     def ri(self):
         """Read terminal status line: Ring Indicator"""
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         #~ return self._port_handle.XXX
         return False  # XXX an error would be better
@@ -243,7 +243,7 @@ class Serial(SerialBase):
     @property
     def cd(self):
         """Read terminal status line: Carrier Detect"""
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         return self._port_handle.CDHolding
 

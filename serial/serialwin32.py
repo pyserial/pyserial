@@ -266,7 +266,7 @@ class Serial(SerialBase):
         Read size bytes from the serial port. If a timeout is set it may
         return less characters as requested. With no timeout it will block
         until the requested number of bytes is read."""
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         if size > 0:
             win32.ResetEvent(self._overlapped_read.hEvent)
@@ -300,7 +300,7 @@ class Serial(SerialBase):
 
     def write(self, data):
         """Output the given byte string over the serial port."""
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         #~ if not isinstance(data, (bytes, bytearray)):
             #~ raise TypeError('expected %s or bytearray, got %s' % (bytes, type(data)))
@@ -335,7 +335,7 @@ class Serial(SerialBase):
 
     def reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         win32.PurgeComm(self._port_handle, win32.PURGE_RXCLEAR | win32.PURGE_RXABORT)
 
@@ -344,13 +344,13 @@ class Serial(SerialBase):
         Clear output buffer, aborting the current output and discarding all
         that is in the buffer.
         """
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         win32.PurgeComm(self._port_handle, win32.PURGE_TXCLEAR | win32.PURGE_TXABORT)
 
     def _update_break_state(self):
         """Set break: Controls TXD. When active, to transmitting is possible."""
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         if self._break_state:
             win32.SetCommBreak(self._port_handle)
@@ -372,7 +372,7 @@ class Serial(SerialBase):
             win32.EscapeCommFunction(self._port_handle, win32.CLRDTR)
 
     def _GetCommModemStatus(self):
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         stat = win32.DWORD()
         win32.GetCommModemStatus(self._port_handle, ctypes.byref(stat))
@@ -416,7 +416,7 @@ class Serial(SerialBase):
         from the other device and control the transmission accordingly.
         WARNING: this function is not portable to different platforms!
         """
-        if not self._port_handle:
+        if not self.is_open:
             raise portNotOpenError
         if enable:
             win32.EscapeCommFunction(self._port_handle, win32.SETXON)
