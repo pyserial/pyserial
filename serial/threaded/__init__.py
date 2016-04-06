@@ -58,7 +58,7 @@ class Packetizer(Protocol):
         """Buffer received data, find TERMINATOR, call handle_packet"""
         self.buffer.extend(data)
         while self.TERMINATOR in self.buffer:
-            packet, self.buffer = self.buffer.split(self.TERMINATOR)
+            packet, self.buffer = self.buffer.split(self.TERMINATOR, 1)
             self.handle_packet(packet)
 
     def handle_packet(self, packet):
