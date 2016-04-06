@@ -534,6 +534,9 @@ class SerialBase(io.RawIOBase):
     def getCD(self):
         return self.cd
 
+    def setPort(self, port):
+        self.port = port
+
     @property
     def writeTimeout(self):
         return self.write_timeout
