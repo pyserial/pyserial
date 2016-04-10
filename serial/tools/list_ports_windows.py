@@ -146,7 +146,8 @@ Ports = serial.to_bytes([80, 111, 114, 116, 115])  # "Ports"
 PortName = serial.to_bytes([80, 111, 114, 116, 78, 97, 109, 101])  # "PortName"
 
 
-def comports():
+def iterate_comports():
+    """Return a generator that yields descriptions for serial ports"""
     GUIDs = (GUID * 8)()  # so far only seen one used, so hope 8 are enough...
     guids_size = DWORD()
     if not SetupDiClassGuidsFromName(
@@ -287,6 +288,10 @@ def comports():
             yield info
         SetupDiDestroyDeviceInfoList(g_hdi)
 
+
+def comports():
+    """Return a list of info objects about serial ports"""
+    return list(iterate_comports())
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
