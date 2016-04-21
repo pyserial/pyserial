@@ -36,7 +36,7 @@ LOGGER_LEVELS = {
     'error': logging.ERROR,
 }
 
-POLL_TIMEOUT = 2
+POLL_TIMEOUT = 5
 
 
 class Serial(SerialBase):
@@ -56,14 +56,13 @@ class Serial(SerialBase):
         if self.is_open:
             raise SerialException("Port is already open.")
         try:
-            self._socket = socket.create_connection(self.from_url(self.portstr))
+            # timeout is used for write timeout support :/ and to get an initial connection timeout
+            self._socket = socket.create_connection(self.from_url(self.portstr), timeout=POLL_TIMEOUT)
         except Exception as msg:
             self._socket = None
             raise SerialException("Could not open port {}: {}".format(self.portstr, msg))
 
-        self._socket.settimeout(POLL_TIMEOUT)  # used for write timeout support :/
-
-        # not that there anything to configure...
+        # not that there is anything to configure...
         self._reconfigure_port()
         # all things set up get, now a clean start
         self.is_open = True
