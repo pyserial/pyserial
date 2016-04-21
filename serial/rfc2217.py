@@ -410,13 +410,11 @@ class Serial(SerialBase):
         if self.is_open:
             raise SerialException("Port is already open.")
         try:
-            self._socket = socket.create_connection(self.from_url(self.portstr))
+            self._socket = socket.create_connection(self.from_url(self.portstr), timeout=5) # XXX good value?
             self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         except Exception as msg:
             self._socket = None
             raise SerialException("Could not open port {}: {}".format(self.portstr, msg))
-
-        self._socket.settimeout(5)  # XXX good value?
 
         # use a thread save queue as buffer. it also simplifies implementing
         # the read timeout
