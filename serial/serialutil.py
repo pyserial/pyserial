@@ -28,6 +28,11 @@ try:
 except (NameError, AttributeError):
     unicode = str       # for Python 3, pylint: disable=redefined-builtin,invalid-name
 
+try:
+    basestr
+except (NameError, AttributeError):
+    basestr = (str,)    # for Python 3, pylint: disable=redefined-builtin,invalid-name
+
 
 # "for byte in data" fails for python3 as it returns ints instead of bytes
 def iterbytes(b):
@@ -188,18 +193,17 @@ class SerialBase(io.RawIOBase):
     def port(self):
         """\
         Get the current port setting. The value that was passed on init or using
-        setPort() is passed back. See also the attribute portstr which contains
-        the name of the port as a string.
+        setPort() is passed back.
         """
         return self._port
 
     @port.setter
     def port(self, port):
         """\
-        Change the port. The attribute portstr is set to a string that
-        contains the name of the port.
+        Change the port.
         """
-
+        if port is not None and not isinstance(port, basestr):
+            raise ValueError('"port" must be None or a string, not {}'.format(type(port)))
         was_open = self.is_open
         if was_open:
             self.close()
