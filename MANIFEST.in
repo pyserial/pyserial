@@ -3,6 +3,8 @@ include LICENSE.txt
 include CHANGES.rst
 include MANIFEST.in
 include setup.py
+include setup.cfg
+include pylintrc
 
 include examples/at_protocol.py
 include examples/port_publisher.py
