@@ -3,7 +3,7 @@
 # backend for serial IO for POSIX compatible systems, like Linux, OSX
 #
 # This file is part of pySerial. https://github.com/pyserial/pyserial
-# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2016 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 #
@@ -11,6 +11,20 @@
 #  ftp://ftp.visi.com/users/grante/python/PosixSerial.py
 #
 # references: http://www.easysw.com/~mike/serial/serial.html
+
+# Collection of port names (was previously used by number_to_device which was
+# removed.
+# - Linux                   /dev/ttyS%d (confirmed)
+# - cygwin/win32            /dev/com%d (confirmed)
+# - openbsd (OpenBSD)       /dev/cua%02d
+# - bsd*, freebsd*          /dev/cuad%d
+# - darwin (OS X)           /dev/cuad%d
+# - netbsd                  /dev/dty%02d (NetBSD 1.6 testing by Erk)
+# - irix (IRIX)             /dev/ttyf%d (partially tested) names depending on flow control
+# - hp (HP-UX)              /dev/tty%dp0 (not tested)
+# - sunos (Solaris/SunOS)   /dev/tty%c (letters, 'a'..'z') (confirmed)
+# - aix (AIX)               /dev/tty%d
+
 
 # pylint: disable=abstract-method
 import errno
@@ -28,23 +42,6 @@ from serial.serialutil import SerialBase, SerialException, to_bytes, portNotOpen
 
 class PlatformSpecificBase(object):
     BAUDRATE_CONSTANTS = {}
-
-    def number_to_device(self, port_number):
-        sys.stderr.write("""\
-don't know how to number ttys on this system.
-! Use an explicit path (eg /dev/ttyS1) or send this information to
-! the author of this module:
-
-sys.platform = {!r}
-os.name = {!r}
-serialposix.py version = {}
-
-also add the device name of the serial port and where the
-counting starts for the first serial port.
-e.g. 'first serial port: /dev/ttyS0'
-and with a bit luck you can get this module running...
-""".format(sys.platform, os.name, serial.VERSION))
-        raise NotImplementedError('no number-to-device mapping defined on this platform')
 
     def _set_special_baudrate(self, baudrate):
         raise NotImplementedError('non-standard baudrates are not supported on this platform')
@@ -108,9 +105,6 @@ if plat[:5] == 'linux':    # Linux (confirmed)  # noqa
             4000000: 0o010017
         }
 
-        def number_to_device(self, port_number):
-            return '/dev/ttyS%d' % (port_number,)
-
         def _set_special_baudrate(self, baudrate):
             # right size is 44 on x86_64, allow for some growth
             buf = array.array('i', [0] * 64)
@@ -171,28 +165,12 @@ elif plat == 'cygwin':       # cygwin/win32 (confirmed)
             3000000: 0x0100f
         }
 
-        def number_to_device(self, port_number):
-            return '/dev/com%d' % (port_number + 1,)
-
-
-elif plat[:7] == 'openbsd':    # OpenBSD
-    class PlatformSpecific(PlatformSpecificBase):
-        def number_to_device(self, port_number):
-            return '/dev/cua%02d' % (port_number,)
-
-elif plat[:3] == 'bsd' or plat[:7] == 'freebsd':
-    class PlatformSpecific(PlatformSpecificBase):
-        def number_to_device(self, port_number):
-            return '/dev/cuad%d' % (port_number,)
 
 elif plat[:6] == 'darwin':   # OS X
     import array
     IOSSIOSPEED = 0x80045402  # _IOW('T', 2, speed_t)
 
     class PlatformSpecific(PlatformSpecificBase):
-        def number_to_device(self, port_number):
-            return '/dev/cuad%d' % (port_number,)
-
         osx_version = os.uname()[2].split('.')
         # Tiger or above can support arbitrary serial speeds
         if int(osx_version[0]) >= 8:
@@ -201,38 +179,9 @@ elif plat[:6] == 'darwin':   # OS X
                 buf = array.array('i', [baudrate])
                 fcntl.ioctl(self.fd, IOSSIOSPEED, buf, 1)
 
-
-elif plat[:6] == 'netbsd':   # NetBSD 1.6 testing by Erk
-    class PlatformSpecific(PlatformSpecificBase):
-        def number_to_device(self, port_number):
-            return '/dev/dty%02d' % (port_number,)
-
-elif plat[:4] == 'irix':     # IRIX (partially tested)
-    class PlatformSpecific(PlatformSpecificBase):
-        def number_to_device(self, port_number):
-            return '/dev/ttyf%d' % (port_number + 1,)  # XXX different device names depending on flow control
-
-elif plat[:2] == 'hp':       # HP-UX (not tested)
-    class PlatformSpecific(PlatformSpecificBase):
-        def number_to_device(self, port_number):
-            return '/dev/tty%dp0' % (port_number + 1,)
-
-elif plat[:5] == 'sunos':    # Solaris/SunOS (confirmed)
-    class PlatformSpecific(PlatformSpecificBase):
-        def number_to_device(self, port_number):
-            return '/dev/tty%c' % (ord('a') + port_number,)
-
-elif plat[:3] == 'aix':      # AIX
-    class PlatformSpecific(PlatformSpecificBase):
-        def number_to_device(self, port_number):
-            return '/dev/tty%d' % (port_number,)
-
 else:
     class PlatformSpecific(PlatformSpecificBase):
         pass
-
-# whats up with "aix", "beos", ....
-# they should work, just need to know the device names.
 
 
 # load some constants for later use.
