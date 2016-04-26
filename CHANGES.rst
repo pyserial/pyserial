@@ -596,12 +596,26 @@ Improvements:
 - ``socket://`` internally used select, improves timeout behavior
 - initial state of RTS/DTR: revert to "no change on open" on Posix, unless a
   value is set explicitly.
+- code style updates
+- posix: remove "number_to_device" which is not called anymore
 
 Bugfixes:
 
 - [#68] aio: catch errors and close connection
 - [#87] hexlify: update codec for Python 2
+- [#100] setPort not implemented
+- [#101] bug in serial.threaded.Packetizer with easy fix
+- [#104] rfc2217 and socket: set timeout in create_connection
 
 Bugfixes (posix):
 
-- [#85] serialposix.py _set_rs485_mode() tries to read non-existing rs485_settings.delay_rts_before_send
+- [#59] fixes for RTS/DTR handling on open
+- [#77] list_ports_osx: add missing import
+- [#85] serialposix.py _set_rs485_mode() tries to read non-existing
+  rs485_settings.delay_rts_before_send
+- [#96] patch: native RS485 is never enabled
+
+Bugfixes (win32):
+
+- fix bad super call and duplicate old-style __init__ call
+- [#80] list_ports: Compatibility issue between Windows/Linux
