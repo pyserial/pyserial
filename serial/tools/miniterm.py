@@ -68,6 +68,9 @@ class ConsoleBase(object):
         self.output.write(text)
         self.output.flush()
 
+    def cancel(self):
+        """Cancel getkey operation"""
+
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     # context manager:
     # switch terminal temporary to normal mode (e.g. to get user input)
@@ -122,6 +125,10 @@ if os.name == 'nt':  # noqa
                     msvcrt.getwch()
                 else:
                     return z
+
+        def cancel(self):
+            hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+            ctypes.windll.user32.PostMessageA(hwnd, 0x100, 0x0d, 0)
 
 elif os.name == 'posix':
     import atexit
@@ -434,9 +441,8 @@ class Miniterm(object):
                         self.console.write(text)
         except serial.SerialException:
             self.alive = False
-            # XXX would be nice if the writer could be interrupted at this
-            #     point... to exit completely
-            raise
+            self.console.cancel()
+            raise       # XXX handle instead of re-raise?
 
     def writer(self):
         """\
@@ -451,6 +457,8 @@ class Miniterm(object):
                     c = self.console.getkey()
                 except KeyboardInterrupt:
                     c = '\x03'
+                if not self.alive:
+                    break
                 if menu_active:
                     self.handle_menu_key(c)
                     menu_active = False
