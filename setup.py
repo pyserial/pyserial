@@ -27,7 +27,19 @@ setup(
     url="https://github.com/pyserial/pyserial",
     packages=['serial', 'serial.tools', 'serial.urlhandler', 'serial.threaded'],
     license="BSD",
-    long_description="Python Serial Port Extension for Win32, OSX, Linux, BSD, Jython, IronPython",
+    long_description="""\
+Python Serial Port Extension for Win32, OSX, Linux, BSD, Jython, IronPython
+
+Stable:
+
+- Documentation: http://pythonhosted.org/pyserial/
+- Download Page: https://pypi.python.org/pypi/pyserial
+
+Latest:
+
+- Documentation: http://pyserial.readthedocs.io/en/latest/
+- Project Homepage: https://github.com/pyserial/pyserial
+""",
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
