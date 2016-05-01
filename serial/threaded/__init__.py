@@ -55,7 +55,7 @@ class Packetizer(Protocol):
     def connection_lost(self, exc):
         """Forget transport"""
         self.transport = None
-        super().connection_lost(exc)
+        super(Packetizer, self).connection_lost(exc)
 
     def data_received(self, data):
         """Buffer received data, find TERMINATOR, call handle_packet"""
@@ -93,7 +93,7 @@ class FramedPacket(Protocol):
         self.transport = None
         self.in_packet = False
         del self.packet[:]
-        super().connection_lost(exc)
+        super(FramedPacket, self).connection_lost(exc)
 
     def data_received(self, data):
         """Find data enclosed in START/STOP, call handle_packet"""
