@@ -30,6 +30,8 @@ class Protocol(object):
         Called when the serial port is closed or the reader loop terminated
         otherwise.
         """
+        if isinstance(exc, Exception):
+            raise exc
 
 
 class Packetizer(Protocol):
@@ -53,6 +55,7 @@ class Packetizer(Protocol):
     def connection_lost(self, exc):
         """Forget transport"""
         self.transport = None
+        super(Packetizer, self).connection_lost(exc)
 
     def data_received(self, data):
         """Buffer received data, find TERMINATOR, call handle_packet"""
@@ -90,6 +93,7 @@ class FramedPacket(Protocol):
         self.transport = None
         self.in_packet = False
         del self.packet[:]
+        super(FramedPacket, self).connection_lost(exc)
 
     def data_received(self, data):
         """Find data enclosed in START/STOP, call handle_packet"""
