@@ -6,7 +6,7 @@
 # For Python 3.x use the corresponding Python executable,
 # e.g. "python3 setup.py ..."
 #
-# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2016 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 

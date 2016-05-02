@@ -19,7 +19,7 @@ Other pages (online)
 
 - `project page on GitHub`_
 - `Download Page`_ with releases (PyPi)
-- This page, when viewed online is at https://pyserial.readthedocs.org/en/latest/ or
+- This page, when viewed online is at https://pyserial.readthedocs.io/en/latest/ or
   http://pythonhosted.org/pyserial/ .
 
 .. _Python: http://python.org/
