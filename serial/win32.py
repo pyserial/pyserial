@@ -179,6 +179,10 @@ WaitForSingleObject = _stdcall_libraries['kernel32'].WaitForSingleObject
 WaitForSingleObject.restype = DWORD
 WaitForSingleObject.argtypes = [HANDLE, DWORD]
 
+CancelIoEx = _stdcall_libraries['kernel32'].CancelIoEx
+CancelIoEx.restype = BOOL
+CancelIoEx.argtypes = [HANDLE, LPOVERLAPPED]
+
 ONESTOPBIT = 0  # Variable c_int
 TWOSTOPBITS = 2  # Variable c_int
 ONE5STOPBITS = 1
