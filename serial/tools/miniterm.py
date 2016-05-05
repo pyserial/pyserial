@@ -127,6 +127,7 @@ if os.name == 'nt':  # noqa
                     return z
 
         def cancel(self):
+            # XXX check if CancelIOEx could be used
             hwnd = ctypes.windll.kernel32.GetConsoleWindow()
             ctypes.windll.user32.PostMessageA(hwnd, 0x100, 0x0d, 0)
 
@@ -361,6 +362,8 @@ class Miniterm(object):
     def _stop_reader(self):
         """Stop reader thread only, wait for clean exit of thread"""
         self._reader_alive = False
+        if hasattr(self.serial, 'cancel_read'):
+            self.serial.cancel_read()
         self.receiver_thread.join()
 
     def start(self):
@@ -381,7 +384,12 @@ class Miniterm(object):
         """wait for worker threads to terminate"""
         self.transmitter_thread.join()
         if not transmit_only:
+            if hasattr(self.serial, 'cancel_read'):
+                self.serial.cancel_read()
             self.receiver_thread.join()
+
+    def close(self):
+        self.serial.close()
 
     def update_transformations(self):
         """take list of transformation classes and instantiate them for rx and tx"""
@@ -901,6 +909,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
     if not args.quiet:
         sys.stderr.write("\n--- exit ---\n")
     miniterm.join()
+    miniterm.close()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __name__ == '__main__':

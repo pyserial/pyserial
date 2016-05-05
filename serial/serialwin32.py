@@ -234,12 +234,12 @@ class Serial(SerialBase):
         if self._port_handle:
             # Restore original timeout values:
             win32.SetCommTimeouts(self._port_handle, self._orgTimeouts)
-            # Close COM-Port:
-            win32.CloseHandle(self._port_handle)
             if self._overlapped_read is not None:
+                self.cancel_read()
                 win32.CloseHandle(self._overlapped_read.hEvent)
                 self._overlapped_read = None
             if self._overlapped_write is not None:
+                self.cancel_write()
                 win32.CloseHandle(self._overlapped_write.hEvent)
                 self._overlapped_write = None
             self._port_handle = None
@@ -265,7 +265,8 @@ class Serial(SerialBase):
         """\
         Read size bytes from the serial port. If a timeout is set it may
         return less characters as requested. With no timeout it will block
-        until the requested number of bytes is read."""
+        until the requested number of bytes is read.
+        """
         if not self.is_open:
             raise portNotOpenError
         if size > 0:
@@ -431,3 +432,25 @@ class Serial(SerialBase):
         if not win32.ClearCommError(self._port_handle, ctypes.byref(flags), ctypes.byref(comstat)):
             raise SerialException('call to ClearCommError failed')
         return comstat.cbOutQue
+
+    def _cancel_overlapped_io(self, overlapped):
+        """Cancel a blocking read operation, may be called from other thread"""
+        # check if read operation is pending
+        rc = win32.DWORD()
+        err = win32.GetOverlappedResult(
+            self._port_handle,
+            ctypes.byref(overlapped),
+            ctypes.byref(rc),
+            False)
+        if not err and win32.GetLastError() == win32.ERROR_IO_PENDING:
+            # cancel, ignoring any errors (e.g. it may just have finished on its own)
+            win32.CancelIoEx(self._port_handle, overlapped)
+
+    def cancel_read(self):
+        """Cancel a blocking read operation, may be called from other thread"""
+        self._cancel_overlapped_io(self._overlapped_read)
+
+    def cancel_write(self):
+        """Cancel a blocking write operation, may be called from other thread"""
+        self._cancel_overlapped_io(self._overlapped_write)
+
