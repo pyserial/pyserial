@@ -14,9 +14,9 @@ serial.tools.list_ports``). It also contains the following functions.
 
 .. function:: comports()
 
-    :return: an iterable that yields :class:`ListPortInfo` objects.
+    :return: a list containing :class:`ListPortInfo` objects.
 
-    The function returns an iterable that yields :obj:`ListPortInfo` objects.
+    The function returns a list of :obj:`ListPortInfo` objects.
 
     Items are returned in no particular order. It may make sense to sort the
     items. Also note that the reported strings are different across platforms

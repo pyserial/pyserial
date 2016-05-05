@@ -598,6 +598,7 @@ Improvements:
   value is set explicitly.
 - code style updates
 - posix: remove "number_to_device" which is not called anymore
+- miniterm: try to exit reader thread if write thread fails
 
 Bugfixes:
 
