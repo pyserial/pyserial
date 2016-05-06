@@ -454,7 +454,8 @@ Native ports
         current settings so that a later point in time they can be restored
         using :meth:`apply_settings`.
 
-        Note that control lines (RTS/DTR) are part of the settings.
+        Note that the state of control lines (RTS/DTR) are not part of the
+        settings.
 
         .. versionadded:: 2.5
         .. versionchanged:: 3.0 renamed from ``getSettingsDict``
@@ -520,7 +521,21 @@ Native ports
         .. versionchanged:: 2.7 (renamed on Posix, function was called ``flowControl``)
         .. versionchanged:: 3.0 renamed from ``setXON``
 
+    .. method:: cancel_read()
 
+        :platform: Windows
+
+        Cancel a pending read operation from an other thread.
+
+        .. versionadded:: 3.1
+
+    .. method:: cancel_write()
+
+        :platform: Windows
+
+        Cancel a pending write operation from an other thread.
+
+        .. versionadded:: 3.1
 
     .. note:: The following members are deprecated and will be removed in a
               future release.
