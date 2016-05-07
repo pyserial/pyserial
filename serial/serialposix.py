@@ -258,10 +258,16 @@ class Serial(SerialBase, PlatformSpecific):
             raise
         else:
             self.is_open = True
-        if not self._dsrdtr:
-            self._update_dtr_state()
-        if not self._rtscts:
-            self._update_rts_state()
+        try:
+            if not self._dsrdtr:
+                self._update_dtr_state()
+            if not self._rtscts:
+                self._update_rts_state()
+        except IOError as e:
+            if e.errno == 22:  # ignore Invalid argument
+                pass
+            else:
+                raise
         self.reset_input_buffer()
 
     def _reconfigure_port(self, force_update=False):
