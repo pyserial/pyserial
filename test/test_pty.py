@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # This file is part of pySerial - Cross platform serial port support for Python
-# (C) 2015 Chris Liechti <cliechti@gmx.net>
+# (C) 2016 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 """
@@ -10,11 +10,16 @@ Test PTY related functionality.
 
 import os
 import sys
-import pty
+
+try:
+    import pty
+except ImportError:
+    pty = None
 import unittest
 import serial
 
 
+@unittest.skipIf(pty is None, "pty module not supported on platform")
 class Test_Pty_Serial_Open(unittest.TestCase):
     """Test PTY serial open"""
 
