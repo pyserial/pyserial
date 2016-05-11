@@ -29,9 +29,9 @@ except (NameError, AttributeError):
     unicode = str       # for Python 3, pylint: disable=redefined-builtin,invalid-name
 
 try:
-    basestr
+    basestring
 except (NameError, AttributeError):
-    basestr = (str,)    # for Python 3, pylint: disable=redefined-builtin,invalid-name
+    basestring = (str,)    # for Python 3, pylint: disable=redefined-builtin,invalid-name
 
 
 # "for byte in data" fails for python3 as it returns ints instead of bytes
@@ -202,7 +202,7 @@ class SerialBase(io.RawIOBase):
         """\
         Change the port.
         """
-        if port is not None and not isinstance(port, basestr):
+        if port is not None and not isinstance(port, basestring):
             raise ValueError('"port" must be None or a string, not {}'.format(type(port)))
         was_open = self.is_open
         if was_open:
