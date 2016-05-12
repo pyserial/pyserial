@@ -868,8 +868,11 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
                 parity=args.parity,
                 rtscts=args.rtscts,
                 xonxoff=args.xonxoff,
-                timeout=1,
                 do_not_open=True)
+
+            if not hasattr(serial_instance, 'cancel_read'):
+                # enable timeout for alive flag polling if cancel_read is not available
+                serial_instance.timeout = 1
 
             if args.dtr is not None:
                 if not args.quiet:
