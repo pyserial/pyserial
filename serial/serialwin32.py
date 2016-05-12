@@ -437,7 +437,7 @@ class Serial(SerialBase):
             ctypes.byref(overlapped),
             ctypes.byref(rc),
             False)
-        if not err and win32.GetLastError() == win32.ERROR_IO_PENDING:
+        if not err and win32.GetLastError() in (win32.ERROR_IO_PENDING, win32.ERROR_IO_INCOMPLETE):
             # cancel, ignoring any errors (e.g. it may just have finished on its own)
             win32.CancelIoEx(self._port_handle, overlapped)
 
