@@ -127,7 +127,8 @@ if os.name == 'nt':  # noqa
                     return z
 
         def cancel(self):
-            # XXX check if CancelIOEx could be used
+            # CancelIo, CancelSynchronousIo do not seem to work when using
+            # getwch, so instead, send a key to the window with the console
             hwnd = ctypes.windll.kernel32.GetConsoleWindow()
             ctypes.windll.user32.PostMessageA(hwnd, 0x100, 0x0d, 0)
 
