@@ -269,6 +269,7 @@ class Serial(SerialBase, PlatformSpecific):
             else:
                 raise
         self.reset_input_buffer()
+        self.pipe_abort_read_r, self.pipe_abort_read_w = os.pipe()
 
     def _reconfigure_port(self, force_update=False):
         """Set communication parameters on opened port."""
@@ -435,7 +436,10 @@ class Serial(SerialBase, PlatformSpecific):
         while len(read) < size:
             try:
                 start_time = time.time()
-                ready, _, _ = select.select([self.fd], [], [], timeout)
+                ready, _, _ = select.select([self.fd, self.pipe_abort_read_r], [], [], timeout)
+                if self.pipe_abort_read_r in ready:
+                    os.read(self.pipe_abort_read_r, 1)
+                    break
                 # If select was used with a timeout, and the timeout occurs, it
                 # returns with empty lists -> thus abort read operation.
                 # For timeout == 0 (non-blocking operation) also abort when
@@ -469,6 +473,9 @@ class Serial(SerialBase, PlatformSpecific):
                 if e[0] != errno.EAGAIN:
                     raise SerialException('read failed: {}'.format(e))
         return bytes(read)
+
+    def cancel_read(self):
+        os.write(self.pipe_abort_read_w, b"x")
 
     def write(self, data):
         """Output the given byte string over the serial port."""
