@@ -270,6 +270,7 @@ class Serial(SerialBase, PlatformSpecific):
                 raise
         self.reset_input_buffer()
         self.pipe_abort_read_r, self.pipe_abort_read_w = os.pipe()
+        self.pipe_abort_write_r, self.pipe_abort_write_w = os.pipe()
 
     def _reconfigure_port(self, force_update=False):
         """Set communication parameters on opened port."""
@@ -477,6 +478,9 @@ class Serial(SerialBase, PlatformSpecific):
     def cancel_read(self):
         os.write(self.pipe_abort_read_w, b"x")
 
+    def cancel_write(self):
+        os.write(self.pipe_abort_write_w, b"x")
+
     def write(self, data):
         """Output the given byte string over the serial port."""
         if not self.is_open:
@@ -499,13 +503,19 @@ class Serial(SerialBase, PlatformSpecific):
                     timeleft = timeout - time.time()
                     if timeleft < 0:
                         raise writeTimeoutError
-                    _, ready, _ = select.select([], [self.fd], [], timeleft)
+                    abort, ready, _ = select.select([self.pipe_abort_write_r], [self.fd], [], timeleft)
+                    if abort:
+                        os.read(self.pipe_abort_write_r, 1)
+                        break
                     if not ready:
                         raise writeTimeoutError
                 else:
                     assert timeout is None
                     # wait for write operation
-                    _, ready, _ = select.select([], [self.fd], [], None)
+                    abort, ready, _ = select.select([self.pipe_abort_write_r], [self.fd], [], None)
+                    if abort:
+                        os.read(self.pipe_abort_write_r, 1)
+                        break
                     if not ready:
                         raise SerialException('write failed (select)')
                 d = d[n:]
