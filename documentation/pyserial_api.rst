@@ -523,17 +523,29 @@ Native ports
 
     .. method:: cancel_read()
 
+        :platform: Posix
         :platform: Windows
 
-        Cancel a pending read operation from an other thread.
+        Cancel a pending read operation from an other thread. A blocking
+        :meth:`read` call is aborted immediately. :meth:`read` will not report
+        any error but return all data received up to that point (similar to a
+        timeout).
+
+        On Posix a call to `cancel_read()` may cancel a future :meth:`read` call.
 
         .. versionadded:: 3.1
 
     .. method:: cancel_write()
 
+        :platform: Posix
         :platform: Windows
 
-        Cancel a pending write operation from an other thread.
+        Cancel a pending write operation from an other thread. The
+        :meth:`write` method will return immediately (no error indicated).
+        However the OS may still be sending from the buffer, a separate call to
+        :meth:`reset_output_buffer` may be needed.
+
+        On Posix a call to `cancel_write()` may cancel a future :meth:`write` call.
 
         .. versionadded:: 3.1
 
