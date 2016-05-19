@@ -172,11 +172,14 @@ class ReaderThread(threading.Thread):
     def stop(self):
         """Stop the reader thread"""
         self.alive = False
+        if hasattr(self.serial, 'cancel_read'):
+            self.serial.cancel_read()
         self.join(2)
 
     def run(self):
         """Reader loop"""
-        self.serial.timeout = 1
+        if not hasattr(self.serial, 'cancel_read'):
+            self.serial.timeout = 1
         self.protocol = self.protocol_factory()
         try:
             self.protocol.connection_made(self)
@@ -260,6 +263,9 @@ if __name__ == '__main__':
     import time
     import traceback
 
+    #~ PORT = 'spy:///dev/ttyUSB0'
+    PORT = 'loop://'
+
     class PrintLines(LineReader):
         def connection_made(self, transport):
             super(PrintLines, self).connection_made(transport)
@@ -274,13 +280,13 @@ if __name__ == '__main__':
                 traceback.print_exc(exc)
             sys.stdout.write('port closed\n')
 
-    ser = serial.serial_for_url('loop://', baudrate=115200, timeout=1)
+    ser = serial.serial_for_url(PORT, baudrate=115200, timeout=1)
     with ReaderThread(ser, PrintLines) as protocol:
         protocol.write_line('hello')
         time.sleep(2)
 
     # alternative usage
-    ser = serial.serial_for_url('loop://', baudrate=115200, timeout=1)
+    ser = serial.serial_for_url(PORT, baudrate=115200, timeout=1)
     t = ReaderThread(ser, PrintLines)
     t.start()
     transport, protocol = t.connect()
