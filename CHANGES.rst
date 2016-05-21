@@ -594,11 +594,11 @@ Improvements:
 
 - improve error handling in ``alt://`` handler
 - ``socket://`` internally used select, improves timeout behavior
-- initial state of RTS/DTR: revert to "no change on open" on Posix, unless a
-  value is set explicitly.
+- initial state of RTS/DTR: ignore error when setting on open posix
+  (support connecting to pty's)
 - code style updates
 - posix: remove "number_to_device" which is not called anymore
-- miniterm: try to exit reader thread if write thread fails
+- add cancel_read and cancel_write to win32 and posix implementations
 
 Bugfixes:
 
@@ -607,6 +607,7 @@ Bugfixes:
 - [#100] setPort not implemented
 - [#101] bug in serial.threaded.Packetizer with easy fix
 - [#104] rfc2217 and socket: set timeout in create_connection
+- [#107] miniterm.py fails to exit on failed serial port
 
 Bugfixes (posix):
 
