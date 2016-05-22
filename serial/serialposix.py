@@ -412,6 +412,12 @@ class Serial(SerialBase, PlatformSpecific):
             if self.fd is not None:
                 os.close(self.fd)
                 self.fd = None
+                os.close(self.pipe_abort_read_w)
+                os.close(self.pipe_abort_read_r)
+                os.close(self.pipe_abort_write_w)
+                os.close(self.pipe_abort_write_r)
+                self.pipe_abort_read_r, self.pipe_abort_read_w = None, None
+                self.pipe_abort_write_r, self.pipe_abort_write_w = None, None
             self.is_open = False
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
