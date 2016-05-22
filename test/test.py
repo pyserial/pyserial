@@ -197,20 +197,22 @@ class Test_MoreTimeouts(unittest.TestCase):
         self.s = serial.serial_for_url(PORT, do_not_open=True)
 
     def tearDown(self):
+        self.s.reset_output_buffer()
+        self.s.flush()
         #~ self.s.write(serial.XON)
         self.s.close()
         # reopen... some faulty USB-serial adapter make next test fail otherwise...
         self.s.timeout = 1
         self.s.xonxoff = False
         self.s.open()
-        self.s.read(10)
+        self.s.read(3000)
         self.s.close()
 
     def test_WriteTimeout(self):
         """Test write() timeout."""
         # use xonxoff setting and the loop-back adapter to switch traffic on hold
         self.s.port = PORT
-        self.s.writeTimeout = True
+        self.s.write_timeout = 1.0
         self.s.xonxoff = True
         self.s.open()
         self.s.write(serial.XOFF)
