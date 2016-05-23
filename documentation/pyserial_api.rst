@@ -196,6 +196,9 @@ Native ports
         Clear output buffer, aborting the current output and
         discarding all that is in the buffer.
 
+        Note, for some USB serial adapters, this may only flush the buffer of
+        the OS and not all the data that may be present in the USB part.
+
         .. versionchanged:: 3.0 renamed from ``flushOutput()``
 
     .. method:: send_break(duration=0.25)
