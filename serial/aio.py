@@ -356,7 +356,7 @@ class SerialTransport(asyncio.Transport):
 
 @asyncio.coroutine
 def create_serial_connection(loop, protocol_factory, *args, **kwargs):
-    ser = serial.Serial(*args, **kwargs)
+    ser = serial.serial_for_url(*args, **kwargs)
     protocol = protocol_factory()
     transport = SerialTransport(loop, protocol, ser)
     return (transport, protocol)
@@ -404,7 +404,8 @@ if __name__ == '__main__':
 
         def data_received(self, data):
             print('data received', repr(data))
-            self.transport.close()
+            if b'\n' in data:
+                self.transport.close()
 
         def connection_lost(self, exc):
             print('port closed')
