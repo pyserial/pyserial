@@ -12,6 +12,7 @@ import os
 import sys
 import unittest
 import threading
+import time
 import serial
 
 # on which port should the tests be performed:
@@ -25,16 +26,27 @@ class TestCancelRead(unittest.TestCase):
         # create a closed serial port
         self.s = serial.serial_for_url(PORT)
         self.assertTrue(hasattr(self.s, 'cancel_read'), "serial instance has no cancel_read")
-        #~ self.s.timeout = 10
+        self.s.timeout = 10
+        self.cancel_called = 0
+
+    def tearDown(self):
+        self.s.reset_output_buffer()
+        self.s.close()
 
     def _cancel(self, num_times):
         for i in range(num_times):
             #~ print "cancel"
             self.s.cancel_read()
+            self.cancel_called += 1
 
     def test_cancel_once(self):
+        """Cancel read"""
         threading.Timer(1, self._cancel, ((1,))).start()
-        self.s.read()
+        t1 = time.time()
+        self.s.read(1000)
+        t2 = time.time()
+        self.assertEqual(self.cancel_called, 1)
+        self.assertTrue(0.5 < (t2 - t1) < 2, 'Function did not return in time: {}'.format(t2-t1))
         #~ self.assertTrue(not self.s.isOpen())
         #~ self.assertRaises(serial.SerialException, self.s.open)
 
@@ -51,18 +63,33 @@ class TestCancelWrite(unittest.TestCase):
 
     def setUp(self):
         # create a closed serial port
-        self.s = serial.serial_for_url(PORT, baudrate=50) # extra slow
+        self.s = serial.serial_for_url(PORT, baudrate=300)  # extra slow ~30B/s => 1kb ~ 34s
         self.assertTrue(hasattr(self.s, 'cancel_write'), "serial instance has no cancel_write")
-        #~ self.s.write_timeout = 10
+        self.s.write_timeout = 10
+        self.cancel_called = 0
+
+    def tearDown(self):
+        self.s.reset_output_buffer()
+        # not all USB-Serial adapters will actually flush the output (maybe
+        # keeping the buffer in the MCU in the adapter) therefore, speed up by
+        # changing the baudrate
+        self.s.baudrate = 115200
+        self.s.flush()
+        self.s.close()
 
     def _cancel(self, num_times):
         for i in range(num_times):
             self.s.cancel_write()
+            self.cancel_called += 1
 
     def test_cancel_once(self):
+        """Cancel write"""
         threading.Timer(1, self._cancel, ((1,))).start()
+        t1 = time.time()
         self.s.write(DATA)
-        self.s.reset_output_buffer()
+        t2 = time.time()
+        self.assertEqual(self.cancel_called, 1)
+        self.assertTrue(0.5 < (t2 - t1) < 2, 'Function did not return in time: {}'.format(t2-t1))
         #~ self.assertTrue(not self.s.isOpen())
         #~ self.assertRaises(serial.SerialException, self.s.open)
 
