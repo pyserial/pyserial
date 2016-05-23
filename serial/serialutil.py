@@ -18,7 +18,7 @@ import time
 try:
     memoryview
 except (NameError, AttributeError):
-    # implementation does not matter as we do not realy use it.
+    # implementation does not matter as we do not really use it.
     # it just must not inherit from something else we might care for.
     class memoryview(object):   # pylint: disable=redefined-builtin,invalid-name
         pass
@@ -230,7 +230,7 @@ class SerialBase(io.RawIOBase):
         except TypeError:
             raise ValueError("Not a valid baudrate: {!r}".format(baudrate))
         else:
-            if b <= 0:
+            if b < 0:
                 raise ValueError("Not a valid baudrate: {!r}".format(baudrate))
             self._baudrate = b
             if self.is_open:
