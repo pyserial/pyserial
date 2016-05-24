@@ -8,6 +8,7 @@
 Test asyncio related functionality.
 """
 
+import os
 import unittest
 import serial
 
@@ -22,6 +23,7 @@ except (ImportError, SyntaxError):
     pass
 else:
 
+    @unittest.skipIf(os.name != 'posix', "asyncio not supported on platform")
     class Test_asyncio(unittest.TestCase):
         """Test asyncio related functionality"""
 
