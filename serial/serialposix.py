@@ -464,14 +464,10 @@ class Serial(SerialBase, PlatformSpecific):
                         'device reports readiness to read but returned no data '
                         '(device disconnected or multiple access on port?)')
                 read.extend(buf)
-                if timeout is not None:
-                    timeout -= time.time() - start_time
-                    if timeout <= 0:
-                        break
             except OSError as e:
                 # this is for Python 3.x where select.error is a subclass of
                 # OSError ignore EAGAIN errors. all other errors are shown
-                if e.errno != errno.EAGAIN:
+                if e.errno != errno.EAGAIN and e.errno != errno.EINTR:
                     raise SerialException('read failed: {}'.format(e))
             except select.error as e:
                 # this is for Python 2.x
@@ -479,6 +475,10 @@ class Serial(SerialBase, PlatformSpecific):
                 # see also http://www.python.org/dev/peps/pep-3151/#select
                 if e[0] != errno.EAGAIN:
                     raise SerialException('read failed: {}'.format(e))
+            if timeout is not None:
+                timeout -= time.time() - start_time
+                if timeout <= 0:
+                    break
         return bytes(read)
 
     def cancel_read(self):
