@@ -36,8 +36,8 @@ class TestCancelRead(unittest.TestCase):
     def _cancel(self, num_times):
         for i in range(num_times):
             #~ print "cancel"
-            self.s.cancel_read()
             self.cancel_called += 1
+            self.s.cancel_read()
 
     def test_cancel_once(self):
         """Cancel read"""
@@ -79,8 +79,8 @@ class TestCancelWrite(unittest.TestCase):
 
     def _cancel(self, num_times):
         for i in range(num_times):
-            self.s.cancel_write()
             self.cancel_called += 1
+            self.s.cancel_write()
 
     def test_cancel_once(self):
         """Cancel write"""
