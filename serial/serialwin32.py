@@ -226,7 +226,7 @@ class Serial(SerialBase):
 
     def _close(self):
         """internal close port helper"""
-        if self._port_handle:
+        if self._port_handle is not None:
             # Restore original timeout values:
             win32.SetCommTimeouts(self._port_handle, self._orgTimeouts)
             if self._overlapped_read is not None:
@@ -237,6 +237,7 @@ class Serial(SerialBase):
                 self.cancel_write()
                 win32.CloseHandle(self._overlapped_write.hEvent)
                 self._overlapped_write = None
+            win32.CloseHandle(self._port_handle)
             self._port_handle = None
 
     def close(self):
@@ -312,6 +313,8 @@ class Serial(SerialBase):
                 # Wait for the write to complete.
                 #~ win32.WaitForSingleObject(self._overlapped_write.hEvent, win32.INFINITE)
                 err = win32.GetOverlappedResult(self._port_handle, self._overlapped_write, ctypes.byref(n), True)
+                if win32.GetLastError() == win32.ERROR_OPERATION_ABORTED:
+                    return n.value # canceled IO is no error
                 if n.value != len(data):
                     raise writeTimeoutError
             return n.value
