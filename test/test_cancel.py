@@ -7,8 +7,6 @@
 """
 Test cancel functionality.
 """
-
-import os
 import sys
 import unittest
 import threading
@@ -17,6 +15,7 @@ import serial
 
 # on which port should the tests be performed:
 PORT = 'loop://'
+
 
 @unittest.skipIf(not hasattr(serial.Serial, 'cancel_read'), "cancel_read not supported on platform")
 class TestCancelRead(unittest.TestCase):
@@ -46,7 +45,7 @@ class TestCancelRead(unittest.TestCase):
         self.s.read(1000)
         t2 = time.time()
         self.assertEqual(self.cancel_called, 1)
-        self.assertTrue(0.5 < (t2 - t1) < 2, 'Function did not return in time: {}'.format(t2-t1))
+        self.assertTrue(0.5 < (t2 - t1) < 2, 'Function did not return in time: {}'.format(t2 - t1))
         #~ self.assertTrue(not self.s.isOpen())
         #~ self.assertRaises(serial.SerialException, self.s.open)
 
@@ -55,7 +54,8 @@ class TestCancelRead(unittest.TestCase):
         #~ self.s.read()
 
 
-DATA = b'#'*1024
+DATA = b'#' * 1024
+
 
 @unittest.skipIf(not hasattr(serial.Serial, 'cancel_write'), "cancel_read not supported on platform")
 class TestCancelWrite(unittest.TestCase):
@@ -89,7 +89,7 @@ class TestCancelWrite(unittest.TestCase):
         self.s.write(DATA)
         t2 = time.time()
         self.assertEqual(self.cancel_called, 1)
-        self.assertTrue(0.5 < (t2 - t1) < 2, 'Function did not return in time: {}'.format(t2-t1))
+        self.assertTrue(0.5 < (t2 - t1) < 2, 'Function did not return in time: {}'.format(t2 - t1))
         #~ self.assertTrue(not self.s.isOpen())
         #~ self.assertRaises(serial.SerialException, self.s.open)
 
@@ -100,7 +100,6 @@ class TestCancelWrite(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    import sys
     sys.stdout.write(__doc__)
     if len(sys.argv) > 1:
         PORT = sys.argv[1]

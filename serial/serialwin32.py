@@ -314,7 +314,7 @@ class Serial(SerialBase):
                 #~ win32.WaitForSingleObject(self._overlapped_write.hEvent, win32.INFINITE)
                 err = win32.GetOverlappedResult(self._port_handle, self._overlapped_write, ctypes.byref(n), True)
                 if win32.GetLastError() == win32.ERROR_OPERATION_ABORTED:
-                    return n.value # canceled IO is no error
+                    return n.value  # canceled IO is no error
                 if n.value != len(data):
                     raise writeTimeoutError
             return n.value
@@ -451,4 +451,3 @@ class Serial(SerialBase):
     def cancel_write(self):
         """Cancel a blocking write operation, may be called from other thread"""
         self._cancel_overlapped_io(self._overlapped_write)
-

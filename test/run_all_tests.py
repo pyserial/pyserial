@@ -14,10 +14,10 @@ import unittest
 import sys
 import os
 
-# inject local copy to avoid testing the installed version instead of the
+# inject local copy to avoid testing the installed version instead of the one in the repo
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-import serial
+import serial  # noqa
 print("Patching sys.path to test local version. Testing Version: %s" % (serial.VERSION,))
 
 PORT = 'loop://'
