@@ -588,7 +588,7 @@ Bugfixes:
 - port_publisher: restore some sorting of ports
 
 
-Version 3.x.y   2016-xx-xx
+Version 3.1.0   2016-05-27
 --------------------------
 Improvements:
 
