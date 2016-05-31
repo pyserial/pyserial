@@ -270,7 +270,7 @@ class Serial(SerialBase):
             flags = win32.DWORD()
             comstat = win32.COMSTAT()
             if not win32.ClearCommError(self._port_handle, ctypes.byref(flags), ctypes.byref(comstat)):
-                raise SerialException('call to ClearCommError failed')
+                raise SerialException("ClearCommError failed ({!r})".format(ctypes.WinError()))
             n = min(comstat.cbInQue, size) if self.timeout == 0 else size
             if n > 0:
                 buf = ctypes.create_string_buffer(n)
@@ -290,7 +290,7 @@ class Serial(SerialBase):
                     True)
                 if not result_ok:
                     if win32.GetLastError() != win32.ERROR_OPERATION_ABORTED:
-                        raise SerialException('call to GetOverlappedResult failed')
+                        raise SerialException("GetOverlappedResult failed ({!r})".format(ctypes.WinError()))
                 read = buf.raw[:rc.value]
             else:
                 read = bytes()
