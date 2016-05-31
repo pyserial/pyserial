@@ -102,7 +102,7 @@ class FramedPacket(Protocol):
                 self.in_packet = True
             elif byte == self.STOP:
                 self.in_packet = False
-                self.handle_packet(packet)
+                self.handle_packet(self.packet)
                 del self.packet[:]
             elif self.in_packet:
                 self.packet.append(byte)
