@@ -283,11 +283,14 @@ class Serial(SerialBase):
                     ctypes.byref(self._overlapped_read))
                 if not read_ok and win32.GetLastError() not in (win32.ERROR_SUCCESS, win32.ERROR_IO_PENDING):
                     raise SerialException("ReadFile failed ({!r})".format(ctypes.WinError()))
-                win32.GetOverlappedResult(
+                result_ok = win32.GetOverlappedResult(
                     self._port_handle,
                     ctypes.byref(self._overlapped_read),
                     ctypes.byref(rc),
                     True)
+                if not result_ok:
+                    if win32.GetLastError() != win32.ERROR_OPERATION_ABORTED:
+                        raise SerialException('call to GetOverlappedResult failed')
                 read = buf.raw[:rc.value]
             else:
                 read = bytes()
