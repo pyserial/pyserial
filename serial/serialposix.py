@@ -271,6 +271,8 @@ class Serial(SerialBase, PlatformSpecific):
         self.reset_input_buffer()
         self.pipe_abort_read_r, self.pipe_abort_read_w = os.pipe()
         self.pipe_abort_write_r, self.pipe_abort_write_w = os.pipe()
+        fcntl.fcntl(self.pipe_abort_read_r, fcntl.F_SETFL, os.O_NONBLOCK)
+        fcntl.fcntl(self.pipe_abort_write_r, fcntl.F_SETFL, os.O_NONBLOCK)
 
     def _reconfigure_port(self, force_update=False):
         """Set communication parameters on opened port."""
@@ -445,7 +447,7 @@ class Serial(SerialBase, PlatformSpecific):
                 start_time = time.time()
                 ready, _, _ = select.select([self.fd, self.pipe_abort_read_r], [], [], timeout)
                 if self.pipe_abort_read_r in ready:
-                    os.read(self.pipe_abort_read_r, 1)
+                    os.read(self.pipe_abort_read_r, 1000)
                     break
                 # If select was used with a timeout, and the timeout occurs, it
                 # returns with empty lists -> thus abort read operation.
@@ -511,7 +513,7 @@ class Serial(SerialBase, PlatformSpecific):
                         raise writeTimeoutError
                     abort, ready, _ = select.select([self.pipe_abort_write_r], [self.fd], [], timeleft)
                     if abort:
-                        os.read(self.pipe_abort_write_r, 1)
+                        os.read(self.pipe_abort_write_r, 1000)
                         break
                     if not ready:
                         raise writeTimeoutError
