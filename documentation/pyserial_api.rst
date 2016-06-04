@@ -485,9 +485,10 @@ Native ports
 
         :platform: Posix
 
-        Configure the device for nonblocking operation. This can be useful if
-        the port is used with :mod:`select`. Note that :attr:`timeout` must
-        also be set to ``0``
+        .. deprecated:: 3.2
+           The serial port is already opened in this mode. This method is not
+           needed and going away.
+
 
     .. method:: fileno()
 

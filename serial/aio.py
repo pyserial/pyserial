@@ -52,7 +52,6 @@ class SerialTransport(asyncio.Transport):
         # Asynchronous I/O requires non-blocking devices
         self._serial.timeout = 0
         self._serial.write_timeout = 0
-        self._serial.nonblocking()
 
         # These two callbacks will be enqueued in a FIFO queue by asyncio
         loop.call_soon(protocol.connection_made, self)
