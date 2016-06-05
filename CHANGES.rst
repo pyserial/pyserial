@@ -621,3 +621,16 @@ Bugfixes (win32):
 
 - fix bad super call and duplicate old-style __init__ call
 - [#80] list_ports: Compatibility issue between Windows/Linux
+
+
+
+Version 3.x.y   2016-nn-nn
+--------------------------
+Improvements:
+
+- deprecate ``nonblocking()`` method on posix, the port is already in this
+  mode.
+
+Bugfixes:
+
+- [#122] fix bug in FramedPacket
