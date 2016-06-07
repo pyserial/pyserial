@@ -99,7 +99,10 @@ class Serial(SerialBase):
         """extract host and port from an URL string"""
         parts = urlparse.urlsplit(url)
         if parts.scheme != "loop":
-            raise SerialException('expected a string in the form "loop://[?logging={debug|info|warning|error}]": not starting with loop:// (%r)' % (parts.scheme,))
+            raise SerialException(
+                'expected a string in the form '
+                '"loop://[?logging={debug|info|warning|error}]": not starting '
+                'with loop:// (%r)' % (parts.scheme,))
         try:
             # process options now, directly altering self
             for option, values in urlparse.parse_qs(parts.query, True).items():
@@ -111,7 +114,9 @@ class Serial(SerialBase):
                 else:
                     raise ValueError('unknown option: %r' % (option,))
         except ValueError as e:
-            raise SerialException('expected a string in the form "loop://[?logging={debug|info|warning|error}]": %s' % e)
+            raise SerialException(
+                'expected a string in the form '
+                '"loop://[?logging={debug|info|warning|error}]": %s' % e)
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 

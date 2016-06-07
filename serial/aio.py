@@ -278,7 +278,7 @@ class SerialTransport(asyncio.Transport):
     def _set_write_buffer_limits(self, high=None, low=None):
         """Ensure consistent write-buffer limits."""
         if high is None:
-            high = 64*1024 if low is None else 4*low
+            high = 64 * 1024 if low is None else 4 * low
         if low is None:
             low = high // 4
         if not high >= low >= 0:
