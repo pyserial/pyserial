@@ -173,7 +173,7 @@ class Serial(serial.Serial):
             raise serial.SerialException(
                 'expected a string in the form '
                 '"spy://port[?option[=value][&option[=value]]]": '
-                'not starting with spy:// (%r)' % (parts.scheme,))
+                'not starting with spy:// ({!r})'.format(parts.scheme))
         # process options now, directly altering self
         formatter = FormatHexdump
         color = False
@@ -189,11 +189,11 @@ class Serial(serial.Serial):
                 elif option == 'all':
                     self.show_all = True
                 else:
-                    raise ValueError('unknown option: %r' % (option,))
+                    raise ValueError('unknown option: {!r}'.format(option))
         except ValueError as e:
             raise serial.SerialException(
                 'expected a string in the form '
-                '"spy://port[?option[=value][&option[=value]]]": %s' % e)
+                '"spy://port[?option[=value][&option[=value]]]": {}'.format(e))
         self.formatter = formatter(output, color)
         return ''.join([parts.netloc, parts.path])
 

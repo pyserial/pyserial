@@ -86,16 +86,16 @@ don't know how to enumerate ttys on this system.
 ! I you know how the serial ports are named send this information to
 ! the author of this module:
 
-sys.platform = %r
-os.name = %r
-pySerial version = %s
+sys.platform = {!r}
+os.name = {!r}
+pySerial version = {}
 
 also add the naming scheme of the serial ports and with a bit luck you can get
 this module running...
-""" % (sys.platform, os.name, serial.VERSION))
-    raise ImportError("Sorry: no implementation for your platform ('%s') available" % (os.name,))
+""".format(sys.platform, os.name, serial.VERSION))
+    raise ImportError("Sorry: no implementation for your platform ('{}') available".format(os.name))
 
 # test
 if __name__ == '__main__':
     for port, desc, hwid in sorted(comports()):
-        print("%s: %s [%s]" % (port, desc, hwid))
+        print("{}: {} [{}]".format(port, desc, hwid))

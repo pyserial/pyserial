@@ -32,7 +32,7 @@ def key_description(character):
     """generate a readable description for a key"""
     ascii_code = ord(character)
     if ascii_code < 32:
-        return 'Ctrl+%c' % (ord('@') + ascii_code)
+        return 'Ctrl+{:c}'.format(ord('@') + ascii_code)
     else:
         return repr(character)
 
@@ -322,7 +322,6 @@ def ask_for_port():
     sys.stderr.write('\n--- Available ports:\n')
     ports = []
     for n, (port, desc, hwid) in enumerate(sorted(comports()), 1):
-        #~ sys.stderr.write('--- %-20s %s [%s]\n' % (port, desc, hwid))
         sys.stderr.write('--- {:2}: {:20} {}\n'.format(n, port, desc))
         ports.append(port)
     while True:

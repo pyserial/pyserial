@@ -20,8 +20,8 @@ class SysFS(list_ports_common.ListPortInfo):
         super(SysFS, self).__init__(device)
         self.name = os.path.basename(device)
         self.usb_device_path = None
-        if os.path.exists('/sys/class/tty/%s/device' % (self.name,)):
-            self.device_path = os.path.realpath('/sys/class/tty/%s/device' % (self.name,))
+        if os.path.exists('/sys/class/tty/{}/device'.format(self.name)):
+            self.device_path = os.path.realpath('/sys/class/tty/{}/device'.format(self.name))
             self.subsystem = os.path.basename(os.path.realpath(os.path.join(self.device_path, 'subsystem')))
         else:
             self.device_path = None
@@ -81,4 +81,4 @@ def comports():
 # test
 if __name__ == '__main__':
     for port, desc, hwid in sorted(comports()):
-        print("%s: %s [%s]" % (port, desc, hwid))
+        print("{}: {} [{}]".format(port, desc, hwid))

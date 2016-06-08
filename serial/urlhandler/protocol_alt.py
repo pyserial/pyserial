@@ -30,23 +30,23 @@ def serial_class_for_url(url):
     if parts.scheme != 'alt':
         raise serial.SerialException(
             'expected a string in the form "alt://port[?option[=value][&option[=value]]]": '
-            'not starting with alt:// (%r)' % (parts.scheme,))
+            'not starting with alt:// ({!r})'.format(parts.scheme))
     class_name = 'Serial'
     try:
         for option, values in urlparse.parse_qs(parts.query, True).items():
             if option == 'class':
                 class_name = values[0]
             else:
-                raise ValueError('unknown option: %r' % (option,))
+                raise ValueError('unknown option: {!r}'.format(option))
     except ValueError as e:
         raise serial.SerialException(
             'expected a string in the form '
-            '"alt://port[?option[=value][&option[=value]]]": %s' % e)
+            '"alt://port[?option[=value][&option[=value]]]": {!r}'.format(e))
     if not hasattr(serial, class_name):
-        raise ValueError('unknown class: %r' % (class_name,))
+        raise ValueError('unknown class: {!r}'.format(class_name))
     cls = getattr(serial, class_name)
     if not issubclass(cls, serial.Serial):
-        raise ValueError('class %r is not an instance of Serial' % (class_name,))
+        raise ValueError('class {!r} is not an instance of Serial'.format(class_name))
     return (''.join([parts.netloc, parts.path]), cls)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

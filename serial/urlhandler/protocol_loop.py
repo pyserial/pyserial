@@ -91,7 +91,7 @@ class Serial(SerialBase):
         """
         # not that's it of any real use, but it helps in the unit tests
         if not isinstance(self._baudrate, numbers.Integral) or not 0 < self._baudrate < 2 ** 32:
-            raise ValueError("invalid baudrate: %r" % (self._baudrate))
+            raise ValueError("invalid baudrate: {!r}".format(self._baudrate))
         if self.logger:
             self.logger.info('_reconfigure_port()')
 
@@ -102,7 +102,7 @@ class Serial(SerialBase):
             raise SerialException(
                 'expected a string in the form '
                 '"loop://[?logging={debug|info|warning|error}]": not starting '
-                'with loop:// (%r)' % (parts.scheme,))
+                'with loop:// ({!r})'.format(parts.scheme))
         try:
             # process options now, directly altering self
             for option, values in urlparse.parse_qs(parts.query, True).items():
@@ -112,11 +112,11 @@ class Serial(SerialBase):
                     self.logger.setLevel(LOGGER_LEVELS[values[0]])
                     self.logger.debug('enabled logging')
                 else:
-                    raise ValueError('unknown option: %r' % (option,))
+                    raise ValueError('unknown option: {!r}'.format(option))
         except ValueError as e:
             raise SerialException(
                 'expected a string in the form '
-                '"loop://[?logging={debug|info|warning|error}]": %s' % e)
+                '"loop://[?logging={debug|info|warning|error}]": {}'.format(e))
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
@@ -128,7 +128,7 @@ class Serial(SerialBase):
         if self.logger:
             # attention the logged value can differ from return value in
             # threaded environments...
-            self.logger.debug('in_waiting -> %d' % (self.queue.qsize(),))
+            self.logger.debug('in_waiting -> {:d}'.format(self.queue.qsize()))
         return self.queue.qsize()
 
     def read(self, size=1):
@@ -217,17 +217,17 @@ class Serial(SerialBase):
         possible.
         """
         if self.logger:
-            self.logger.info('_update_break_state(%r)' % (self._break_state,))
+            self.logger.info('_update_break_state({!r})'.format(self._break_state))
 
     def _update_rts_state(self):
         """Set terminal status line: Request To Send"""
         if self.logger:
-            self.logger.info('_update_rts_state(%r) -> state of CTS' % (self._rts_state,))
+            self.logger.info('_update_rts_state({!r}) -> state of CTS'.format(self._rts_state))
 
     def _update_dtr_state(self):
         """Set terminal status line: Data Terminal Ready"""
         if self.logger:
-            self.logger.info('_update_dtr_state(%r) -> state of DSR' % (self._dtr_state,))
+            self.logger.info('_update_dtr_state({!r}) -> state of DSR'.format(self._dtr_state))
 
     @property
     def cts(self):
@@ -235,14 +235,14 @@ class Serial(SerialBase):
         if not self.is_open:
             raise portNotOpenError
         if self.logger:
-            self.logger.info('CTS -> state of RTS (%r)' % (self._rts_state,))
+            self.logger.info('CTS -> state of RTS ({!r})'.format(self._rts_state))
         return self._rts_state
 
     @property
     def dsr(self):
         """Read terminal status line: Data Set Ready"""
         if self.logger:
-            self.logger.info('DSR -> state of DTR (%r)' % (self._dtr_state,))
+            self.logger.info('DSR -> state of DTR ({!r})'.format(self._dtr_state))
         return self._dtr_state
 
     @property
@@ -271,11 +271,11 @@ class Serial(SerialBase):
 if __name__ == '__main__':
     import sys
     s = Serial('loop://')
-    sys.stdout.write('%s\n' % s)
+    sys.stdout.write('{}\n'.format(s))
 
     sys.stdout.write("write...\n")
     s.write("hello\n")
     s.flush()
-    sys.stdout.write("read: %s\n" % s.read(5))
+    sys.stdout.write("read: {!r}\n".format(s.read(5)))
 
     s.close()
