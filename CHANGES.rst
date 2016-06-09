@@ -634,3 +634,7 @@ Improvements:
 Bugfixes:
 
 - [#122] fix bug in FramedPacket
+
+Bugfixes (posix):
+
+- [#126] PATCH: Check delay_before_tx/rx for None in serialposix.py

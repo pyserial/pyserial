@@ -139,8 +139,10 @@ if plat[:5] == 'linux':    # Linux (confirmed)  # noqa
                         buf[0] |= SER_RS485_RTS_AFTER_SEND
                     else:
                         buf[0] &= ~SER_RS485_RTS_AFTER_SEND
-                    buf[1] = int(rs485_settings.delay_before_tx * 1000)
-                    buf[2] = int(rs485_settings.delay_before_rx * 1000)
+                    if rs485_settings.delay_before_tx is not None:
+                        buf[1] = int(rs485_settings.delay_before_tx * 1000)
+                    if rs485_settings.delay_before_rx is not None:
+                        buf[2] = int(rs485_settings.delay_before_rx * 1000)
                 else:
                     buf[0] = 0  # clear SER_RS485_ENABLED
                 fcntl.ioctl(self.fd, TIOCSRS485, buf)
