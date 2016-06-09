@@ -47,7 +47,7 @@ class Serial(SerialBase):
         if self._dtr_state is None:
             self._dtr_state = True
 
-        self._reconfigurePort()
+        self._reconfigure_port()
         self._port_handle.Open()
         self.is_open = True
         if not self._dsrdtr:
@@ -56,7 +56,7 @@ class Serial(SerialBase):
             self._update_rts_state()
         self.reset_input_buffer()
 
-    def _reconfigurePort(self):
+    def _reconfigure_port(self):
         """Set communication parameters on opened port."""
         if not self._port_handle:
             raise SerialException("Can only operate on a valid port handle")

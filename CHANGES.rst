@@ -634,6 +634,8 @@ Improvements:
 Bugfixes:
 
 - [#122] fix bug in FramedPacket
+- [#127] The Serial class in the .NET/Mono (IronPython) backend does not
+  implement the _reconfigure_port method
 
 Bugfixes (posix):
 
