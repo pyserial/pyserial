@@ -362,10 +362,7 @@ def create_serial_connection(loop, protocol_factory, *args, **kwargs):
 
 
 @asyncio.coroutine
-def open_serial_connection(*,
-                           loop=None,
-                           limit=asyncio.streams._DEFAULT_LIMIT,
-                           **kwargs):
+def open_serial_connection(**kwargs):
     """A wrapper for create_serial_connection() returning a (reader,
     writer) pair.
 
@@ -379,16 +376,22 @@ def open_serial_connection(*,
 
     This function is a coroutine.
     """
-    if loop is None:
-        loop = asyncio.get_event_loop()
+    # in order to avoid errors when pySerial is installed uner Python 2,
+    # avoid Pyhthon 3 syntax here. So do not use this function as a good
+    # example!
+    loop = kwargs.get('loop', asyncio.get_event_loop())
+    limit = kwargs.get('limit', asyncio.streams._DEFAULT_LIMIT)
     reader = asyncio.StreamReader(limit=limit, loop=loop)
     protocol = asyncio.StreamReaderProtocol(reader, loop=loop)
-    transport, _ = yield from create_serial_connection(
-        loop=loop,
-        protocol_factory=lambda: protocol,
-        **kwargs)
+    # in Python 3 we would write "yield transport, _ from c()"
+    for transport, _ in create_serial_connection(
+            loop=loop,
+            protocol_factory=lambda: protocol,
+            **kwargs):
+        yield transport, _
     writer = asyncio.StreamWriter(transport, protocol, reader, loop)
-    return reader, writer
+    # in Python 3 we would write "return reader, writer"
+    raise StopIteration(reader, writer)
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

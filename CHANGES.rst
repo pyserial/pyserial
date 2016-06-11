@@ -636,6 +636,7 @@ Bugfixes:
 - [#122] fix bug in FramedPacket
 - [#127] The Serial class in the .NET/Mono (IronPython) backend does not
   implement the _reconfigure_port method
+- [#123, #128] Avoid Python 3 syntax in aio module
 
 Bugfixes (posix):
 
