@@ -376,7 +376,7 @@ def open_serial_connection(**kwargs):
 
     This function is a coroutine.
     """
-    # in order to avoid errors when pySerial is installed uner Python 2,
+    # in order to avoid errors when pySerial is installed under Python 2,
     # avoid Pyhthon 3 syntax here. So do not use this function as a good
     # example!
     loop = kwargs.get('loop', asyncio.get_event_loop())

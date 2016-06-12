@@ -623,13 +623,13 @@ Bugfixes (win32):
 - [#80] list_ports: Compatibility issue between Windows/Linux
 
 
-
-Version 3.x.y   2016-nn-nn
+Version 3.1.1   2016-06-12
 --------------------------
 Improvements:
 
 - deprecate ``nonblocking()`` method on posix, the port is already in this
   mode.
+- style: use .format() in various places instead of "%" formatting
 
 Bugfixes:
 
@@ -641,3 +641,8 @@ Bugfixes:
 Bugfixes (posix):
 
 - [#126] PATCH: Check delay_before_tx/rx for None in serialposix.py
+- posix: retry if interrupted in Serial.read
+
+Bugfixes (win32):
+
+- win32: handle errors of GetOverlappedResult in read(), fixes #121
