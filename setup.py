@@ -9,6 +9,7 @@
 # (C) 2001-2016 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
+import sys
 
 try:
     from setuptools import setup
@@ -18,6 +19,16 @@ except ImportError:
 import serial
 version = serial.VERSION
 
+packages = [
+    'serial',
+    'serial.tools',
+    'serial.urlhandler',
+    'serial.threaded',
+]
+
+if sys.version_info >= (3, 4):
+    packages += ['serial.aio']
+
 setup(
     name="pyserial",
     description="Python Serial Port Extension",
@@ -25,7 +36,7 @@ setup(
     author="Chris Liechti",
     author_email="cliechti@gmx.net",
     url="https://github.com/pyserial/pyserial",
-    packages=['serial', 'serial.tools', 'serial.urlhandler', 'serial.threaded'],
+    packages=packages,
     license="BSD",
     long_description="""\
 Python Serial Port Extension for Win32, OSX, Linux, BSD, Jython, IronPython
