@@ -646,3 +646,11 @@ Bugfixes (posix):
 Bugfixes (win32):
 
 - win32: handle errors of GetOverlappedResult in read(), fixes #121
+
+Version 3.x.x   2016-xx-xx
+--------------------------
+Bugfixes (posix):
+
+- [#133] _update_dtr_state throws Inappropriate ioctl for virtual serial
+  port created by socat on OS X
+
