@@ -8,9 +8,6 @@
 # SPDX-License-Identifier:    BSD-3-Clause
 
 import importlib
-import sys
-from pkgutil import extend_path
-
 
 from serial.serialutil import *
 #~ SerialBase, SerialException, to_bytes, iterbytes
@@ -18,9 +15,6 @@ from serial.serialutil import *
 __version__ = '3.1.1'
 
 VERSION = __version__
-
-# serial is a namespace package
-__path__ = extend_path(__path__, __name__)
 
 # pylint: disable=wrong-import-position
 if sys.platform == 'cli':
