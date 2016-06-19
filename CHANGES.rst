@@ -649,6 +649,11 @@ Bugfixes (win32):
 
 Version 3.x.x   2016-xx-xx
 --------------------------
+
+Bugfixes:
+
+- [#137] Exception while cancel in miniterm (python3)
+
 Bugfixes (posix):
 
 - [#133] _update_dtr_state throws Inappropriate ioctl for virtual serial

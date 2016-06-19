@@ -169,7 +169,7 @@ elif os.name == 'posix':
             return c
 
         def cancel(self):
-            os.write(self.pipe_w, "x")
+            os.write(self.pipe_w, b"x")
 
         def cleanup(self):
             termios.tcsetattr(self.fd, termios.TCSAFLUSH, self.old)
