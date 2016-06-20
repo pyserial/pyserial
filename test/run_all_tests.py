@@ -18,7 +18,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import serial  # noqa
-print("Patching sys.path to test local version. Testing Version: %s" % (serial.VERSION,))
+print("Patching sys.path to test local version. Testing Version: {}".format(serial.VERSION))
 
 PORT = 'loop://'
 if len(sys.argv) > 1:
@@ -34,11 +34,11 @@ for modulename in [
     try:
         module = __import__(modulename)
     except ImportError:
-        print("skipping %s" % (modulename,))
+        print("skipping {}".format(modulename))
     else:
         module.PORT = PORT
         testsuite = unittest.findTestCases(module)
-        print("found %s tests in %r" % (testsuite.countTestCases(), modulename))
+        print("found {} tests in {!r}".format(testsuite.countTestCases(), modulename))
         mainsuite.addTest(testsuite)
 
 verbosity = 1
