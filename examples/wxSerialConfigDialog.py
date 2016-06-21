@@ -99,7 +99,7 @@ class SerialConfigDialog(wx.Dialog):
         self.choice_port.Clear()
         self.ports = []
         for n, (portname, desc, hwid) in enumerate(sorted(serial.tools.list_ports.comports())):
-            self.choice_port.Append('%s - %s' % (portname, desc))
+            self.choice_port.Append(u'{} - {}'.format(portname, desc))
             self.ports.append(portname)
             if self.serial.name == portname:
                 preferred_index = n
@@ -115,7 +115,7 @@ class SerialConfigDialog(wx.Dialog):
             if preferred_index is not None:
                 self.combo_box_baudrate.SetSelection(preferred_index)
             else:
-                self.combo_box_baudrate.SetValue(u'%d' % (self.serial.baudrate,))
+                self.combo_box_baudrate.SetValue(u'{}'.format(self.serial.baudrate))
         if self.show & SHOW_FORMAT:
             # fill in data bits and select current setting
             self.choice_databits.Clear()

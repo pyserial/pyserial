@@ -146,7 +146,7 @@ it waits for the next connect.
                             break
                         ser.write(data)                 # get a bunch of bytes and send them
                     except socket.error as msg:
-                        sys.stderr.write('ERROR: %s\n' % msg)
+                        sys.stderr.write('ERROR: {}\n'.format(msg))
                         # probably got disconnected
                         break
             except socket.error as msg:

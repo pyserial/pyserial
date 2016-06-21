@@ -91,7 +91,7 @@ class ATProtocol(serial.threaded.LineReader):
                     else:
                         lines.append(line)
                 except queue.Empty:
-                    raise ATException('AT command timeout (%r)' % (command,))
+                    raise ATException('AT command timeout ({!r})'.format(command))
 
 
 # test
@@ -123,16 +123,16 @@ if __name__ == '__main__':
             """Handle events and command responses starting with '+...'"""
             if event.startswith('+RRBDRES') and self._awaiting_response_for.startswith('AT+JRBD'):
                 rev = event[9:9 + 12]
-                mac = ':'.join('%02X' % ord(x) for x in rev.decode('hex')[::-1])
+                mac = ':'.join('{:02X}'.format(ord(x)) for x in rev.decode('hex')[::-1])
                 self.event_responses.put(mac)
             else:
-                logging.warning('unhandled event: %r' % event)
+                logging.warning('unhandled event: {!r}'.format(event))
 
         def command_with_event_response(self, command):
             """Send a command that responds with '+...' line"""
             with self.lock:  # ensure that just one thread is sending commands at once
                 self._awaiting_response_for = command
-                self.transport.write(b'%s\r\n' % (command.encode(self.ENCODING, self.UNICODE_HANDLING),))
+                self.transport.write(b'{}\r\n'.format(command.encode(self.ENCODING, self.UNICODE_HANDLING)))
                 response = self.event_responses.get()
                 self._awaiting_response_for = None
                 return response

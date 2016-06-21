@@ -274,15 +274,15 @@ class TerminalFrame(wx.Frame):
                         dlg.ShowModal()
                 else:
                     self.StartThread()
-                    self.SetTitle("Serial Terminal on %s [%s,%s,%s,%s%s%s]" % (
-                            self.serial.portstr,
-                            self.serial.baudrate,
-                            self.serial.bytesize,
-                            self.serial.parity,
-                            self.serial.stopbits,
-                            ' RTS/CTS' if self.serial.rtscts else '',
-                            ' Xon/Xoff' if self.serial.xonxoff else '',
-                            ))
+                    self.SetTitle("Serial Terminal on {} [{},{},{},{}{}{}]".format(
+                        self.serial.portstr,
+                        self.serial.baudrate,
+                        self.serial.bytesize,
+                        self.serial.parity,
+                        self.serial.stopbits,
+                        ' RTS/CTS' if self.serial.rtscts else '',
+                        ' Xon/Xoff' if self.serial.xonxoff else '',
+                        ))
                     ok = True
             else:
                 # on startup, dialog aborted
