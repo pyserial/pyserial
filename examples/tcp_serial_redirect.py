@@ -2,7 +2,7 @@
 #
 # Redirect data from a TCP/IP connection to a serial port and vice versa.
 #
-# (C) 2002-2015 Chris Liechti <cliechti@gmx.net>
+# (C) 2002-2016 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
@@ -11,6 +11,7 @@ import socket
 import serial
 import serial.threaded
 import time
+
 
 class SerialToNet(serial.threaded.Protocol):
     """serial->socket"""
@@ -23,10 +24,7 @@ class SerialToNet(serial.threaded.Protocol):
 
     def data_received(self, data):
         if self.socket is not None:
-            try:
-                self.socket.sendall(data)
-            except serial.SerialException as e:
-                sys.stderr.write('ERROR: {}\n'.format(e))
+            self.socket.sendall(data)
 
 
 if __name__ == '__main__':  # noqa
@@ -164,12 +162,20 @@ it waits for the next connect.
                     continue
                 sys.stderr.write('Connected\n')
                 client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-
                 #~ client_socket.settimeout(5)
             else:
                 sys.stderr.write('Waiting for connection on {}...\n'.format(args.localport))
                 client_socket, addr = srv.accept()
                 sys.stderr.write('Connected by {}\n'.format(addr))
+                # More quickly detect bad clients who quit without closing the
+                # connection: After 1 second of idle, start sending TCP keep-alive
+                # packets every 1 second. If 3 consecutive keep-alive packets
+                # fail, assume the client is gone and close the connection.
+                client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 1)
+                client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 1)
+                client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
+                client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             try:
                 ser_to_net.socket = client_socket
                 # enter network <-> serial loop
