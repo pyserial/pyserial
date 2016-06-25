@@ -649,6 +649,9 @@ Bugfixes (win32):
 
 Version 3.x.x   2016-xx-xx
 --------------------------
+Improvements:
+
+- add client mode to exmaple tcp_serial_redirect.py
 
 Bugfixes:
 
