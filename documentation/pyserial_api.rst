@@ -275,6 +275,9 @@ Native ports
 
         Return the state of the CD line
 
+    .. attribute:: is_open
+    	:getter: Get the state of the serial port, whether it's open.
+    	:type: bool
 
     New values can be assigned to the following attributes (properties), the
     port will be reconfigured, even if it's opened at that time:
@@ -563,6 +566,10 @@ Native ports
     .. method:: inWaiting()
 
         .. deprecated:: 3.0 see :attr:`in_waiting`
+
+    .. method:: isOpen()
+
+    	.. deprecated:: 3.0 see :attr:`is_open`
 
     .. attribute:: writeTimeout
 
