@@ -77,7 +77,7 @@ User supplied URL handlers
 
     On Debian based systems, serial ports are usually in the group ``dialout``,
     so running ``sudo adduser $USER dialout`` (and logging-out and -in) enables
-    the user to use the port.
+    the user to access the port.
 
 
 Related software

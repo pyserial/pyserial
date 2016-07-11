@@ -53,7 +53,7 @@ Requirements
 Installation
 ============
 
-pyserial
+pySerial
 --------
 This installs a package that can be used from Python (``import serial``).
 
@@ -62,37 +62,33 @@ may be required.
 
 From PyPI
 ~~~~~~~~~
-pySerial can be installed from PyPI, either manually downloading the
-files and installing as described below or using::
+pySerial can be installed from PyPI::
 
-    pip install pyserial
+    python -m pip install pyserial
 
-or::
-
-    easy_install -U pyserial
+Using the `python`/`python3` executable of the desired version (2.x/3.x).
 
 From source (tar.gz or checkout)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Download the archive from http://pypi.python.org/pypi/pyserial.
+Download the archive from http://pypi.python.org/pypi/pyserial or
+https://github.com/pyserial/pyserial/releases.
 Unpack the archive, enter the ``pyserial-x.y`` directory and run::
 
     python setup.py install
 
-For Python 3.x::
-
-    python3 setup.py install
+Using the `python`/`python3` executable of the desired version (2.x/3.x).
 
 Packages
 ~~~~~~~~
 There are also packaged versions for some Linux distributions and Windows:
 
 Debian/Ubuntu
-    A package is available under the name "python-serial". Note that some
-    distributions may package an older version of pySerial.
+    A package is available under the name "python-serial" or similar. Note
+    that some distributions may package an older version of pySerial.
 
 Windows
-    There is also a Windows installer for end users. It is located in the
-    PyPi_.  Developers also may be interested to get the source archive,
+    There is a "wheel" file for end users. It is located in the PyPi_.
+    Developers also may be interested to get the source archive,
     because it contains examples, tests and the this documentation.
 
 .. _PyPi: http://pypi.python.org/pypi/pyserial
@@ -115,7 +111,7 @@ Older versions are still available in the old download_ page. pySerial 1.21
 is compatible with Python 2.0 on Windows, Linux and several un*x like systems,
 MacOSX and Jython.
 
-On Windows releases older than 2.5 will depend on pywin32_ (previously known as
+On Windows, releases older than 2.5 will depend on pywin32_ (previously known as
 win32all)
 
 .. _download: https://pypi.python.org/pypi/pyserial
