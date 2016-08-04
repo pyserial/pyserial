@@ -656,6 +656,8 @@ Improvements:
 Bugfixes:
 
 - [#137] Exception while cancel in miniterm (python3)
+- [#143] Class Serial in protocol_loop.py references variable before assigning
+  to it
 
 Bugfixes (posix):
 

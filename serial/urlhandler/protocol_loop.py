@@ -43,10 +43,10 @@ class Serial(SerialBase):
                  9600, 19200, 38400, 57600, 115200)
 
     def __init__(self, *args, **kwargs):
-        super(Serial, self).__init__(*args, **kwargs)
         self.buffer_size = 4096
         self.queue = None
         self.logger = None
+        super(Serial, self).__init__(*args, **kwargs)
 
     def open(self):
         """\
