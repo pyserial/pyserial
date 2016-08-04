@@ -20,6 +20,7 @@ from ctypes.wintypes import ULONG
 from ctypes.wintypes import LPCSTR
 from ctypes.wintypes import HKEY
 from ctypes.wintypes import BYTE
+import locale
 import serial
 from serial.win32 import ULONG_PTR
 from serial.tools import list_ports_common
@@ -54,7 +55,7 @@ def string(buffer):
         if c == 0:
             break
         s.append(chr(c & 0xff))  # "& 0xff": hack to convert signed to unsigned
-    return ''.join(s)
+    return ''.join(s).encode('latin-1').decode(locale.getpreferredencoding(False))
 
 
 class GUID(ctypes.Structure):
