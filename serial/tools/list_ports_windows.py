@@ -209,12 +209,13 @@ def iterate_comports():
             # in case of USB, make a more readable string, similar to that form
             # that we also generate on other platforms
             if szHardwareID_str.startswith('USB'):
-                m = re.search(r'VID_([0-9a-f]{4})&PID_([0-9a-f]{4})(\\(\w+))?', szHardwareID_str, re.I)
+                m = re.search(r'VID_([0-9a-f]{4})(&PID_([0-9a-f]{4}))?(\\(\w+))?', szHardwareID_str, re.I)
                 if m:
                     info.vid = int(m.group(1), 16)
-                    info.pid = int(m.group(2), 16)
-                    if m.group(4):
-                        info.serial_number = m.group(4)
+                    if m.group(3):
+                        info.pid = int(m.group(3), 16)
+                    if m.group(5):
+                        info.serial_number = m.group(5)
                 # calculate a location string
                 loc_path_str = ctypes.create_unicode_buffer(250)
                 if SetupDiGetDeviceRegistryProperty(
