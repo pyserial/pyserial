@@ -128,17 +128,13 @@ DICS_FLAG_GLOBAL = 1
 DIREG_DEV = 0x00000001
 KEY_READ = 0x20019
 
-# workaround for compatibility between Python 2.x and 3.x
-Ports = serial.to_bytes([80, 111, 114, 116, 115])  # "Ports"
-PortName = serial.to_bytes([80, 111, 114, 116, 78, 97, 109, 101])  # "PortName"
-
 
 def iterate_comports():
     """Return a generator that yields descriptions for serial ports"""
     GUIDs = (GUID * 8)()  # so far only seen one used, so hope 8 are enough...
     guids_size = DWORD()
     if not SetupDiClassGuidsFromName(
-            Ports,
+            "Ports",
             GUIDs,
             ctypes.sizeof(GUIDs),
             ctypes.byref(guids_size)):
@@ -170,7 +166,7 @@ def iterate_comports():
             port_name_length = ULONG(ctypes.sizeof(port_name_buffer))
             RegQueryValueEx(
                 hkey,
-                PortName,
+                "PortName",
                 None,
                 None,
                 ctypes.byref(port_name_buffer),
