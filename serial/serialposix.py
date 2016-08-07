@@ -730,6 +730,9 @@ class VTIMESerial(Serial):
         if self._inter_byte_timeout is not None:
             vmin = 1
             vtime = int(self._inter_byte_timeout * 10)
+        elif self._timeout is None:
+            vmin = 1
+            vtime = 0
         else:
             vmin = 0
             vtime = int(self._timeout * 10)
@@ -764,3 +767,6 @@ class VTIMESerial(Serial):
                 break
             read.extend(buf)
         return bytes(read)
+
+    # hack to make hasattr return false
+    cancel_read = property()
