@@ -68,6 +68,9 @@ pySerial can be installed from PyPI::
 
 Using the `python`/`python3` executable of the desired version (2.x/3.x).
 
+Developers also may be interested to get the source archive, because it
+contains examples, tests and the this documentation.
+
 From source (tar.gz or checkout)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Download the archive from http://pypi.python.org/pypi/pyserial or
@@ -80,16 +83,11 @@ Using the `python`/`python3` executable of the desired version (2.x/3.x).
 
 Packages
 ~~~~~~~~
-There are also packaged versions for some Linux distributions and Windows:
+There are also packaged versions for some Linux distributions:
 
 Debian/Ubuntu
     A package is available under the name "python-serial" or similar. Note
     that some distributions may package an older version of pySerial.
-
-Windows
-    There is a "wheel" file for end users. It is located in the PyPi_.
-    Developers also may be interested to get the source archive,
-    because it contains examples, tests and the this documentation.
 
 .. _PyPi: http://pypi.python.org/pypi/pyserial
 
@@ -107,12 +105,20 @@ References
 
 Older Versions
 ==============
-Older versions are still available in the old download_ page. pySerial 1.21
-is compatible with Python 2.0 on Windows, Linux and several un*x like systems,
-MacOSX and Jython.
+Older versions are still available on the current download_ page or the `old
+download`_ page. The last version of pySerial's 2.x series was `2.7`_,
+compatible with Python 2.3 and newer and partially with early Python 3.x
+versions.
+
+pySerial `1.21`_ is compatible with Python 2.0 on Windows, Linux and several
+un*x like systems, MacOSX and Jython.
 
 On Windows, releases older than 2.5 will depend on pywin32_ (previously known as
-win32all)
+win32all).
 
+
+.. _`old download`: https://sourceforge.net/projects/pyserial/files/pyserial/
 .. _download: https://pypi.python.org/pypi/pyserial
 .. _pywin32: http://pypi.python.org/pypi/pywin32
+.. _`2.7`: https://pypi.python.org/pypi/pyserial/2.7
+.. _`1.21`: https://sourceforge.net/projects/pyserial/files/pyserial/1.21/pyserial-1.21.zip/download
