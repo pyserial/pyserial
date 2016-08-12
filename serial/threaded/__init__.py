@@ -105,7 +105,7 @@ class FramedPacket(Protocol):
                 self.handle_packet(self.packet)
                 del self.packet[:]
             elif self.in_packet:
-                self.packet.append(byte)
+                self.packet.extend(byte)
             else:
                 self.handle_out_of_packet_data(byte)
 
