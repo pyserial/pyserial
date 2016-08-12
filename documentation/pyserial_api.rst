@@ -479,6 +479,34 @@ Native ports
         .. versionadded:: 2.5
         .. versionchanged:: 3.0 renamed from ``applySettingsDict``
 
+
+    This class can be used as context manager. The serial port is closed when
+    the context is left.
+
+    .. method:: __enter__()
+
+        :returns: Serial instance
+
+        Returns the instance that was used in the ``with`` statement.
+
+        Example:
+
+        >>> with serial.serial_for_url(port) as s:
+        ...     s.write(b'hello')
+
+        Here no port argument is given, so it is not opened automatically:
+
+        >>> with serial.Serial() as s:
+        ...     s.port = ...
+        ...     s.open()
+        ...     s.write(b'hello')
+
+
+    .. method:: __exit__(exc_type, exc_val, exc_tb)
+
+        Closes serial port.
+
+
     Platform specific methods.
 
     .. warning:: Programs using the following methods and attributes are not
