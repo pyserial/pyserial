@@ -157,6 +157,9 @@ class Serial(SerialBase):
         elif self._parity == serial.PARITY_SPACE:
             comDCB.Parity = win32.SPACEPARITY
             comDCB.fParity = 1  # Enable Parity Check
+        elif self._parity == serial.PARITY_IGNORE:
+            comDCB.Parity = win32.NOPARITY  # ignore the value
+            comDCB.fParity = 1  # Enable Parity bit
         else:
             raise ValueError("Unsupported parity mode: {!r}".format(self._parity))
 

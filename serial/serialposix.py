@@ -360,6 +360,9 @@ class Serial(SerialBase, PlatformSpecific):
         elif self._parity == serial.PARITY_SPACE and plat[:5] == 'linux':
             cflag |= (termios.PARENB | CMSPAR)
             cflag &= ~(termios.PARODD)
+        elif self._parity == serial.PARITY_IGNORE:
+            cflag |= termios.PARENB  # enable parity bit
+            iflag |= termios.IGNPAR  # ignore its value / no error report
         else:
             raise ValueError('Invalid parity: {!r}'.format(self._parity))
         # setup flow control

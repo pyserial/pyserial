@@ -652,6 +652,7 @@ Version 3.x.x   2016-xx-xx
 Improvements:
 
 - add client mode to exmaple tcp_serial_redirect.py
+- add PARITY_IGNORE ('X'): receive parity bit, but ignore its value
 
 Bugfixes:
 
