@@ -663,4 +663,5 @@ Bugfixes (posix):
 
 - [#133] _update_dtr_state throws Inappropriate ioctl for virtual serial
   port created by socat on OS X
+- [#157] Broken handling of CMSPAR in serialposix.py
 

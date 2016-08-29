@@ -49,6 +49,11 @@ class PlatformSpecificBase(object):
     def _set_rs485_mode(self, rs485_settings):
         raise NotImplementedError('RS485 not supported on this platform')
 
+
+# some systems support an extra flag to enable the two in POSIX unsupported
+# partiy settings for MARK and SPACE
+CMSPAR = 0  # default, for unsupported platforms, override below
+
 # try to detect the OS so that a device can be selected...
 # this code block should supply a device() and set_special_baudrate() function
 # for the platform
@@ -56,6 +61,9 @@ plat = sys.platform.lower()
 
 if plat[:5] == 'linux':    # Linux (confirmed)  # noqa
     import array
+
+    # extra termios flags
+    CMSPAR = 0o10000000000  # Use "stick" (mark/space) parity
 
     # baudrate ioctls
     TCGETS2 = 0x802C542A
@@ -220,8 +228,6 @@ TIOCM_DTR_str = struct.pack('I', TIOCM_DTR)
 TIOCSBRK = getattr(termios, 'TIOCSBRK', 0x5427)
 TIOCCBRK = getattr(termios, 'TIOCCBRK', 0x5428)
 
-CMSPAR = 0o10000000000  # Use "stick" (mark/space) parity
-
 
 class Serial(SerialBase, PlatformSpecific):
     """\
@@ -349,15 +355,16 @@ class Serial(SerialBase, PlatformSpecific):
         # setup parity
         iflag &= ~(termios.INPCK | termios.ISTRIP)
         if self._parity == serial.PARITY_NONE:
-            cflag &= ~(termios.PARENB | termios.PARODD)
+            cflag &= ~(termios.PARENB | termios.PARODD | CMSPAR)
         elif self._parity == serial.PARITY_EVEN:
-            cflag &= ~(termios.PARODD)
+            cflag &= ~(termios.PARODD | CMSPAR)
             cflag |= (termios.PARENB)
         elif self._parity == serial.PARITY_ODD:
+            cflag &= ~CMSPAR
             cflag |= (termios.PARENB | termios.PARODD)
-        elif self._parity == serial.PARITY_MARK and plat[:5] == 'linux':
+        elif self._parity == serial.PARITY_MARK and CMSPAR:
             cflag |= (termios.PARENB | CMSPAR | termios.PARODD)
-        elif self._parity == serial.PARITY_SPACE and plat[:5] == 'linux':
+        elif self._parity == serial.PARITY_SPACE and CMSPAR:
             cflag |= (termios.PARENB | CMSPAR)
             cflag &= ~(termios.PARODD)
         else:
