@@ -73,7 +73,8 @@ except ImportError:
     import queue as Queue
 
 import serial
-from serial.serialutil import SerialBase, SerialException, to_bytes, iterbytes, portNotOpenError
+from serial.serialutil import SerialBase, SerialException, to_bytes, \
+    iterbytes, portNotOpenError, Timeout
 
 # port string is expected to be something like this:
 # rfc2217://host:port
@@ -350,8 +351,8 @@ class TelnetSubnegotiation(object):
         can also throw a value error when the answer from the server does not
         match the value sent.
         """
-        timeout_time = time.time() + timeout
-        while time.time() < timeout_time:
+        timeout_timer = Timeout(timeout)
+        while not timeout_timer.expired():
             time.sleep(0.05)    # prevent 100% CPU load
             if self.is_ready():
                 break
@@ -469,8 +470,8 @@ class Serial(SerialBase):
                 if option.state is REQUESTED:
                     self.telnet_send_option(option.send_yes, option.option)
             # now wait until important options are negotiated
-            timeout_time = time.time() + self._network_timeout
-            while time.time() < timeout_time:
+            timeout = Timeout(self._network_timeout)
+            while not timeout.expired():
                 time.sleep(0.05)    # prevent 100% CPU load
                 if sum(o.active for o in mandadory_options) == sum(o.state != INACTIVE for o in mandadory_options):
                     break
@@ -518,8 +519,8 @@ class Serial(SerialBase):
         items = self._rfc2217_port_settings.values()
         if self.logger:
             self.logger.debug("Negotiating settings: {}".format(items))
-        timeout_time = time.time() + self._network_timeout
-        while time.time() < timeout_time:
+        timeout = Timeout(self._network_timeout)
+        while not timeout.expired():
             time.sleep(0.05)    # prevent 100% CPU load
             if sum(o.active for o in items) == len(items):
                 break
@@ -898,8 +899,8 @@ class Serial(SerialBase):
                 self.logger.debug('polling modem state')
             # when it is older, request an update
             self.rfc2217_send_subnegotiation(NOTIFY_MODEMSTATE)
-            timeout_time = time.time() + self._network_timeout
-            while time.time() < timeout_time:
+            timeout = Timeout(self._network_timeout)
+            while not timeout.expired():
                 time.sleep(0.05)    # prevent 100% CPU load
                 # when expiration time is updated, it means that there is a new
                 # value
