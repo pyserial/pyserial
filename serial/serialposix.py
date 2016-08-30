@@ -37,7 +37,8 @@ import termios
 import time
 
 import serial
-from serial.serialutil import SerialBase, SerialException, to_bytes, portNotOpenError, writeTimeoutError
+from serial.serialutil import SerialBase, SerialException, to_bytes, \
+    portNotOpenError, writeTimeoutError, Timeout
 
 
 class PlatformSpecificBase(object):
@@ -450,11 +451,10 @@ class Serial(SerialBase, PlatformSpecific):
         if not self.is_open:
             raise portNotOpenError
         read = bytearray()
-        timeout = self._timeout
+        timeout = Timeout(self._timeout)
         while len(read) < size:
             try:
-                start_time = time.time()
-                ready, _, _ = select.select([self.fd, self.pipe_abort_read_r], [], [], timeout)
+                ready, _, _ = select.select([self.fd, self.pipe_abort_read_r], [], [], timeout.time_left())
                 if self.pipe_abort_read_r in ready:
                     os.read(self.pipe_abort_read_r, 1000)
                     break
@@ -486,10 +486,8 @@ class Serial(SerialBase, PlatformSpecific):
                 # see also http://www.python.org/dev/peps/pep-3151/#select
                 if e[0] != errno.EAGAIN:
                     raise SerialException('read failed: {}'.format(e))
-            if timeout is not None:
-                timeout -= time.time() - start_time
-                if timeout <= 0:
-                    break
+            if timeout.expired():
+                break
         return bytes(read)
 
     def cancel_read(self):
@@ -504,30 +502,27 @@ class Serial(SerialBase, PlatformSpecific):
             raise portNotOpenError
         d = to_bytes(data)
         tx_len = len(d)
-        timeout = self._write_timeout
-        if timeout and timeout > 0:   # Avoid comparing None with zero
-            timeout += time.time()
+        timeout = Timeout(self._write_timeout)
         while tx_len > 0:
             try:
                 n = os.write(self.fd, d)
-                if timeout == 0:
+                if timeout.is_non_blocking:
                     # Zero timeout indicates non-blocking - simply return the
                     # number of bytes of data actually written
                     return n
-                elif timeout and timeout > 0:  # Avoid comparing None with zero
+                elif not timeout.is_infinite:
                     # when timeout is set, use select to wait for being ready
                     # with the time left as timeout
-                    timeleft = timeout - time.time()
-                    if timeleft < 0:
+                    if timeout.expired():
                         raise writeTimeoutError
-                    abort, ready, _ = select.select([self.pipe_abort_write_r], [self.fd], [], timeleft)
+                    abort, ready, _ = select.select([self.pipe_abort_write_r], [self.fd], [], timeout.time_left())
                     if abort:
                         os.read(self.pipe_abort_write_r, 1000)
                         break
                     if not ready:
                         raise writeTimeoutError
                 else:
-                    assert timeout is None
+                    assert timeout.time_left() is None
                     # wait for write operation
                     abort, ready, _ = select.select([self.pipe_abort_write_r], [self.fd], [], None)
                     if abort:
@@ -543,7 +538,7 @@ class Serial(SerialBase, PlatformSpecific):
                 if v.errno != errno.EAGAIN:
                     raise SerialException('write failed: {}'.format(v))
                 # still calculate and check timeout
-                if timeout and timeout - time.time() < 0:
+                if timeout.expired():
                     raise writeTimeoutError
         return len(data)
 

@@ -104,6 +104,35 @@ writeTimeoutError = SerialTimeoutException('Write timeout')
 portNotOpenError = SerialException('Attempting to use a port that is not open')
 
 
+class Timeout(object):
+    """\
+    Timeout implementation with time.time(). This is compatible with all
+    Python versions but has issues if the clock is adjusted while the
+    timeout is running.
+    """
+    def __init__(self, duration):
+        """Initialize a timeout with given duration"""
+        self.is_infinite = (duration is None)
+        self.is_non_blocking = (duration == 0)
+        if duration is not None:
+            self.target_time = time.time() + duration
+        else:
+            self.target_time = None
+
+    def expired(self):
+        """Return a boolean if the timeout has expired"""
+        return self.target_time is not None and time.time() > self.target_time
+
+    def time_left(self):
+        """Return how many seconds are left until the timeout expires"""
+        if self.is_non_blocking:
+            return 0
+        elif self.is_infinite:
+            return None
+        else:
+            return max(0, self.target_time - time.time())
+
+
 class SerialBase(io.RawIOBase):
     """\
     Serial port base class. Provides __init__ function and properties to
