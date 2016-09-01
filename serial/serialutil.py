@@ -132,6 +132,9 @@ class Timeout(object):
         else:
             return max(0, self.target_time - time.time())
 
+    def restart(self, duration):
+        self.target_time = time.time() + duration
+
 
 class SerialBase(io.RawIOBase):
     """\

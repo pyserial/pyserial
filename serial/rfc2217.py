@@ -385,7 +385,7 @@ class Serial(SerialBase):
         self._socket = None
         self._linestate = 0
         self._modemstate = None
-        self._modemstate_expires = 0
+        self._modemstate_timeout = Timeout(-1)
         self._remote_suspend_flow = False
         self._write_lock = None
         self.logger = None
@@ -454,7 +454,7 @@ class Serial(SerialBase):
         # cache for line and modem states that the server sends to us
         self._linestate = 0
         self._modemstate = None
-        self._modemstate_expires = 0
+        self._modemstate_timeout = Timeout(-1)
         # RFC 2217 flow control between server and client
         self._remote_suspend_flow = False
 
@@ -823,7 +823,7 @@ class Serial(SerialBase):
                 if self.logger:
                     self.logger.info("NOTIFY_MODEMSTATE: {}".format(self._modemstate))
                 # update time when we think that a poll would make sense
-                self._modemstate_expires = time.time() + 0.3
+                self._modemstate_timeout.restart(0.3)
             elif suboption[1:2] == FLOWCONTROL_SUSPEND:
                 self._remote_suspend_flow = True
             elif suboption[1:2] == FLOWCONTROL_RESUME:
@@ -894,7 +894,7 @@ class Serial(SerialBase):
         etc.)
         """
         # active modem state polling enabled? is the value fresh enough?
-        if self._poll_modem_state and self._modemstate_expires < time.time():
+        if self._poll_modem_state and self._modemstate_timeout.expired():
             if self.logger:
                 self.logger.debug('polling modem state')
             # when it is older, request an update
@@ -904,7 +904,7 @@ class Serial(SerialBase):
                 time.sleep(0.05)    # prevent 100% CPU load
                 # when expiration time is updated, it means that there is a new
                 # value
-                if self._modemstate_expires > time.time():
+                if not self._modemstate_timeout.expired():
                     break
             else:
                 if self.logger:
