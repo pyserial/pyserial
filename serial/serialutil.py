@@ -106,22 +106,33 @@ portNotOpenError = SerialException('Attempting to use a port that is not open')
 
 class Timeout(object):
     """\
-    Timeout implementation with time.time(). This is compatible with all
-    Python versions but has issues if the clock is adjusted while the
-    timeout is running.
+    Abstraction for timeout operations. Using time.monotonic() if available
+    or time.time() in all other cases.
     """
+    if hasattr(time, 'monotonic'):
+        # Timeout implementation with time.monotonic(). This function is only
+        # supported by Python 3.3 and above. It returns a time in seconds
+        # (float) just as time.time(), but is not affected by system clock
+        # adjustments.
+        TIME = time.monotonic
+    else:
+        # Timeout implementation with time.time(). This is compatible with all
+        # Python versions but has issues if the clock is adjusted while the
+        # timeout is running.
+        TIME = time.time
+
     def __init__(self, duration):
         """Initialize a timeout with given duration"""
         self.is_infinite = (duration is None)
         self.is_non_blocking = (duration == 0)
         if duration is not None:
-            self.target_time = time.time() + duration
+            self.target_time = self.TIME() + duration
         else:
             self.target_time = None
 
     def expired(self):
         """Return a boolean if the timeout has expired"""
-        return self.target_time is not None and time.time() > self.target_time
+        return self.target_time is not None and self.TIME() > self.target_time
 
     def time_left(self):
         """Return how many seconds are left until the timeout expires"""
@@ -130,10 +141,10 @@ class Timeout(object):
         elif self.is_infinite:
             return None
         else:
-            return max(0, self.target_time - time.time())
+            return max(0, self.target_time - self.TIME())
 
     def restart(self, duration):
-        self.target_time = time.time() + duration
+        self.target_time = self.TIME() + duration
 
 
 class SerialBase(io.RawIOBase):
