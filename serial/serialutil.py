@@ -3,7 +3,7 @@
 # Base class and support functions used by various backends.
 #
 # This file is part of pySerial. https://github.com/pyserial/pyserial
-# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2016 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
@@ -108,6 +108,10 @@ class Timeout(object):
     """\
     Abstraction for timeout operations. Using time.monotonic() if available
     or time.time() in all other cases.
+
+    The class can also be initialized with 0 or None, in order to support
+    non-blocking and fully blocking I/O operations. The attributes
+    is_non_blocking and is_infinite are set accordingly.
     """
     if hasattr(time, 'monotonic'):
         # Timeout implementation with time.monotonic(). This function is only
@@ -131,7 +135,7 @@ class Timeout(object):
             self.target_time = None
 
     def expired(self):
-        """Return a boolean if the timeout has expired"""
+        """Return a boolean, telling if the timeout has expired"""
         return self.target_time is not None and self.TIME() > self.target_time
 
     def time_left(self):
@@ -144,6 +148,10 @@ class Timeout(object):
             return max(0, self.target_time - self.TIME())
 
     def restart(self, duration):
+        """\
+        Restart a timeout, only supported if a timeout was already set up
+        before.
+        """
         self.target_time = self.TIME() + duration
 
 

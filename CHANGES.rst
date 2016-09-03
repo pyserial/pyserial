@@ -652,6 +652,7 @@ Version 3.x.x   2016-xx-xx
 Improvements:
 
 - add client mode to exmaple tcp_serial_redirect.py
+- use of monotonic clock for timeouts, when available (Python 3.3 and up)
 
 Bugfixes:
 
