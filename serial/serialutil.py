@@ -129,6 +129,7 @@ class Timeout(object):
         """Initialize a timeout with given duration"""
         self.is_infinite = (duration is None)
         self.is_non_blocking = (duration == 0)
+        self.duration = duration
         if duration is not None:
             self.target_time = self.TIME() + duration
         else:
@@ -136,7 +137,7 @@ class Timeout(object):
 
     def expired(self):
         """Return a boolean, telling if the timeout has expired"""
-        return self.target_time is not None and self.TIME() > self.target_time
+        return self.target_time is not None and self.time_left() <= 0
 
     def time_left(self):
         """Return how many seconds are left until the timeout expires"""
@@ -145,13 +146,20 @@ class Timeout(object):
         elif self.is_infinite:
             return None
         else:
-            return max(0, self.target_time - self.TIME())
+            delta = self.target_time - self.TIME()
+            if delta > self.duration:
+                # clock jumped, recalculate
+                self.target_time = self.TIME() + self.duration
+                return self.duration
+            else:
+                return max(0, delta)
 
     def restart(self, duration):
         """\
         Restart a timeout, only supported if a timeout was already set up
         before.
         """
+        self.duration = duration
         self.target_time = self.TIME() + duration
 
 
