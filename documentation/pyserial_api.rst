@@ -694,12 +694,14 @@ enable RS485 specific support on some platforms. Currently Windows and Linux
 
 Usage::
 
+    import serial
+    import serial.rs485
     ser = serial.Serial(...)
     ser.rs485_mode = serial.rs485.RS485Settings(...)
     ser.write(b'hello')
 
 There is a subclass :class:`rs485.RS485` available to emulate the RS485 support
-on regular serial ports.
+on regular serial ports (``serial.rs485`` needs to be imported).
 
 
 .. class:: rs485.RS485Settings
