@@ -46,48 +46,54 @@ Features
 
 Requirements
 ============
-- Python 2.7 or newer, including Python 3.4 and newer
-- "Java Communications" (JavaComm) or compatible extension for Java/Jython
+- Python 2.7 or Python 3.4 and newer
+
+- If running on Jython: "Java Communications" (JavaComm) or compatible extension for Java
+
+For older installations, see `older versions`_ below.
 
 
 Installation
 ============
 
-pySerial
---------
 This installs a package that can be used from Python (``import serial``).
 
 To install for all users on the system, administrator rights (root)
 may be required.
 
 From PyPI
-~~~~~~~~~
+---------
 pySerial can be installed from PyPI::
 
     python -m pip install pyserial
 
-Using the `python`/`python3` executable of the desired version (2.x/3.x).
+Using the `python`/`python3` executable of the desired version (2.7/3.x).
 
 Developers also may be interested to get the source archive, because it
 contains examples, tests and the this documentation.
 
-From source (tar.gz or checkout)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+From source (zip/tar.gz or checkout)
+------------------------------------
 Download the archive from http://pypi.python.org/pypi/pyserial or
 https://github.com/pyserial/pyserial/releases.
 Unpack the archive, enter the ``pyserial-x.y`` directory and run::
 
     python setup.py install
 
-Using the `python`/`python3` executable of the desired version (2.x/3.x).
+Using the `python`/`python3` executable of the desired version (2.7/3.x).
 
 Packages
-~~~~~~~~
+--------
 There are also packaged versions for some Linux distributions:
 
-Debian/Ubuntu
-    A package is available under the name "python-serial" or similar. Note
-    that some distributions may package an older version of pySerial.
+- Debian/Ubuntu: "python-serial", "python3-serial"
+- Fedora / RHEL / CentOS / EPEL: "pyserial"
+- Arch Linux: "python-pyserial"
+- Gento: "dev-python/pyserial"
+
+Note that some distributions may package an older version of pySerial.
+These packages are created and maintained by developers working on
+these distributions.
 
 .. _PyPi: http://pypi.python.org/pypi/pyserial
 
@@ -96,11 +102,7 @@ References
 ==========
 * Python: http://www.python.org/
 * Jython: http://www.jython.org/
-* Java@IBM: http://www-106.ibm.com/developerworks/java/jdk/ (JavaComm links are
-  on the download page for the respective platform JDK)
-* Java@SUN: http://java.sun.com/products/
 * IronPython: http://www.codeplex.com/IronPython
-* setuptools: http://peak.telecommunity.com/DevCenter/setuptools
 
 
 Older Versions
@@ -114,7 +116,7 @@ pySerial `1.21`_ is compatible with Python 2.0 on Windows, Linux and several
 un*x like systems, MacOSX and Jython.
 
 On Windows, releases older than 2.5 will depend on pywin32_ (previously known as
-win32all).
+win32all). WinXP is supported up to 3.0.1.
 
 
 .. _`old download`: https://sourceforge.net/projects/pyserial/files/pyserial/
