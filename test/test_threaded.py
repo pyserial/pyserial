@@ -35,8 +35,33 @@ class Test_asyncio(unittest.TestCase):
         ser = serial.serial_for_url(PORT, baudrate=115200, timeout=1)
         with serial.threaded.ReaderThread(ser, TestLines) as protocol:
             protocol.write_line('hello')
+            protocol.write_line('world')
             time.sleep(1)
-            self.assertEqual(protocol.received_lines, ['hello'])
+            self.assertEqual(protocol.received_lines, ['hello', 'world'])
+
+    def test_framed_packet(self):
+        """simple test of line reader class"""
+
+        class TestFramedPacket(serial.threaded.FramedPacket):
+            def __init__(self):
+                super(TestFramedPacket, self).__init__()
+                self.received_packets = []
+
+            def handle_packet(self, packet):
+                self.received_packets.append(packet)
+
+            def send_packet(self, packet):
+                self.transport.write(self.START)
+                self.transport.write(packet)
+                self.transport.write(self.STOP)
+
+        ser = serial.serial_for_url(PORT, baudrate=115200, timeout=1)
+        with serial.threaded.ReaderThread(ser, TestFramedPacket) as protocol:
+            protocol.send_packet(b'1')
+            protocol.send_packet(b'2')
+            protocol.send_packet(b'3')
+            time.sleep(1)
+            self.assertEqual(protocol.received_packets, [b'1', b'2', b'3'])
 
 
 if __name__ == '__main__':
