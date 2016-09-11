@@ -102,7 +102,7 @@ class FramedPacket(Protocol):
                 self.in_packet = True
             elif byte == self.STOP:
                 self.in_packet = False
-                self.handle_packet(self.packet)
+                self.handle_packet(bytes(self.packet)) # make read-only copy
                 del self.packet[:]
             elif self.in_packet:
                 self.packet.extend(byte)
