@@ -30,6 +30,8 @@ class Protocol(object):
         Called when the serial port is closed or the reader loop terminated
         otherwise.
         """
+        if isinstance(exc, Exception):
+            raise exc
 
 
 class Packetizer(Protocol):
@@ -53,17 +55,67 @@ class Packetizer(Protocol):
     def connection_lost(self, exc):
         """Forget transport"""
         self.transport = None
+        super(Packetizer, self).connection_lost(exc)
 
     def data_received(self, data):
         """Buffer received data, find TERMINATOR, call handle_packet"""
         self.buffer.extend(data)
         while self.TERMINATOR in self.buffer:
-            packet, self.buffer = self.buffer.split(self.TERMINATOR)
+            packet, self.buffer = self.buffer.split(self.TERMINATOR, 1)
             self.handle_packet(packet)
 
     def handle_packet(self, packet):
         """Process packets - to be overridden by subclassing"""
         raise NotImplementedError('please implement functionality in handle_packet')
+
+
+class FramedPacket(Protocol):
+    """
+    Read binary packets. Packets are expected to have a start and stop marker.
+
+    The class also keeps track of the transport.
+    """
+
+    START = b'('
+    STOP = b')'
+
+    def __init__(self):
+        self.packet = bytearray()
+        self.in_packet = False
+        self.transport = None
+
+    def connection_made(self, transport):
+        """Store transport"""
+        self.transport = transport
+
+    def connection_lost(self, exc):
+        """Forget transport"""
+        self.transport = None
+        self.in_packet = False
+        del self.packet[:]
+        super(FramedPacket, self).connection_lost(exc)
+
+    def data_received(self, data):
+        """Find data enclosed in START/STOP, call handle_packet"""
+        for byte in serial.iterbytes(data):
+            if byte == self.START:
+                self.in_packet = True
+            elif byte == self.STOP:
+                self.in_packet = False
+                self.handle_packet(bytes(self.packet)) # make read-only copy
+                del self.packet[:]
+            elif self.in_packet:
+                self.packet.extend(byte)
+            else:
+                self.handle_out_of_packet_data(byte)
+
+    def handle_packet(self, packet):
+        """Process packets - to be overridden by subclassing"""
+        raise NotImplementedError('please implement functionality in handle_packet')
+
+    def handle_out_of_packet_data(self, data):
+        """Process data that is received outside of packets"""
+        pass
 
 
 class LineReader(Packetizer):
@@ -120,11 +172,14 @@ class ReaderThread(threading.Thread):
     def stop(self):
         """Stop the reader thread"""
         self.alive = False
+        if hasattr(self.serial, 'cancel_read'):
+            self.serial.cancel_read()
         self.join(2)
 
     def run(self):
         """Reader loop"""
-        self.serial.timeout = 1
+        if not hasattr(self.serial, 'cancel_read'):
+            self.serial.timeout = 1
         self.protocol = self.protocol_factory()
         try:
             self.protocol.connection_made(self)
@@ -208,6 +263,9 @@ if __name__ == '__main__':
     import time
     import traceback
 
+    #~ PORT = 'spy:///dev/ttyUSB0'
+    PORT = 'loop://'
+
     class PrintLines(LineReader):
         def connection_made(self, transport):
             super(PrintLines, self).connection_made(transport)
@@ -222,13 +280,13 @@ if __name__ == '__main__':
                 traceback.print_exc(exc)
             sys.stdout.write('port closed\n')
 
-    ser = serial.serial_for_url('loop://', baudrate=115200, timeout=1)
+    ser = serial.serial_for_url(PORT, baudrate=115200, timeout=1)
     with ReaderThread(ser, PrintLines) as protocol:
         protocol.write_line('hello')
         time.sleep(2)
 
     # alternative usage
-    ser = serial.serial_for_url('loop://', baudrate=115200, timeout=1)
+    ser = serial.serial_for_url(PORT, baudrate=115200, timeout=1)
     t = ReaderThread(ser, PrintLines)
     t.start()
     transport, protocol = t.connect()

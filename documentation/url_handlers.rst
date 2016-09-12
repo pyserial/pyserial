@@ -15,6 +15,7 @@ The function :func:`serial_for_url` accepts the following types of URLs:
 - ``loop://[?logging={debug|info|warning|error}]``
 - ``hwgrep://<regexp>[&skip_busy][&n=N]``
 - ``spy://port[?option[=value][&option[=value]]]``
+- ``alt://port?class=<classname>``
 
 .. versionchanged:: 3.0 Options are specified with ``?`` and ``&`` instead of ``/``
 
@@ -105,11 +106,11 @@ Note that options are separated using the character ``&``, this also applies to
 the first, where URLs usually use ``?``. This exception is made as the question
 mark is used in regexp itself.
 
-Depending on the capabilities of the list_ports module on the system, it is
+Depending on the capabilities of the ``list_ports`` module on the system, it is
 possible to search for the description or hardware ID of a device, e.g. USB
 VID:PID or texts.
 
-Unfortunately, on some systems list_ports only lists a subset of the port
+Unfortunately, on some systems ``list_ports`` only lists a subset of the port
 names with no additional information. Currently, on Windows and Linux and
 OSX it should find additional information.
 

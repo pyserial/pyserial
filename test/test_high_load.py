@@ -61,7 +61,7 @@ class TestHighLoad(unittest.TestCase):
         for i in range(self.N):
             self.s.write(q)
         read = self.s.read(len(q) * self.N)
-        self.assertEqual(read, q * self.N, "expected what was written before. got %d bytes, expected %d" % (len(read), self.N * len(q)))
+        self.assertEqual(read, q * self.N, "expected what was written before. got {} bytes, expected {}".format(len(read), self.N * len(q)))
         self.assertEqual(self.s.inWaiting(), 0)  # "expected empty buffer after all sent chars are read")
 
 
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     sys.stdout.write(__doc__)
     if len(sys.argv) > 1:
         PORT = sys.argv[1]
-    sys.stdout.write("Testing port: %r\n" % PORT)
+    sys.stdout.write("Testing port: {!r}\n".format(PORT))
     sys.argv[1:] = ['-v']
     # When this module is executed from the command-line, it runs all its tests
     unittest.main()

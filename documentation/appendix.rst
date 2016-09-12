@@ -71,6 +71,14 @@ User supplied URL handlers
     search path in :data:`serial.protocol_handler_packages`. This is possible
     starting from pySerial V2.6.
 
+``Permission denied`` errors
+    On POSIX based systems, the user usually needs to be in a special group to
+    have access to serial ports.
+
+    On Debian based systems, serial ports are usually in the group ``dialout``,
+    so running ``sudo adduser $USER dialout`` (and logging-out and -in) enables
+    the user to access the port.
+
 
 Related software
 ================
@@ -81,7 +89,7 @@ com0com - http://com0com.sourceforge.net/
 
 License
 =======
-Copyright (c) 2001-2015 Chris Liechti <cliechti@gmx.net>
+Copyright (c) 2001-2016 Chris Liechti <cliechti@gmx.net>
 All Rights Reserved.
 
 Redistribution and use in source and binary forms, with or without

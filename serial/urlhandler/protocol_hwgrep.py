@@ -59,12 +59,12 @@ class Serial(serial.Serial):
                 # pick n'th element
                 n = int(value) - 1
                 if n < 1:
-                    raise ValueError('option "n" expects a positive integer larger than 1: %r' % (value,))
+                    raise ValueError('option "n" expects a positive integer larger than 1: {!r}'.format(value))
             elif option == 'skip_busy':
                 # open to test if port is available. not the nicest way..
                 test_open = True
             else:
-                raise ValueError('unknown option: %r' % (option,))
+                raise ValueError('unknown option: {!r}'.format(option))
         # use a for loop to get the 1st element from the generator
         for port, desc, hwid in sorted(serial.tools.list_ports.grep(regexp)):
             if test_open:
@@ -80,7 +80,7 @@ class Serial(serial.Serial):
                 continue
             return port
         else:
-            raise serial.SerialException('no ports found matching regexp %r' % (url,))
+            raise serial.SerialException('no ports found matching regexp {!r}'.format(url))
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __name__ == '__main__':

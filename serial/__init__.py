@@ -9,11 +9,18 @@
 
 import importlib
 import sys
+from pkgutil import extend_path
+
 
 from serial.serialutil import *
 #~ SerialBase, SerialException, to_bytes, iterbytes
 
-VERSION = '3.1a0'
+__version__ = '3.1.1'
+
+VERSION = __version__
+
+# serial is a namespace package
+__path__ = extend_path(__path__, __name__)
 
 # pylint: disable=wrong-import-position
 if sys.platform == 'cli':
@@ -28,7 +35,7 @@ else:
     elif os.name == 'java':
         from serial.serialjava import Serial
     else:
-        raise ImportError("Sorry: no implementation for your platform ('%s') available" % (os.name,))
+        raise ImportError("Sorry: no implementation for your platform ('{}') available".format(os.name))
 
 
 protocol_handler_packages = [
@@ -64,7 +71,7 @@ def serial_for_url(url, *args, **kwargs):
         # if it is an URL, try to import the handler module from the list of possible packages
         if '://' in url_lowercase:
             protocol = url_lowercase.split('://', 1)[0]
-            module_name = '.protocol_%s' % (protocol,)
+            module_name = '.protocol_{}'.format(protocol)
             for package_name in protocol_handler_packages:
                 try:
                     importlib.import_module(package_name)
@@ -78,7 +85,7 @@ def serial_for_url(url, *args, **kwargs):
                         klass = handler_module.Serial
                     break
             else:
-                raise ValueError('invalid URL, protocol %r not known' % (protocol,))
+                raise ValueError('invalid URL, protocol {!r} not known'.format(protocol))
     # instantiate and open when desired
     instance = klass(None, *args, **kwargs)
     instance.port = url

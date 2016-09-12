@@ -29,7 +29,7 @@ elif os.name == 'posix':
     from serial.tools.list_ports_posix import comports
 #~ elif os.name == 'java':
 else:
-    raise ImportError("Sorry: no implementation for your platform ('%s') available" % (os.name,))
+    raise ImportError("Sorry: no implementation for your platform ('{}') available".format(os.name))
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -79,7 +79,7 @@ def main():
     # get iteraror w/ or w/o filter
     if args.regexp:
         if not args.quiet:
-            sys.stderr.write("Filtered list with regexp: %r\n" % (args.regexp,))
+            sys.stderr.write("Filtered list with regexp: {!r}\n".format(args.regexp))
         iterator = sorted(grep(args.regexp))
     else:
         iterator = sorted(comports())

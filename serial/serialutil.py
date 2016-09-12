@@ -3,7 +3,7 @@
 # Base class and support functions used by various backends.
 #
 # This file is part of pySerial. https://github.com/pyserial/pyserial
-# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2016 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
@@ -18,7 +18,7 @@ import time
 try:
     memoryview
 except (NameError, AttributeError):
-    # implementation does not matter as we do not realy use it.
+    # implementation does not matter as we do not really use it.
     # it just must not inherit from something else we might care for.
     class memoryview(object):   # pylint: disable=redefined-builtin,invalid-name
         pass
@@ -27,6 +27,11 @@ try:
     unicode
 except (NameError, AttributeError):
     unicode = str       # for Python 3, pylint: disable=redefined-builtin,invalid-name
+
+try:
+    basestring
+except (NameError, AttributeError):
+    basestring = (str,)    # for Python 3, pylint: disable=redefined-builtin,invalid-name
 
 
 # "for byte in data" fails for python3 as it returns ints instead of bytes
@@ -99,6 +104,65 @@ writeTimeoutError = SerialTimeoutException('Write timeout')
 portNotOpenError = SerialException('Attempting to use a port that is not open')
 
 
+class Timeout(object):
+    """\
+    Abstraction for timeout operations. Using time.monotonic() if available
+    or time.time() in all other cases.
+
+    The class can also be initialized with 0 or None, in order to support
+    non-blocking and fully blocking I/O operations. The attributes
+    is_non_blocking and is_infinite are set accordingly.
+    """
+    if hasattr(time, 'monotonic'):
+        # Timeout implementation with time.monotonic(). This function is only
+        # supported by Python 3.3 and above. It returns a time in seconds
+        # (float) just as time.time(), but is not affected by system clock
+        # adjustments.
+        TIME = time.monotonic
+    else:
+        # Timeout implementation with time.time(). This is compatible with all
+        # Python versions but has issues if the clock is adjusted while the
+        # timeout is running.
+        TIME = time.time
+
+    def __init__(self, duration):
+        """Initialize a timeout with given duration"""
+        self.is_infinite = (duration is None)
+        self.is_non_blocking = (duration == 0)
+        self.duration = duration
+        if duration is not None:
+            self.target_time = self.TIME() + duration
+        else:
+            self.target_time = None
+
+    def expired(self):
+        """Return a boolean, telling if the timeout has expired"""
+        return self.target_time is not None and self.time_left() <= 0
+
+    def time_left(self):
+        """Return how many seconds are left until the timeout expires"""
+        if self.is_non_blocking:
+            return 0
+        elif self.is_infinite:
+            return None
+        else:
+            delta = self.target_time - self.TIME()
+            if delta > self.duration:
+                # clock jumped, recalculate
+                self.target_time = self.TIME() + self.duration
+                return self.duration
+            else:
+                return max(0, delta)
+
+    def restart(self, duration):
+        """\
+        Restart a timeout, only supported if a timeout was already set up
+        before.
+        """
+        self.duration = duration
+        self.target_time = self.TIME() + duration
+
+
 class SerialBase(io.RawIOBase):
     """\
     Serial port base class. Provides __init__ function and properties to
@@ -149,8 +213,8 @@ class SerialBase(io.RawIOBase):
         self._dsrdtr = None
         self._inter_byte_timeout = None
         self._rs485_mode = None  # disabled by default
-        self._rts_state = None
-        self._dtr_state = None
+        self._rts_state = True
+        self._dtr_state = True
         self._break_state = False
 
         # assign values using get/set methods using the properties feature
@@ -188,18 +252,17 @@ class SerialBase(io.RawIOBase):
     def port(self):
         """\
         Get the current port setting. The value that was passed on init or using
-        setPort() is passed back. See also the attribute portstr which contains
-        the name of the port as a string.
+        setPort() is passed back.
         """
         return self._port
 
     @port.setter
     def port(self, port):
         """\
-        Change the port. The attribute portstr is set to a string that
-        contains the name of the port.
+        Change the port.
         """
-
+        if port is not None and not isinstance(port, basestring):
+            raise ValueError('"port" must be None or a string, not {}'.format(type(port)))
         was_open = self.is_open
         if was_open:
             self.close()
@@ -226,7 +289,7 @@ class SerialBase(io.RawIOBase):
         except TypeError:
             raise ValueError("Not a valid baudrate: {!r}".format(baudrate))
         else:
-            if b <= 0:
+            if b < 0:
                 raise ValueError("Not a valid baudrate: {!r}".format(baudrate))
             self._baudrate = b
             if self.is_open:
@@ -533,6 +596,9 @@ class SerialBase(io.RawIOBase):
 
     def getCD(self):
         return self.cd
+
+    def setPort(self, port):
+        self.port = port
 
     @property
     def writeTimeout(self):

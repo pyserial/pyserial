@@ -61,12 +61,12 @@ class Test_SettingsDict(unittest.TestCase):
                 ('parity', serial.PARITY_ODD),
                 ('xonxoff', True),
                 ('rtscts', True),
-                ('dsrdtr', True),
-                ):
+                ('dsrdtr', True)):
             kwargs = {'do_not_open': True, setting: value}
             ser = serial.serial_for_url(PORT, **kwargs)
             d = ser.get_settings()
             self.assertEqual(getattr(ser, setting), value)
+            self.assertEqual(d[setting], value)
 
 
 if __name__ == '__main__':
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     sys.stdout.write(__doc__)
     if len(sys.argv) > 1:
         PORT = sys.argv[1]
-    sys.stdout.write("Testing port: %r\n" % PORT)
+    sys.stdout.write("Testing port: {!r}\n".format(PORT))
     sys.argv[1:] = ['-v']
     # When this module is executed from the command-line, it runs all its tests
     unittest.main()

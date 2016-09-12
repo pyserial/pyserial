@@ -196,6 +196,9 @@ Native ports
         Clear output buffer, aborting the current output and
         discarding all that is in the buffer.
 
+        Note, for some USB serial adapters, this may only flush the buffer of
+        the OS and not all the data that may be present in the USB part.
+
         .. versionchanged:: 3.0 renamed from ``flushOutput()``
 
     .. method:: send_break(duration=0.25)
@@ -272,6 +275,9 @@ Native ports
 
         Return the state of the CD line
 
+    .. attribute:: is_open
+    	:getter: Get the state of the serial port, whether it's open.
+    	:type: bool
 
     New values can be assigned to the following attributes (properties), the
     port will be reconfigured, even if it's opened at that time:
@@ -454,7 +460,8 @@ Native ports
         current settings so that a later point in time they can be restored
         using :meth:`apply_settings`.
 
-        Note that control lines (RTS/DTR) are part of the settings.
+        Note that the state of control lines (RTS/DTR) are not part of the
+        settings.
 
         .. versionadded:: 2.5
         .. versionchanged:: 3.0 renamed from ``getSettingsDict``
@@ -472,6 +479,34 @@ Native ports
         .. versionadded:: 2.5
         .. versionchanged:: 3.0 renamed from ``applySettingsDict``
 
+
+    This class can be used as context manager. The serial port is closed when
+    the context is left.
+
+    .. method:: __enter__()
+
+        :returns: Serial instance
+
+        Returns the instance that was used in the ``with`` statement.
+
+        Example:
+
+        >>> with serial.serial_for_url(port) as s:
+        ...     s.write(b'hello')
+
+        Here no port argument is given, so it is not opened automatically:
+
+        >>> with serial.Serial() as s:
+        ...     s.port = ...
+        ...     s.open()
+        ...     s.write(b'hello')
+
+
+    .. method:: __exit__(exc_type, exc_val, exc_tb)
+
+        Closes serial port.
+
+
     Platform specific methods.
 
     .. warning:: Programs using the following methods and attributes are not
@@ -481,9 +516,10 @@ Native ports
 
         :platform: Posix
 
-        Configure the device for nonblocking operation. This can be useful if
-        the port is used with :mod:`select`. Note that :attr:`timeout` must
-        also be set to ``0``
+        .. deprecated:: 3.2
+           The serial port is already opened in this mode. This method is not
+           needed and going away.
+
 
     .. method:: fileno()
 
@@ -520,7 +556,33 @@ Native ports
         .. versionchanged:: 2.7 (renamed on Posix, function was called ``flowControl``)
         .. versionchanged:: 3.0 renamed from ``setXON``
 
+    .. method:: cancel_read()
 
+        :platform: Posix
+        :platform: Windows
+
+        Cancel a pending read operation from an other thread. A blocking
+        :meth:`read` call is aborted immediately. :meth:`read` will not report
+        any error but return all data received up to that point (similar to a
+        timeout).
+
+        On Posix a call to `cancel_read()` may cancel a future :meth:`read` call.
+
+        .. versionadded:: 3.1
+
+    .. method:: cancel_write()
+
+        :platform: Posix
+        :platform: Windows
+
+        Cancel a pending write operation from an other thread. The
+        :meth:`write` method will return immediately (no error indicated).
+        However the OS may still be sending from the buffer, a separate call to
+        :meth:`reset_output_buffer` may be needed.
+
+        On Posix a call to `cancel_write()` may cancel a future :meth:`write` call.
+
+        .. versionadded:: 3.1
 
     .. note:: The following members are deprecated and will be removed in a
               future release.
@@ -532,6 +594,10 @@ Native ports
     .. method:: inWaiting()
 
         .. deprecated:: 3.0 see :attr:`in_waiting`
+
+    .. method:: isOpen()
+
+    	.. deprecated:: 3.0 see :attr:`is_open`
 
     .. attribute:: writeTimeout
 
@@ -628,12 +694,14 @@ enable RS485 specific support on some platforms. Currently Windows and Linux
 
 Usage::
 
+    import serial
+    import serial.rs485
     ser = serial.Serial(...)
     ser.rs485_mode = serial.rs485.RS485Settings(...)
     ser.write(b'hello')
 
 There is a subclass :class:`rs485.RS485` available to emulate the RS485 support
-on regular serial ports.
+on regular serial ports (``serial.rs485`` needs to be imported).
 
 
 .. class:: rs485.RS485Settings
@@ -1171,48 +1239,13 @@ Example::
 asyncio
 =======
 
-.. module:: serial.aio
+``asyncio`` was introduced with Python 3.4. Experimental support for pySerial
+is provided via a separate distribution `pyserial-asyncio`_.
 
-.. warning:: This implementation is currently in an experimental state. Use
-    at your own risk.
+It is currently under developement, see:
 
-Experimental asyncio support is available for Python 3.4 and newer. The module
-:mod:`serial.aio` provides a :class:`asyncio.Transport`:
-``SerialTransport``.
+- http://pyserial-asyncio.readthedocs.io/
+- https://github.com/pyserial/pyserial-asyncio
 
-
-A factory function (`asyncio.coroutine`) is provided:
-
-.. function:: create_serial_connection(loop, protocol_factory, \*args, \*\*kwargs)
-
-    :param loop: The event handler
-    :param protocol_factory: Factory function for a :class:`asyncio.Protocol`
-    :param args: Passed to the :class:`serial.Serial` init function
-    :param kwargs: Passed to the :class:`serial.Serial` init function
-    :platform: Posix
-
-    Get a connection making coroutine.
-
-Example::
-
-    class Output(asyncio.Protocol):
-        def connection_made(self, transport):
-            self.transport = transport
-            print('port opened', transport)
-            transport.serial.rts = False
-            transport.write(b'hello world\n')
-
-        def data_received(self, data):
-            print('data received', repr(data))
-            self.transport.close()
-
-        def connection_lost(self, exc):
-            print('port closed')
-            asyncio.get_event_loop().stop()
-
-    loop = asyncio.get_event_loop()
-    coro = serial.aio.create_serial_connection(loop, Output, '/dev/ttyUSB0', baudrate=115200)
-    loop.run_until_complete(coro)
-    loop.run_forever()
-    loop.close()
+.. _`pyserial-asyncio`: https://pypi.python.org/pypi/pyserial-asyncio
 

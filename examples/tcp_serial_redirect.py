@@ -2,7 +2,7 @@
 #
 # Redirect data from a TCP/IP connection to a serial port and vice versa.
 #
-# (C) 2002-2015 Chris Liechti <cliechti@gmx.net>
+# (C) 2002-2016 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
@@ -10,6 +10,7 @@ import sys
 import socket
 import serial
 import serial.threaded
+import time
 
 
 class SerialToNet(serial.threaded.Protocol):
@@ -56,6 +57,12 @@ it waits for the next connect.
         help='suppress non error messages',
         default=False)
 
+    parser.add_argument(
+        '--develop',
+        action='store_true',
+        help='Development mode, prints Python internals on errors',
+        default=False)
+
     group = parser.add_argument_group('serial port')
 
     group.add_argument(
@@ -91,11 +98,19 @@ it waits for the next connect.
 
     group = parser.add_argument_group('network settings')
 
-    group.add_argument(
+    exclusive_group = group.add_mutually_exclusive_group()
+
+    exclusive_group.add_argument(
         '-P', '--localport',
         type=int,
         help='local TCP port',
         default=7777)
+
+    exclusive_group.add_argument(
+        '-c', '--client',
+        metavar='HOST:PORT',
+        help='make the connection as a client, instead of running a server',
+        default=False)
 
     args = parser.parse_args()
 
@@ -127,15 +142,40 @@ it waits for the next connect.
     serial_worker = serial.threaded.ReaderThread(ser, ser_to_net)
     serial_worker.start()
 
-    srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    srv.bind(('', args.localport))
-    srv.listen(1)
+    if not args.client:
+        srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        srv.bind(('', args.localport))
+        srv.listen(1)
     try:
+        intentional_exit = False
         while True:
-            sys.stderr.write('Waiting for connection on {}...\n'.format(args.localport))
-            client_socket, addr = srv.accept()
-            sys.stderr.write('Connected by {}\n'.format(addr))
+            if args.client:
+                host, port = args.client.split(':')
+                sys.stderr.write("Opening connection to {}:{}...\n".format(host, port))
+                client_socket = socket.socket()
+                try:
+                    client_socket.connect((host, int(port)))
+                except socket.error as msg:
+                    sys.stderr.write('WARNING: {}\n'.format(msg))
+                    time.sleep(5)  # intentional delay on reconnection as client
+                    continue
+                sys.stderr.write('Connected\n')
+                client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+                #~ client_socket.settimeout(5)
+            else:
+                sys.stderr.write('Waiting for connection on {}...\n'.format(args.localport))
+                client_socket, addr = srv.accept()
+                sys.stderr.write('Connected by {}\n'.format(addr))
+                # More quickly detect bad clients who quit without closing the
+                # connection: After 1 second of idle, start sending TCP keep-alive
+                # packets every 1 second. If 3 consecutive keep-alive packets
+                # fail, assume the client is gone and close the connection.
+                client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 1)
+                client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 1)
+                client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
+                client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             try:
                 ser_to_net.socket = client_socket
                 # enter network <-> serial loop
@@ -146,15 +186,24 @@ it waits for the next connect.
                             break
                         ser.write(data)                 # get a bunch of bytes and send them
                     except socket.error as msg:
-                        sys.stderr.write('ERROR: %s\n' % msg)
+                        if args.develop:
+                            raise
+                        sys.stderr.write('ERROR: {}\n'.format(msg))
                         # probably got disconnected
                         break
+            except KeyboardInterrupt:
+                intentional_exit = True
+                raise
             except socket.error as msg:
+                if args.develop:
+                    raise
                 sys.stderr.write('ERROR: {}\n'.format(msg))
             finally:
                 ser_to_net.socket = None
                 sys.stderr.write('Disconnected\n')
                 client_socket.close()
+                if args.client and not intentional_exit:
+                    time.sleep(5)  # intentional delay on reconnection as client
     except KeyboardInterrupt:
         pass
 

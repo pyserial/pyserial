@@ -71,9 +71,9 @@ class DummySerial(SerialBase):
                         self.logger.setLevel(LOGGER_LEVELS[value])
                         self.logger.debug('enabled logging')
                     else:
-                        raise ValueError('unknown option: %r' % (option,))
+                        raise ValueError('unknown option: {!r}'.format(option))
         except ValueError as e:
-            raise SerialException('expected a string in the form "[test://][option[/option...]]": %s' % e)
+            raise SerialException('expected a string in the form "[test://][option[/option...]]": {}'.format(e))
         return (host, port)
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
@@ -120,26 +120,26 @@ class DummySerial(SerialBase):
         duration."""
         if not self._isOpen: raise portNotOpenError
         if self.logger:
-            self.logger.info('ignored sendBreak(%r)' % (duration,))
+            self.logger.info('ignored sendBreak({!r})'.format(duration))
 
     def setBreak(self, level=True):
         """Set break: Controls TXD. When active, to transmitting is
         possible."""
         if not self._isOpen: raise portNotOpenError
         if self.logger:
-            self.logger.info('ignored setBreak(%r)' % (level,))
+            self.logger.info('ignored setBreak({!r})'.format(level))
 
     def setRTS(self, level=True):
         """Set terminal status line: Request To Send"""
         if not self._isOpen: raise portNotOpenError
         if self.logger:
-            self.logger.info('ignored setRTS(%r)' % (level,))
+            self.logger.info('ignored setRTS({!r})'.format(level))
 
     def setDTR(self, level=True):
         """Set terminal status line: Data Terminal Ready"""
         if not self._isOpen: raise portNotOpenError
         if self.logger:
-            self.logger.info('ignored setDTR(%r)' % (level,))
+            self.logger.info('ignored setDTR({!r})'.format(level))
 
     def getCTS(self):
         """Read terminal status line: Clear To Send"""
@@ -192,11 +192,11 @@ else:
 if __name__ == '__main__':
     import sys
     s = Serial('test://logging=debug')
-    sys.stdout.write('%s\n' % s)
+    sys.stdout.write('{}\n'.format(s))
 
     sys.stdout.write("write...\n")
     s.write("hello\n")
     s.flush()
-    sys.stdout.write("read: %s\n" % s.read(5))
+    sys.stdout.write("read: {}\n".format(s.read(5)))
 
     s.close()

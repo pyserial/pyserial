@@ -150,7 +150,10 @@ class FormatHexdump(object):
 
 
 class Serial(serial.Serial):
-    """Just inherit the native Serial port implementation and patch the port property."""
+    """\
+    Inherit the native Serial port implementation and wrap all the methods and
+    attributes.
+    """
     # pylint: disable=no-member
 
     def __init__(self, *args, **kwargs):
@@ -170,7 +173,7 @@ class Serial(serial.Serial):
             raise serial.SerialException(
                 'expected a string in the form '
                 '"spy://port[?option[=value][&option[=value]]]": '
-                'not starting with spy:// (%r)' % (parts.scheme,))
+                'not starting with spy:// ({!r})'.format(parts.scheme))
         # process options now, directly altering self
         formatter = FormatHexdump
         color = False
@@ -186,11 +189,11 @@ class Serial(serial.Serial):
                 elif option == 'all':
                     self.show_all = True
                 else:
-                    raise ValueError('unknown option: %r' % (option,))
+                    raise ValueError('unknown option: {!r}'.format(option))
         except ValueError as e:
             raise serial.SerialException(
                 'expected a string in the form '
-                '"spy://port[?option[=value][&option[=value]]]": %s' % e)
+                '"spy://port[?option[=value][&option[=value]]]": {}'.format(e))
         self.formatter = formatter(output, color)
         return ''.join([parts.netloc, parts.path])
 
@@ -203,6 +206,16 @@ class Serial(serial.Serial):
         if rx or self.show_all:
             self.formatter.rx(rx)
         return rx
+
+    if hasattr(serial.Serial, 'cancel_read'):
+        def cancel_read(self):
+            self.formatter.control('Q-RX', 'cancel_read')
+            super(Serial, self).cancel_read()
+
+    if hasattr(serial.Serial, 'cancel_write'):
+        def cancel_write(self):
+            self.formatter.control('Q-TX', 'cancel_write')
+            super(Serial, self).cancel_write()
 
     @property
     def in_waiting(self):

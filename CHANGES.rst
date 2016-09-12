@@ -588,16 +588,81 @@ Bugfixes:
 - port_publisher: restore some sorting of ports
 
 
-Version 3.x.y   2016-xx-xx
+Version 3.1.0   2016-05-27
 --------------------------
 Improvements:
 
 - improve error handling in ``alt://`` handler
 - ``socket://`` internally used select, improves timeout behavior
-- initial state of RTS/DTR: revert to "no change on open" on Posix, unless a
-  value is set explicitly.
+- initial state of RTS/DTR: ignore error when setting on open posix
+  (support connecting to pty's)
+- code style updates
+- posix: remove "number_to_device" which is not called anymore
+- add cancel_read and cancel_write to win32 and posix implementations
 
 Bugfixes:
 
 - [#68] aio: catch errors and close connection
+- [#87] hexlify: update codec for Python 2
+- [#100] setPort not implemented
+- [#101] bug in serial.threaded.Packetizer with easy fix
+- [#104] rfc2217 and socket: set timeout in create_connection
+- [#107] miniterm.py fails to exit on failed serial port
+
+Bugfixes (posix):
+
+- [#59] fixes for RTS/DTR handling on open
+- [#77] list_ports_osx: add missing import
+- [#85] serialposix.py _set_rs485_mode() tries to read non-existing
+  rs485_settings.delay_rts_before_send
+- [#96] patch: native RS485 is never enabled
+
+Bugfixes (win32):
+
+- fix bad super call and duplicate old-style __init__ call
+- [#80] list_ports: Compatibility issue between Windows/Linux
+
+
+Version 3.1.1   2016-06-12
+--------------------------
+Improvements:
+
+- deprecate ``nonblocking()`` method on posix, the port is already in this
+  mode.
+- style: use .format() in various places instead of "%" formatting
+
+Bugfixes:
+
+- [#122] fix bug in FramedPacket
+- [#127] The Serial class in the .NET/Mono (IronPython) backend does not
+  implement the _reconfigure_port method
+- [#123, #128] Avoid Python 3 syntax in aio module
+
+Bugfixes (posix):
+
+- [#126] PATCH: Check delay_before_tx/rx for None in serialposix.py
+- posix: retry if interrupted in Serial.read
+
+Bugfixes (win32):
+
+- win32: handle errors of GetOverlappedResult in read(), fixes #121
+
+Version 3.x.x   2016-xx-xx
+--------------------------
+Improvements:
+
+- add client mode to exmaple tcp_serial_redirect.py
+- use of monotonic clock for timeouts, when available (Python 3.3 and up)
+
+Bugfixes:
+
+- [#137] Exception while cancel in miniterm (python3)
+- [#143] Class Serial in protocol_loop.py references variable before assigning
+  to it
+
+Bugfixes (posix):
+
+- [#133] _update_dtr_state throws Inappropriate ioctl for virtual serial
+  port created by socat on OS X
+- [#157] Broken handling of CMSPAR in serialposix.py
 

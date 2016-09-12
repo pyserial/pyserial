@@ -13,13 +13,13 @@ appropriate backend.
 It is released under a free software license, see LICENSE_ for more
 details.
 
-Copyright (C) 2001-2015 Chris Liechti <cliechti(at)gmx.net>
+Copyright (C) 2001-2016 Chris Liechti <cliechti(at)gmx.net>
 
 Other pages (online)
 
 - `project page on GitHub`_
 - `Download Page`_ with releases (PyPi)
-- This page, when viewed online is at https://pyserial.readthedocs.org/en/latest/ or
+- This page, when viewed online is at https://pyserial.readthedocs.io/en/latest/ or
   http://pythonhosted.org/pyserial/ .
 
 .. _Python: http://python.org/
@@ -46,54 +46,54 @@ Features
 
 Requirements
 ============
-- Python 2.7 or newer, including Python 3.4 and newer
-- "Java Communications" (JavaComm) or compatible extension for Java/Jython
+- Python 2.7 or Python 3.4 and newer
+
+- If running on Jython: "Java Communications" (JavaComm) or compatible extension for Java
+
+For older installations, see `older versions`_ below.
 
 
 Installation
 ============
 
-pyserial
---------
 This installs a package that can be used from Python (``import serial``).
 
 To install for all users on the system, administrator rights (root)
 may be required.
 
 From PyPI
-~~~~~~~~~
-pySerial can be installed from PyPI, either manually downloading the
-files and installing as described below or using::
+---------
+pySerial can be installed from PyPI::
 
-    pip install pyserial
+    python -m pip install pyserial
 
-or::
+Using the `python`/`python3` executable of the desired version (2.7/3.x).
 
-    easy_install -U pyserial
+Developers also may be interested to get the source archive, because it
+contains examples, tests and the this documentation.
 
-From source (tar.gz or checkout)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Download the archive from http://pypi.python.org/pypi/pyserial.
+From source (zip/tar.gz or checkout)
+------------------------------------
+Download the archive from http://pypi.python.org/pypi/pyserial or
+https://github.com/pyserial/pyserial/releases.
 Unpack the archive, enter the ``pyserial-x.y`` directory and run::
 
     python setup.py install
 
-For Python 3.x::
-
-    python3 setup.py install
+Using the `python`/`python3` executable of the desired version (2.7/3.x).
 
 Packages
-~~~~~~~~
-There are also packaged versions for some Linux distributions and Windows:
+--------
+There are also packaged versions for some Linux distributions:
 
-Debian/Ubuntu
-    A package is available under the name "python-serial". Note that some
-    distributions may package an older version of pySerial.
+- Debian/Ubuntu: "python-serial", "python3-serial"
+- Fedora / RHEL / CentOS / EPEL: "pyserial"
+- Arch Linux: "python-pyserial"
+- Gento: "dev-python/pyserial"
 
-Windows
-    There is also a Windows installer for end users. It is located in the
-    PyPi_.  Developers also may be interested to get the source archive,
-    because it contains examples, tests and the this documentation.
+Note that some distributions may package an older version of pySerial.
+These packages are created and maintained by developers working on
+these distributions.
 
 .. _PyPi: http://pypi.python.org/pypi/pyserial
 
@@ -102,21 +102,25 @@ References
 ==========
 * Python: http://www.python.org/
 * Jython: http://www.jython.org/
-* Java@IBM: http://www-106.ibm.com/developerworks/java/jdk/ (JavaComm links are
-  on the download page for the respective platform JDK)
-* Java@SUN: http://java.sun.com/products/
 * IronPython: http://www.codeplex.com/IronPython
-* setuptools: http://peak.telecommunity.com/DevCenter/setuptools
 
 
 Older Versions
 ==============
-Older versions are still available in the old download_ page. pySerial 1.21
-is compatible with Python 2.0 on Windows, Linux and several un*x like systems,
-MacOSX and Jython.
+Older versions are still available on the current download_ page or the `old
+download`_ page. The last version of pySerial's 2.x series was `2.7`_,
+compatible with Python 2.3 and newer and partially with early Python 3.x
+versions.
 
-On Windows releases older than 2.5 will depend on pywin32_ (previously known as
-win32all)
+pySerial `1.21`_ is compatible with Python 2.0 on Windows, Linux and several
+un*x like systems, MacOSX and Jython.
 
+On Windows, releases older than 2.5 will depend on pywin32_ (previously known as
+win32all). WinXP is supported up to 3.0.1.
+
+
+.. _`old download`: https://sourceforge.net/projects/pyserial/files/pyserial/
 .. _download: https://pypi.python.org/pypi/pyserial
 .. _pywin32: http://pypi.python.org/pypi/pywin32
+.. _`2.7`: https://pypi.python.org/pypi/pyserial/2.7
+.. _`1.21`: https://sourceforge.net/projects/pyserial/files/pyserial/1.21/pyserial-1.21.zip/download

@@ -12,7 +12,7 @@ appropriate backend.
 - Project Homepage: https://github.com/pyserial/pyserial
 - Download Page: https://pypi.python.org/pypi/pyserial
 
-BSD license, (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+BSD license, (C) 2001-2016 Chris Liechti <cliechti@gmx.net>
 
 
 Documentation
@@ -44,5 +44,5 @@ Windows installers are also available (see download link above).
    :target: https://travis-ci.org/pyserial/pyserial
    :alt: Build status
 .. |docs| image:: https://readthedocs.org/projects/pyserial/badge/?version=latest
-   :target: http://pyserial.readthedocs.org/
+   :target: http://pyserial.readthedocs.io/
    :alt: Documentation

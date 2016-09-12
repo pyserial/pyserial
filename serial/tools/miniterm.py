@@ -32,7 +32,7 @@ def key_description(character):
     """generate a readable description for a key"""
     ascii_code = ord(character)
     if ascii_code < 32:
-        return 'Ctrl+%c' % (ord('@') + ascii_code)
+        return 'Ctrl+{:c}'.format(ord('@') + ascii_code)
     else:
         return repr(character)
 
@@ -67,6 +67,9 @@ class ConsoleBase(object):
         """Write string"""
         self.output.write(text)
         self.output.flush()
+
+    def cancel(self):
+        """Cancel getkey operation"""
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     # context manager:
@@ -123,14 +126,24 @@ if os.name == 'nt':  # noqa
                 else:
                     return z
 
+        def cancel(self):
+            # CancelIo, CancelSynchronousIo do not seem to work when using
+            # getwch, so instead, send a key to the window with the console
+            hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+            ctypes.windll.user32.PostMessageA(hwnd, 0x100, 0x0d, 0)
+
 elif os.name == 'posix':
     import atexit
     import termios
+    import select
 
     class Console(ConsoleBase):
         def __init__(self):
             super(Console, self).__init__()
             self.fd = sys.stdin.fileno()
+            # an additional pipe is used in getkey, so that the cancel method
+            # can abort the waiting getkey method
+            self.pipe_r, self.pipe_w = os.pipe()
             self.old = termios.tcgetattr(self.fd)
             atexit.register(self.cleanup)
             if sys.version_info < (3, 0):
@@ -146,10 +159,17 @@ elif os.name == 'posix':
             termios.tcsetattr(self.fd, termios.TCSANOW, new)
 
         def getkey(self):
+            ready, _, _ = select.select([self.enc_stdin, self.pipe_r], [], [], None)
+            if self.pipe_r in ready:
+                os.read(self.pipe_r, 1)
+                return
             c = self.enc_stdin.read(1)
             if c == unichr(0x7f):
                 c = unichr(8)    # map the BS key (which yields DEL) to backspace
             return c
+
+        def cancel(self):
+            os.write(self.pipe_w, b"x")
 
         def cleanup(self):
             termios.tcsetattr(self.fd, termios.TCSAFLUSH, self.old)
@@ -302,7 +322,6 @@ def ask_for_port():
     sys.stderr.write('\n--- Available ports:\n')
     ports = []
     for n, (port, desc, hwid) in enumerate(sorted(comports()), 1):
-        #~ sys.stderr.write('--- %-20s %s [%s]\n' % (port, desc, hwid))
         sys.stderr.write('--- {:2}: {:20} {}\n'.format(n, port, desc))
         ports.append(port)
     while True:
@@ -354,6 +373,8 @@ class Miniterm(object):
     def _stop_reader(self):
         """Stop reader thread only, wait for clean exit of thread"""
         self._reader_alive = False
+        if hasattr(self.serial, 'cancel_read'):
+            self.serial.cancel_read()
         self.receiver_thread.join()
 
     def start(self):
@@ -374,7 +395,12 @@ class Miniterm(object):
         """wait for worker threads to terminate"""
         self.transmitter_thread.join()
         if not transmit_only:
+            if hasattr(self.serial, 'cancel_read'):
+                self.serial.cancel_read()
             self.receiver_thread.join()
+
+    def close(self):
+        self.serial.close()
 
     def update_transformations(self):
         """take list of transformation classes and instantiate them for rx and tx"""
@@ -434,9 +460,8 @@ class Miniterm(object):
                         self.console.write(text)
         except serial.SerialException:
             self.alive = False
-            # XXX would be nice if the writer could be interrupted at this
-            #     point... to exit completely
-            raise
+            self.console.cancel()
+            raise       # XXX handle instead of re-raise?
 
     def writer(self):
         """\
@@ -451,6 +476,8 @@ class Miniterm(object):
                     c = self.console.getkey()
                 except KeyboardInterrupt:
                     c = '\x03'
+                if not self.alive:
+                    break
                 if menu_active:
                     self.handle_menu_key(c)
                     menu_active = False
@@ -841,8 +868,11 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
                 parity=args.parity,
                 rtscts=args.rtscts,
                 xonxoff=args.xonxoff,
-                timeout=1,
                 do_not_open=True)
+
+            if not hasattr(serial_instance, 'cancel_read'):
+                # enable timeout for alive flag polling if cancel_read is not available
+                serial_instance.timeout = 1
 
             if args.dtr is not None:
                 if not args.quiet:
@@ -893,6 +923,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
     if not args.quiet:
         sys.stderr.write("\n--- exit ---\n")
     miniterm.join()
+    miniterm.close()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __name__ == '__main__':

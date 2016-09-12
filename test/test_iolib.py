@@ -24,19 +24,9 @@ Shortcut these pin pairs:
 On a 9 pole DSUB these are the pins (2-3) (4-6) (7-8)
 """
 
-import unittest
-import sys
-
-if __name__ == '__main__' and sys.version_info < (2, 6):
-    sys.stderr.write("""\
-==============================================================================
-WARNING: this test is intended for Python 2.6 and newer where the io library
-is available. This seems to be an older version of Python running.
-Continuing anyway...
-==============================================================================
-""")
-
 import io
+import sys
+import unittest
 import serial
 
 # trick to make that this test run under 2.6 and 3.x without modification.
@@ -74,7 +64,7 @@ if __name__ == '__main__':
     sys.stdout.write(__doc__)
     if len(sys.argv) > 1:
         PORT = sys.argv[1]
-    sys.stdout.write("Testing port: %r\n" % PORT)
+    sys.stdout.write("Testing port: {!r}\n".format(PORT))
     sys.argv[1:] = ['-v']
     # When this module is executed from the command-line, it runs all its tests
     unittest.main()

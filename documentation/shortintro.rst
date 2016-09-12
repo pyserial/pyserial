@@ -55,7 +55,7 @@ Also supported with context manager::
 
 Readline
 ========
-Be carefully when using :meth:`readline`. Do specify a timeout when opening the
+Be careful when using :meth:`readline`. Do specify a timeout when opening the
 serial port otherwise it could block forever if no newline character is
 received. Also note that :meth:`readlines` only works with a timeout.
 :meth:`readlines` depends on having a timeout and interprets that as EOF (end
