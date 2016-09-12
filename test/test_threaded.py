@@ -18,8 +18,8 @@ import time
 # on which port should the tests be performed:
 PORT = 'loop://'
 
-class Test_asyncio(unittest.TestCase):
-    """Test asyncio related functionality"""
+class Test_threaded(unittest.TestCase):
+    """Test serial.threaded related functionality"""
 
     def test_line_reader(self):
         """simple test of line reader class"""

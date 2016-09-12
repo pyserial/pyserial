@@ -27,7 +27,6 @@ class Test_util(unittest.TestCase):
         self.assertEqual(list(serial.iterbytes(b'\x01\x02\x03')), [b'\x01', b'\x02', b'\x03'])
 
 
-
 if __name__ == '__main__':
     import sys
     sys.stdout.write(__doc__)
