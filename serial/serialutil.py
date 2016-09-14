@@ -62,14 +62,9 @@ def to_bytes(seq):
     elif isinstance(seq, unicode):
         raise TypeError('unicode strings are not supported, please encode to bytes: {!r}'.format(seq))
     else:
-        b = bytearray()
-        for item in seq:
-            # this one handles int and bytes in Python 2.7
-            # add conversion in case of Python 3.x
-            if isinstance(item, bytes):
-                item = ord(item)
-            b.append(item)
-        return bytes(b)
+        # handle list of integers and bytes (one or more items) for Python 2 and 3
+        return bytes(bytearray(seq))
+
 
 # create control bytes
 XON = to_bytes([17])
