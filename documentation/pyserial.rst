@@ -48,9 +48,13 @@ Requirements
 ============
 - Python 2.7 or Python 3.4 and newer
 
-- If running on Jython: "Java Communications" (JavaComm) or compatible extension for Java
+- If running on Windows: Something newer than WinXP
 
-For older installations, see `older versions`_ below.
+- If running on Jython: "Java Communications" (JavaComm) or compatible
+  extension for Java
+
+For older installations (older Python versions or older operating systems), see
+`older versions`_ below.
 
 
 Installation
