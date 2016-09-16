@@ -320,7 +320,10 @@ class Serial(SerialBase):
                     return n.value  # canceled IO is no error
                 if n.value != len(data):
                     raise writeTimeoutError
-            return n.value
+                return n.value
+            else:
+                # no info on true length provided by OS function in async mode
+                return len(data)
         else:
             return 0
 

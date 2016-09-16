@@ -666,3 +666,6 @@ Bugfixes (posix):
   port created by socat on OS X
 - [#157] Broken handling of CMSPAR in serialposix.py
 
+Bugfixes (win32):
+
+- [#162] Write in non-blocking mode returns incorrect value on windows
