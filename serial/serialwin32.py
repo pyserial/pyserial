@@ -309,21 +309,29 @@ class Serial(SerialBase):
         if data:
             #~ win32event.ResetEvent(self._overlapped_write.hEvent)
             n = win32.DWORD()
-            err = win32.WriteFile(self._port_handle, data, len(data), ctypes.byref(n), self._overlapped_write)
-            if not err and win32.GetLastError() != win32.ERROR_IO_PENDING:
-                raise SerialException("WriteFile failed ({!r})".format(ctypes.WinError()))
+            success = win32.WriteFile(self._port_handle, data, len(data), ctypes.byref(n), self._overlapped_write)
             if self._write_timeout != 0:  # if blocking (None) or w/ write timeout (>0)
+                if not success and win32.GetLastError() != win32.ERROR_IO_PENDING:
+                    raise SerialException("WriteFile failed ({!r})".format(ctypes.WinError()))
+
                 # Wait for the write to complete.
                 #~ win32.WaitForSingleObject(self._overlapped_write.hEvent, win32.INFINITE)
-                err = win32.GetOverlappedResult(self._port_handle, self._overlapped_write, ctypes.byref(n), True)
+                win32.GetOverlappedResult(self._port_handle, self._overlapped_write, ctypes.byref(n), True)
                 if win32.GetLastError() == win32.ERROR_OPERATION_ABORTED:
                     return n.value  # canceled IO is no error
                 if n.value != len(data):
                     raise writeTimeoutError
                 return n.value
             else:
-                # no info on true length provided by OS function in async mode
-                return len(data)
+                errorcode = win32.ERROR_SUCCESS if success else win32.GetLastError()
+                if errorcode in (win32.ERROR_INVALID_USER_BUFFER, win32.ERROR_NOT_ENOUGH_MEMORY,
+                                 win32.ERROR_OPERATION_ABORTED):
+                    return 0
+                elif errorcode in (win32.ERROR_SUCCESS, win32.ERROR_IO_PENDING)
+                    # no info on true length provided by OS function in async mode
+                    return len(data)
+                else:
+                    raise SerialException("WriteFile failed ({!r})".format(ctypes.WinError()))
         else:
             return 0
 
@@ -335,7 +343,7 @@ class Serial(SerialBase):
         while self.out_waiting:
             time.sleep(0.05)
         # XXX could also use WaitCommEvent with mask EV_TXEMPTY, but it would
-        # require overlapped IO and its also only possible to set a single mask
+        # require overlapped IO and it's also only possible to set a single mask
         # on the port---
 
     def reset_input_buffer(self):
