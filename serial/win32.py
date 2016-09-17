@@ -218,10 +218,14 @@ FILE_FLAG_OVERLAPPED = 1073741824  # Variable c_int
 EV_DSR = 16  # Variable c_int
 MAXDWORD = 4294967295  # Variable c_uint
 EV_RLSD = 32  # Variable c_int
+
 ERROR_SUCCESS = 0
+ERROR_NOT_ENOUGH_MEMORY = 8
 ERROR_OPERATION_ABORTED = 995
 ERROR_IO_INCOMPLETE = 996
 ERROR_IO_PENDING = 997  # Variable c_long
+ERROR_INVALID_USER_BUFFER = 1784
+
 MS_CTS_ON = 16  # Variable c_ulong
 EV_EVENT1 = 2048  # Variable c_int
 EV_RX80FULL = 1024  # Variable c_int
