@@ -124,7 +124,7 @@ win32all). WinXP is supported up to 3.0.1.
 
 
 .. _`old download`: https://sourceforge.net/projects/pyserial/files/pyserial/
-.. _download: https://pypi.python.org/pypi/pyserial
+.. _download: https://pypi.python.org/simple/pyserial/
 .. _pywin32: http://pypi.python.org/pypi/pywin32
 .. _`2.7`: https://pypi.python.org/pypi/pyserial/2.7
 .. _`1.21`: https://sourceforge.net/projects/pyserial/files/pyserial/1.21/pyserial-1.21.zip/download

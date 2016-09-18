@@ -5,9 +5,17 @@
 How To
 ======
 
-Enable :rfc:`2217` in programs using pySerial.
-    Patch the code where the :class:`serial.Serial` is instantiated. Replace
+Enable :rfc:`2217` (and other URL handlers) in programs using pySerial.
+    Patch the code where the :class:`serial.Serial` is instantiated.
+    E.g. replace::
+
+        s = serial.Serial(...)
+
     it with::
+
+        s = serial.serial_for_url(...)
+
+    or for backwards compatibility to old pySerial installations::
 
         try:
             s = serial.serial_for_url(...)
@@ -32,6 +40,10 @@ Test your setup.
     in :ref:`miniterm` is a simple test. When the characters are displayed
     on the screen, then at least RX and TX work (they still could be swapped
     though).
+
+    There is also a ``spy:://`` URL handler. It prints all calls (read/write,
+    control lines) to the serial port to a file or stderr. See :ref:`spy`
+    for details.
 
 
 FAQ
