@@ -122,6 +122,8 @@ Supported options in the URL are:
   not locked automatically (e.g. Posix).
 
 
+.. _spy:
+
 ``spy://``
 ==========
 Wrapping the native serial port, this protocol makes it possible to
