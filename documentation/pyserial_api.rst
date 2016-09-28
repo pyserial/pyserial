@@ -111,7 +111,14 @@ Native ports
 
     .. method:: open()
 
-        Open port.
+        Open port. The state of :attr:`rts`` and :attr:`dtr` is applied.
+        
+        .. note::
+        
+            Some OS and/or drivers may activate RTS and or DTR automatically,
+            as soon as the port is opened. There may be a glitch on RTS/DTR
+            when :attr:`rts`` or :attr:`dtr` are set differently from their
+            default value (``True`` / active).
 
     .. method:: close()
 
@@ -226,7 +233,7 @@ Native ports
 
         Set RTS line to specified logic level. It is possible to assign this
         value before opening the serial port, then the value is applied uppon
-        :meth:`open`.
+        :meth:`open` (with restrictions, see :meth:`open`).
 
     .. attribute:: dtr
 
@@ -236,7 +243,7 @@ Native ports
 
         Set DTR line to specified logic level. It is possible to assign this
         value before opening the serial port, then the value is applied uppon
-        :meth:`open`.
+        :meth:`open` (with restrictions, see :meth:`open`).
 
     Read-only attributes:
 
@@ -276,8 +283,9 @@ Native ports
         Return the state of the CD line
 
     .. attribute:: is_open
-    	:getter: Get the state of the serial port, whether it's open.
-    	:type: bool
+    
+        :getter: Get the state of the serial port, whether it's open.
+        :type: bool
 
     New values can be assigned to the following attributes (properties), the
     port will be reconfigured, even if it's opened at that time:
