@@ -327,7 +327,7 @@ class Serial(SerialBase):
                 if errorcode in (win32.ERROR_INVALID_USER_BUFFER, win32.ERROR_NOT_ENOUGH_MEMORY,
                                  win32.ERROR_OPERATION_ABORTED):
                     return 0
-                elif errorcode in (win32.ERROR_SUCCESS, win32.ERROR_IO_PENDING)
+                elif errorcode in (win32.ERROR_SUCCESS, win32.ERROR_IO_PENDING):
                     # no info on true length provided by OS function in async mode
                     return len(data)
                 else:
