@@ -111,14 +111,20 @@ Native ports
 
     .. method:: open()
 
-        Open port. The state of :attr:`rts`` and :attr:`dtr` is applied.
-        
+        Open port. The state of :attr:`rts` and :attr:`dtr` is applied.
+
         .. note::
-        
+
             Some OS and/or drivers may activate RTS and or DTR automatically,
             as soon as the port is opened. There may be a glitch on RTS/DTR
             when :attr:`rts`` or :attr:`dtr` are set differently from their
             default value (``True`` / active).
+
+        .. note::
+
+            For compatibility reasons, no error is reported when applying
+            :attr:`rts` or :attr:`dtr` fails on POSIX due to EINVAL (22) or
+            ENOTTY (25).
 
     .. method:: close()
 
@@ -283,7 +289,7 @@ Native ports
         Return the state of the CD line
 
     .. attribute:: is_open
-    
+
         :getter: Get the state of the serial port, whether it's open.
         :type: bool
 
