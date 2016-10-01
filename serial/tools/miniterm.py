@@ -553,7 +553,7 @@ class Miniterm(object):
             if new_filters:
                 for f in new_filters:
                     if f not in TRANSFORMATIONS:
-                        sys.stderr.write('--- unknown filter: {}'.format(repr(f)))
+                        sys.stderr.write('--- unknown filter: {}\n'.format(repr(f)))
                         break
                 else:
                     self.filters = new_filters
