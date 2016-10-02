@@ -273,7 +273,8 @@ class Serial(SerialBase, PlatformSpecific):
             if not self._rtscts:
                 self._update_rts_state()
         except IOError as e:
-            if e.errno in (22, 25):  # ignore Invalid argument and Inappropriate ioctl
+            if e.errno in (errno.EINVAL, errno.ENOTTY):
+                # ignore Invalid argument and Inappropriate ioctl
                 pass
             else:
                 raise
