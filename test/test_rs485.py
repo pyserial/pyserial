@@ -13,7 +13,7 @@ import serial
 import serial.rs485
 
 # on which port should the tests be performed:
-PORT = 0
+PORT = 'loop://'
 
 
 class Test_RS485_settings(unittest.TestCase):
@@ -43,6 +43,8 @@ class Test_RS485_class(unittest.TestCase):
     """Test RS485 class"""
 
     def setUp(self):
+        if not isinstance(serial.serial_for_url(PORT), serial.Serial):
+            raise unittest.SkipTest("RS485 test only compatible with real serial port")
         self.s = serial.rs485.RS485(PORT, timeout=1)
 
     def tearDown(self):
