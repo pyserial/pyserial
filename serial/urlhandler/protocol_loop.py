@@ -46,6 +46,7 @@ class Serial(SerialBase):
         self.buffer_size = 4096
         self.queue = None
         self.logger = None
+        self._cancel_write = False
         super(Serial, self).__init__(*args, **kwargs)
 
     def open(self):
@@ -151,7 +152,7 @@ class Serial(SerialBase):
                 if self._timeout == 0:
                     break
             else:
-                if data is not None:
+                if b is not None:
                     data += b
                     size -= 1
                 else:
@@ -164,12 +165,19 @@ class Serial(SerialBase):
                 break
         return bytes(data)
 
+    def cancel_read(self):
+        self.queue.put_nowait(None)
+
+    def cancel_write(self):
+        self._cancel_write = True
+
     def write(self, data):
         """\
         Output the given byte string over the serial port. Can block if the
         connection is blocked. May raise SerialException if the connection is
         closed.
         """
+        self._cancel_write = False
         if not self.is_open:
             raise portNotOpenError
         data = to_bytes(data)
@@ -178,7 +186,13 @@ class Serial(SerialBase):
         # when a write timeout is configured check if we would be successful
         # (not sending anything, not even the part that would have time)
         if self._write_timeout is not None and time_used_to_send > self._write_timeout:
-            time.sleep(self._write_timeout)  # must wait so that unit test succeeds
+            # must wait so that unit test succeeds
+            time_left = self._write_timeout
+            while time_left > 0 and not self._cancel_write:
+                time.sleep(min(time_left, 1))
+                time_left -= 1
+            if self._cancel_write:
+                return 0  # XXX
             raise writeTimeoutError
         for byte in iterbytes(data):
             self.queue.put(byte, timeout=self._write_timeout)
