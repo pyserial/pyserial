@@ -15,7 +15,7 @@ import sys
 import os
 
 # inject local copy to avoid testing the installed version instead of the one in the repo
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import serial  # noqa
 print("Patching sys.path to test local version. Testing Version: {}".format(serial.VERSION))
