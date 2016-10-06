@@ -23,7 +23,7 @@ import unittest
 import serial
 
 # on which port should the tests be performed:
-PORT = 0
+PORT = 'loop://'
 
 
 class Test_ChangeAttributes(unittest.TestCase):
@@ -38,41 +38,19 @@ class Test_ChangeAttributes(unittest.TestCase):
 
     def test_PortSetting(self):
         self.s.port = PORT
-        # portstr has to be set
-        if isinstance(PORT, str):
-            self.assertEqual(self.s.portstr.lower(), PORT.lower())
-        else:
-            self.assertEqual(self.s.portstr, serial.device(PORT))
+        self.assertEqual(self.s.portstr.lower(), PORT.lower())
         # test internals
         self.assertEqual(self.s._port, PORT)
         # test on the fly change
         self.s.open()
         self.assertTrue(self.s.isOpen())
-        #~ try:
-            #~ self.s.port = 0
-        #~ except serial.SerialException: # port not available on system
-            #~ pass        # can't test on this machine...
-        #~ else:
-            #~ self.failUnless(self.s.isOpen())
-            #~ self.failUnlessEqual(self.s.port, 0)
-            #~ self.failUnlessEqual(self.s.portstr, serial.device(0))
-        #~ try:
-            #~ self.s.port = 1
-        #~ except serial.SerialException: # port not available on system
-            #~ pass        # can't test on this machine...
-        #~ else:
-            #~ self.failUnless(self.s.isOpen())
-            #~ self.failUnlessEqual(self.s.port, 1)
-            #~ self.failUnlessEqual(self.s.portstr, serial.device(1))
 
     def test_DoubleOpen(self):
-        self.s.port = PORT
         self.s.open()
         # calling open for a second time is an error
         self.assertRaises(serial.SerialException, self.s.open)
 
     def test_BaudrateSetting(self):
-        self.s.port = PORT
         self.s.open()
         for baudrate in (300, 9600, 19200, 115200):
             self.s.baudrate = baudrate
@@ -88,7 +66,6 @@ class Test_ChangeAttributes(unittest.TestCase):
     # therefore the test can not choose a value that fails on any system.
     def disabled_test_BaudrateSetting2(self):
         # test illegal values, depending on machine/port some of these may be valid...
-        self.s.port = PORT
         self.s.open()
         for illegal_value in (500000, 576000, 921600, 92160):
             self.assertRaises(ValueError, setattr, self.s, 'baudrate', illegal_value)
@@ -164,7 +141,6 @@ class Test_ChangeAttributes(unittest.TestCase):
         self.assertRaises(serial.SerialException, self.s.open)
 
     def test_PortOpenClose(self):
-        self.s.port = PORT
         for i in range(3):
             # open the port and check flag
             self.assertTrue(not self.s.isOpen())
