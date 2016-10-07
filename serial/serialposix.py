@@ -43,6 +43,7 @@ from serial.serialutil import SerialBase, SerialException, to_bytes, \
 
 class PlatformSpecificBase(object):
     BAUDRATE_CONSTANTS = {}
+    BAUDRATE_LITERAL = False
 
     def _set_special_baudrate(self, baudrate):
         raise NotImplementedError('non-standard baudrates are not supported on this platform')
@@ -176,6 +177,16 @@ elif plat == 'cygwin':       # cygwin/win32 (confirmed)
             3000000: 0x0100f
         }
 
+elif plat[:3] == 'bsd' or \
+        plat[:7] == 'freebsd' or \
+        plat[:6] == 'netbsd' or \
+        plat[:7] == 'openbsd':
+
+            # Only tested on FreeBSD:
+            # The baud rate may be passed in as
+            # a literal value.
+    class PlatformSpecific(PlatformSpecificBase):
+        BAUDRATE_LITERAL = True
 
 elif plat[:6] == 'darwin':   # OS X
     import array
@@ -320,7 +331,12 @@ class Serial(SerialBase, PlatformSpecific):
             ispeed = ospeed = getattr(termios, 'B{}'.format(self._baudrate))
         except AttributeError:
             try:
-                ispeed = ospeed = self.BAUDRATE_CONSTANTS[self._baudrate]
+                    # We try to lookup the baud rate B* definition first
+                    # Failing that, try a literal baudrate if supported
+                if self.BAUDRATE_LITERAL:
+                    ispeed = ospeed = self._baudrate
+                else:
+                    ispeed = ospeed = self.BAUDRATE_CONSTANTS[self._baudrate]
             except KeyError:
                 #~ raise ValueError('Invalid baud rate: %r' % self._baudrate)
                 # may need custom baud rate, it isn't in our list.
