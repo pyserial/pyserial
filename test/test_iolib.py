@@ -29,17 +29,8 @@ import sys
 import unittest
 import serial
 
-# trick to make that this test run under 2.6 and 3.x without modification.
-# problem is, io library on 2.6 does NOT accept type 'str' and 3.x doesn't
-# like u'nicode' strings with the prefix and it is not providing an unicode
-# function ('str' is now what 'unicode' used to be)
-if sys.version_info >= (3, 0):
-    def unicode(x):
-        return x
-
-
 # on which port should the tests be performed:
-PORT = 0
+PORT = 'loop://'
 
 
 class Test_SerialAndIO(unittest.TestCase):

@@ -15,7 +15,7 @@ import unittest
 import serial
 
 # on which port should the tests be performed:
-PORT = 0
+PORT = 'loop://'
 
 
 SETTINGS = ('baudrate', 'bytesize', 'parity', 'stopbits', 'xonxoff',

@@ -28,7 +28,7 @@ import serial
 #~ print serial.VERSION
 
 # on which port should the tests be performed:
-PORT = 0
+PORT = 'loop://'
 
 if sys.version_info >= (3, 0):
     def data(string):
