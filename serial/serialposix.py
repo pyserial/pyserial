@@ -190,6 +190,21 @@ elif plat[:6] == 'darwin':   # OS X
                 buf = array.array('i', [baudrate])
                 fcntl.ioctl(self.fd, IOSSIOSPEED, buf, 1)
 
+elif plat[:3] == 'bsd' or \
+     plat[:7] == 'freebsd' or \
+     plat[:6] == 'netbsd' or \
+     plat[:7] == 'openbsd':
+
+    class ReturnBaudrate(object):
+        def __getitem__(self, key):
+            return key
+
+    class PlatformSpecific(PlatformSpecificBase):
+        # Only tested on FreeBSD:
+        # The baud rate may be passed in as
+        # a literal value.
+        BAUDRATE_CONSTANTS = ReturnBaudrate()
+
 else:
     class PlatformSpecific(PlatformSpecificBase):
         pass
