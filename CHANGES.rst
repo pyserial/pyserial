@@ -653,12 +653,15 @@ Improvements:
 
 - add client mode to exmaple tcp_serial_redirect.py
 - use of monotonic clock for timeouts, when available (Python 3.3 and up)
+- [#169] arbitrary baudrate support for BSD family
+- improve tests, improve ``loop://``
 
 Bugfixes:
 
 - [#137] Exception while cancel in miniterm (python3)
 - [#143] Class Serial in protocol_loop.py references variable before assigning
   to it
+- [#149] Python 3 fix for threaded.FramedPacket
 
 Bugfixes (posix):
 
@@ -668,4 +671,6 @@ Bugfixes (posix):
 
 Bugfixes (win32):
 
+- [#144] Use Unicode API for list_ports
+- [#145] list_ports_windows: support devices with only VID
 - [#162] Write in non-blocking mode returns incorrect value on windows
