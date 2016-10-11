@@ -34,7 +34,6 @@ import select
 import struct
 import sys
 import termios
-import time
 
 import serial
 from serial.serialutil import SerialBase, SerialException, to_bytes, \
