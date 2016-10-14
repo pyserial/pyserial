@@ -647,14 +647,20 @@ Bugfixes (win32):
 
 - win32: handle errors of GetOverlappedResult in read(), fixes #121
 
+
 Version 3.2.0   2016-10-14
+--------------------------
+See 3.2.1, this one missed a merge request related to removing aio.
+
+
+Version 3.2.1   2016-10-14
 --------------------------
 Improvements:
 
-- remove ``serial.aio`` in favor of separte package, ``pyserial-asyncio``
-- add client mode to exmaple tcp_serial_redirect.py
+- remove ``serial.aio`` in favor of separate package, ``pyserial-asyncio``
+- add client mode to example ``tcp_serial_redirect.py``
 - use of monotonic clock for timeouts, when available (Python 3.3 and up)
-- [#169] arbitrary baudrate support for BSD family
+- [#169] arbitrary baud rate support for BSD family
 - improve tests, improve ``loop://``
 
 Bugfixes:
