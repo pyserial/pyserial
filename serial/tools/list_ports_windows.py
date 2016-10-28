@@ -124,6 +124,7 @@ ERROR_INSUFFICIENT_BUFFER = 122
 SPDRP_HARDWAREID = 1
 SPDRP_FRIENDLYNAME = 12
 SPDRP_LOCATION_PATHS = 35
+SPDRP_MFG = 11
 DICS_FLAG_GLOBAL = 1
 DIREG_DEV = 0x00000001
 KEY_READ = 0x20019
@@ -269,6 +270,19 @@ def iterate_comports():
                 #~ if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
                     #~ raise IOError("failed to get details for %s (%s)" % (devinfo, szHardwareID.value))
                 # ignore errors and still include the port in the list, friendly name will be same as port name
+
+            # manufacturer
+            szManufacturer = ctypes.create_unicode_buffer(250)
+            if SetupDiGetDeviceRegistryProperty(
+                    g_hdi,
+                    ctypes.byref(devinfo),
+                    SPDRP_MFG,
+                    #~ SPDRP_DEVICEDESC,
+                    None,
+                    ctypes.byref(szManufacturer),
+                    ctypes.sizeof(szManufacturer) - 1,
+                    None):
+                info.manufacturer = szManufacturer.value
             yield info
         SetupDiDestroyDeviceInfoList(g_hdi)
 
