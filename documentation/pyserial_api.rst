@@ -494,6 +494,8 @@ Native ports
         .. versionchanged:: 3.0 renamed from ``applySettingsDict``
 
 
+    .. _context-manager:
+
     This class can be used as context manager. The serial port is closed when
     the context is left.
 
