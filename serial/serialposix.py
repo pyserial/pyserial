@@ -555,7 +555,7 @@ class Serial(SerialBase, PlatformSpecific):
                 # still calculate and check timeout
                 if timeout.expired():
                     raise writeTimeoutError
-        return len(data)
+        return len(d)
 
     def flush(self):
         """\
