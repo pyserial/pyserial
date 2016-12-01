@@ -160,6 +160,16 @@ class Serial(serial.Serial):
         super(Serial, self).__init__(*args, **kwargs)
         self.formatter = None
         self.show_all = False
+        self.register_spy_protocol_with_urlparse()
+
+    def register_spy_protocol_with_urlparse(self):
+        '''
+        The stdlib urlparse library doesn't normally split out query strings for
+        custom protocol schemes like spy://
+        Register it as a protocol that supports query strings.
+        '''
+        if 'spy' not in getattr(urlparse, 'uses_query'):
+            getattr(urlparse, 'uses_query').append('spy')
 
     @serial.Serial.port.setter
     def port(self, value):
