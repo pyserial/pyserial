@@ -197,6 +197,15 @@ Outputs::
     000002.284 RX   00F0  F0 F1 F2 F3 F4 F5 F6 F7  F8 F9 FA FB FC FD FE FF  ................
     000002.284 BRK  send_break 0.25
 
+An other example, on POSIX, open a second terminal window and find out it's
+device (e.g. with the ``ps`` command in the TTY column), assumed to be
+``/dev/pts/2`` here, double quotes are used so that the ampersand in the URL is
+not interpreted by the shell::
+
+    python -m serial.tools.miniterm "spy:///dev/ttyUSB0?file=/dev/pts/2&color" 115200
+
+The spy output will be live in the second terminal window.
+
 .. versionadded:: 3.0
 
 
@@ -204,7 +213,7 @@ Outputs::
 ==========
 This handler allows to select alternate implementations of the native serial port.
 
-Currently only the Posix platform provides alternative implementations.
+Currently only the POSIX platform provides alternative implementations.
 
 ``PosixPollSerial``
     Poll based read implementation. Not all systems support poll properly.
