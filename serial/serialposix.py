@@ -498,7 +498,8 @@ class Serial(SerialBase, PlatformSpecific):
             except select.error as e:
                 # this is for Python 2.x
                 # ignore EAGAIN errors. all other errors are shown
-                # see also http://www.python.org/dev/peps/pep-3151/#select
+                #
+                see also http://www.python.org/dev/peps/pep-3151/#select
                 if e[0] != errno.EAGAIN:
                     raise SerialException('read failed: {}'.format(e))
             if timeout.expired():
@@ -516,7 +517,7 @@ class Serial(SerialBase, PlatformSpecific):
         if not self.is_open:
             raise portNotOpenError
         d = to_bytes(data)
-        tx_len = len(d)
+        tx_len = orig_len = len(d)
         timeout = Timeout(self._write_timeout)
         while tx_len > 0:
             try:
@@ -555,7 +556,7 @@ class Serial(SerialBase, PlatformSpecific):
                 # still calculate and check timeout
                 if timeout.expired():
                     raise writeTimeoutError
-        return len(d)
+        return len(orig_len) - len(d)
 
     def flush(self):
         """\
