@@ -91,6 +91,14 @@ User supplied URL handlers
     so running ``sudo adduser $USER dialout`` (and logging-out and -in) enables
     the user to access the port.
 
+Support for Python 2.6 or earlier
+    Support for older Python releases than 2.7 will not return to pySerial 3.x.
+    Python 2.7 is now many years old (released 2010).  If you insist on using
+    Python 2.6 or earlier, it is recommend to use pySerial `2.7`_
+    (or any 2.x version).
+
+.. _`2.7`: https://pypi.python.org/pypi/pyserial/2.7
+
 
 Related software
 ================
