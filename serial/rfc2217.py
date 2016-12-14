@@ -380,7 +380,6 @@ class Serial(SerialBase):
                  9600, 19200, 38400, 57600, 115200)
 
     def __init__(self, *args, **kwargs):
-        super(Serial, self).__init__(*args, **kwargs)
         self._thread = None
         self._socket = None
         self._linestate = 0
@@ -396,6 +395,7 @@ class Serial(SerialBase):
         self._rfc2217_port_settings = None
         self._rfc2217_options = None
         self._read_buffer = None
+        super(Serial, self).__init__(*args, **kwargs)  # must be last call in case of auto-open
 
     def open(self):
         """\
