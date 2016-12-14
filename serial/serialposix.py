@@ -498,8 +498,7 @@ class Serial(SerialBase, PlatformSpecific):
             except select.error as e:
                 # this is for Python 2.x
                 # ignore EAGAIN errors. all other errors are shown
-                #
-                see also http://www.python.org/dev/peps/pep-3151/#select
+                # see also http://www.python.org/dev/peps/pep-3151/#select
                 if e[0] != errno.EAGAIN:
                     raise SerialException('read failed: {}'.format(e))
             if timeout.expired():
