@@ -850,12 +850,12 @@ class Serial(SerialBase):
 
     def telnet_send_option(self, action, option):
         """Send DO, DONT, WILL, WONT."""
-        self._internal_raw_write(to_bytes([IAC, action, option]))
+        self._internal_raw_write(IAC + action + option)
 
     def rfc2217_send_subnegotiation(self, option, value=b''):
         """Subnegotiation of RFC2217 parameters."""
         value = value.replace(IAC, IAC_DOUBLED)
-        self._internal_raw_write(to_bytes([IAC, SB, COM_PORT_OPTION, option] + list(value) + [IAC, SE]))
+        self._internal_raw_write(IAC + SB + COM_PORT_OPTION + option + value + IAC + SE)
 
     def rfc2217_send_purge(self, value):
         """\
@@ -989,12 +989,12 @@ class PortManager(object):
 
     def telnet_send_option(self, action, option):
         """Send DO, DONT, WILL, WONT."""
-        self.connection.write(to_bytes([IAC, action, option]))
+        self.connection.write(IAC + action + option)
 
     def rfc2217_send_subnegotiation(self, option, value=b''):
         """Subnegotiation of RFC 2217 parameters."""
         value = value.replace(IAC, IAC_DOUBLED)
-        self.connection.write(to_bytes([IAC, SB, COM_PORT_OPTION, option] + list(value) + [IAC, SE]))
+        self.connection.write(IAC + SB + COM_PORT_OPTION + option + value + IAC + SE)
 
     # - check modem lines, needs to be called periodically from user to
     # establish polling
