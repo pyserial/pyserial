@@ -56,7 +56,7 @@ class Redirector(object):
                 data = self.serial.read(self.serial.in_waiting or 1)
                 if data:
                     # escape outgoing data when needed (Telnet IAC (0xff) character)
-                    self.write(serial.to_bytes(self.rfc2217.escape(data)))
+                    self.write(b''.join(self.rfc2217.escape(data)))
             except socket.error as msg:
                 self.log.error('{}'.format(msg))
                 # probably got disconnected
@@ -76,7 +76,7 @@ class Redirector(object):
                 data = self.socket.recv(1024)
                 if not data:
                     break
-                self.serial.write(serial.to_bytes(self.rfc2217.filter(data)))
+                self.serial.write(b''.join(self.rfc2217.filter(data)))
             except socket.error as msg:
                 self.log.error('{}'.format(msg))
                 # probably got disconnected
