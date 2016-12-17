@@ -516,7 +516,7 @@ class Serial(SerialBase, PlatformSpecific):
         if not self.is_open:
             raise portNotOpenError
         d = to_bytes(data)
-        tx_len = len(d)
+        tx_len = length = len(d)
         timeout = Timeout(self._write_timeout)
         while tx_len > 0:
             try:
@@ -555,7 +555,7 @@ class Serial(SerialBase, PlatformSpecific):
                 # still calculate and check timeout
                 if timeout.expired():
                     raise writeTimeoutError
-        return len(d)
+        return length - len(d)
 
     def flush(self):
         """\
