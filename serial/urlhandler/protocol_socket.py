@@ -232,8 +232,24 @@ class Serial(SerialBase):
         """Clear input buffer, discarding all that is in the buffer."""
         if not self.is_open:
             raise portNotOpenError
-        if self.logger:
-            self.logger.info('ignored reset_input_buffer')
+
+        # just use recv to remove input, while there is some
+        ready = True
+        while ready:
+            ready, _, _ = select.select([self._socket], [], [], 0)
+            try:
+                self._socket.recv(4096)
+            except OSError as e:
+                # this is for Python 3.x where select.error is a subclass of
+                # OSError ignore EAGAIN errors. all other errors are shown
+                if e.errno != errno.EAGAIN:
+                    raise SerialException('reset_input_buffer failed: {}'.format(e))
+            except (select.error, socket.error) as e:
+                # this is for Python 2.x
+                # ignore EAGAIN errors. all other errors are shown
+                # see also http://www.python.org/dev/peps/pep-3151/#select
+                if e[0] != errno.EAGAIN:
+                    raise SerialException('reset_input_buffer failed: {}'.format(e))
 
     def reset_output_buffer(self):
         """\
