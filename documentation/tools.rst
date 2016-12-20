@@ -97,7 +97,7 @@ serial.tools.list_ports``). It also contains the following functions.
 
     .. attribute:: interface
 
-        Interface specifc description, e.g. used in compound USB devices.
+        Interface specific description, e.g. used in compound USB devices.
 
     Comparison operators are implemented such that the :obj:`ListPortInfo` objects
     can be sorted by ``device``. Strings are split into groups of numbers and
