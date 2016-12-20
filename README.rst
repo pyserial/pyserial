@@ -19,7 +19,7 @@ Documentation
 =============
 For API documentation, usage and examples see files in the "documentation"
 directory.  The ".rst" files can be read in any text editor or being converted to
-HTML or PDF using Sphinx_. A HTML version is online at
+HTML or PDF using Sphinx_. An HTML version is online at
 https://pythonhosted.org/pyserial/
 
 Examples
