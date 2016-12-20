@@ -118,8 +118,8 @@ Bugfixes (win32):
 - don't recreate overlapped structures and events on each
   read/write.
 - don't set unneeded event masks.
-- dont use DOS device names for ports > 9.
-- remove send timeout (its not used in the linux impl. anyway).
+- don't use DOS device names for ports > 9.
+- remove send timeout (it's not used in the linux impl. anyway).
 
 
 Version 1.21    30 Sep 2003
@@ -199,7 +199,7 @@ Bugfixes (posix):
 
 - ``fd == 0`` fix from Vsevolod Lobko
 - netbsd fixes from Erik Lindgren
-- Dynamicaly lookup baudrates and some cleanups
+- Dynamically lookup baudrates and some cleanups
 
 Bugfixes (examples):
 
@@ -234,7 +234,7 @@ Bugfixes (win32):
 New Features:
 
 - ``dsrdtr`` setting to enable/disable DSR/DTR flow control independently
-  from the ``rtscts`` setting. (Currenly Win32 only, ignored on other
+  from the ``rtscts`` setting. (Currently Win32 only, ignored on other
   platforms)
 
 
@@ -379,7 +379,7 @@ New Features:
   affects Win32 as on other platforms, that setting was ignored anyway.
 - Improved xreadlines, it is now a generator function that yields lines as they
   are received (previously it called readlines which would only return all
-  lines read after a read-timeout). However xreadlines is deprecated an not
+  lines read after a read-timeout). However xreadlines is deprecated and not
   available when the io module is used. Use ``for line in Serial(...):``
   instead.
 
@@ -405,13 +405,13 @@ New Features:
 - Moved some of the examples to serial.tools so that they can be used
   with ``python -m``
 - serial port enumeration now included as ``serial.tools.list_ports``
-- URL handers for ``serial_for_url`` are now imported dynamically. This allows
+- URL handlers for ``serial_for_url`` are now imported dynamically. This allows
   to add protocols w/o editing files. The list
   ``serial.protocol_handler_packages`` can be used to add or remove user
   packages with protocol handlers (see docs for details).
 - new URL type: hwgrep://<regexp> uses list_ports module to search for ports
   by their description
-- serveral internal changes to improve Python 3.x compatibility (setup.py,
+- several internal changes to improve Python 3.x compatibility (setup.py,
   use of absolute imports and more)
 
 Bugfixes:
