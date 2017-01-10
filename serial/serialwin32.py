@@ -311,7 +311,7 @@ class Serial(SerialBase):
             n = win32.DWORD()
             success = win32.WriteFile(self._port_handle, data, len(data), ctypes.byref(n), self._overlapped_write)
             if self._write_timeout != 0:  # if blocking (None) or w/ write timeout (>0)
-                if not success and win32.GetLastError() != win32.ERROR_IO_PENDING:
+                if not success and win32.GetLastError() not in (win32.ERROR_SUCCESS, win32.ERROR_IO_PENDING):
                     raise SerialException("WriteFile failed ({!r})".format(ctypes.WinError()))
 
                 # Wait for the write to complete.
