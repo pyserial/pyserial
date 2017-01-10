@@ -681,3 +681,11 @@ Bugfixes (win32):
 - [#144] Use Unicode API for list_ports
 - [#145] list_ports_windows: support devices with only VID
 - [#162] Write in non-blocking mode returns incorrect value on windows
+
+
+Version 3.2.x   2017-xx-xx
+--------------------------
+
+Bugfixes (win32):
+
+- [#194] spurious write fails with ERROR_SUCCESS
