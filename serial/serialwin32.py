@@ -254,7 +254,7 @@ class Serial(SerialBase):
         flags = win32.DWORD()
         comstat = win32.COMSTAT()
         if not win32.ClearCommError(self._port_handle, ctypes.byref(flags), ctypes.byref(comstat)):
-            raise SerialException('call to ClearCommError failed')
+            raise SerialException("ClearCommError failed ({!r})".format(ctypes.WinError()))
         return comstat.cbInQue
 
     def read(self, size=1):
