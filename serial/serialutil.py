@@ -652,6 +652,7 @@ class SerialBase(io.RawIOBase):
         """
         lenterm = len(terminator)
         line = bytearray()
+        timeout = Timeout(self._timeout)
         while True:
             c = self.read(1)
             if c:
@@ -661,6 +662,8 @@ class SerialBase(io.RawIOBase):
                 if size is not None and len(line) >= size:
                     break
             else:
+                break
+            if timeout.expired():
                 break
         return bytes(line)
 

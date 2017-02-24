@@ -44,9 +44,9 @@ Get a Serial instance and configure/open it later::
     >>> ser.is_open
     False
 
-Also supported with context manager::
+Also supported with :ref:`context manager <context-manager>`::
 
-    serial.Serial() as ser:
+    with serial.Serial() as ser:
         ser.baudrate = 19200
         ser.port = 'COM1'
         ser.open()

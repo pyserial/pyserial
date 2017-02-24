@@ -380,7 +380,6 @@ class Serial(SerialBase):
                  9600, 19200, 38400, 57600, 115200)
 
     def __init__(self, *args, **kwargs):
-        super(Serial, self).__init__(*args, **kwargs)
         self._thread = None
         self._socket = None
         self._linestate = 0
@@ -396,6 +395,7 @@ class Serial(SerialBase):
         self._rfc2217_port_settings = None
         self._rfc2217_options = None
         self._read_buffer = None
+        super(Serial, self).__init__(*args, **kwargs)  # must be last call in case of auto-open
 
     def open(self):
         """\
@@ -609,10 +609,13 @@ class Serial(SerialBase):
             raise portNotOpenError
         data = bytearray()
         try:
+            timeout = Timeout(self._timeout)
             while len(data) < size:
                 if self._thread is None:
                     raise SerialException('connection failed (reader thread died)')
-                data += self._read_buffer.get(True, self._timeout)
+                data += self._read_buffer.get(True, timeout.time_left())
+                if timeout.expired():
+                    break
         except Queue.Empty:  # -> timeout
             pass
         return bytes(data)
@@ -850,12 +853,12 @@ class Serial(SerialBase):
 
     def telnet_send_option(self, action, option):
         """Send DO, DONT, WILL, WONT."""
-        self._internal_raw_write(to_bytes([IAC, action, option]))
+        self._internal_raw_write(IAC + action + option)
 
     def rfc2217_send_subnegotiation(self, option, value=b''):
         """Subnegotiation of RFC2217 parameters."""
         value = value.replace(IAC, IAC_DOUBLED)
-        self._internal_raw_write(to_bytes([IAC, SB, COM_PORT_OPTION, option] + list(value) + [IAC, SE]))
+        self._internal_raw_write(IAC + SB + COM_PORT_OPTION + option + value + IAC + SE)
 
     def rfc2217_send_purge(self, value):
         """\
@@ -989,12 +992,12 @@ class PortManager(object):
 
     def telnet_send_option(self, action, option):
         """Send DO, DONT, WILL, WONT."""
-        self.connection.write(to_bytes([IAC, action, option]))
+        self.connection.write(IAC + action + option)
 
     def rfc2217_send_subnegotiation(self, option, value=b''):
         """Subnegotiation of RFC 2217 parameters."""
         value = value.replace(IAC, IAC_DOUBLED)
-        self.connection.write(to_bytes([IAC, SB, COM_PORT_OPTION, option] + list(value) + [IAC, SE]))
+        self.connection.write(IAC + SB + COM_PORT_OPTION + option + value + IAC + SE)
 
     # - check modem lines, needs to be called periodically from user to
     # establish polling

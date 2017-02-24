@@ -26,7 +26,8 @@ try:
 except ImportError:
     import urllib.parse as urlparse
 
-from serial.serialutil import SerialBase, SerialException, portNotOpenError, to_bytes
+from serial.serialutil import SerialBase, SerialException, to_bytes, \
+    portNotOpenError, writeTimeoutError, Timeout
 
 # map log level names to constants. used in from_url()
 LOGGER_LEVELS = {
@@ -61,6 +62,8 @@ class Serial(SerialBase):
         except Exception as msg:
             self._socket = None
             raise SerialException("Could not open port {}: {}".format(self.portstr, msg))
+        # after connecting, switch to non-blocking, we're using select
+        self._socket.setblocking(False)
 
         # not that there is anything to configure...
         self._reconfigure_port()
@@ -149,11 +152,10 @@ class Serial(SerialBase):
         if not self.is_open:
             raise portNotOpenError
         read = bytearray()
-        timeout = self._timeout
+        timeout = Timeout(self._timeout)
         while len(read) < size:
             try:
-                start_time = time.time()
-                ready, _, _ = select.select([self._socket], [], [], timeout)
+                ready, _, _ = select.select([self._socket], [], [], timeout.time_left())
                 # If select was used with a timeout, and the timeout occurs, it
                 # returns with empty lists -> thus abort read operation.
                 # For timeout == 0 (non-blocking operation) also abort when
@@ -166,27 +168,19 @@ class Serial(SerialBase):
                 if not buf:
                     raise SerialException('socket disconnected')
                 read.extend(buf)
-                if timeout is not None:
-                    timeout -= time.time() - start_time
-                    if timeout <= 0:
-                        break
-            except socket.timeout:
-                # timeout is used for write support, just go reading again
-                pass
-            except socket.error as e:
-                # connection fails -> terminate loop
-                raise SerialException('connection failed ({})'.format(e))
             except OSError as e:
                 # this is for Python 3.x where select.error is a subclass of
                 # OSError ignore EAGAIN errors. all other errors are shown
                 if e.errno != errno.EAGAIN:
                     raise SerialException('read failed: {}'.format(e))
-            except select.error as e:
+            except (select.error, socket.error) as e:
                 # this is for Python 2.x
                 # ignore EAGAIN errors. all other errors are shown
                 # see also http://www.python.org/dev/peps/pep-3151/#select
                 if e[0] != errno.EAGAIN:
                     raise SerialException('read failed: {}'.format(e))
+            if timeout.expired():
+                break
         return bytes(read)
 
     def write(self, data):
@@ -197,19 +191,65 @@ class Serial(SerialBase):
         """
         if not self.is_open:
             raise portNotOpenError
-        try:
-            self._socket.sendall(to_bytes(data))
-        except socket.error as e:
-            # XXX what exception if socket connection fails
-            raise SerialException("socket connection failed: {}".format(e))
-        return len(data)
+
+        d = to_bytes(data)
+        tx_len = length = len(d)
+        timeout = Timeout(self._write_timeout)
+        while tx_len > 0:
+            try:
+                n = self._socket.send(d)
+                if timeout.is_non_blocking:
+                    # Zero timeout indicates non-blocking - simply return the
+                    # number of bytes of data actually written
+                    return n
+                elif not timeout.is_infinite:
+                    # when timeout is set, use select to wait for being ready
+                    # with the time left as timeout
+                    if timeout.expired():
+                        raise writeTimeoutError
+                    _, ready, _ = select.select([], [self._socket], [], timeout.time_left())
+                    if not ready:
+                        raise writeTimeoutError
+                else:
+                    assert timeout.time_left() is None
+                    # wait for write operation
+                    _, ready, _ = select.select([], [self._socket], [], None)
+                    if not ready:
+                        raise SerialException('write failed (select)')
+                d = d[n:]
+                tx_len -= n
+            except SerialException:
+                raise
+            except OSError as v:
+                if v.errno != errno.EAGAIN:
+                    raise SerialException('write failed: {}'.format(v))
+                # still calculate and check timeout
+                if timeout.expired():
+                    raise writeTimeoutError
+        return length - len(d)
 
     def reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
         if not self.is_open:
             raise portNotOpenError
-        if self.logger:
-            self.logger.info('ignored reset_input_buffer')
+
+        # just use recv to remove input, while there is some
+        ready = True
+        while ready:
+            ready, _, _ = select.select([self._socket], [], [], 0)
+            try:
+                self._socket.recv(4096)
+            except OSError as e:
+                # this is for Python 3.x where select.error is a subclass of
+                # OSError ignore EAGAIN errors. all other errors are shown
+                if e.errno != errno.EAGAIN:
+                    raise SerialException('reset_input_buffer failed: {}'.format(e))
+            except (select.error, socket.error) as e:
+                # this is for Python 2.x
+                # ignore EAGAIN errors. all other errors are shown
+                # see also http://www.python.org/dev/peps/pep-3151/#select
+                if e[0] != errno.EAGAIN:
+                    raise SerialException('reset_input_buffer failed: {}'.format(e))
 
     def reset_output_buffer(self):
         """\

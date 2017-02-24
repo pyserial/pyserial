@@ -498,6 +498,8 @@ Native ports
         .. versionchanged:: 3.0 renamed from ``applySettingsDict``
 
 
+    .. _context-manager:
+
     This class can be used as context manager. The serial port is closed when
     the context is left.
 
@@ -579,7 +581,7 @@ Native ports
         :platform: Posix
         :platform: Windows
 
-        Cancel a pending read operation from an other thread. A blocking
+        Cancel a pending read operation from another thread. A blocking
         :meth:`read` call is aborted immediately. :meth:`read` will not report
         any error but return all data received up to that point (similar to a
         timeout).
@@ -593,7 +595,7 @@ Native ports
         :platform: Posix
         :platform: Windows
 
-        Cancel a pending write operation from an other thread. The
+        Cancel a pending write operation from another thread. The
         :meth:`write` method will return immediately (no error indicated).
         However the OS may still be sending from the buffer, a separate call to
         :meth:`reset_output_buffer` may be needed.
@@ -1260,7 +1262,7 @@ asyncio
 ``asyncio`` was introduced with Python 3.4. Experimental support for pySerial
 is provided via a separate distribution `pyserial-asyncio`_.
 
-It is currently under developement, see:
+It is currently under development, see:
 
 - http://pyserial-asyncio.readthedocs.io/
 - https://github.com/pyserial/pyserial-asyncio
