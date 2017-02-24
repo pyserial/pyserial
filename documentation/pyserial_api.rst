@@ -54,7 +54,8 @@ Native ports
             Inter-character timeout, :const:`None` to disable (default).
             
         :param bool exclusive:
-            Set exclusive access mode (POSIX only).
+            Set exclusive access mode (POSIX only).  A port cannot be opened in 
+            exclusive access mode if it is already open in exclusive access mode.
 
         :exception ValueError:
             Will be raised when parameter are out of range, e.g. baud rate, data bits.
