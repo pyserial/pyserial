@@ -185,6 +185,7 @@ class SerialBase(io.RawIOBase):
                  write_timeout=None,
                  dsrdtr=False,
                  inter_byte_timeout=None,
+                 exclusive=None,
                  **kwargs):
         """\
         Initialize comm port object. If a "port" is given, then the port will be
@@ -211,6 +212,7 @@ class SerialBase(io.RawIOBase):
         self._rts_state = True
         self._dtr_state = True
         self._break_state = False
+        self._exclusive = None
 
         # assign values using get/set methods using the properties feature
         self.port = port
@@ -224,6 +226,8 @@ class SerialBase(io.RawIOBase):
         self.rtscts = rtscts
         self.dsrdtr = dsrdtr
         self.inter_byte_timeout = inter_byte_timeout
+        self.exclusive = exclusive
+        
         # watch for backward compatible kwargs
         if 'writeTimeout' in kwargs:
             self.write_timeout = kwargs.pop('writeTimeout')
@@ -301,6 +305,18 @@ class SerialBase(io.RawIOBase):
         if bytesize not in self.BYTESIZES:
             raise ValueError("Not a valid byte size: {!r}".format(bytesize))
         self._bytesize = bytesize
+        if self.is_open:
+            self._reconfigure_port()
+
+    @property
+    def exclusive(self):
+        """Get the current exclusive access setting."""
+        return self._exclusive
+    
+    @exclusive.setter
+    def exclusive(self, exclusive):
+        """Change the exclusive access setting."""
+        self._exclusive = exclusive
         if self.is_open:
             self._reconfigure_port()
 
