@@ -12,7 +12,7 @@ Native ports
 
 .. class:: Serial
 
-    .. method:: __init__(port=None, baudrate=9600, bytesize=EIGHTBITS, parity=PARITY_NONE, stopbits=STOPBITS_ONE, timeout=None, xonxoff=False, rtscts=False, write_timeout=None, dsrdtr=False, inter_byte_timeout=None)
+    .. method:: __init__(port=None, baudrate=9600, bytesize=EIGHTBITS, parity=PARITY_NONE, stopbits=STOPBITS_ONE, timeout=None, xonxoff=False, rtscts=False, write_timeout=None, dsrdtr=False, inter_byte_timeout=None, exclusive=None)
 
         :param port:
             Device name or :const:`None`.
@@ -52,6 +52,10 @@ Native ports
 
         :param float inter_byte_timeout:
             Inter-character timeout, :const:`None` to disable (default).
+            
+        :param bool exclusive:
+            Set exclusive access mode (POSIX only).  A port cannot be opened in 
+            exclusive access mode if it is already open in exclusive access mode.
 
         :exception ValueError:
             Will be raised when parameter are out of range, e.g. baud rate, data bits.
