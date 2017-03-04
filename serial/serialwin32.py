@@ -465,3 +465,9 @@ class Serial(SerialBase):
     def cancel_write(self):
         """Cancel a blocking write operation, may be called from other thread"""
         self._cancel_overlapped_io(self._overlapped_write)
+
+    @SerialBase.exclusive.setter
+    def exclusive(self, exclusive):
+        """Change the exclusive access setting."""
+        if exclusive is not None and not exclusive:
+            raise ValueError('win32 only supports exclusive access (not: {})'.format(exclusive))
