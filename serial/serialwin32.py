@@ -442,7 +442,7 @@ class Serial(SerialBase):
         flags = win32.DWORD()
         comstat = win32.COMSTAT()
         if not win32.ClearCommError(self._port_handle, ctypes.byref(flags), ctypes.byref(comstat)):
-            raise SerialException('call to ClearCommError failed')
+            raise SerialException("ClearCommError failed ({!r})".format(ctypes.WinError()))
         return comstat.cbOutQue
 
     def _cancel_overlapped_io(self, overlapped):
@@ -471,3 +471,5 @@ class Serial(SerialBase):
         """Change the exclusive access setting."""
         if exclusive is not None and not exclusive:
             raise ValueError('win32 only supports exclusive access (not: {})'.format(exclusive))
+        else:
+            serial.SerialBase.exclusive.__set__(self, exclusive)
