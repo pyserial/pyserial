@@ -52,7 +52,7 @@ Native ports
 
         :param float inter_byte_timeout:
             Inter-character timeout, :const:`None` to disable (default).
-            
+
         :param bool exclusive:
             Set exclusive access mode (POSIX only).  A port cannot be opened in 
             exclusive access mode if it is already open in exclusive access mode.
@@ -112,6 +112,7 @@ Native ports
         .. versionchanged:: 2.5
             *dsrdtr* now defaults to ``False`` (instead of *None*)
         .. versionchanged:: 3.0 numbers as *port* argument are no longer supported
+        .. versionadded:: 3.3 ``exclusive`` flag
 
     .. method:: open()
 

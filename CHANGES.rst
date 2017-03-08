@@ -683,8 +683,29 @@ Bugfixes (win32):
 - [#162] Write in non-blocking mode returns incorrect value on windows
 
 
-Version 3.2.x   2017-xx-xx
---------------------------
+Version 3.3   2017-03-08
+------------------------
+Improvements:
+
+- [#206] Exclusive access on POSIX. ``exclusive`` flag added.
+- [#172] list_ports_windows: list_ports with 'manufacturer' info property
+- [#174] miniterm: change cancel impl. for console
+- [#182] serialutil: add overall timeout for read_until
+- socket: use non-blocking socket and new Timeout class
+- socket: implement a functional a reset_input_buffer
+- rfc2217: improve read timeout implementation
+- win32: include error message from system in ClearCommError exception
+- and a few minor changes, docs
+
+Bugfixes:
+
+- [#183] rfc2217: Fix broken calls to to_bytes on Python3.
+- [#188] rfc2217: fix auto-open use case when port is given as parameter
+
+Bugfixes (posix):
+
+- [#178] in read, count length of converted data
+- [#189] fix return value of write
 
 Bugfixes (win32):
 
