@@ -302,7 +302,7 @@ class Serial(SerialBase, PlatformSpecific):
         """Set communication parameters on opened port."""
         if self.fd is None:
             raise SerialException("Can only operate on a valid file descriptor")
-            
+
         # if exclusive lock is requested, create it before we modify anything else
         if self._exclusive is not None:
             if self._exclusive:
@@ -312,7 +312,7 @@ class Serial(SerialBase, PlatformSpecific):
                     raise SerialException(msg.errno, "Could not exclusively lock port {}: {}".format(self._port, msg))
             else:
                 fcntl.flock(self.fd, fcntl.LOCK_UN)
-            
+
         custom_baud = None
 
         vmin = vtime = 0                # timeout is done via select

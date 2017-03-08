@@ -227,7 +227,7 @@ class SerialBase(io.RawIOBase):
         self.dsrdtr = dsrdtr
         self.inter_byte_timeout = inter_byte_timeout
         self.exclusive = exclusive
-        
+
         # watch for backward compatible kwargs
         if 'writeTimeout' in kwargs:
             self.write_timeout = kwargs.pop('writeTimeout')
@@ -312,7 +312,7 @@ class SerialBase(io.RawIOBase):
     def exclusive(self):
         """Get the current exclusive access setting."""
         return self._exclusive
-    
+
     @exclusive.setter
     def exclusive(self, exclusive):
         """Change the exclusive access setting."""
