@@ -30,7 +30,15 @@ class Test_Pty_Serial_Open(unittest.TestCase):
     def test_pty_serial_open(self):
         """Open serial port on slave"""
         ser = serial.Serial(os.ttyname(self.slave))
+
+        fd = os.fdopen(self.master, "wb")
+        fd.write("XX\n")
+
+        buf = ser.read(2)
+        self.assertEqual(buf, "XX")
+
         ser.close()
+        fd.close()
 
 
 if __name__ == '__main__':
