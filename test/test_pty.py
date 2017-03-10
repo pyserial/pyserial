@@ -18,6 +18,7 @@ except ImportError:
 import unittest
 import serial
 
+DATA = b'Hello\n'
 
 @unittest.skipIf(pty is None, "pty module not supported on platform")
 class Test_Pty_Serial_Open(unittest.TestCase):
