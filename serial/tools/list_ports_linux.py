@@ -73,6 +73,7 @@ def comports():
     devices.extend(glob.glob('/dev/ttyACM*'))   # usb-serial with CDC-ACM profile
     devices.extend(glob.glob('/dev/ttyAMA*'))   # ARM internal port (raspi)
     devices.extend(glob.glob('/dev/rfcomm*'))   # BT serial devices
+    devices.extend(glob.glob('/dev/ttyAP*'))    # Advantech multi-port serial controllers
     return [info
             for info in [SysFS(d) for d in devices]
             if info.subsystem != "platform"]    # hide non-present internal serial ports
