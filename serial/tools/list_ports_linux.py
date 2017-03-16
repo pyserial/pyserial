@@ -18,6 +18,12 @@ class SysFS(list_ports_common.ListPortInfo):
 
     def __init__(self, device):
         super(SysFS, self).__init__(device)
+        # special handling for links
+        if device is not None and os.path.islink(device):
+            device = os.path.realpath(device)
+            is_link = True
+        else:
+            is_link = False
         self.name = os.path.basename(device)
         self.usb_device_path = None
         if os.path.exists('/sys/class/tty/{}/device'.format(self.name)):
@@ -53,6 +59,9 @@ class SysFS(list_ports_common.ListPortInfo):
             self.description = self.name
             self.hwid = os.path.basename(self.device_path)
 
+        if is_link:
+            self.hwid += ' LINK={}'.format(device)
+
     def read_line(self, *args):
         """\
         Helper function to read a single line from a file.
@@ -67,13 +76,15 @@ class SysFS(list_ports_common.ListPortInfo):
             return None
 
 
-def comports():
+def comports(include_links=False):
     devices = glob.glob('/dev/ttyS*')           # built-in serial ports
     devices.extend(glob.glob('/dev/ttyUSB*'))   # usb-serial with own driver
     devices.extend(glob.glob('/dev/ttyACM*'))   # usb-serial with CDC-ACM profile
     devices.extend(glob.glob('/dev/ttyAMA*'))   # ARM internal port (raspi)
     devices.extend(glob.glob('/dev/rfcomm*'))   # BT serial devices
     devices.extend(glob.glob('/dev/ttyAP*'))    # Advantech multi-port serial controllers
+    if include_links:
+        devices.extend(list_ports_common.list_links(devices))
     return [info
             for info in [SysFS(d) for d in devices]
             if info.subsystem != "platform"]    # hide non-present internal serial ports
