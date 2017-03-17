@@ -34,48 +34,64 @@ elif plat == 'cygwin':       # cygwin/win32
     # cygwin accepts /dev/com* in many contexts
     # (such as 'open' call, explicit 'ls'), but 'glob.glob'
     # and bare 'ls' do not; so use /dev/ttyS* instead
-    def comports():
+    def comports(include_links=False):
         devices = glob.glob('/dev/ttyS*')
+        if include_links:
+            devices.extend(list_ports_common.list_links(devices))
         return [list_ports_common.ListPortInfo(d) for d in devices]
 
 elif plat[:7] == 'openbsd':    # OpenBSD
-    def comports():
+    def comports(include_links=False):
         devices = glob.glob('/dev/cua*')
+        if include_links:
+            devices.extend(list_ports_common.list_links(devices))
         return [list_ports_common.ListPortInfo(d) for d in devices]
 
 elif plat[:3] == 'bsd' or plat[:7] == 'freebsd':
-    def comports():
+    def comports(include_links=False):
         devices = glob.glob('/dev/cua*[!.init][!.lock]')
+        if include_links:
+            devices.extend(list_ports_common.list_links(devices))
         return [list_ports_common.ListPortInfo(d) for d in devices]
 
 elif plat[:6] == 'netbsd':   # NetBSD
-    def comports():
+    def comports(include_links=False):
         """scan for available ports. return a list of device names."""
         devices = glob.glob('/dev/dty*')
+        if include_links:
+            devices.extend(list_ports_common.list_links(devices))
         return [list_ports_common.ListPortInfo(d) for d in devices]
 
 elif plat[:4] == 'irix':     # IRIX
-    def comports():
+    def comports(include_links=False):
         """scan for available ports. return a list of device names."""
         devices = glob.glob('/dev/ttyf*')
+        if include_links:
+            devices.extend(list_ports_common.list_links(devices))
         return [list_ports_common.ListPortInfo(d) for d in devices]
 
 elif plat[:2] == 'hp':       # HP-UX (not tested)
-    def comports():
+    def comports(include_links=False):
         """scan for available ports. return a list of device names."""
         devices = glob.glob('/dev/tty*p0')
+        if include_links:
+            devices.extend(list_ports_common.list_links(devices))
         return [list_ports_common.ListPortInfo(d) for d in devices]
 
 elif plat[:5] == 'sunos':    # Solaris/SunOS
-    def comports():
+    def comports(include_links=False):
         """scan for available ports. return a list of device names."""
         devices = glob.glob('/dev/tty*c')
+        if include_links:
+            devices.extend(list_ports_common.list_links(devices))
         return [list_ports_common.ListPortInfo(d) for d in devices]
 
 elif plat[:3] == 'aix':      # AIX
-    def comports():
+    def comports(include_links=False):
         """scan for available ports. return a list of device names."""
         devices = glob.glob('/dev/tty*')
+        if include_links:
+            devices.extend(list_ports_common.list_links(devices))
         return [list_ports_common.ListPortInfo(d) for d in devices]
 
 else:
