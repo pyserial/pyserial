@@ -287,7 +287,7 @@ def iterate_comports():
         SetupDiDestroyDeviceInfoList(g_hdi)
 
 
-def comports():
+def comports(include_links=False):
     """Return a list of info objects about serial ports"""
     return list(iterate_comports())
 

@@ -227,7 +227,8 @@ def search_for_locationID_in_interfaces(serial_interfaces, locationID):
     return None
 
 
-def comports():
+def comports(include_links=False):
+    # XXX include_links is currently ignored. are links in /dev even supported here?
     # Scan for all iokit serial ports
     services = GetIOServicesByType('IOSerialBSDClient')
     ports = []
