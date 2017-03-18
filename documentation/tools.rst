@@ -12,8 +12,10 @@ This module can be executed to get a list of ports (``python -m
 serial.tools.list_ports``). It also contains the following functions.
 
 
-.. function:: comports()
+.. function:: comports(include_links=False)
 
+    :param bool include_links: include symlinks under ``/dev`` when they point
+                               to a serial port
     :return: a list containing :class:`ListPortInfo` objects.
 
     The function returns a list of :obj:`ListPortInfo` objects.
@@ -26,15 +28,26 @@ serial.tools.list_ports``). It also contains the following functions.
               systems description and hardware ID will not be available
               (``None``).
 
+    Under Linux, OSX and Windows, extended information will be available for
+    USB devices (e.g. `VID:PID`, `SER` (serial number), `LOCATION` (hierarchy).
+
+    If ``include_links`` is true, all devices under ``/dev`` are inspected and
+    tested if they are a link to a known serial port device. These entries
+    will include ``LINK`` in their description (hwid). This implies that the
+    same device is listed twice, once under its original name and once under
+    the linked name.
+
     :platform: Posix (/dev files)
     :platform: Linux (/dev files, sysfs)
     :platform: OSX (iokit)
     :platform: Windows (setupapi, registry)
 
 
-.. function:: grep(regexp)
+.. function:: grep(regexp, include_links=False)
 
     :param regexp: regular expression (see stdlib :mod:`re`)
+    :param bool include_links: include symlinks under ``/dev`` when they point
+                               to a serial port
     :return: an iterable that yields :class:`ListPortInfo` objects, see also
              :func:`comports`.
 
