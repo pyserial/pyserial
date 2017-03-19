@@ -29,13 +29,16 @@ serial.tools.list_ports``). It also contains the following functions.
               (``None``).
 
     Under Linux, OSX and Windows, extended information will be available for
-    USB devices (e.g. `VID:PID`, `SER` (serial number), `LOCATION` (hierarchy).
+    USB devices (e.g. the :attr:`ListPortInfo.hwid` string contains `VID:PID`,
+    `SER` (serial number), `LOCATION` (hierarchy), which makes them searchable
+    via :func:`grep`. The USB info is also available as attributes of
+    :attr:`ListPortInfo`.
 
-    If ``include_links`` is true, all devices under ``/dev`` are inspected and
+    If *include_links* is true, all devices under ``/dev`` are inspected and
     tested if they are a link to a known serial port device. These entries
-    will include ``LINK`` in their description (hwid). This implies that the
-    same device is listed twice, once under its original name and once under
-    the linked name.
+    will include ``LINK`` in their ``hwid`` string. This implies that the same
+    device listed twice, once under its original name and once under linked
+    name.
 
     :platform: Posix (/dev files)
     :platform: Linux (/dev files, sysfs)
@@ -51,10 +54,10 @@ serial.tools.list_ports``). It also contains the following functions.
     :return: an iterable that yields :class:`ListPortInfo` objects, see also
              :func:`comports`.
 
-    Search for ports using a regular expression. Port name, description and
-    hardware ID are searched (case insensitive). The function returns an
-    iterable that contains the same data that :func:`comports` generates, but
-    includes only those entries that match the regexp.
+    Search for ports using a regular expression. Port ``name``,
+    ``description`` and ``hwid`` are searched (case insensitive). The function
+    returns an iterable that contains the same data that :func:`comports`
+    generates, but includes only those entries that match the regexp.
 
 
 .. class:: ListPortInfo
@@ -122,18 +125,20 @@ serial.tools.list_ports``). It also contains the following functions.
 
 Help for ``python -m serial.tools.list_ports``::
 
-    usage: list_ports.py [-h] [-v] [-q] [-n N] [regexp]
+    usage: list_ports.py [-h] [-v] [-q] [-n N] [-s] [regexp]
 
     Serial port enumeration
 
     positional arguments:
-      regexp         only show ports that match this regex
+      regexp               only show ports that match this regex
 
     optional arguments:
-      -h, --help     show this help message and exit
-      -v, --verbose  show more messages
-      -q, --quiet    suppress all messages
-      -n N           only output the N-th entry
+      -h, --help           show this help message and exit
+      -v, --verbose        show more messages
+      -q, --quiet          suppress all messages
+      -n N                 only output the N-th entry
+      -s, --include-links  include entries that are symlinks to real devices
+
 
 Examples:
 
