@@ -205,7 +205,7 @@ Native ports
 
     .. method:: reset_input_buffer()
 
-        Flush input buffer, discarding all it's contents.
+        Flush input buffer, discarding all its contents.
 
         .. versionchanged:: 3.0 renamed from ``flushInput()``
 
@@ -525,7 +525,7 @@ Native ports
 
     .. method:: __exit__(exc_type, exc_val, exc_tb)
 
-        Closes serial port.
+        Closes serial port (exceptions are not handled by ``__exit__``).
 
 
     Platform specific methods.
@@ -704,6 +704,7 @@ Implementation detail: some attributes and functions are provided by the
 class :class:`SerialBase` and some by the platform specific class and
 others by the base class mentioned above.
 
+
 RS485 support
 -------------
 The :class:`Serial` class has a :attr:`Serial.rs485_mode` attribute which allows to
@@ -792,7 +793,6 @@ on regular serial ports (``serial.rs485`` needs to be imported).
 
     .. note:: The loopback property is ignored by this implementation. The actual
         behavior depends on the used hardware.
-
 
 
 
@@ -1060,7 +1060,7 @@ Module functions and attributes
     :returns: a generator that yields bytes
 
     Some versions of Python (3.x) would return integers instead of bytes when
-    looping over an instance of ``bytes``.  This helper function ensures that
+    looping over an instance of ``bytes``. This helper function ensures that
     bytes are returned.
 
     .. versionadded:: 3.0
