@@ -12,7 +12,7 @@ appropriate backend.
 - Project Homepage: https://github.com/pyserial/pyserial
 - Download Page: https://pypi.python.org/pypi/pyserial
 
-BSD license, (C) 2001-2016 Chris Liechti <cliechti@gmx.net>
+BSD license, (C) 2001-2017 Chris Liechti <cliechti@gmx.net>
 
 
 Documentation
