@@ -68,7 +68,7 @@ Application works when .py file is run, but fails when packaged (py2exe etc.)
       used.
 
     - :func:`serial.serial_for_url` does a dynamic lookup of protocol handlers
-      at runtime.  If this function is used, the desired handlers have to be
+      at runtime. If this function is used, the desired handlers have to be
       included manually (e.g. 'serial.urlhandler.protocol_socket',
       'serial.urlhandler.protocol_rfc2217', etc.). This can be done either with
       the "includes" option in ``setup.py`` or by a dummy import in one of the
@@ -93,7 +93,7 @@ User supplied URL handlers
 
 Support for Python 2.6 or earlier
     Support for older Python releases than 2.7 will not return to pySerial 3.x.
-    Python 2.7 is now many years old (released 2010).  If you insist on using
+    Python 2.7 is now many years old (released 2010). If you insist on using
     Python 2.6 or earlier, it is recommend to use pySerial `2.7`_
     (or any 2.x version).
 
@@ -109,7 +109,7 @@ com0com - http://com0com.sourceforge.net/
 
 License
 =======
-Copyright (c) 2001-2016 Chris Liechti <cliechti@gmx.net>
+Copyright (c) 2001-2017 Chris Liechti <cliechti@gmx.net>
 All Rights Reserved.
 
 Redistribution and use in source and binary forms, with or without
