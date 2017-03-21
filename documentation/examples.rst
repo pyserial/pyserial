@@ -237,8 +237,10 @@ The project uses a number of unit test to verify the functionality. They all
 need a loop back connector. The scripts itself contain more information. All
 test scripts are contained in the directory ``test``.
 
-The unit tests are performed on port ``0`` unless a different device name or
-``rfc2217://`` URL is given on the command line (argv[1]).
+The unit tests are performed on port ``loop://`` unless a different device
+name or URL is given on the command line (``sys.argv[1]``). e.g. to run the
+test on an attached USB-serial converter ``hwgrep://USB`` could be used or
+the actual name such as ``/dev/ttyUSB0`` or ``COM1`` (depending on platform).
 
 run_all_tests.py_
     Collect all tests from all ``test*`` files and run them. By default, the
@@ -254,7 +256,7 @@ test_high_load.py_
     Tests involving sending a lot of data.
 
 test_readline.py_
-    Tests involving readline.
+    Tests involving ``readline``.
 
 test_iolib.py_
     Tests involving the :mod:`io` library. Only available for Python 2.6 and

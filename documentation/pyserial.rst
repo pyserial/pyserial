@@ -48,7 +48,7 @@ Requirements
 ============
 - Python 2.7 or Python 3.4 and newer
 
-- If running on Windows: Something newer than WinXP
+- If running on Windows: Windows 7 or newer
 
 - If running on Jython: "Java Communications" (JavaComm) or compatible
   extension for Java
@@ -93,7 +93,7 @@ There are also packaged versions for some Linux distributions:
 - Debian/Ubuntu: "python-serial", "python3-serial"
 - Fedora / RHEL / CentOS / EPEL: "pyserial"
 - Arch Linux: "python-pyserial"
-- Gento: "dev-python/pyserial"
+- Gentoo: "dev-python/pyserial"
 
 Note that some distributions may package an older version of pySerial.
 These packages are created and maintained by developers working on
