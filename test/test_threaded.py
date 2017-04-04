@@ -12,6 +12,7 @@ import os
 import unittest
 import serial
 import serial.threaded
+import struct
 import time
 
 
@@ -62,6 +63,33 @@ class Test_threaded(unittest.TestCase):
             protocol.send_packet(b'3')
             time.sleep(1)
             self.assertEqual(protocol.received_packets, [b'1', b'2', b'3'])
+
+    def test_structured_packet(self):
+        """simple test of structured packet class"""
+
+        class TestStructuredPacket(serial.threaded.StructuredPacket):
+
+            DATA_SIZE = 8
+
+            def __init__(self):
+                super(TestStructuredPacket, self).__init__(self.DATA_SIZE)
+                self.received_packets = []
+
+            def handle_packet(self, packet):
+                self.received_packets.append(packet)
+
+            def send_packet(self, packet):
+                self.transport.write(self.HEADER)
+                self.transport.write(packet)
+
+        ser = serial.serial_for_url(PORT, baudrate=115200, timeout=1)
+        with serial.threaded.ReaderThread(ser, TestStructuredPacket) as protocol:
+            protocol.send_packet(struct.pack("2I", *[1, 2]))
+            protocol.send_packet(struct.pack("2I", *[3, 4]))
+            time.sleep(1)
+            self.assertEqual(protocol.received_packets,
+                    [b'\x01\x00\x00\x00\x02\x00\x00\x00',
+                        b'\x03\x00\x00\x00\x04\x00\x00\x00'])
 
 
 if __name__ == '__main__':
