@@ -1102,6 +1102,42 @@ This module provides classes to simplify working with threads and protocols.
         Called when the serial port is closed or the reader loop terminated
         otherwise.
 
+.. class:: StructuredPacket(Protocol)
+
+    Read binary packets. Packets are expected to be fixed length have a header
+    to mark its beginning.
+
+    The class also keeps track of the transport.
+    
+    .. attribute:: HEADER = b'\\x01\\x02\\x03\\x04\\x05'
+
+    .. method:: __init__(data_size)
+
+        :param data_size:
+            Size of data portion of packet (excluding header).
+
+    .. method:: connection_made(transport)
+
+        Stores transport.
+
+    .. method:: connection_lost(exc)
+
+        Forgets transport.
+
+    .. method:: data_received(data)
+
+        :param bytes data: partial received data
+
+        Search for :attr:`HEADER`, when found, buffer received data until
+        :attr:`data_size` bytes are read and call :meth:`handle_packet`.
+
+    .. method:: handle_packet(packet)
+
+        :param bytes packet: a packet as defined by ``HEADER`` and ``data_size``
+
+        Process packets - to be overridden by subclassing.
+    
+
 .. class:: Packetizer(Protocol)
 
     Read binary packets from serial port. Packets are expected to be terminated
