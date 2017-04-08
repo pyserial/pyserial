@@ -122,7 +122,7 @@ Native ports
 
             Some OS and/or drivers may activate RTS and or DTR automatically,
             as soon as the port is opened. There may be a glitch on RTS/DTR
-            when :attr:`rts`` or :attr:`dtr` are set differently from their
+            when :attr:`rts` or :attr:`dtr` are set differently from their
             default value (``True`` / active).
 
         .. note::
