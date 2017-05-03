@@ -170,14 +170,14 @@ class Serial(SerialBase):
                 read.extend(buf)
             except OSError as e:
                 # this is for Python 3.x where select.error is a subclass of
-                # OSError ignore EAGAIN errors. all other errors are shown
-                if e.errno != errno.EAGAIN:
+                # OSError ignore EAGAIN errors. other errors are shown
+                if e.errno not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS):
                     raise SerialException('read failed: {}'.format(e))
             except (select.error, socket.error) as e:
                 # this is for Python 2.x
                 # ignore EAGAIN errors. all other errors are shown
                 # see also http://www.python.org/dev/peps/pep-3151/#select
-                if e[0] != errno.EAGAIN:
+                if e[0] not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS):
                     raise SerialException('read failed: {}'.format(e))
             if timeout.expired():
                 break
@@ -239,19 +239,16 @@ class Serial(SerialBase):
             ready, _, _ = select.select([self._socket], [], [], 0)
             try:
                 self._socket.recv(4096)
-            except BlockingIOError:
-                # Try again in case of windows WSAEWOULDBLOCK error.
-                pass
             except OSError as e:
                 # this is for Python 3.x where select.error is a subclass of
                 # OSError ignore EAGAIN errors. all other errors are shown
-                if e.errno != errno.EAGAIN:
+                if e.errno not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS):
                     raise SerialException('reset_input_buffer failed: {}'.format(e))
             except (select.error, socket.error) as e:
                 # this is for Python 2.x
                 # ignore EAGAIN errors. all other errors are shown
                 # see also http://www.python.org/dev/peps/pep-3151/#select
-                if e[0] != errno.EAGAIN:
+                if e[0] not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS):
                     raise SerialException('reset_input_buffer failed: {}'.format(e))
 
     def reset_output_buffer(self):
