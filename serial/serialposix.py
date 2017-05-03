@@ -560,6 +560,9 @@ class Serial(SerialBase, PlatformSpecific):
                 tx_len -= n
             except SerialException:
                 raise
+            except BlockingIOError:
+                # EAGAIN is common when in non blocking mode
+                pass
             except OSError as v:
                 if v.errno != errno.EAGAIN:
                     raise SerialException('write failed: {}'.format(v))
