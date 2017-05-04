@@ -561,12 +561,20 @@ class Serial(SerialBase, PlatformSpecific):
                 tx_len -= n
             except SerialException:
                 raise
-            except OSError as v:
-                if v.errno != errno.EAGAIN:
-                    raise SerialException('write failed: {}'.format(v))
-                # still calculate and check timeout
-                if timeout.expired():
-                    raise writeTimeoutError
+            except OSError as e:
+                # this is for Python 3.x where select.error is a subclass of
+                # OSError ignore BlockingIOErrors and EINTR. other errors are shown
+                # https://www.python.org/dev/peps/pep-0475.
+                if e.errno not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS, errno.EINTR):
+                    raise SerialException('write failed: {}'.format(e))
+            except select.error as e:
+                # this is for Python 2.x
+                # ignore BlockingIOErrors and EINTR. all errors are shown
+                # see also http://www.python.org/dev/peps/pep-3151/#select
+                if e[0] not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS, errno.EINTR)):
+                    raise SerialException('write failed: {}'.format(e))
+            if timeout.expired():
+                raise writeTimeoutError
         return length - len(d)
 
     def flush(self):
