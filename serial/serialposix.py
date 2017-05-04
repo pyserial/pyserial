@@ -503,14 +503,15 @@ class Serial(SerialBase, PlatformSpecific):
                 read.extend(buf)
             except OSError as e:
                 # this is for Python 3.x where select.error is a subclass of
-                # OSError ignore EAGAIN errors. all other errors are shown
-                if e.errno != errno.EAGAIN and e.errno != errno.EINTR:
+                # OSError ignore BlockingIOErrors and EINTR. other errors are shown
+                # https://www.python.org/dev/peps/pep-0475.
+                if e.errno not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS, errno.EINTR):
                     raise SerialException('read failed: {}'.format(e))
             except select.error as e:
                 # this is for Python 2.x
-                # ignore EAGAIN errors. all other errors are shown
+                # ignore BlockingIOErrors and EINTR. all errors are shown
                 # see also http://www.python.org/dev/peps/pep-3151/#select
-                if e[0] != errno.EAGAIN:
+                if e[0] not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS, errno.EINTR)):
                     raise SerialException('read failed: {}'.format(e))
             if timeout.expired():
                 break
