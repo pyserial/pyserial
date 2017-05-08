@@ -465,7 +465,7 @@ terminated, it waits for the next connect.
             if pid > 0:
                 # exit from second parent, save eventual PID before
                 if args.pidfile is not None:
-                    open(args.pidfile, 'w').write("{}".formt(pid))
+                    open(args.pidfile, 'w').write("{}".format(pid))
                 sys.exit(0)
         except OSError as e:
             log.critical("fork #2 failed: {} ({})\n".format(e.errno, e.strerror))
