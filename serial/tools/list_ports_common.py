@@ -39,6 +39,7 @@ class ListPortInfo(object):
         # USB specific data
         self.vid = None
         self.pid = None
+        self.mi = None
         self.serial_number = None
         self.location = None
         self.manufacturer = None
