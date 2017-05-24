@@ -113,12 +113,14 @@ class Timeout(object):
         # supported by Python 3.3 and above. It returns a time in seconds
         # (float) just as time.time(), but is not affected by system clock
         # adjustments.
-        TIME = time.monotonic
+        def TIME(self):
+            return time.monotonic()
     else:
         # Timeout implementation with time.time(). This is compatible with all
         # Python versions but has issues if the clock is adjusted while the
         # timeout is running.
-        TIME = time.time
+        def TIME(self):
+            return time.time()
 
     def __init__(self, duration):
         """Initialize a timeout with given duration"""
