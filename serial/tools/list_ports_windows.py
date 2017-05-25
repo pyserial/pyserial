@@ -143,6 +143,7 @@ def iterate_comports():
 
     # repeat for all possible GUIDs
     for index in range(guids_size.value):
+        bInterfaceNumber = None
         g_hdi = SetupDiGetClassDevs(
             ctypes.byref(GUIDs[index]),
             None,
@@ -216,7 +217,7 @@ def iterate_comports():
                     if m.group(3):
                         info.pid = int(m.group(3), 16)
                     if m.group(5):
-                        info.mi = int(m.group(5))
+                        bInterfaceNumber = int(m.group(5))
                     if m.group(7):
                         info.serial_number = m.group(7)
                 # calculate a location string
@@ -240,6 +241,10 @@ def iterate_comports():
                             else:
                                 location.append('-')
                             location.append(g.group(2))
+                    if bInterfaceNumber is not None:
+                        location.append(':{}.{}'.format(
+                            'x',  # XXX how to determine correct bConfigurationValue?
+                            bInterfaceNumber))
                     if location:
                         info.location = ''.join(location)
                 info.hwid = info.usb_info()
