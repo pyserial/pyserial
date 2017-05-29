@@ -613,9 +613,7 @@ class Serial(SerialBase):
             while len(data) < size:
                 if self._thread is None:
                     raise SerialException('connection failed (reader thread died)')
-                data += self._read_buffer.get(True, timeout.time_left())
-                if timeout.expired():
-                    break
+                data += self._read_buffer.get(True, self._timeout)
         except Queue.Empty:  # -> timeout
             pass
         return bytes(data)
