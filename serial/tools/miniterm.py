@@ -606,6 +606,17 @@ class Miniterm(object):
                     sys.stderr.write('--- Port changed to: {} ---\n'.format(self.serial.port))
                 # and restart the reader thread
                 self._start_reader()
+        elif c in 'sS':                         # S -> suspend / open port temporarily
+            # reader thread needs to be shut down
+            self._stop_reader()
+            self.serial.close()
+            sys.stderr.write('--- Port closed: {} ---\n'.format(self.serial.port))
+            sys.stderr.write('--- press any key to reconnect ---\n')
+            self.console.getkey()
+            self.serial.open()
+            # and restart the reader thread
+            self._start_reader()
+            sys.stderr.write('--- Port opened: {} ---\n'.format(self.serial.port))
         elif c in 'bB':                         # B -> change baudrate
             sys.stderr.write('\n--- Baudrate: ')
             sys.stderr.flush()
