@@ -518,10 +518,12 @@ class Serial(SerialBase, PlatformSpecific):
         return bytes(read)
 
     def cancel_read(self):
-        os.write(self.pipe_abort_read_w, b"x")
+        if self.is_open:
+            os.write(self.pipe_abort_read_w, b"x")
 
     def cancel_write(self):
-        os.write(self.pipe_abort_write_w, b"x")
+        if self.is_open:
+            os.write(self.pipe_abort_write_w, b"x")
 
     def write(self, data):
         """Output the given byte string over the serial port."""
