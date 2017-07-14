@@ -610,10 +610,18 @@ class Miniterm(object):
             # reader thread needs to be shut down
             self._stop_reader()
             self.serial.close()
-            sys.stderr.write('--- Port closed: {} ---\n'.format(self.serial.port))
-            sys.stderr.write('--- press any key to reconnect ---\n')
-            self.console.getkey()
-            self.serial.open()
+            sys.stderr.write('\n--- Port closed: {} ---\n'.format(self.serial.port))
+            while not self.serial.is_open:
+                sys.stderr.write('--- press {exit} to exit or any other key to reconnect ---\n'.format(
+                    exit=key_description(self.exit_character)))
+                k = self.console.getkey()
+                if k == self.exit_character:
+                    self.stop()             # exit app
+                    break
+                try:
+                    self.serial.open()
+                except Exception as e:
+                    sys.stderr.write('--- ERROR opening port: {} ---\n'.format(e))
             # and restart the reader thread
             self._start_reader()
             sys.stderr.write('--- Port opened: {} ---\n'.format(self.serial.port))
