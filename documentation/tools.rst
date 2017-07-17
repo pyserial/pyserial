@@ -274,9 +274,10 @@ Typing :kbd:`Ctrl+T Ctrl+H` when it is running shows the help text::
     ---    x X        disable/enable software flow control
     ---    r R        disable/enable hardware flow control
 
-:kbd:`Ctrl+T s` suspends the connection (port is opened) and reconnected when a
+:kbd:`Ctrl+T s` suspends the connection (port is opened) and reconnects when a
 key is pressed. This can be used to temporarily access the serial port with an
-other application, without exiting miniterm.
+other application, without exiting miniterm. If reconnecting fails it is
+also possible to exit (:kbd:`Ctrl+]`) or change the port (:kbd:`p`).
 
 .. versionchanged:: 2.5
     Added :kbd:`Ctrl+T` menu and added support for opening URLs.
