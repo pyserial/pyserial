@@ -315,7 +315,7 @@ def ask_for_port():
     sys.stderr.write('\n--- Available ports:\n')
     ports = []
     for n, (port, desc, hwid) in enumerate(sorted(comports()), 1):
-        sys.stderr.write('--- {:2}: {:20} {}\n'.format(n, port, desc))
+        sys.stderr.write('--- {:2}: {:20} {!r}\n'.format(n, port, desc))
         ports.append(port)
     while True:
         port = raw_input('--- Enter port index or full name: ')
