@@ -515,12 +515,17 @@ Native ports
         >>> with serial.serial_for_url(port) as s:
         ...     s.write(b'hello')
 
-        Here no port argument is given, so it is not opened automatically:
+        The port is opened automatically:
 
-        >>> with serial.Serial() as s:
-        ...     s.port = ...
-        ...     s.open()
+        >>> port = serial.Serial()
+        >>> port.port = '...'
+        >>> with port as s:
         ...     s.write(b'hello')
+
+        Which also means that ``with`` statements can be used repeatedly,
+        each time opening and closing the port.
+
+        .. versionchanged:: 3.4 the port is automatically opened
 
 
     .. method:: __exit__(exc_type, exc_val, exc_tb)
@@ -618,7 +623,7 @@ Native ports
 
     .. method:: isOpen()
 
-    	.. deprecated:: 3.0 see :attr:`is_open`
+        .. deprecated:: 3.0 see :attr:`is_open`
 
     .. attribute:: writeTimeout
 
