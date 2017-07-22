@@ -712,7 +712,7 @@ Bugfixes (win32):
 - [#194] spurious write fails with ERROR_SUCCESS
 
 
-Version 3.4   2017-07-xx
+Version 3.4   2017-07-22
 ------------------------
 Improvements:
 
@@ -725,7 +725,7 @@ Improvements:
 Bugfixes:
 
 - [#153] list_ports: option to include symlinked devices
-- [#237] workaround for special characters in port names in port list
+- [#237] list_ports: workaround for special characters in port names
 
 Bugfixes (posix):
 
