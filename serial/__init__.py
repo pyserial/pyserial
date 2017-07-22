@@ -13,7 +13,7 @@ import importlib
 from serial.serialutil import *
 #~ SerialBase, SerialException, to_bytes, iterbytes
 
-__version__ = '3.3'
+__version__ = '3.4'
 
 VERSION = __version__
 
