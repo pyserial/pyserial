@@ -354,8 +354,6 @@ class Serial(SerialBase, PlatformSpecific):
                 if e.errno not in (errno.EINVAL, errno.ENOTTY):
                     raise
 
-            self._reset_input_buffer()
-
             self.pipe_abort_read_r, self.pipe_abort_read_w = os.pipe()
             self.pipe_abort_write_r, self.pipe_abort_write_w = os.pipe()
             fcntl.fcntl(self.pipe_abort_read_r, fcntl.F_SETFL, os.O_NONBLOCK)
