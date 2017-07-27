@@ -143,6 +143,10 @@ class LineReader(Packetizer):
         # + is not the best choice but bytes does not support % or .format in py3 and we want a single write call
         self.transport.write(text.encode(self.ENCODING, self.UNICODE_HANDLING) + self.TERMINATOR)
 
+    def flush(self):
+        """Flush the underlying transport"""
+        self.transport.flush()
+
 
 class ReaderThread(threading.Thread):
     """\
@@ -215,6 +219,11 @@ class ReaderThread(threading.Thread):
         """Thread safe writing (uses lock)"""
         with self._lock:
             self.serial.write(data)
+
+    def flush(self):
+        """Flush the underlying transport"""
+        with self._lock:
+            self.serial.flush()
 
     def close(self):
         """Close the serial port and exit reader thread (uses lock)"""
