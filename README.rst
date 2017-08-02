@@ -36,6 +36,14 @@ Detailed information can be found in `documentation/pyserial.rst`_.
 The usual setup.py for Python_ libraries is used for the source distribution.
 Windows installers are also available (see download link above).
 
+or
+
+To install this package with conda run:   
+
+``conda install -c conda-forge pyserial``   
+
+conda builds are available for linux, mac and windows.
+
 .. _`documentation/pyserial.rst`: https://github.com/pyserial/pyserial/blob/master/documentation/pyserial.rst#installation
 .. _examples: https://github.com/pyserial/pyserial/blob/master/examples
 .. _Python: http://python.org/
