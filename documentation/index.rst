@@ -1,4 +1,5 @@
 .. pySerial documentation master file
+.. _welcome:
 
 Welcome to pySerial's documentation
 ===================================
