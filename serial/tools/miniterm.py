@@ -337,10 +337,11 @@ class Miniterm(object):
     Handle special keys from the console to show menu etc.
     """
 
-    def __init__(self, serial_instance, echo=False, eol='crlf', filters=()):
+    def __init__(self, serial_instance, echo=False, log="/dev/null", eol='crlf', filters=()):
         self.console = Console()
         self.serial = serial_instance
         self.echo = echo
+        self.log = open(log, "a")
         self.raw = False
         self.input_encoding = 'UTF-8'
         self.output_encoding = 'UTF-8'
@@ -451,6 +452,7 @@ class Miniterm(object):
                         for transformation in self.rx_transformations:
                             text = transformation.rx(text)
                         self.console.write(text)
+                        self.log.write(text)
         except serial.SerialException:
             self.alive = False
             self.console.cancel()
@@ -490,6 +492,7 @@ class Miniterm(object):
                         for transformation in self.tx_transformations:
                             echo_text = transformation.echo(echo_text)
                         self.console.write(echo_text)
+                        self.log.write(echo_text)
         except:
             self.alive = False
             raise
@@ -844,6 +847,12 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         default='CRLF')
 
     group.add_argument(
+        "--log",
+        type=str,
+        help="append the serial output to a log file",
+        default="/dev/null")
+
+    group.add_argument(
         "--raw",
         action="store_true",
         help="Do no apply any encodings/transformations",
@@ -944,6 +953,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
     miniterm = Miniterm(
         serial_instance,
         echo=args.echo,
+        log=args.log,
         eol=args.eol.lower(),
         filters=filters)
     miniterm.exit_character = unichr(args.exit_char)
