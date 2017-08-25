@@ -221,7 +221,7 @@ class Forwarder(ZeroconfService):
                     # escape outgoing data when needed (Telnet IAC (0xff) character)
                     if self.rfc2217:
                         data = serial.to_bytes(self.rfc2217.escape(data))
-                    self.buffer_ser2net += data
+                    self.buffer_ser2net.extend(data)
             else:
                 self.handle_serial_error()
         except Exception as msg:
@@ -250,13 +250,15 @@ class Forwarder(ZeroconfService):
             if data:
                 # Process RFC 2217 stuff when enabled
                 if self.rfc2217:
-                    data = serial.to_bytes(self.rfc2217.filter(data))
+                    data = b''.join(self.rfc2217.filter(data))
                 # add data to buffer
-                self.buffer_net2ser += data
+                self.buffer_net2ser.extend(data)
             else:
                 # empty read indicates disconnection
                 self.handle_disconnect()
         except socket.error:
+            if self.log is not None:
+                self.log.exception("{}: error reading...".format(self.device))
             self.handle_socket_error()
 
     def handle_socket_write(self):
@@ -267,6 +269,8 @@ class Forwarder(ZeroconfService):
             # and remove the sent data from the buffer
             self.buffer_ser2net = self.buffer_ser2net[count:]
         except socket.error:
+            if self.log is not None:
+                self.log.exception("{}: error writing...".format(self.device))
             self.handle_socket_error()
 
     def handle_socket_error(self):
