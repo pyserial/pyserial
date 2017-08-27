@@ -275,12 +275,12 @@ class DebugIO(Transform):
     """Print what is sent and received"""
 
     def rx(self, text):
-        sys.stderr.write(' [RX:{}] '.format(repr(text)))
+        sys.stderr.write(' [RX:{!r}] '.format(text))
         sys.stderr.flush()
         return text
 
     def tx(self, text):
-        sys.stderr.write(' [TX:{}] '.format(repr(text)))
+        sys.stderr.write(' [TX:{!r}] '.format(text))
         sys.stderr.flush()
         return text
 
@@ -612,7 +612,7 @@ class Miniterm(object):
         if new_filters:
             for f in new_filters:
                 if f not in TRANSFORMATIONS:
-                    sys.stderr.write('--- unknown filter: {}\n'.format(repr(f)))
+                    sys.stderr.write('--- unknown filter: {!r}\n'.format(f))
                     break
             else:
                 self.filters = new_filters
@@ -931,7 +931,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
 
             serial_instance.open()
         except serial.SerialException as e:
-            sys.stderr.write('could not open port {}: {}\n'.format(repr(args.port), e))
+            sys.stderr.write('could not open port {!r}: {}\n'.format(args.port, e))
             if args.develop:
                 raise
             if not args.ask:
