@@ -32,7 +32,7 @@ def numsplit(text):
 class ListPortInfo(object):
     """Info collection base class for serial ports"""
 
-    def __init__(self, device=None):
+    def __init__(self, device):
         self.device = device
         self.name = os.path.basename(device)
         self.description = 'n/a'
