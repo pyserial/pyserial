@@ -24,7 +24,6 @@ class SysFS(list_ports_common.ListPortInfo):
             is_link = True
         else:
             is_link = False
-        self.name = os.path.basename(device)
         self.usb_device_path = None
         if os.path.exists('/sys/class/tty/{}/device'.format(self.name)):
             self.device_path = os.path.realpath('/sys/class/tty/{}/device'.format(self.name))

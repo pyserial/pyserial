@@ -10,6 +10,7 @@
 import re
 import glob
 import os
+import os.path
 
 
 def numsplit(text):
@@ -33,7 +34,7 @@ class ListPortInfo(object):
 
     def __init__(self, device=None):
         self.device = device
-        self.name = None
+        self.name = os.path.basename(device)
         self.description = 'n/a'
         self.hwid = 'n/a'
         # USB specific data
