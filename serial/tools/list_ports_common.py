@@ -79,6 +79,9 @@ class ListPortInfo(object):
 
     def __str__(self):
         return '{} - {}'.format(self.device, self.description)
+		
+    def __unicode__(self):
+        return u'{} - {}'.format(self.device, self.description)
 
     def __getitem__(self, index):
         """Item access: backwards compatible -> (port, desc, hwid)"""
