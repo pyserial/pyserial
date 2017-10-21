@@ -74,12 +74,12 @@ class Serial(SerialBase):
         except Exception as msg:
             self.sPort = None
             raise SerialException("Could not open port: %s" % msg)
-        self._reconfigurePort()
+        self._reconfigure_port()
         self._instream = self.sPort.getInputStream()
         self._outstream = self.sPort.getOutputStream()
         self.is_open = True
 
-    def _reconfigurePort(self):
+    def _reconfigure_port(self):
         """Set communication parameters on opened port."""
         if not self.sPort:
             raise SerialException("Can only operate on a valid port handle")
