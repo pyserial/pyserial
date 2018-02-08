@@ -21,6 +21,8 @@
 
 # Also see the 'IORegistryExplorer' for an idea of what we are actually searching
 
+from __future__ import absolute_import
+
 import ctypes
 import ctypes.util
 

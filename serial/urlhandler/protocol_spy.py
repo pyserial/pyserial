@@ -20,6 +20,8 @@
 #   redirect output to an other terminal window on Posix (Linux):
 #   python -m serial.tools.miniterm spy:///dev/ttyUSB0?dev=/dev/pts/14\&color
 
+from __future__ import absolute_import
+
 import sys
 import time
 

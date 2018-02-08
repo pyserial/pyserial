@@ -16,6 +16,8 @@ As currently no method is known to get the second two strings easily, they are
 currently just identical to the port name.
 """
 
+from __future__ import absolute_import
+
 import glob
 import sys
 import os

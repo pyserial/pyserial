@@ -13,6 +13,8 @@ serial ports (where supported).
 NOTE: Some implementations may only support a subset of the settings.
 """
 
+from __future__ import absolute_import
+
 import time
 import serial
 

@@ -8,6 +8,8 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
+from __future__ import absolute_import
+
 # pylint: disable=invalid-name,too-few-public-methods
 import re
 import ctypes

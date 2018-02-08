@@ -9,6 +9,8 @@
 """\
 Support threading with serial ports.
 """
+from __future__ import absolute_import
+
 import serial
 import threading
 
