@@ -260,6 +260,7 @@ class Serial(SerialBase, PlatformSpecific):
         if self.is_open:
             raise SerialException("Port is already open.")
         self.fd = None
+        self._hupcl_state = None
         # open
         try:
             self.fd = os.open(self.portstr, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
@@ -420,6 +421,11 @@ class Serial(SerialBase, PlatformSpecific):
             else:
                 cflag &= ~(termios.CNEW_RTSCTS)
         # XXX should there be a warning if setting up rtscts (and xonxoff etc) fails??
+        # hupcl
+        if self._hupcl_state:
+            cflag |= (termios.HUPCL)
+        else:
+            cflag &= ~(termios.HUPCL)
 
         # buffer
         # vmin "minimal number of characters to be read. 0 for non blocking"
@@ -668,6 +674,24 @@ class Serial(SerialBase, PlatformSpecific):
         return struct.unpack('I', s)[0] & TIOCM_CD != 0
 
     # - - platform specific - - - -
+
+    @property
+    def hupcl(self):
+        return self._hupcl_state
+
+    @hupcl.setter
+    def hupcl(self, value):
+        self._hupcl_state = value
+        if self.is_open:
+            self._update_hupcl_state()
+
+    def _update_hupcl_state(self):
+        [iflag, oflag, cflag, lflag, ispeed, ospeed, cc] = termios.tcgetattr(self.fd)
+        if self._hupcl_state:
+            cflag |= (termios.HUPCL)
+        else:
+            cflag &= ~(termios.HUPCL)
+        termios.tcsetattr(self.fd, termios.TCSANOW, [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
 
     @property
     def out_waiting(self):
