@@ -341,7 +341,10 @@ class Miniterm(object):
         self.console = Console()
         self.serial = serial_instance
         self.echo = echo
-        self.log = open(log, "a")
+        if os.path.exists(log):
+            self.log = open(log, 'a')
+        else:
+            self.log = open(log, 'w+')
         self.raw = False
         self.input_encoding = 'UTF-8'
         self.output_encoding = 'UTF-8'
