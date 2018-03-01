@@ -343,6 +343,8 @@ class Miniterm(object):
         self.echo = echo
         if os.path.exists(log):
             self.log = open(log, 'a')
+            from datetime import datetime
+            self.log.write("\r\n\r\n[miniterm] " + str(datetime.now()) + "--------\r\n")
         else:
             self.log = open(log, 'w+')
         self.raw = False
