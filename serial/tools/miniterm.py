@@ -809,6 +809,13 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         default=default_dtr)
 
     group.add_argument(
+        "--non-exclusive",
+        dest="exclusive",
+        action="store_false",
+        help="disable locking for native ports",
+        default=True)
+
+    group.add_argument(
         "--ask",
         action="store_true",
         help="ask again for port when open fails",
@@ -928,6 +935,9 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
                 if not args.quiet:
                     sys.stderr.write('--- forcing RTS {}\n'.format('active' if args.rts else 'inactive'))
                 serial_instance.rts = args.rts
+
+            if isinstance(serial_instance, serial.Serial):
+                serial_instance.exclusive = args.exclusive
 
             serial_instance.open()
         except serial.SerialException as e:
