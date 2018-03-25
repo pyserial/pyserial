@@ -344,7 +344,7 @@ class Miniterm(object):
         if os.path.exists(log):
             self.log = open(log, 'a')
             from datetime import datetime
-            self.log.write("\r\n\r\n[miniterm] " + str(datetime.now()) + "--------\r\n")
+            self.log.write("\r\n\r\n[miniterm] " + str(datetime.now()) + "--------\r\n".format('UTF-8'))
         else:
             self.log = open(log, 'w+')
         self.raw = False
@@ -457,7 +457,7 @@ class Miniterm(object):
                         for transformation in self.rx_transformations:
                             text = transformation.rx(text)
                         self.console.write(text)
-                        self.log.write(text)
+                        self.log.write(text.format('UTF-8'))
         except serial.SerialException:
             self.alive = False
             self.console.cancel()
@@ -497,7 +497,7 @@ class Miniterm(object):
                         for transformation in self.tx_transformations:
                             echo_text = transformation.echo(echo_text)
                         self.console.write(echo_text)
-                        self.log.write(echo_text)
+                        self.log.write(echo_text.format('UTF-8'))
         except:
             self.alive = False
             raise
