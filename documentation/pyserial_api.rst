@@ -243,7 +243,7 @@ Native ports
         :type: bool
 
         Set RTS line to specified logic level. It is possible to assign this
-        value before opening the serial port, then the value is applied uppon
+        value before opening the serial port, then the value is applied upon
         :meth:`open` (with restrictions, see :meth:`open`).
 
     .. attribute:: dtr
@@ -253,7 +253,7 @@ Native ports
         :type: bool
 
         Set DTR line to specified logic level. It is possible to assign this
-        value before opening the serial port, then the value is applied uppon
+        value before opening the serial port, then the value is applied upon
         :meth:`open` (with restrictions, see :meth:`open`).
 
     Read-only attributes:
