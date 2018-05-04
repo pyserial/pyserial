@@ -36,6 +36,7 @@ LPCTSTR = ctypes.c_wchar_p
 PCTSTR = ctypes.c_wchar_p
 PTSTR = ctypes.c_wchar_p
 LPDWORD = PDWORD = ctypes.POINTER(DWORD)
+PULONG = ctypes.POINTER(ULONG)
 #~ LPBYTE = PBYTE = ctypes.POINTER(BYTE)
 LPBYTE = PBYTE = ctypes.c_void_p        # XXX avoids error about types
 
@@ -48,7 +49,7 @@ class GUID(ctypes.Structure):
         ('Data1', DWORD),
         ('Data2', WORD),
         ('Data3', WORD),
-        ('Data4', BYTE * 8),
+        ('Data4', ctypes.c_ubyte * 8),
     ]
 
     def __str__(self):
@@ -59,7 +60,6 @@ class GUID(ctypes.Structure):
             ''.join(["{:02x}".format(d) for d in self.Data4[:2]]),
             ''.join(["{:02x}".format(d) for d in self.Data4[2:]]),
         )
-
 
 class SP_DEVINFO_DATA(ctypes.Structure):
     _fields_ = [
@@ -72,6 +72,19 @@ class SP_DEVINFO_DATA(ctypes.Structure):
     def __str__(self):
         return "ClassGuid:{} DevInst:{}".format(self.ClassGuid, self.DevInst)
 
+class SP_DEVPROPKEY(ctypes.Structure):
+    _fields_ = [
+        ('fmtid', GUID),
+        ('pid', ULONG),
+    ]
+
+    def __str__(self):
+        return "fmtid:{} pid:{}".format(self.fmtid, self.pid)
+
+guiddata4 = ctypes.c_ubyte * 8
+DEVPKEY_Device_BusReportedDeviceDesc = SP_DEVPROPKEY(GUID(0x540b947e, 0x8b40, 0x45bc, guiddata4(0xa8, 0xa2, 0x6a, 0x0b, 0x89, 0x4c, 0xbd, 0xa2)), 4)
+
+PSP_DEVPROPKEY = ctypes.POINTER(SP_DEVPROPKEY)
 
 PSP_DEVINFO_DATA = ctypes.POINTER(SP_DEVINFO_DATA)
 
@@ -98,6 +111,10 @@ SetupDiGetClassDevs.errcheck = ValidHandle
 SetupDiGetDeviceRegistryProperty = setupapi.SetupDiGetDeviceRegistryPropertyW
 SetupDiGetDeviceRegistryProperty.argtypes = [HDEVINFO, PSP_DEVINFO_DATA, DWORD, PDWORD, PBYTE, DWORD, PDWORD]
 SetupDiGetDeviceRegistryProperty.restype = BOOL
+
+SetupDiGetDeviceProperty = setupapi.SetupDiGetDevicePropertyW
+SetupDiGetDeviceProperty.argtypes = [HDEVINFO, PSP_DEVINFO_DATA, PSP_DEVPROPKEY, PULONG, PBYTE, DWORD, PDWORD, DWORD]
+SetupDiGetDeviceProperty.restype = BOOL
 
 SetupDiGetDeviceInstanceId = setupapi.SetupDiGetDeviceInstanceIdW
 SetupDiGetDeviceInstanceId.argtypes = [HDEVINFO, PSP_DEVINFO_DATA, PTSTR, DWORD, PDWORD]
@@ -260,6 +277,19 @@ def iterate_comports():
             else:
                 info.hwid = szHardwareID_str
 
+            # Bus Reported Name (Only supported with Windows 7 and higher
+            szPropertyBuffer = ctypes.create_unicode_buffer(250)
+            devproptype = ULONG()
+            if SetupDiGetDeviceProperty(
+                    g_hdi,
+                    ctypes.byref(devinfo),
+                    ctypes.byref(DEVPKEY_Device_BusReportedDeviceDesc),
+                    ctypes.byref(devproptype),
+                    ctypes.byref(szPropertyBuffer),
+                    ctypes.sizeof(szPropertyBuffer) - 1,
+                    None,0):
+                info.name =  szPropertyBuffer.value
+                
             # friendly name
             szFriendlyName = ctypes.create_unicode_buffer(250)
             if SetupDiGetDeviceRegistryProperty(
