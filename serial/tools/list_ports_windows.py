@@ -113,7 +113,7 @@ RegCloseKey.argtypes = [HKEY]
 RegCloseKey.restype = LONG
 
 RegQueryValueEx = advapi32.RegQueryValueExW
-RegQueryValueEx.argtypes = [HKEY, LPCTSTR , LPDWORD, LPDWORD, LPBYTE, LPDWORD]
+RegQueryValueEx.argtypes = [HKEY, LPCTSTR, LPDWORD, LPDWORD, LPBYTE, LPDWORD]
 RegQueryValueEx.restype = LONG
 
 
@@ -206,7 +206,7 @@ def iterate_comports():
             # stringify
             szHardwareID_str = szHardwareID.value
 
-            info = list_ports_common.ListPortInfo(port_name_buffer.value)
+            info = list_ports_common.ListPortInfo(port_name_buffer.value, skip_link_detection=True)
 
             # in case of USB, make a more readable string, similar to that form
             # that we also generate on other platforms
