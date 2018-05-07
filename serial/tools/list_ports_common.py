@@ -11,7 +11,7 @@ import re
 import glob
 import os
 import os.path
-
+import platform
 
 def numsplit(text):
     """\
@@ -46,7 +46,8 @@ class ListPortInfo(object):
         self.product = None
         self.interface = None
         # special handling for links
-        if device is not None and os.path.islink(device):
+        # (Not required in Windows. Skip because os.path.islink can be really slow there)
+        if platform.system() != "Windows" and device is not None and os.path.islink(device):
             self.hwid = 'LINK={}'.format(os.path.realpath(device))
 
     def usb_description(self):
