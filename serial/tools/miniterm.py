@@ -349,8 +349,8 @@ class Miniterm(object):
         self.eol = eol
         self.filters = filters
         self.update_transformations()
-        self.exit_character = 0x1d  # GS/CTRL+]
-        self.menu_character = 0x14  # Menu: CTRL+T
+        self.exit_character = unichr(0x1d)  # GS/CTRL+]
+        self.menu_character = unichr(0x14)  # Menu: CTRL+T
         self.alive = None
         self._reader_alive = None
         self.receiver_thread = None
