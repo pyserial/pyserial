@@ -86,7 +86,7 @@ pySerial can be installed from Conda::
     
     conda install -c conda-forge pyserial
     
-Currently the default conda channel will provide version 2.7 whereas the
+Currently the default conda channel will provide version 3.4 whereas the
 conda-forge channel provides the current 3.x version.
 
 Conda: https://www.continuum.io/downloads
