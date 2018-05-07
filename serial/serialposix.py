@@ -26,6 +26,8 @@
 # - aix (AIX)               /dev/tty%d
 
 
+from __future__ import absolute_import
+
 # pylint: disable=abstract-method
 import errno
 import fcntl
