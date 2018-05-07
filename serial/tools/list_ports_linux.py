@@ -91,6 +91,7 @@ class SysFS(list_ports_common.ListPortInfo):
 def comports(include_links=False):
     devices = glob.glob('/dev/ttyS*')           # built-in serial ports
     devices.extend(glob.glob('/dev/ttyUSB*'))   # usb-serial with own driver
+    devices.extend(glob.glob('/dev/ttyXRUSB*')) # xr-usb-serial port exar (DELL Edge 3001)
     devices.extend(glob.glob('/dev/ttyACM*'))   # usb-serial with CDC-ACM profile
     devices.extend(glob.glob('/dev/ttyAMA*'))   # ARM internal port (raspi)
     devices.extend(glob.glob('/dev/rfcomm*'))   # BT serial devices
