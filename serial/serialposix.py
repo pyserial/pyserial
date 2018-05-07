@@ -49,6 +49,9 @@ class PlatformSpecificBase(object):
     def _set_rs485_mode(self, rs485_settings):
         raise NotImplementedError('RS485 not supported on this platform')
 
+    def set_low_latency_mode(self, low_latency_settings):
+        raise NotImplementedError('Low latency not supported on this platform')
+
 
 # some systems support an extra flag to enable the two in POSIX unsupported
 # paritiy settings for MARK and SPACE
@@ -112,6 +115,24 @@ if plat[:5] == 'linux':    # Linux (confirmed)  # noqa
             3500000: 0o010016,
             4000000: 0o010017
         }
+
+        def set_low_latency_mode(self, low_latency_settings):
+            buf = array.array('i', [0] * 32)
+
+            try:
+                # get serial_struct
+                fcntl.ioctl(self.fd, termios.TIOCGSERIAL, buf)
+
+                # set or unset ASYNC_LOW_LATENCY flag
+                if low_latency_settings:
+                    buf[4] |= 0x2000
+                else:
+                    buf[4] &= ~0x2000
+
+                # set serial_struct
+                fcntl.ioctl(self.fd, termios.TIOCSSERIAL, buf)
+            except IOError as e:
+                raise ValueError('Failed to update ASYNC_LOW_LATENCY flag to {}: {}'.format(low_latency_settings, e))
 
         def _set_special_baudrate(self, baudrate):
             # right size is 44 on x86_64, allow for some growth
