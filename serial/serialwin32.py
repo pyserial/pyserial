@@ -9,6 +9,8 @@
 #
 # Initial patch to use ctypes by Giovanni Bajo <rasky@develer.com>
 
+from __future__ import absolute_import
+
 # pylint: disable=invalid-name,too-few-public-methods
 import ctypes
 import time

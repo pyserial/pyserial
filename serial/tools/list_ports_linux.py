@@ -8,6 +8,8 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
+from __future__ import absolute_import
+
 import glob
 import os
 from serial.tools import list_ports_common

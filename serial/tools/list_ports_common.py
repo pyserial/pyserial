@@ -7,6 +7,9 @@
 # (C) 2015 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
+
+from __future__ import absolute_import
+
 import re
 import glob
 import os
@@ -32,7 +35,7 @@ def numsplit(text):
 class ListPortInfo(object):
     """Info collection base class for serial ports"""
 
-    def __init__(self, device=None):
+    def __init__(self, device, skip_link_detection=False):
         self.device = device
         self.name = os.path.basename(device)
         self.description = 'n/a'
@@ -46,7 +49,7 @@ class ListPortInfo(object):
         self.product = None
         self.interface = None
         # special handling for links
-        if device is not None and os.path.islink(device):
+        if not skip_link_detection and device is not None and os.path.islink(device):
             self.hwid = 'LINK={}'.format(os.path.realpath(device))
 
     def usb_description(self):
@@ -91,6 +94,7 @@ class ListPortInfo(object):
         else:
             raise IndexError('{} > 2'.format(index))
 
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 def list_links(devices):
     """\
@@ -102,6 +106,7 @@ def list_links(devices):
         if os.path.islink(device) and os.path.realpath(device) in devices:
             links.append(device)
     return links
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test

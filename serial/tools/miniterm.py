@@ -3,9 +3,11 @@
 # Very simple serial terminal
 #
 # This file is part of pySerial. https://github.com/pyserial/pyserial
-# (C)2002-2015 Chris Liechti <cliechti@gmx.net>
+# (C)2002-2017 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
+
+from __future__ import absolute_import
 
 import codecs
 import os
@@ -347,8 +349,8 @@ class Miniterm(object):
         self.eol = eol
         self.filters = filters
         self.update_transformations()
-        self.exit_character = 0x1d  # GS/CTRL+]
-        self.menu_character = 0x14  # Menu: CTRL+T
+        self.exit_character = unichr(0x1d)  # GS/CTRL+]
+        self.menu_character = unichr(0x14)  # Menu: CTRL+T
         self.alive = None
         self._reader_alive = None
         self.receiver_thread = None
@@ -520,7 +522,7 @@ class Miniterm(object):
         elif c == '\x06':                       # CTRL+F -> edit filters
             self.change_filter()
         elif c == '\x0c':                       # CTRL+L -> EOL mode
-            modes = list(EOL_TRANSFORMATIONS)  # keys
+            modes = list(EOL_TRANSFORMATIONS)   # keys
             eol = modes.index(self.eol) + 1
             if eol >= len(modes):
                 eol = 0
@@ -760,130 +762,130 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Miniterm - A simple terminal program for the serial port.")
+        description='Miniterm - A simple terminal program for the serial port.')
 
     parser.add_argument(
-        "port",
+        'port',
         nargs='?',
-        help="serial port name ('-' to show port list)",
+        help='serial port name ("-" to show port list)',
         default=default_port)
 
     parser.add_argument(
-        "baudrate",
+        'baudrate',
         nargs='?',
         type=int,
-        help="set baud rate, default: %(default)s",
+        help='set baud rate, default: %(default)s',
         default=default_baudrate)
 
-    group = parser.add_argument_group("port settings")
+    group = parser.add_argument_group('port settings')
 
     group.add_argument(
-        "--parity",
+        '--parity',
         choices=['N', 'E', 'O', 'S', 'M'],
         type=lambda c: c.upper(),
-        help="set parity, one of {N E O S M}, default: N",
+        help='set parity, one of {N E O S M}, default: N',
         default='N')
 
     group.add_argument(
-        "--rtscts",
-        action="store_true",
-        help="enable RTS/CTS flow control (default off)",
+        '--rtscts',
+        action='store_true',
+        help='enable RTS/CTS flow control (default off)',
         default=False)
 
     group.add_argument(
-        "--xonxoff",
-        action="store_true",
-        help="enable software flow control (default off)",
+        '--xonxoff',
+        action='store_true',
+        help='enable software flow control (default off)',
         default=False)
 
     group.add_argument(
-        "--rts",
+        '--rts',
         type=int,
-        help="set initial RTS line state (possible values: 0, 1)",
+        help='set initial RTS line state (possible values: 0, 1)',
         default=default_rts)
 
     group.add_argument(
-        "--dtr",
+        '--dtr',
         type=int,
-        help="set initial DTR line state (possible values: 0, 1)",
+        help='set initial DTR line state (possible values: 0, 1)',
         default=default_dtr)
 
     group.add_argument(
-        "--non-exclusive",
-        dest="exclusive",
-        action="store_false",
-        help="disable locking for native ports",
+        '--non-exclusive',
+        dest='exclusive',
+        action='store_false',
+        help='disable locking for native ports',
         default=True)
 
     group.add_argument(
-        "--ask",
-        action="store_true",
-        help="ask again for port when open fails",
+        '--ask',
+        action='store_true',
+        help='ask again for port when open fails',
         default=False)
 
-    group = parser.add_argument_group("data handling")
+    group = parser.add_argument_group('data handling')
 
     group.add_argument(
-        "-e", "--echo",
-        action="store_true",
-        help="enable local echo (default off)",
+        '-e', '--echo',
+        action='store_true',
+        help='enable local echo (default off)',
         default=False)
 
     group.add_argument(
-        "--encoding",
-        dest="serial_port_encoding",
-        metavar="CODEC",
-        help="set the encoding for the serial port (e.g. hexlify, Latin1, UTF-8), default: %(default)s",
+        '--encoding',
+        dest='serial_port_encoding',
+        metavar='CODEC',
+        help='set the encoding for the serial port (e.g. hexlify, Latin1, UTF-8), default: %(default)s',
         default='UTF-8')
 
     group.add_argument(
-        "-f", "--filter",
-        action="append",
-        metavar="NAME",
-        help="add text transformation",
+        '-f', '--filter',
+        action='append',
+        metavar='NAME',
+        help='add text transformation',
         default=[])
 
     group.add_argument(
-        "--eol",
+        '--eol',
         choices=['CR', 'LF', 'CRLF'],
         type=lambda c: c.upper(),
-        help="end of line mode",
+        help='end of line mode',
         default='CRLF')
 
     group.add_argument(
-        "--raw",
-        action="store_true",
-        help="Do no apply any encodings/transformations",
+        '--raw',
+        action='store_true',
+        help='Do no apply any encodings/transformations',
         default=False)
 
-    group = parser.add_argument_group("hotkeys")
+    group = parser.add_argument_group('hotkeys')
 
     group.add_argument(
-        "--exit-char",
+        '--exit-char',
         type=int,
         metavar='NUM',
-        help="Unicode of special character that is used to exit the application, default: %(default)s",
+        help='Unicode of special character that is used to exit the application, default: %(default)s',
         default=0x1d)  # GS/CTRL+]
 
     group.add_argument(
-        "--menu-char",
+        '--menu-char',
         type=int,
         metavar='NUM',
-        help="Unicode code of special character that is used to control miniterm (menu), default: %(default)s",
+        help='Unicode code of special character that is used to control miniterm (menu), default: %(default)s',
         default=0x14)  # Menu: CTRL+T
 
-    group = parser.add_argument_group("diagnostics")
+    group = parser.add_argument_group('diagnostics')
 
     group.add_argument(
-        "-q", "--quiet",
-        action="store_true",
-        help="suppress non-error messages",
+        '-q', '--quiet',
+        action='store_true',
+        help='suppress non-error messages',
         default=False)
 
     group.add_argument(
-        "--develop",
-        action="store_true",
-        help="show Python traceback on error",
+        '--develop',
+        action='store_true',
+        help='show Python traceback on error',
         default=False)
 
     args = parser.parse_args()
@@ -977,7 +979,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
     except KeyboardInterrupt:
         pass
     if not args.quiet:
-        sys.stderr.write("\n--- exit ---\n")
+        sys.stderr.write('\n--- exit ---\n')
     miniterm.join()
     miniterm.close()
 

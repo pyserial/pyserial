@@ -16,6 +16,8 @@ Additionally a grep function is supplied that can be used to search for ports
 based on their descriptions or hardware ID.
 """
 
+from __future__ import absolute_import
+
 import sys
 import os
 import re
