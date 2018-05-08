@@ -789,6 +789,9 @@ class VTIMESerial(Serial):
     the error handling is degraded.
 
     Overall timeout is disabled when inter-character timeout is used.
+
+    Note that this implementation does NOT support cancel_read(), it will
+    just ignore that.
     """
 
     def _reconfigure_port(self, force_update=True):

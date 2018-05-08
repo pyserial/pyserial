@@ -465,6 +465,18 @@ Native ports
 
         .. versionadded:: 2.5
 
+    .. method:: readline(size=-1)
+
+        Provided via :meth:`io.IOBase.readline`
+
+    .. method:: readlines(hint=-1)
+
+        Provided via :meth:`io.IOBase.readlines`
+
+    .. method:: writelines(lines)
+
+        Provided via :meth:`io.IOBase.writelines`
+
     The port settings can be read and written as dictionary. The following
     keys are supported: ``write_timeout``, ``inter_byte_timeout``,
     ``dsrdtr``, ``baudrate``, ``timeout``, ``parity``, ``bytesize``,
@@ -706,8 +718,9 @@ Native ports
 
 
 Implementation detail: some attributes and functions are provided by the
-class :class:`SerialBase` and some by the platform specific class and
-others by the base class mentioned above.
+class :class:`serial.SerialBase` which inherits from :class:`io.RawIOBase`
+and some by the platform specific class and others by the base class
+mentioned above.
 
 
 RS485 support
