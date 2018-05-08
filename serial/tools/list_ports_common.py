@@ -75,9 +75,13 @@ class ListPortInfo(object):
         self.hwid = self.usb_info()
 
     def __eq__(self, other):
-        return self.device == other.device
+        return isinstance(other, ListPortInfo) and self.device == other.device
 
     def __lt__(self, other):
+        if not isinstance(other, ListPortInfo):
+            raise TypeError('unorderable types: {}() and {}()'.format(
+                type(self).__name__,
+                type(other).__name__))
         return numsplit(self.device) < numsplit(other.device)
 
     def __str__(self):
