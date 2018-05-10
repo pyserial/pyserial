@@ -35,6 +35,7 @@ HDEVINFO = ctypes.c_void_p
 LPCTSTR = ctypes.c_wchar_p
 PCTSTR = ctypes.c_wchar_p
 PTSTR = ctypes.c_wchar_p
+UBYTE = ctypes.c_ubyte
 LPDWORD = PDWORD = ctypes.POINTER(DWORD)
 PULONG = ctypes.POINTER(ULONG)
 #~ LPBYTE = PBYTE = ctypes.POINTER(BYTE)
@@ -49,7 +50,7 @@ class GUID(ctypes.Structure):
         ('Data1', DWORD),
         ('Data2', WORD),
         ('Data3', WORD),
-        ('Data4', ctypes.c_ubyte * 8),
+        ('Data4', UBYTE * 8),
     ]
 
     def __str__(self):
