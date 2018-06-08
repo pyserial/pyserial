@@ -1037,4 +1037,3 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __name__ == '__main__':
     main()
-
