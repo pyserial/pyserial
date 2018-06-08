@@ -88,6 +88,8 @@ class ConsoleBase(object):
 if os.name == 'nt':  # noqa
     import msvcrt
     import ctypes
+    import ctypes.wintypes as wintypes
+    import platform
 
     class Out(object):
         """file-like wrapper that uses os.write"""
@@ -102,12 +104,28 @@ if os.name == 'nt':  # noqa
             os.write(self.fd, s)
 
     class Console(ConsoleBase):
+        nav = {
+            'H': '\x1b[A',  # UP
+            'P': '\x1b[B',  # DOWN
+            'K': '\x1b[D',  # LEFT
+            'M': '\x1b[C',  # RIGHT
+            'G': '\x1b[H',  # HOME
+            'O': '\x1b[F',  # END
+        }
+        
         def __init__(self):
             super(Console, self).__init__()
+            if not hasattr(wintypes, 'LPDWORD'): # PY2
+                wintypes.LPDWORD = ctypes.POINTER(wintypes.DWORD)
+            self._saved_cm = mode = wintypes.DWORD()
+            ctypes.windll.kernel32.GetConsoleMode(ctypes.windll.kernel32.GetStdHandle(-11), ctypes.byref(self._saved_cm))
             self._saved_ocp = ctypes.windll.kernel32.GetConsoleOutputCP()
             self._saved_icp = ctypes.windll.kernel32.GetConsoleCP()
             ctypes.windll.kernel32.SetConsoleOutputCP(65001)
             ctypes.windll.kernel32.SetConsoleCP(65001)
+            # ANSI handling available through SetConsoleMode since v1511
+            if platform.release() == '10' and int(platform.version().split('.')[2]) > 10586:
+                ctypes.windll.kernel32.SetConsoleMode(ctypes.windll.kernel32.GetStdHandle(-11), 0x7)
             self.output = codecs.getwriter('UTF-8')(Out(sys.stdout.fileno()), 'replace')
             # the change of the code page is not propagated to Python, manually fix it
             sys.stderr = codecs.getwriter('UTF-8')(Out(sys.stderr.fileno()), 'replace')
@@ -117,14 +135,21 @@ if os.name == 'nt':  # noqa
         def __del__(self):
             ctypes.windll.kernel32.SetConsoleOutputCP(self._saved_ocp)
             ctypes.windll.kernel32.SetConsoleCP(self._saved_icp)
+            ctypes.windll.kernel32.SetConsoleMode(ctypes.windll.kernel32.GetStdHandle(-11), self._saved_cm)
 
         def getkey(self):
             while True:
                 z = msvcrt.getwch()
                 if z == unichr(13):
                     return unichr(10)
-                elif z in (unichr(0), unichr(0x0e)):    # functions keys, ignore
+                elif z in unichr(0):    # functions keys, ignore
                     msvcrt.getwch()
+                elif z in unichr(0xe0):    # map special keys
+                    code = msvcrt.getwch()
+                    try:
+                        return self.nav[code]
+                    except KeyError:
+                        pass
                 else:
                     return z
 
@@ -986,3 +1011,4 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __name__ == '__main__':
     main()
+
