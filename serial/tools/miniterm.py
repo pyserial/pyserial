@@ -134,7 +134,8 @@ if os.name == 'nt':  # noqa
             self._saved_icp = ctypes.windll.kernel32.GetConsoleCP()
             ctypes.windll.kernel32.SetConsoleOutputCP(65001)
             ctypes.windll.kernel32.SetConsoleCP(65001)
-            # ANSI handling available through SetConsoleMode since v1511 https://en.wikipedia.org/wiki/ANSI_escape_code#cite_note-win10th2-1
+            # ANSI handling available through SetConsoleMode since Windows 10 v1511 
+            # https://en.wikipedia.org/wiki/ANSI_escape_code#cite_note-win10th2-1
             if platform.release() == '10' and int(platform.version().split('.')[2]) > 10586:
                 ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
                 import ctypes.wintypes as wintypes
