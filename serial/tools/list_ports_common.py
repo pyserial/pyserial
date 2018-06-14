@@ -77,6 +77,9 @@ class ListPortInfo(object):
     def __eq__(self, other):
         return isinstance(other, ListPortInfo) and self.device == other.device
 
+    def __hash__(self):
+        return hash(self.device)
+
     def __lt__(self, other):
         if not isinstance(other, ListPortInfo):
             raise TypeError('unorderable types: {}() and {}()'.format(
