@@ -157,6 +157,22 @@ Native ports
             Returns an instance of :class:`bytes` when available (Python 2.6
             and newer) and :class:`str` otherwise.
 
+    .. method:: read_until(expected=LF, size=None)
+
+        :param expected: The byte string to search for.
+        :param size: Number of bytes to read.
+        :return: Bytes read from the port.
+        :rtype: bytes
+
+        Read until an expected sequence is found ('\n' by default), the size
+        is exceeded or until timeout occurs. If a timeout is set it may
+        return less characters as requested. With no timeout it will block
+        until the requested number of bytes is read.
+
+        .. versionchanged:: 2.5
+            Returns an instance of :class:`bytes` when available (Python 2.6
+            and newer) and :class:`str` otherwise.
+
     .. method:: write(data)
 
         :param data: Data to send.
