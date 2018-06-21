@@ -164,7 +164,7 @@ Native ports
         :return: Bytes read from the port.
         :rtype: bytes
 
-        Read until an expected sequence is found ('\n' by default), the size
+        Read until an expected sequence is found ('\\n' by default), the size
         is exceeded or until timeout occurs. If a timeout is set it may
         return less characters as requested. With no timeout it will block
         until the requested number of bytes is read.
