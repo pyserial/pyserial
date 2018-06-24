@@ -202,7 +202,7 @@ device (e.g. with the ``ps`` command in the TTY column), assumed to be
 ``/dev/pts/2`` here, double quotes are used so that the ampersand in the URL is
 not interpreted by the shell::
 
-    python -m serial.tools.miniterm "spy:///dev/ttyUSB0?file=/dev/pts/2&color" 115200
+    miniterm "spy:///dev/ttyUSB0?file=/dev/pts/2&color" 115200
 
 The spy output will be live in the second terminal window.
 

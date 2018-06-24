@@ -93,7 +93,7 @@ Testing ports
 =============
 Listing ports
 -------------
-``python -m serial.tools.list_ports`` will print a list of available ports. It
+``list_ports`` will print a list of available ports. It
 is also possible to add a regexp as first argument and the list will only
 include entries that matched.
 
@@ -104,9 +104,12 @@ include entries that matched.
     ports.
 
 .. versionadded: 2.6
+.. versionchanged: 3.5 added ``list_ports`` entry point
 
 Accessing ports
 ---------------
 pySerial includes a small console based terminal program called
-:ref:`miniterm`.  It can be started with ``python -m serial.tools.miniterm <port_name>``
+:ref:`miniterm`.  It can be started with ``miniterm <port_name>``
 (use option ``-h`` to get a listing of all options).
+
+.. versionchanged: 3.5 added ``miniterm`` entry point

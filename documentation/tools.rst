@@ -9,7 +9,8 @@ serial.tools.list_ports
 .. module:: serial.tools.list_ports
 
 This module can be executed to get a list of ports (``python -m
-serial.tools.list_ports``). It also contains the following functions.
+serial.tools.list_ports``, ``list_ports`` entry point).
+It also contains the following functions.
 
 
 .. function:: comports(include_links=False)
@@ -123,9 +124,9 @@ serial.tools.list_ports``). It also contains the following functions.
 
 **Command line usage**
 
-Help for ``python -m serial.tools.list_ports``::
+Help for ``list_ports``::
 
-    usage: list_ports.py [-h] [-v] [-q] [-n N] [-s] [regexp]
+    usage: list_ports [-h] [-v] [-q] [-n N] [-s] [regexp]
 
     Serial port enumeration
 
@@ -144,7 +145,7 @@ Examples:
 
 - List all ports with details::
 
-    $ python -m serial.tools.list_ports -v
+    $ list_ports -v
     /dev/ttyS0
         desc: ttyS0
         hwid: PNP0501
@@ -156,11 +157,12 @@ Examples:
 
 - List the 2nd port matching a USB VID:PID pattern::
 
-    $ python -m serial.tools.list_ports 1234:5678 -q -n 2
+    $ list_ports 1234:5678 -q -n 2
     /dev/ttyUSB1
 
 .. versionadded:: 2.6
 .. versionchanged:: 3.0 returning ``ListPortInfo`` objects instead of a tuple
+.. versionchanged:: 3.5 ``list_ports`` entry point added
 
 
 .. _miniterm:
@@ -192,13 +194,13 @@ Miniterm supports :rfc:`2217` remote serial ports and raw sockets using :ref:`UR
 such as ``rfc2217://<host>:<port>`` respectively ``socket://<host>:<port>`` as
 *port* argument when invoking.
 
-Command line options ``python -m serial.tools.miniterm -h``::
+Command line options ``miniterm -h``::
 
-    usage: miniterm.py [-h] [--parity {N,E,O,S,M}] [--rtscts] [--xonxoff]
-                       [--rts RTS] [--dtr DTR] [-e] [--encoding CODEC] [-f NAME]
-                       [--eol {CR,LF,CRLF}] [--raw] [--exit-char NUM]
-                       [--menu-char NUM] [-q] [--develop]
-                       [port] [baudrate]
+    usage: miniterm [-h] [--parity {N,E,O,S,M}] [--rtscts] [--xonxoff]
+                    [--rts RTS] [--dtr DTR] [-e] [--encoding CODEC] [-f NAME]
+                    [--eol {CR,LF,CRLF}] [--raw] [--exit-char NUM]
+                    [--menu-char NUM] [-q] [--develop]
+                    [port] [baudrate]
 
     Miniterm - A simple terminal program for the serial port.
 
@@ -287,4 +289,4 @@ also possible to exit (:kbd:`Ctrl+]`) or change the port (:kbd:`p`).
     Apply encoding on serial port, convert to Unicode for console.
     Added new filters, default to stripping terminal control sequences.
     Added ``--ask`` option.
-
+.. versionchanged:: 3.5 ``miniterm`` entry point added

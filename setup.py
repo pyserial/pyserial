@@ -13,10 +13,7 @@ import io
 import os
 import re
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup
 
 
 def read(*names, **kwargs):
@@ -97,4 +94,10 @@ Latest:
     ],
     platforms='any',
     scripts=['serial/tools/miniterm.py'],
+    entry_points={
+        'console_scripts': [
+            'miniterm = serial.tools.miniterm:main',
+            'list_ports = serial.tools.list_ports:main',
+        ],
+    }
 )
