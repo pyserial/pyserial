@@ -53,7 +53,7 @@ class PlatformSpecificBase(object):
 
     def set_low_latency_mode(self, low_latency_settings):
         raise NotImplementedError('Low latency not supported on this platform')
-
+    
 
 # some systems support an extra flag to enable the two in POSIX unsupported
 # paritiy settings for MARK and SPACE
@@ -202,6 +202,8 @@ elif plat == 'cygwin':       # cygwin/win32 (confirmed)
 elif plat[:6] == 'darwin':   # OS X
     import array
     IOSSIOSPEED = 0x80045402  # _IOW('T', 2, speed_t)
+    TIOCSBRK = 0x2000747B # _IO('t', 123)
+    TIOCCBRK = 0x2000747A # _IO('t', 122)
 
     class PlatformSpecific(PlatformSpecificBase):
         osx_version = os.uname()[2].split('.')
@@ -211,6 +213,15 @@ elif plat[:6] == 'darwin':   # OS X
                 # use IOKit-specific call to set up high speeds
                 buf = array.array('i', [baudrate])
                 fcntl.ioctl(self.fd, IOSSIOSPEED, buf, 1)
+
+        def _update_break_state(self):
+            """\
+            Set break: Controls TXD. When active, no transmitting is possible.
+            """
+            if self._break_state:
+                fcntl.ioctl(self.fd, TIOCSBRK)
+            else:
+                fcntl.ioctl(self.fd, TIOCCBRK)
 
 elif plat[:3] == 'bsd' or \
      plat[:7] == 'freebsd' or \
