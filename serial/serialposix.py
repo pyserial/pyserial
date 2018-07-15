@@ -202,11 +202,12 @@ elif plat == 'cygwin':       # cygwin/win32 (confirmed)
 elif plat[:6] == 'darwin':   # OS X
     import array
     IOSSIOSPEED = 0x80045402  # _IOW('T', 2, speed_t)
-    TIOCSBRK = 0x2000747B # _IO('t', 123)
-    TIOCCBRK = 0x2000747A # _IO('t', 122)
 
     class PlatformSpecific(PlatformSpecificBase):
         osx_version = os.uname()[2].split('.')
+        TIOCSBRK = 0x2000747B # _IO('t', 123)
+        TIOCCBRK = 0x2000747A # _IO('t', 122)
+
         # Tiger or above can support arbitrary serial speeds
         if int(osx_version[0]) >= 8:
             def _set_special_baudrate(self, baudrate):
@@ -219,9 +220,9 @@ elif plat[:6] == 'darwin':   # OS X
             Set break: Controls TXD. When active, no transmitting is possible.
             """
             if self._break_state:
-                fcntl.ioctl(self.fd, TIOCSBRK)
+                fcntl.ioctl(self.fd, PlatformSpecific.TIOCSBRK)
             else:
-                fcntl.ioctl(self.fd, TIOCCBRK)
+                fcntl.ioctl(self.fd, PlatformSpecific.TIOCCBRK)
 
 elif plat[:3] == 'bsd' or \
      plat[:7] == 'freebsd' or \
@@ -237,6 +238,19 @@ elif plat[:3] == 'bsd' or \
         # The baud rate may be passed in as
         # a literal value.
         BAUDRATE_CONSTANTS = ReturnBaudrate()
+
+        TIOCSBRK = 0x2000747B # _IO('t', 123)
+        TIOCCBRK = 0x2000747A # _IO('t', 122)
+
+        
+        def _update_break_state(self):
+            """\
+            Set break: Controls TXD. When active, no transmitting is possible.
+            """
+            if self._break_state:
+                fcntl.ioctl(self.fd, PlatformSpecific.TIOCSBRK)
+            else:
+                fcntl.ioctl(self.fd, PlatformSpecific.TIOCCBRK)
 
 else:
     class PlatformSpecific(PlatformSpecificBase):
