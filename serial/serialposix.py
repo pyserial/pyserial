@@ -53,6 +53,15 @@ class PlatformSpecificBase(object):
 
     def set_low_latency_mode(self, low_latency_settings):
         raise NotImplementedError('Low latency not supported on this platform')
+
+    def _update_break_state(self):
+        """\
+        Set break: Controls TXD. When active, no transmitting is possible.
+        """
+        if self._break_state:
+            fcntl.ioctl(self.fd, TIOCSBRK)
+        else:
+            fcntl.ioctl(self.fd, TIOCCBRK)
     
 
 # some systems support an extra flag to enable the two in POSIX unsupported
@@ -659,15 +668,6 @@ class Serial(SerialBase, PlatformSpecific):
         if not self.is_open:
             raise portNotOpenError
         termios.tcsendbreak(self.fd, int(duration / 0.25))
-
-    def _update_break_state(self):
-        """\
-        Set break: Controls TXD. When active, no transmitting is possible.
-        """
-        if self._break_state:
-            fcntl.ioctl(self.fd, TIOCSBRK)
-        else:
-            fcntl.ioctl(self.fd, TIOCCBRK)
 
     def _update_rts_state(self):
         """Set terminal status line: Request To Send"""
