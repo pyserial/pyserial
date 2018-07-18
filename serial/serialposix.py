@@ -36,6 +36,7 @@ import select
 import struct
 import sys
 import termios
+import time 
 
 import serial
 from serial.serialutil import SerialBase, SerialException, to_bytes, \
@@ -538,6 +539,10 @@ class Serial(SerialBase, PlatformSpecific):
                     raise SerialException('read failed: {}'.format(e))
             if timeout.expired():
                 break
+
+        # Give an opportunity to switch a context. It prevents deadlock if 
+        # a greenthread is used (e.g. after eventlet.monkey_patch()).  
+        time.sleep(0)
         return bytes(read)
 
     def cancel_read(self):
