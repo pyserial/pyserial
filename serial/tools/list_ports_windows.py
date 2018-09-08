@@ -39,7 +39,7 @@ PCTSTR = ctypes.c_wchar_p
 PTSTR = ctypes.c_wchar_p
 LPDWORD = PDWORD = ctypes.POINTER(DWORD)
 #~ LPBYTE = PBYTE = ctypes.POINTER(BYTE)
-LPBYTE = PBYTE = ctypes.c_void_p        # XXX avoids error about types
+LPBYTE = PBYTE = ctypes.c_void_p  # XXX avoids error about types
 
 ACCESS_MASK = DWORD
 REGSAM = ACCESS_MASK
@@ -85,7 +85,9 @@ SetupDiDestroyDeviceInfoList.argtypes = [HDEVINFO]
 SetupDiDestroyDeviceInfoList.restype = BOOL
 
 SetupDiClassGuidsFromName = setupapi.SetupDiClassGuidsFromNameW
-SetupDiClassGuidsFromName.argtypes = [PCTSTR, ctypes.POINTER(GUID), DWORD, PDWORD]
+SetupDiClassGuidsFromName.argtypes = [
+    PCTSTR, ctypes.POINTER(GUID), DWORD, PDWORD
+]
 SetupDiClassGuidsFromName.restype = BOOL
 
 SetupDiEnumDeviceInfo = setupapi.SetupDiEnumDeviceInfo
@@ -98,15 +100,21 @@ SetupDiGetClassDevs.restype = HDEVINFO
 SetupDiGetClassDevs.errcheck = ValidHandle
 
 SetupDiGetDeviceRegistryProperty = setupapi.SetupDiGetDeviceRegistryPropertyW
-SetupDiGetDeviceRegistryProperty.argtypes = [HDEVINFO, PSP_DEVINFO_DATA, DWORD, PDWORD, PBYTE, DWORD, PDWORD]
+SetupDiGetDeviceRegistryProperty.argtypes = [
+    HDEVINFO, PSP_DEVINFO_DATA, DWORD, PDWORD, PBYTE, DWORD, PDWORD
+]
 SetupDiGetDeviceRegistryProperty.restype = BOOL
 
 SetupDiGetDeviceInstanceId = setupapi.SetupDiGetDeviceInstanceIdW
-SetupDiGetDeviceInstanceId.argtypes = [HDEVINFO, PSP_DEVINFO_DATA, PTSTR, DWORD, PDWORD]
+SetupDiGetDeviceInstanceId.argtypes = [
+    HDEVINFO, PSP_DEVINFO_DATA, PTSTR, DWORD, PDWORD
+]
 SetupDiGetDeviceInstanceId.restype = BOOL
 
 SetupDiOpenDevRegKey = setupapi.SetupDiOpenDevRegKey
-SetupDiOpenDevRegKey.argtypes = [HDEVINFO, PSP_DEVINFO_DATA, DWORD, DWORD, DWORD, REGSAM]
+SetupDiOpenDevRegKey.argtypes = [
+    HDEVINFO, PSP_DEVINFO_DATA, DWORD, DWORD, DWORD, REGSAM
+]
 SetupDiOpenDevRegKey.restype = HKEY
 
 advapi32 = ctypes.windll.LoadLibrary("Advapi32")
@@ -117,7 +125,6 @@ RegCloseKey.restype = LONG
 RegQueryValueEx = advapi32.RegQueryValueExW
 RegQueryValueEx.argtypes = [HKEY, LPCTSTR, LPDWORD, LPDWORD, LPBYTE, LPDWORD]
 RegQueryValueEx.restype = LONG
-
 
 DIGCF_PRESENT = 2
 DIGCF_DEVICEINTERFACE = 16
@@ -130,27 +137,26 @@ SPDRP_MFG = 11
 DICS_FLAG_GLOBAL = 1
 DIREG_DEV = 0x00000001
 KEY_READ = 0x20019
+"""
+https://retep998.github.io/doc/winapi/setupapi/constant.SPDRP_LOCATION_PATHS.html
+"""
+SPDRP_LOCATION_INFORMATION = 13
 
 
 def iterate_comports():
     """Return a generator that yields descriptions for serial ports"""
     GUIDs = (GUID * 8)()  # so far only seen one used, so hope 8 are enough...
     guids_size = DWORD()
-    if not SetupDiClassGuidsFromName(
-            "Ports",
-            GUIDs,
-            ctypes.sizeof(GUIDs),
-            ctypes.byref(guids_size)):
+    if not SetupDiClassGuidsFromName("Ports", GUIDs, ctypes.sizeof(GUIDs),
+                                     ctypes.byref(guids_size)):
         raise ctypes.WinError()
 
     # repeat for all possible GUIDs
     for index in range(guids_size.value):
         bInterfaceNumber = None
         g_hdi = SetupDiGetClassDevs(
-            ctypes.byref(GUIDs[index]),
-            None,
-            NULL,
-            DIGCF_PRESENT)  # was DIGCF_PRESENT|DIGCF_DEVICEINTERFACE which misses CDC ports
+            ctypes.byref(GUIDs[index]), None, NULL, DIGCF_PRESENT
+        )  # was DIGCF_PRESENT|DIGCF_DEVICEINTERFACE which misses CDC ports
 
         devinfo = SP_DEVINFO_DATA()
         devinfo.cbSize = ctypes.sizeof(devinfo)
@@ -168,13 +174,9 @@ def iterate_comports():
                 KEY_READ)
             port_name_buffer = ctypes.create_unicode_buffer(250)
             port_name_length = ULONG(ctypes.sizeof(port_name_buffer))
-            RegQueryValueEx(
-                hkey,
-                "PortName",
-                None,
-                None,
-                ctypes.byref(port_name_buffer),
-                ctypes.byref(port_name_length))
+            RegQueryValueEx(hkey, "PortName", None, None,
+                            ctypes.byref(port_name_buffer),
+                            ctypes.byref(port_name_length))
             RegCloseKey(hkey)
 
             # unfortunately does this method also include parallel ports.
@@ -195,25 +197,24 @@ def iterate_comports():
                     None):
                 # fall back to more generic hardware ID if that would fail
                 if not SetupDiGetDeviceRegistryProperty(
-                        g_hdi,
-                        ctypes.byref(devinfo),
-                        SPDRP_HARDWAREID,
-                        None,
+                        g_hdi, ctypes.byref(devinfo), SPDRP_HARDWAREID, None,
                         ctypes.byref(szHardwareID),
-                        ctypes.sizeof(szHardwareID) - 1,
-                        None):
+                        ctypes.sizeof(szHardwareID) - 1, None):
                     # Ignore ERROR_INSUFFICIENT_BUFFER
                     if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
                         raise ctypes.WinError()
             # stringify
             szHardwareID_str = szHardwareID.value
 
-            info = list_ports_common.ListPortInfo(port_name_buffer.value, skip_link_detection=True)
+            info = list_ports_common.ListPortInfo(
+                port_name_buffer.value, skip_link_detection=True)
 
             # in case of USB, make a more readable string, similar to that form
             # that we also generate on other platforms
             if szHardwareID_str.startswith('USB'):
-                m = re.search(r'VID_([0-9a-f]{4})(&PID_([0-9a-f]{4}))?(&MI_(\d{2}))?(\\(\w+))?', szHardwareID_str, re.I)
+                m = re.search(
+                    r'VID_([0-9a-f]{4})(&PID_([0-9a-f]{4}))?(&MI_(\d{2}))?(\\(\w+))?',
+                    szHardwareID_str, re.I)
                 if m:
                     info.vid = int(m.group(1), 16)
                     if m.group(3):
@@ -224,19 +225,32 @@ def iterate_comports():
                         info.serial_number = m.group(7)
                 # calculate a location string
                 loc_path_str = ctypes.create_unicode_buffer(250)
+                ####
                 if SetupDiGetDeviceRegistryProperty(
-                        g_hdi,
-                        ctypes.byref(devinfo),
-                        SPDRP_LOCATION_PATHS,
-                        None,
+                        g_hdi, ctypes.byref(devinfo),
+                        SPDRP_LOCATION_INFORMATION, None,
                         ctypes.byref(loc_path_str),
-                        ctypes.sizeof(loc_path_str) - 1,
-                        None):
-                    m = re.finditer(r'USBROOT\((\w+)\)|#USB\((\w+)\)', loc_path_str.value)
+                        ctypes.sizeof(loc_path_str) - 1, None):
+                    # print('SPDRP_LOCATION_INFORMATION:', loc_path_str.value)
+                    # SPDRP_LOCATION_INFORMATION: Port_#0003.Hub_#0006
+                    regex = re.finditer(r'Port_#(\w+)|\.Hub_#(\w+)',
+                                        loc_path_str.value)
+                    for reg in regex:
+                        port = reg.group(1)
+                        hub = reg.group(2)
+
+                if SetupDiGetDeviceRegistryProperty(
+                        g_hdi, ctypes.byref(devinfo), SPDRP_LOCATION_PATHS,
+                        None, ctypes.byref(loc_path_str),
+                        ctypes.sizeof(loc_path_str) - 1, None):
+                    m = re.finditer(r'USBROOT\((\w+)\)|#USB\((\w+)\)',
+                                    loc_path_str.value)
                     location = []
                     for g in m:
                         if g.group(1):
-                            location.append('{:d}'.format(int(g.group(1)) + 1))
+                            # location.append('{:d}'.format(int(g.group(1)) + 1))
+                            # no more hub equals ONE
+                            location.append('{:d}'.format(int(hub)))
                         else:
                             if len(location) > 1:
                                 location.append('.')
@@ -251,7 +265,9 @@ def iterate_comports():
                         info.location = ''.join(location)
                 info.hwid = info.usb_info()
             elif szHardwareID_str.startswith('FTDIBUS'):
-                m = re.search(r'VID_([0-9a-f]{4})\+PID_([0-9a-f]{4})(\+(\w+))?', szHardwareID_str, re.I)
+                m = re.search(
+                    r'VID_([0-9a-f]{4})\+PID_([0-9a-f]{4})(\+(\w+))?',
+                    szHardwareID_str, re.I)
                 if m:
                     info.vid = int(m.group(1), 16)
                     info.pid = int(m.group(2), 16)
@@ -275,10 +291,10 @@ def iterate_comports():
                     None):
                 info.description = szFriendlyName.value
             #~ else:
-                # Ignore ERROR_INSUFFICIENT_BUFFER
-                #~ if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
-                    #~ raise IOError("failed to get details for %s (%s)" % (devinfo, szHardwareID.value))
-                # ignore errors and still include the port in the list, friendly name will be same as port name
+            # Ignore ERROR_INSUFFICIENT_BUFFER
+            #~ if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
+            #~ raise IOError("failed to get details for %s (%s)" % (devinfo, szHardwareID.value))
+            # ignore errors and still include the port in the list, friendly name will be same as port name
 
             # manufacturer
             szManufacturer = ctypes.create_unicode_buffer(250)
@@ -299,6 +315,7 @@ def iterate_comports():
 def comports(include_links=False):
     """Return a list of info objects about serial ports"""
     return list(iterate_comports())
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
