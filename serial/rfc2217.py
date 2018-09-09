@@ -722,6 +722,23 @@ class Serial(SerialBase):
             raise portNotOpenError
         return bool(self.get_modem_state() & MODEMSTATE_MASK_CD)
 
+    @property
+    def timeout(self):
+        """Get the current timeout setting."""
+        return self._timeout
+
+    @timeout.setter
+    def timeout(self, timeout):
+        """Change timeout setting."""
+        if timeout is not None:
+            try:
+                timeout + 1     # test if it's a number, will throw a TypeError if not...
+            except TypeError:
+                raise ValueError("Not a valid timeout: {!r}".format(timeout))
+            if timeout < 0:
+                raise ValueError("Not a valid timeout: {!r}".format(timeout))
+        self._timeout = timeout
+
     # - - - platform specific - - -
     # None so far
 
