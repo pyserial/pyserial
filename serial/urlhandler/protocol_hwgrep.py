@@ -20,6 +20,8 @@
 # n=<N>     pick the N'th entry instead of the first one (numbering starts at 1)
 # skip_busy tries to open port to check if it is busy, fails on posix as ports are not locked!
 
+from __future__ import absolute_import
+
 import serial
 import serial.tools.list_ports
 

@@ -7,4 +7,6 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
+from __future__ import absolute_import
+
 from serial.rfc2217 import Serial  # noqa

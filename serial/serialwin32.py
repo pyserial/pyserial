@@ -9,6 +9,8 @@
 #
 # Initial patch to use ctypes by Giovanni Bajo <rasky@develer.com>
 
+from __future__ import absolute_import
+
 # pylint: disable=invalid-name,too-few-public-methods
 import ctypes
 import time
@@ -416,7 +418,7 @@ class Serial(SerialBase):
     def set_buffer_size(self, rx_size=4096, tx_size=None):
         """\
         Recommend a buffer size to the driver (device driver can ignore this
-        value). Must be called before the port is opened.
+        value). Must be called after the port is opened.
         """
         if tx_size is None:
             tx_size = rx_size

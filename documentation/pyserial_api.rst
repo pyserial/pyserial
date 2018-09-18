@@ -157,6 +157,22 @@ Native ports
             Returns an instance of :class:`bytes` when available (Python 2.6
             and newer) and :class:`str` otherwise.
 
+    .. method:: read_until(expected=LF, size=None)
+
+        :param expected: The byte string to search for.
+        :param size: Number of bytes to read.
+        :return: Bytes read from the port.
+        :rtype: bytes
+
+        Read until an expected sequence is found ('\\n' by default), the size
+        is exceeded or until timeout occurs. If a timeout is set it may
+        return less characters as requested. With no timeout it will block
+        until the requested number of bytes is read.
+
+        .. versionchanged:: 2.5
+            Returns an instance of :class:`bytes` when available (Python 2.6
+            and newer) and :class:`str` otherwise.
+
     .. method:: write(data)
 
         :param data: Data to send.
@@ -243,7 +259,7 @@ Native ports
         :type: bool
 
         Set RTS line to specified logic level. It is possible to assign this
-        value before opening the serial port, then the value is applied uppon
+        value before opening the serial port, then the value is applied upon
         :meth:`open` (with restrictions, see :meth:`open`).
 
     .. attribute:: dtr
@@ -253,7 +269,7 @@ Native ports
         :type: bool
 
         Set DTR line to specified logic level. It is possible to assign this
-        value before opening the serial port, then the value is applied uppon
+        value before opening the serial port, then the value is applied upon
         :meth:`open` (with restrictions, see :meth:`open`).
 
     Read-only attributes:
@@ -464,6 +480,18 @@ Native ports
         number of bytes read.
 
         .. versionadded:: 2.5
+
+    .. method:: readline(size=-1)
+
+        Provided via :meth:`io.IOBase.readline`
+
+    .. method:: readlines(hint=-1)
+
+        Provided via :meth:`io.IOBase.readlines`
+
+    .. method:: writelines(lines)
+
+        Provided via :meth:`io.IOBase.writelines`
 
     The port settings can be read and written as dictionary. The following
     keys are supported: ``write_timeout``, ``inter_byte_timeout``,
@@ -706,8 +734,9 @@ Native ports
 
 
 Implementation detail: some attributes and functions are provided by the
-class :class:`SerialBase` and some by the platform specific class and
-others by the base class mentioned above.
+class :class:`serial.SerialBase` which inherits from :class:`io.RawIOBase`
+and some by the platform specific class and others by the base class
+mentioned above.
 
 
 RS485 support
