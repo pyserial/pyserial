@@ -613,7 +613,7 @@ class Serial(SerialBase):
         try:
             timeout = Timeout(self._timeout)
             while len(data) < size:
-                if self._thread is None:
+                if self._thread is None or not self._thread.is_alive():
                     raise SerialException('connection failed (reader thread died)')
                 buf = self._read_buffer.get(True, timeout.time_left())
                 if buf is None:
@@ -790,7 +790,6 @@ class Serial(SerialBase):
                         self._telnet_negotiate_option(telnet_command, byte)
                         mode = M_NORMAL
         finally:
-            self._thread = None
             if self.logger:
                 self.logger.debug("read thread terminated")
 
