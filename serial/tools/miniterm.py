@@ -343,10 +343,10 @@ class Miniterm(object):
         self.echo = echo
         if os.path.exists(log):
             self.log = open(log, 'a')
-            from datetime import datetime
-            self.log.write("\r\n\r\n[miniterm] " + str(datetime.now()) + "--------\r\n".format('UTF-8'))
         else:
             self.log = open(log, 'w+')
+        from datetime import datetime
+        self.log.write("\r\n# [miniterm] " + str(datetime.now()) + "--------\r\n".format('UTF-8'))
         self.raw = False
         self.input_encoding = 'UTF-8'
         self.output_encoding = 'UTF-8'
