@@ -483,7 +483,7 @@ class Serial(SerialBase):
             if self.logger:
                 self.logger.info("Negotiated options: {}".format(self._telnet_options))
 
-            # fine, go on, set RFC 2271 specific things
+            # fine, go on, set RFC 2217 specific things
             self._reconfigure_port()
             # all things set up get, now a clean start
             if not self._dsrdtr:
