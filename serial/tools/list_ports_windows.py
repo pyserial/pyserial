@@ -133,26 +133,24 @@ KEY_READ = 0x20019
 
 # GUID Class for Comport Device Interface - 86E0D1E0-8089-11D0-9CE4-08003E301F73
 GUID_DEVINTERFACE_COMPORT = GUID(
-        0x86e0d1e0L,
-        0x8089,
-        0x11d0,
-        (BYTE*8)(0x9c, 0xe4, 0x08, 0x00, 0x3e, 0x30, 0x1f, 0x73))
+    0x86e0d1e0,
+    0x8089,
+    0x11d0,
+    (BYTE*8)(0x9c, 0xe4, 0x08, 0x00, 0x3e, 0x30, 0x1f, 0x73))
 
-def iterate_comports(use_interface_comport=False):
+def iterate_comports():
     """Return a generator that yields descriptions for serial ports"""
     GUIDs = (GUID * 8)()  # so far only seen one used, so hope 8 are enough...
     guids_size = DWORD()
-    if use_interface_comport:
-        GUIDs[0] = GUID_DEVINTERFACE_COMPORT
-        guids_size.value = 1
-    else:
-        if not SetupDiClassGuidsFromName(
-                "Ports",
-                GUIDs,
-                ctypes.sizeof(GUIDs),
-                ctypes.byref(guids_size)):
-            raise ctypes.WinError()
-
+    if not SetupDiClassGuidsFromName(
+            "Ports",
+            GUIDs,
+            ctypes.sizeof(GUIDs),
+            ctypes.byref(guids_size)):
+        raise ctypes.WinError()
+    # Insert Comport Device Interface GUID
+    GUIDs = (GUID * 9)(GUID_DEVINTERFACE_COMPORT, *GUIDs)
+    guids_size = DWORD(guids_size.value + 1)
     # repeat for all possible GUIDs
     for index in range(guids_size.value):
         bInterfaceNumber = None
@@ -160,9 +158,7 @@ def iterate_comports(use_interface_comport=False):
             ctypes.byref(GUIDs[index]),
             None,
             NULL,
-            DIGCF_PRESENT|DIGCF_DEVICEINTERFACE
-                if use_interface_comport
-                else DIGCF_PRESENT  # was DIGCF_PRESENT|DIGCF_DEVICEINTERFACE which misses CDC ports
+            DIGCF_PRESENT if index else DIGCF_PRESENT | DIGCF_DEVICEINTERFACE  # was DIGCF_PRESENT|DIGCF_DEVICEINTERFACE for "Ports" GUIDs which misses CDC ports 
         )
         devinfo = SP_DEVINFO_DATA()
         devinfo.cbSize = ctypes.sizeof(devinfo)
@@ -308,9 +304,9 @@ def iterate_comports(use_interface_comport=False):
         SetupDiDestroyDeviceInfoList(g_hdi)
 
 
-def comports(include_links=False, use_interface_comport=False):
+def comports(include_links=False):
     """Return a list of info objects about serial ports"""
-    return list(iterate_comports(use_interface_comport=use_interface_comport))
+    return list(set(iterate_comports()))
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
