@@ -83,7 +83,7 @@ it waits for the next connect.
         "--stopbits",
         choices=[1, 1.5, 2],
         type=float,
-        help="set stopbits, one of {1 1.5 2}, default: N",
+        help="set stopbits, one of {1 1.5 2}, default: 1",
         default=1)
 
     group.add_argument(
