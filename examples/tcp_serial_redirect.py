@@ -66,11 +66,25 @@ it waits for the next connect.
     group = parser.add_argument_group('serial port')
 
     group.add_argument(
+        "--bytesize",
+        choices=[5, 6, 7, 8],
+        type=int,
+        help="set bytesize, one of {5 6 7 8}, default: 8",
+        default=8)
+
+    group.add_argument(
         "--parity",
         choices=['N', 'E', 'O', 'S', 'M'],
         type=lambda c: c.upper(),
         help="set parity, one of {N E O S M}, default: N",
         default='N')
+
+    group.add_argument(
+        "--stopbits",
+        choices=[1, 1.5, 2],
+        type=float,
+        help="set stopbits, one of {1 1.5 2}, default: 1",
+        default=1)
 
     group.add_argument(
         '--rtscts',
@@ -117,7 +131,9 @@ it waits for the next connect.
     # connect to serial port
     ser = serial.serial_for_url(args.SERIALPORT, do_not_open=True)
     ser.baudrate = args.BAUDRATE
+    ser.bytesize = args.bytesize
     ser.parity = args.parity
+    ser.stopbits = args.stopbits
     ser.rtscts = args.rtscts
     ser.xonxoff = args.xonxoff
 
