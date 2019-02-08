@@ -16,6 +16,7 @@ The function :func:`serial_for_url` accepts the following types of URLs:
 - ``hwgrep://<regexp>[&skip_busy][&n=N]``
 - ``spy://port[?option[=value][&option[=value]]]``
 - ``alt://port?class=<classname>``
+- ``cp2110://<bus>:<dev>:<if>``
 
 .. versionchanged:: 3.0 Options are specified with ``?`` and ``&`` instead of ``/``
 
@@ -235,6 +236,21 @@ Examples::
 
 .. versionadded:: 3.0
 
+``cp2110://``
+=============
+
+This backend implements support for HID-to-UART devices manufactured by Silicon
+Labs and marketed as CP2110 and CP2114. The implementation is (mostly)
+OS-independent and in userland. It relies on `cython-hidapi`_.
+
+.. _cython-hidapi: https://github.com/trezor/cython-hidapi
+
+Examples::
+
+    cp2110://0001:004a:00
+    cp2110://0002:0077:00
+
+.. versionadded:: 3.5
 
 Examples
 ========
@@ -247,5 +263,5 @@ Examples
 - ``hwgrep://0451:f432`` (USB VID:PID)
 - ``spy://COM54?file=log.txt``
 - ``alt:///dev/ttyUSB0?class=PosixPollSerial``
-
+- ``cp2110://0001:004a:00``
 
