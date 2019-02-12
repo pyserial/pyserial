@@ -21,6 +21,7 @@ from ctypes.wintypes import LONG
 from ctypes.wintypes import ULONG
 from ctypes.wintypes import HKEY
 from ctypes.wintypes import BYTE
+import winerror
 import serial
 from serial.win32 import ULONG_PTR
 from serial.tools import list_ports_common
@@ -127,6 +128,9 @@ CM_Get_Device_IDW = cfgmgr32.CM_Get_Device_IDW
 CM_Get_Device_IDW.argtypes = [DWORD, PTSTR, ULONG, ULONG]
 CM_Get_Device_IDW.restype = LONG
 
+CM_MapCrToWin32Err = cfgmgr32.CM_MapCrToWin32Err
+CM_MapCrToWin32Err.argtypes = [DWORD, DWORD]
+CM_MapCrToWin32Err.restype = DWORD
 
 
 DIGCF_PRESENT = 2
@@ -161,21 +165,30 @@ def get_parent_serial_number(child_devinst, child_vid, child_pid, depth=0):
 
     # Get the parent device instance.
     devinst = DWORD()
-    if CM_Get_Parent(
-            ctypes.byref(devinst),
-            child_devinst,
-            0):
-        raise ctypes.WinError()
+    ret  = CM_Get_Parent(ctypes.byref(devinst), child_devinst, 0)
+
+    if ret:
+        win_error = CM_MapCrToWin32Err(DWORD(ret), DWORD(0))
+
+        # If there is no parent available, the child was the root device. We cannot traverse
+        # further.
+        if win_error == winerror.ERROR_NOT_FOUND:
+            return ''
+
+        raise ctypes.WinError(win_error)
+
 
     # Get the ID of the parent device and parse it for vendor ID, product ID, and serial number.
     parentHardwareID = ctypes.create_unicode_buffer(250)
 
-    if CM_Get_Device_IDW(
+    ret = CM_Get_Device_IDW(
             devinst,
             parentHardwareID,
             ctypes.sizeof(parentHardwareID) - 1,
-            0):
-        raise ctypes.WinError()
+            0)
+
+    if ret:
+        raise ctypes.WinError(CM_MapCrToWin32Err(DWORD(ret), DWORD(0)))
 
     parentHardwareID_str = parentHardwareID.value
     m = re.search(r'VID_([0-9a-f]{4})(&PID_([0-9a-f]{4}))?(&MI_(\d{2}))?(\\(.*))?',
