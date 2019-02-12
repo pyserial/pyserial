@@ -165,7 +165,7 @@ def get_parent_serial_number(child_devinst, child_vid, child_pid, depth=0):
 
     # Get the parent device instance.
     devinst = DWORD()
-    ret  = CM_Get_Parent(ctypes.byref(devinst), child_devinst, 0)
+    ret = CM_Get_Parent(ctypes.byref(devinst), child_devinst, 0)
 
     if ret:
         win_error = CM_MapCrToWin32Err(DWORD(ret), DWORD(0))
@@ -182,10 +182,10 @@ def get_parent_serial_number(child_devinst, child_vid, child_pid, depth=0):
     parentHardwareID = ctypes.create_unicode_buffer(250)
 
     ret = CM_Get_Device_IDW(
-            devinst,
-            parentHardwareID,
-            ctypes.sizeof(parentHardwareID) - 1,
-            0)
+        devinst,
+        parentHardwareID,
+        ctypes.sizeof(parentHardwareID) - 1,
+        0)
 
     if ret:
         raise ctypes.WinError(CM_MapCrToWin32Err(DWORD(ret), DWORD(0)))
