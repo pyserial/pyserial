@@ -21,7 +21,6 @@ from ctypes.wintypes import LONG
 from ctypes.wintypes import ULONG
 from ctypes.wintypes import HKEY
 from ctypes.wintypes import BYTE
-import winerror
 import serial
 from serial.win32 import ULONG_PTR
 from serial.tools import list_ports_common
@@ -137,6 +136,7 @@ DIGCF_PRESENT = 2
 DIGCF_DEVICEINTERFACE = 16
 INVALID_HANDLE_VALUE = 0
 ERROR_INSUFFICIENT_BUFFER = 122
+ERROR_NOT_FOUND = 1168
 SPDRP_HARDWAREID = 1
 SPDRP_FRIENDLYNAME = 12
 SPDRP_LOCATION_PATHS = 35
@@ -172,11 +172,10 @@ def get_parent_serial_number(child_devinst, child_vid, child_pid, depth=0):
 
         # If there is no parent available, the child was the root device. We cannot traverse
         # further.
-        if win_error == winerror.ERROR_NOT_FOUND:
+        if win_error == ERROR_NOT_FOUND:
             return ''
 
         raise ctypes.WinError(win_error)
-
 
     # Get the ID of the parent device and parse it for vendor ID, product ID, and serial number.
     parentHardwareID = ctypes.create_unicode_buffer(250)
