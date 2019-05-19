@@ -134,17 +134,28 @@ KEY_READ = 0x20019
 
 def iterate_comports():
     """Return a generator that yields descriptions for serial ports"""
-    GUIDs = (GUID * 8)()  # so far only seen one used, so hope 8 are enough...
-    guids_size = DWORD()
+    PortsGUIDs = (GUID * 8)()  # so far only seen one used, so hope 8 are enough...
+    ports_guids_size = DWORD()
     if not SetupDiClassGuidsFromName(
             "Ports",
-            GUIDs,
-            ctypes.sizeof(GUIDs),
-            ctypes.byref(guids_size)):
+            PortsGUIDs,
+            ctypes.sizeof(PortsGUIDs),
+            ctypes.byref(ports_guids_size)):
         raise ctypes.WinError()
 
+    ModemsGUIDs = (GUID * 8)()  # so far only seen one used, so hope 8 are enough...
+    modems_guids_size = DWORD()
+    if not SetupDiClassGuidsFromName(
+            "Modem",
+            ModemsGUIDs,
+            ctypes.sizeof(ModemsGUIDs),
+            ctypes.byref(modems_guids_size)):
+        raise ctypes.WinError()
+
+    GUIDs = PortsGUIDs[:ports_guids_size.value] + ModemsGUIDs[:modems_guids_size.value]
+
     # repeat for all possible GUIDs
-    for index in range(guids_size.value):
+    for index in range(len(GUIDs)):
         bInterfaceNumber = None
         g_hdi = SetupDiGetClassDevs(
             ctypes.byref(GUIDs[index]),
