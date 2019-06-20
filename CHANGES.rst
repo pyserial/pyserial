@@ -710,3 +710,27 @@ Bugfixes (posix):
 Bugfixes (win32):
 
 - [#194] spurious write fails with ERROR_SUCCESS
+
+
+Version 3.4   2017-07-22
+------------------------
+Improvements:
+
+- miniterm: suspend function (temporarily release port, :kbd:`Ctrl-T s`)
+- [#240] context manager automatically opens port on ``__enter__``
+- [#141] list_ports: add interface number to location string
+- [#225] protocol_socket: Retry if ``BlockingIOError`` occurs in
+  ``reset_input_buffer``.
+
+Bugfixes:
+
+- [#153] list_ports: option to include symlinked devices
+- [#237] list_ports: workaround for special characters in port names
+
+Bugfixes (posix):
+
+- allow calling cancel functions w/o error if port is closed
+- [#220] protocol_socket: sync error handling with posix version
+- [#227] posix: ignore more blocking errors and EINTR, timeout only
+  applies to blocking I/O
+- [#228] fix: port_publisher typo

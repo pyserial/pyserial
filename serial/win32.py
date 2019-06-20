@@ -9,6 +9,8 @@
 
 # pylint: disable=invalid-name,too-few-public-methods,protected-access,too-many-instance-attributes
 
+from __future__ import absolute_import
+
 from ctypes import c_ulong, c_void_p, c_int64, c_char, \
                    WinDLL, sizeof, Structure, Union, POINTER
 from ctypes.wintypes import HANDLE
@@ -179,6 +181,10 @@ WaitForSingleObject = _stdcall_libraries['kernel32'].WaitForSingleObject
 WaitForSingleObject.restype = DWORD
 WaitForSingleObject.argtypes = [HANDLE, DWORD]
 
+WaitCommEvent = _stdcall_libraries['kernel32'].WaitCommEvent
+WaitCommEvent.restype = BOOL
+WaitCommEvent.argtypes = [HANDLE, LPDWORD, LPOVERLAPPED]
+
 CancelIoEx = _stdcall_libraries['kernel32'].CancelIoEx
 CancelIoEx.restype = BOOL
 CancelIoEx.argtypes = [HANDLE, LPOVERLAPPED]
@@ -244,6 +250,12 @@ EV_CTS = 8  # Variable c_int
 EV_BREAK = 64  # Variable c_int
 PURGE_RXCLEAR = 8  # Variable c_int
 INFINITE = 0xFFFFFFFF
+
+CE_RXOVER = 0x0001
+CE_OVERRUN = 0x0002
+CE_RXPARITY = 0x0004
+CE_FRAME = 0x0008
+CE_BREAK = 0x0010
 
 
 class N11_OVERLAPPED4DOLLAR_48E(Union):

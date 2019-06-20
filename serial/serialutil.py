@@ -7,6 +7,8 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
+from __future__ import absolute_import
+
 import io
 import time
 
@@ -557,6 +559,8 @@ class SerialBase(io.RawIOBase):
     # context manager
 
     def __enter__(self):
+        if not self.is_open:
+            self.open()
         return self
 
     def __exit__(self, *args, **kwargs):
@@ -645,19 +649,19 @@ class SerialBase(io.RawIOBase):
         """
         return self.read(self.in_waiting)
 
-    def read_until(self, terminator=LF, size=None):
+    def read_until(self, expected=LF, size=None):
         """\
-        Read until a termination sequence is found ('\n' by default), the size
+        Read until an expected sequence is found ('\n' by default), the size
         is exceeded or until timeout occurs.
         """
-        lenterm = len(terminator)
+        lenterm = len(expected)
         line = bytearray()
         timeout = Timeout(self._timeout)
         while True:
             c = self.read(1)
             if c:
                 line += c
-                if line[-lenterm:] == terminator:
+                if line[-lenterm:] == expected:
                     break
                 if size is not None and len(line) >= size:
                     break

@@ -58,6 +58,8 @@
 #   RFC).
 # the order of the options is not relevant
 
+from __future__ import absolute_import
+
 import logging
 import socket
 import struct
@@ -613,7 +615,10 @@ class Serial(SerialBase):
             while len(data) < size:
                 if self._thread is None:
                     raise SerialException('connection failed (reader thread died)')
-                data += self._read_buffer.get(True, timeout.time_left())
+                buf = self._read_buffer.get(True, timeout.time_left())
+                if buf is None:
+                    return bytes(data)
+                data += buf
                 if timeout.expired():
                     break
         except Queue.Empty:  # -> timeout
@@ -738,8 +743,10 @@ class Serial(SerialBase):
                     # connection fails -> terminate loop
                     if self.logger:
                         self.logger.debug("socket error in reader thread: {}".format(e))
+                    self._read_buffer.put(None)
                     break
                 if not data:
+                    self._read_buffer.put(None)
                     break  # lost connection
                 for byte in iterbytes(data):
                     if mode == M_NORMAL:
@@ -893,7 +900,7 @@ class Serial(SerialBase):
         """\
         get last modem state (cached value. If value is "old", request a new
         one. This cache helps that we don't issue to many requests when e.g. all
-        status lines, one after the other is queried by the user (getCTS, getDSR
+        status lines, one after the other is queried by the user (CTS, DSR
         etc.)
         """
         # active modem state polling enabled? is the value fresh enough?
@@ -1008,10 +1015,10 @@ class PortManager(object):
         send updates on changes.
         """
         modemstate = (
-            (self.serial.getCTS() and MODEMSTATE_MASK_CTS) |
-            (self.serial.getDSR() and MODEMSTATE_MASK_DSR) |
-            (self.serial.getRI() and MODEMSTATE_MASK_RI) |
-            (self.serial.getCD() and MODEMSTATE_MASK_CD))
+            (self.serial.cts and MODEMSTATE_MASK_CTS) |
+            (self.serial.dsr and MODEMSTATE_MASK_DSR) |
+            (self.serial.ri and MODEMSTATE_MASK_RI) |
+            (self.serial.cd and MODEMSTATE_MASK_CD))
         # check what has changed
         deltas = modemstate ^ (self.last_modemstate or 0)  # when last is None -> 0
         if deltas & MODEMSTATE_MASK_CTS:
@@ -1233,12 +1240,12 @@ class PortManager(object):
                         self.logger.warning("requested break state - not implemented")
                     pass  # XXX needs cached value
                 elif suboption[2:3] == SET_CONTROL_BREAK_ON:
-                    self.serial.setBreak(True)
+                    self.serial.break_condition = True
                     if self.logger:
                         self.logger.info("changed BREAK to active")
                     self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_BREAK_ON)
                 elif suboption[2:3] == SET_CONTROL_BREAK_OFF:
-                    self.serial.setBreak(False)
+                    self.serial.break_condition = False
                     if self.logger:
                         self.logger.info("changed BREAK to inactive")
                     self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_BREAK_OFF)
@@ -1247,12 +1254,12 @@ class PortManager(object):
                         self.logger.warning("requested DTR state - not implemented")
                     pass  # XXX needs cached value
                 elif suboption[2:3] == SET_CONTROL_DTR_ON:
-                    self.serial.setDTR(True)
+                    self.serial.dtr = True
                     if self.logger:
                         self.logger.info("changed DTR to active")
                     self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_DTR_ON)
                 elif suboption[2:3] == SET_CONTROL_DTR_OFF:
-                    self.serial.setDTR(False)
+                    self.serial.dtr = False
                     if self.logger:
                         self.logger.info("changed DTR to inactive")
                     self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_DTR_OFF)
@@ -1262,12 +1269,12 @@ class PortManager(object):
                     pass  # XXX needs cached value
                     #~ self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_RTS_ON)
                 elif suboption[2:3] == SET_CONTROL_RTS_ON:
-                    self.serial.setRTS(True)
+                    self.serial.rts = True
                     if self.logger:
                         self.logger.info("changed RTS to active")
                     self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_RTS_ON)
                 elif suboption[2:3] == SET_CONTROL_RTS_OFF:
-                    self.serial.setRTS(False)
+                    self.serial.rts = False
                     if self.logger:
                         self.logger.info("changed RTS to inactive")
                     self.rfc2217_send_subnegotiation(SERVER_SET_CONTROL, SET_CONTROL_RTS_OFF)

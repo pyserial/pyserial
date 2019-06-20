@@ -12,7 +12,7 @@ appropriate backend.
 - Project Homepage: https://github.com/pyserial/pyserial
 - Download Page: https://pypi.python.org/pypi/pyserial
 
-BSD license, (C) 2001-2016 Chris Liechti <cliechti@gmx.net>
+BSD license, (C) 2001-2017 Chris Liechti <cliechti@gmx.net>
 
 
 Documentation
@@ -35,6 +35,14 @@ Detailed information can be found in `documentation/pyserial.rst`_.
 
 The usual setup.py for Python_ libraries is used for the source distribution.
 Windows installers are also available (see download link above).
+
+or
+
+To install this package with conda run:   
+
+``conda install -c conda-forge pyserial``   
+
+conda builds are available for linux, mac and windows.
 
 .. _`documentation/pyserial.rst`: https://github.com/pyserial/pyserial/blob/master/documentation/pyserial.rst#installation
 .. _examples: https://github.com/pyserial/pyserial/blob/master/examples

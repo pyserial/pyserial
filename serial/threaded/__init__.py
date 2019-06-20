@@ -9,6 +9,8 @@
 """\
 Support threading with serial ports.
 """
+from __future__ import absolute_import
+
 import serial
 import threading
 
@@ -201,7 +203,7 @@ class ReaderThread(threading.Thread):
                 break
             else:
                 if data:
-                    # make a separated try-except for called used code
+                    # make a separated try-except for called user code
                     try:
                         self.protocol.data_received(data)
                     except Exception as e:
@@ -214,7 +216,7 @@ class ReaderThread(threading.Thread):
     def write(self, data):
         """Thread safe writing (uses lock)"""
         with self._lock:
-            self.serial.write(data)
+            return self.serial.write(data)
 
     def close(self):
         """Close the serial port and exit reader thread (uses lock)"""

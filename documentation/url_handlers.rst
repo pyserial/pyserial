@@ -211,7 +211,8 @@ The spy output will be live in the second terminal window.
 
 ``alt://``
 ==========
-This handler allows to select alternate implementations of the native serial port.
+This handler allows to select alternate implementations of the native serial
+port.
 
 Currently only the POSIX platform provides alternative implementations.
 
@@ -221,10 +222,10 @@ Currently only the POSIX platform provides alternative implementations.
     disconnecting while it's in use (e.g. USB-serial unplugged).
 
 ``VTIMESerial``
-    Implement timeout using ``VTIME``/``VMIN`` of tty device instead of using
-    ``select``.  This means that inter character timeout and overall timeout
+    Implement timeout using ``VTIME``/``VMIN`` of TTY device instead of using
+    ``select``. This means that inter character timeout and overall timeout
     can not be used at the same time. Overall timeout is disabled when
-    inter-character timeout is used.  The error handling is degraded.
+    inter-character timeout is used. The error handling is degraded.
 
  
 Examples::

@@ -16,6 +16,8 @@
 #   use poll based implementation on Posix (Linux):
 #   python -m serial.tools.miniterm alt:///dev/ttyUSB0?class=PosixPollSerial
 
+from __future__ import absolute_import
+
 try:
     import urlparse
 except ImportError:

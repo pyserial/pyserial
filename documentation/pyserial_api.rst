@@ -36,7 +36,7 @@ Native ports
             :const:`STOPBITS_TWO`
 
         :param float timeout:
-            Set a read timeout value.
+            Set a read timeout value in seconds.
 
         :param bool xonxoff:
             Enable software flow control.
@@ -48,7 +48,7 @@ Native ports
             Enable hardware (DSR/DTR) flow control.
 
         :param float write_timeout:
-            Set a write timeout value.
+            Set a write timeout value in seconds.
 
         :param float inter_byte_timeout:
             Inter-character timeout, :const:`None` to disable (default).
@@ -122,7 +122,7 @@ Native ports
 
             Some OS and/or drivers may activate RTS and or DTR automatically,
             as soon as the port is opened. There may be a glitch on RTS/DTR
-            when :attr:`rts`` or :attr:`dtr` are set differently from their
+            when :attr:`rts` or :attr:`dtr` are set differently from their
             default value (``True`` / active).
 
         .. note::
@@ -150,6 +150,22 @@ Native ports
         :rtype: bytes
 
         Read *size* bytes from the serial port. If a timeout is set it may
+        return less characters as requested. With no timeout it will block
+        until the requested number of bytes is read.
+
+        .. versionchanged:: 2.5
+            Returns an instance of :class:`bytes` when available (Python 2.6
+            and newer) and :class:`str` otherwise.
+
+    .. method:: read_until(expected=LF, size=None)
+
+        :param expected: The byte string to search for.
+        :param size: Number of bytes to read.
+        :return: Bytes read from the port.
+        :rtype: bytes
+
+        Read until an expected sequence is found ('\\n' by default), the size
+        is exceeded or until timeout occurs. If a timeout is set it may
         return less characters as requested. With no timeout it will block
         until the requested number of bytes is read.
 
@@ -205,7 +221,7 @@ Native ports
 
     .. method:: reset_input_buffer()
 
-        Flush input buffer, discarding all it's contents.
+        Flush input buffer, discarding all its contents.
 
         .. versionchanged:: 3.0 renamed from ``flushInput()``
 
@@ -221,7 +237,7 @@ Native ports
 
     .. method:: send_break(duration=0.25)
 
-        :param float duration: Time to activate the BREAK condition.
+        :param float duration: Time in seconds, to activate the BREAK condition.
 
         Send break condition. Timed, returns to idle state after given
         duration.
@@ -243,7 +259,7 @@ Native ports
         :type: bool
 
         Set RTS line to specified logic level. It is possible to assign this
-        value before opening the serial port, then the value is applied uppon
+        value before opening the serial port, then the value is applied upon
         :meth:`open` (with restrictions, see :meth:`open`).
 
     .. attribute:: dtr
@@ -253,7 +269,7 @@ Native ports
         :type: bool
 
         Set DTR line to specified logic level. It is possible to assign this
-        value before opening the serial port, then the value is applied uppon
+        value before opening the serial port, then the value is applied upon
         :meth:`open` (with restrictions, see :meth:`open`).
 
     Read-only attributes:
@@ -465,6 +481,18 @@ Native ports
 
         .. versionadded:: 2.5
 
+    .. method:: readline(size=-1)
+
+        Provided via :meth:`io.IOBase.readline`
+
+    .. method:: readlines(hint=-1)
+
+        Provided via :meth:`io.IOBase.readlines`
+
+    .. method:: writelines(lines)
+
+        Provided via :meth:`io.IOBase.writelines`
+
     The port settings can be read and written as dictionary. The following
     keys are supported: ``write_timeout``, ``inter_byte_timeout``,
     ``dsrdtr``, ``baudrate``, ``timeout``, ``parity``, ``bytesize``,
@@ -515,17 +543,22 @@ Native ports
         >>> with serial.serial_for_url(port) as s:
         ...     s.write(b'hello')
 
-        Here no port argument is given, so it is not opened automatically:
+        The port is opened automatically:
 
-        >>> with serial.Serial() as s:
-        ...     s.port = ...
-        ...     s.open()
+        >>> port = serial.Serial()
+        >>> port.port = '...'
+        >>> with port as s:
         ...     s.write(b'hello')
+
+        Which also means that ``with`` statements can be used repeatedly,
+        each time opening and closing the port.
+
+        .. versionchanged:: 3.4 the port is automatically opened
 
 
     .. method:: __exit__(exc_type, exc_val, exc_tb)
 
-        Closes serial port.
+        Closes serial port (exceptions are not handled by ``__exit__``).
 
 
     Platform specific methods.
@@ -618,7 +651,7 @@ Native ports
 
     .. method:: isOpen()
 
-    	.. deprecated:: 3.0 see :attr:`is_open`
+        .. deprecated:: 3.0 see :attr:`is_open`
 
     .. attribute:: writeTimeout
 
@@ -701,8 +734,10 @@ Native ports
 
 
 Implementation detail: some attributes and functions are provided by the
-class :class:`SerialBase` and some by the platform specific class and
-others by the base class mentioned above.
+class :class:`serial.SerialBase` which inherits from :class:`io.RawIOBase`
+and some by the platform specific class and others by the base class
+mentioned above.
+
 
 RS485 support
 -------------
@@ -792,7 +827,6 @@ on regular serial ports (``serial.rs485`` needs to be imported).
 
     .. note:: The loopback property is ignored by this implementation. The actual
         behavior depends on the used hardware.
-
 
 
 
@@ -1060,7 +1094,7 @@ Module functions and attributes
     :returns: a generator that yields bytes
 
     Some versions of Python (3.x) would return integers instead of bytes when
-    looping over an instance of ``bytes``.  This helper function ensures that
+    looping over an instance of ``bytes``. This helper function ensures that
     bytes are returned.
 
     .. versionadded:: 3.0

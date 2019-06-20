@@ -108,5 +108,5 @@ include entries that matched.
 Accessing ports
 ---------------
 pySerial includes a small console based terminal program called
-:ref:`miniterm`.  It ca be started with ``python -m serial.tools.miniterm <port_name>``
+:ref:`miniterm`.  It can be started with ``python -m serial.tools.miniterm <port_name>``
 (use option ``-h`` to get a listing of all options).
