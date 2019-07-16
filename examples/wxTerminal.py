@@ -352,7 +352,7 @@ class TerminalFrame(wx.Frame):
         self.serial.rts = event.IsChecked()
 
     def OnDTR(self, event):  # wxGlade: TerminalFrame.<event_handler>
-        self.serial.dtr = event.Checked()
+        self.serial.dtr = event.IsChecked()
 
 # end of class TerminalFrame
 
