@@ -118,11 +118,25 @@ RegQueryValueEx = advapi32.RegQueryValueExW
 RegQueryValueEx.argtypes = [HKEY, LPCTSTR, LPDWORD, LPDWORD, LPBYTE, LPDWORD]
 RegQueryValueEx.restype = LONG
 
+cfgmgr32 = ctypes.windll.LoadLibrary("Cfgmgr32")
+CM_Get_Parent = cfgmgr32.CM_Get_Parent
+CM_Get_Parent.argtypes = [PDWORD, DWORD, ULONG]
+CM_Get_Parent.restype = LONG
+
+CM_Get_Device_IDW = cfgmgr32.CM_Get_Device_IDW
+CM_Get_Device_IDW.argtypes = [DWORD, PTSTR, ULONG, ULONG]
+CM_Get_Device_IDW.restype = LONG
+
+CM_MapCrToWin32Err = cfgmgr32.CM_MapCrToWin32Err
+CM_MapCrToWin32Err.argtypes = [DWORD, DWORD]
+CM_MapCrToWin32Err.restype = DWORD
+
 
 DIGCF_PRESENT = 2
 DIGCF_DEVICEINTERFACE = 16
 INVALID_HANDLE_VALUE = 0
 ERROR_INSUFFICIENT_BUFFER = 122
+ERROR_NOT_FOUND = 1168
 SPDRP_HARDWAREID = 1
 SPDRP_FRIENDLYNAME = 12
 SPDRP_LOCATION_PATHS = 35
@@ -130,6 +144,86 @@ SPDRP_MFG = 11
 DICS_FLAG_GLOBAL = 1
 DIREG_DEV = 0x00000001
 KEY_READ = 0x20019
+
+
+MAX_USB_DEVICE_TREE_TRAVERSAL_DEPTH = 5
+
+
+def get_parent_serial_number(child_devinst, child_vid, child_pid, depth=0):
+    """ Get the serial number of the parent of a device.
+
+    Args:
+        child_devinst: The device instance handle to get the parent serial number of.
+        child_vid: The vendor ID of the child device.
+        child_pid: The product ID of the child device.
+        depth: The current iteration depth of the USB device tree.
+    """
+
+    # If the traversal depth is beyond the max, abandon attempting to find the serial number.
+    if depth > MAX_USB_DEVICE_TREE_TRAVERSAL_DEPTH:
+        return ''
+
+    # Get the parent device instance.
+    devinst = DWORD()
+    ret = CM_Get_Parent(ctypes.byref(devinst), child_devinst, 0)
+
+    if ret:
+        win_error = CM_MapCrToWin32Err(DWORD(ret), DWORD(0))
+
+        # If there is no parent available, the child was the root device. We cannot traverse
+        # further.
+        if win_error == ERROR_NOT_FOUND:
+            return ''
+
+        raise ctypes.WinError(win_error)
+
+    # Get the ID of the parent device and parse it for vendor ID, product ID, and serial number.
+    parentHardwareID = ctypes.create_unicode_buffer(250)
+
+    ret = CM_Get_Device_IDW(
+        devinst,
+        parentHardwareID,
+        ctypes.sizeof(parentHardwareID) - 1,
+        0)
+
+    if ret:
+        raise ctypes.WinError(CM_MapCrToWin32Err(DWORD(ret), DWORD(0)))
+
+    parentHardwareID_str = parentHardwareID.value
+    m = re.search(r'VID_([0-9a-f]{4})(&PID_([0-9a-f]{4}))?(&MI_(\d{2}))?(\\(.*))?',
+                  parentHardwareID_str,
+                  re.I)
+
+    vid = int(m.group(1), 16)
+    pid = None
+    serial_number = None
+    if m.group(3):
+        pid = int(m.group(3), 16)
+    if m.group(7):
+        serial_number = m.group(7)
+
+    # Check that the USB serial number only contains alpha-numeric characters. It may be a windows
+    # device ID (ephemeral ID).
+    if serial_number and not re.match(r'^\w+$', serial_number):
+        serial_number = None
+
+    if not vid or not pid:
+        # If pid and vid are not available at this device level, continue to the parent.
+        return get_parent_serial_number(devinst, child_vid, child_pid, depth + 1)
+
+    if pid != child_pid or vid != child_vid:
+        # If the VID or PID has changed, we are no longer looking at the same physical device. The
+        # serial number is unknown.
+        return ''
+
+    # In this case, the vid and pid of the parent device are identical to the child. However, if
+    # there still isn't a serial number available, continue to the next parent.
+    if not serial_number:
+        return get_parent_serial_number(devinst, child_vid, child_pid, depth + 1)
+
+    # Finally, the VID and PID are identical to the child and a serial number is present, so return
+    # it.
+    return serial_number
 
 
 def iterate_comports():
@@ -213,15 +307,21 @@ def iterate_comports():
             # in case of USB, make a more readable string, similar to that form
             # that we also generate on other platforms
             if szHardwareID_str.startswith('USB'):
-                m = re.search(r'VID_([0-9a-f]{4})(&PID_([0-9a-f]{4}))?(&MI_(\d{2}))?(\\(\w+))?', szHardwareID_str, re.I)
+                m = re.search(r'VID_([0-9a-f]{4})(&PID_([0-9a-f]{4}))?(&MI_(\d{2}))?(\\(.*))?', szHardwareID_str, re.I)
                 if m:
                     info.vid = int(m.group(1), 16)
                     if m.group(3):
                         info.pid = int(m.group(3), 16)
                     if m.group(5):
                         bInterfaceNumber = int(m.group(5))
-                    if m.group(7):
+
+                    # Check that the USB serial number only contains alpha-numeric characters. It
+                    # may be a windows device ID (ephemeral ID) for composite devices.
+                    if m.group(7) and re.match(r'^\w+$', m.group(7)):
                         info.serial_number = m.group(7)
+                    else:
+                        info.serial_number = get_parent_serial_number(devinfo.DevInst, info.vid, info.pid)
+
                 # calculate a location string
                 loc_path_str = ctypes.create_unicode_buffer(250)
                 if SetupDiGetDeviceRegistryProperty(
