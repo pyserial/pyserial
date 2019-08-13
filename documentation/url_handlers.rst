@@ -48,7 +48,7 @@ Supported options in the URL are:
 
 - ``timeout=<value>``: Change network timeout (default 3 seconds). This is
   useful when the server takes a little more time to send its answers. The
-  timeout applies to the initial Telnet / :rfc:`2271` negotiation as well
+  timeout applies to the initial Telnet / :rfc:`2217` negotiation as well
   as changing port settings or control line change commands.
 
 - ``logging={debug|info|warning|error}``: Prints diagnostic messages (not
