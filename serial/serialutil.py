@@ -559,7 +559,7 @@ class SerialBase(io.RawIOBase):
     # context manager
 
     def __enter__(self):
-        if not self.is_open:
+        if self._port is not None and not self.is_open:
             self.open()
         return self
 
