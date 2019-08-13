@@ -54,6 +54,15 @@ class PlatformSpecificBase(object):
     def set_low_latency_mode(self, low_latency_settings):
         raise NotImplementedError('Low latency not supported on this platform')
 
+    def _update_break_state(self):
+        """\
+        Set break: Controls TXD. When active, no transmitting is possible.
+        """
+        if self._break_state:
+            fcntl.ioctl(self.fd, TIOCSBRK)
+        else:
+            fcntl.ioctl(self.fd, TIOCCBRK)
+    
 
 # some systems support an extra flag to enable the two in POSIX unsupported
 # paritiy settings for MARK and SPACE
@@ -205,12 +214,24 @@ elif plat[:6] == 'darwin':   # OS X
 
     class PlatformSpecific(PlatformSpecificBase):
         osx_version = os.uname()[2].split('.')
+        TIOCSBRK = 0x2000747B # _IO('t', 123)
+        TIOCCBRK = 0x2000747A # _IO('t', 122)
+
         # Tiger or above can support arbitrary serial speeds
         if int(osx_version[0]) >= 8:
             def _set_special_baudrate(self, baudrate):
                 # use IOKit-specific call to set up high speeds
                 buf = array.array('i', [baudrate])
                 fcntl.ioctl(self.fd, IOSSIOSPEED, buf, 1)
+
+        def _update_break_state(self):
+            """\
+            Set break: Controls TXD. When active, no transmitting is possible.
+            """
+            if self._break_state:
+                fcntl.ioctl(self.fd, PlatformSpecific.TIOCSBRK)
+            else:
+                fcntl.ioctl(self.fd, PlatformSpecific.TIOCCBRK)
 
 elif plat[:3] == 'bsd' or \
      plat[:7] == 'freebsd' or \
@@ -226,6 +247,19 @@ elif plat[:3] == 'bsd' or \
         # The baud rate may be passed in as
         # a literal value.
         BAUDRATE_CONSTANTS = ReturnBaudrate()
+
+        TIOCSBRK = 0x2000747B # _IO('t', 123)
+        TIOCCBRK = 0x2000747A # _IO('t', 122)
+
+        
+        def _update_break_state(self):
+            """\
+            Set break: Controls TXD. When active, no transmitting is possible.
+            """
+            if self._break_state:
+                fcntl.ioctl(self.fd, PlatformSpecific.TIOCSBRK)
+            else:
+                fcntl.ioctl(self.fd, PlatformSpecific.TIOCCBRK)
 
 else:
     class PlatformSpecific(PlatformSpecificBase):
@@ -634,15 +668,6 @@ class Serial(SerialBase, PlatformSpecific):
         if not self.is_open:
             raise portNotOpenError
         termios.tcsendbreak(self.fd, int(duration / 0.25))
-
-    def _update_break_state(self):
-        """\
-        Set break: Controls TXD. When active, no transmitting is possible.
-        """
-        if self._break_state:
-            fcntl.ioctl(self.fd, TIOCSBRK)
-        else:
-            fcntl.ioctl(self.fd, TIOCCBRK)
 
     def _update_rts_state(self):
         """Set terminal status line: Request To Send"""
