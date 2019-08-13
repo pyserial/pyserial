@@ -97,4 +97,7 @@ Latest:
     ],
     platforms='any',
     scripts=['serial/tools/miniterm.py'],
+    extras_require = {
+        'cp2110': ['hidapi'],
+    },
 )
