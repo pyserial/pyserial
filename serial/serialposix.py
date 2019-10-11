@@ -643,7 +643,13 @@ class Serial(SerialBase, PlatformSpecific):
         """
         if not self.is_open:
             raise portNotOpenError
-        termios.tcdrain(self.fd)
+        while True:
+            try:
+                termios.tcdrain(self.fd)
+                break
+            except termios.error as e:
+                if e[0] != errno.EINTR:
+                    raise SerialException('flush failed: {}'.format(e))
 
     def reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
