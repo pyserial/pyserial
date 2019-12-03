@@ -650,7 +650,7 @@ class SerialBase(io.RawIOBase):
         return self.read(self.in_waiting)
 
     def read_until(self, expected=LF, size=None):
-        """\
+        r"""\
         Read until an expected sequence is found ('\n' by default), the size
         is exceeded or until timeout occurs.
         """
