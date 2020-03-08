@@ -344,6 +344,7 @@ class Miniterm(object):
         self.serial = serial_instance
         self.echo = echo
         self.raw = False
+        self.log = ""
         self.input_encoding = 'UTF-8'
         self.output_encoding = 'UTF-8'
         self.eol = eol
@@ -375,6 +376,8 @@ class Miniterm(object):
     def start(self):
         """start worker threads"""
         self.alive = True
+        if self.log:
+            self.LogFile = open(self.log, 'ab')
         self._start_reader()
         # enter console->serial loop
         self.transmitter_thread = threading.Thread(target=self.writer, name='tx')
@@ -396,6 +399,8 @@ class Miniterm(object):
 
     def close(self):
         self.serial.close()
+        if self.log:
+            self.LogFile.close()
 
     def update_transformations(self):
         """take list of transformation classes and instantiate them for rx and tx"""
@@ -453,6 +458,8 @@ class Miniterm(object):
                         for transformation in self.rx_transformations:
                             text = transformation.rx(text)
                         self.console.write(text)
+                    if self.log:
+                        self.LogFile.write(data)
         except serial.SerialException:
             self.alive = False
             self.console.cancel()
@@ -887,6 +894,12 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         action='store_true',
         help='show Python traceback on error',
         default=False)
+    
+    group.add_argument(
+        '--log',
+        #action='store_true',
+        type=str,
+        help='store output in log files')
 
     args = parser.parse_args()
 
@@ -961,6 +974,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
     miniterm.exit_character = unichr(args.exit_char)
     miniterm.menu_character = unichr(args.menu_char)
     miniterm.raw = args.raw
+    miniterm.log = args.log
     miniterm.set_rx_encoding(args.serial_port_encoding)
     miniterm.set_tx_encoding(args.serial_port_encoding)
 
