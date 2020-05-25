@@ -559,10 +559,31 @@ class Serial(SerialBase, PlatformSpecific):
                         '(device disconnected or multiple access on port?)')
                 read.extend(buf)
             except OSError as e:
+                # Devices connecting through a poor USB/Serial cable or an
+                # underpowered USB hub can spontaneously disconnect from
+                # the OS, and promptly reconnect.  If this happens, attempt
+                # to reopen the device and continue the session.
+                if e.errno == errno.ENXIO:
+                    retryTimeout = Timeout(2)  # Allow for a short grace period
+                    sys.stderr.write(
+                        'pySerial WARNING: Serial device disappeared! '
+                        '...Trying to reconnect...\n')
+                    sys.stderr.write(
+                        'pySerial WARNING: If this problem is chronic '
+                        'replace your cable/powered USB HUB.\n')
+                    sys.stderr.flush()
+                    self.close()
+                    while self.fd == None:
+                        try:
+                            self.open()
+                        except OSError as e:
+                            if e.errno != errno.ENOENT or retryTimeout.expired():
+                                raise SerialException( 'Serial device gone: {}'.format(e))
+                    break
                 # this is for Python 3.x where select.error is a subclass of
                 # OSError ignore BlockingIOErrors and EINTR. other errors are shown
                 # https://www.python.org/dev/peps/pep-0475.
-                if e.errno not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS, errno.EINTR):
+                elif e.errno not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS, errno.EINTR):
                     raise SerialException('read failed: {}'.format(e))
             except select.error as e:
                 # this is for Python 2.x
