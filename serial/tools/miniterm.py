@@ -13,6 +13,7 @@ import codecs
 import os
 import sys
 import threading
+import cobs
 
 import serial
 from serial.tools.list_ports import comports
