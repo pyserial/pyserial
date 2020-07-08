@@ -13,7 +13,7 @@ import codecs
 import os
 import sys
 import threading
-import cobs
+from cobs import cobs
 
 import serial
 from serial.tools.list_ports import comports
@@ -442,10 +442,21 @@ class Miniterm(object):
 
     def reader(self):
         """loop and copy serial->console"""
+
+        cobs_enabled = True
+
         try:
             while self.alive and self._reader_alive:
-                # read all that is there or wait for one byte
-                data = self.serial.read(self.serial.in_waiting or 1)
+                if cobs_enabled:
+                    data = b''
+                    while (data == b'' or data[-1] != '\0'):
+                        data = data + self.serial.read(self.serial.in_waiting or 1)
+                    data = data[:-1]
+                    data = cobs.decode(data)
+                else:
+                    # read all that is there or wait for one byte
+                    data = self.serial.read(self.serial.in_waiting or 1)
+
                 if data:
                     if self.raw:
                         self.console.write_bytes(data)
@@ -458,6 +469,9 @@ class Miniterm(object):
             self.alive = False
             self.console.cancel()
             raise       # XXX handle instead of re-raise?
+        except cobs.DecodeError:
+            self.console.write("[COBS] frame decode failed!")
+            self.console.write(data)
 
     def writer(self):
         """\
