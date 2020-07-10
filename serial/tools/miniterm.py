@@ -464,7 +464,7 @@ class Miniterm(object):
                         text = self.rx_decoder.decode(data)
                         for transformation in self.rx_transformations:
                             text = transformation.rx(text)
-                        self.console.write(text)
+                        #self.console.write(text)
         except serial.SerialException:
             self.alive = False
             self.console.cancel()
@@ -480,7 +480,7 @@ class Miniterm(object):
         locally.
         """
         menu_active = False
-        cobs_enabled = False
+        cobs_enabled = True
         data = b''
         try:
             while self.alive:
@@ -512,12 +512,15 @@ class Miniterm(object):
                         self.console.write(echo_text)
 
                     if cobs_enabled:
-                        if len(data) and data[-1] == '\n':
+                        data = data + text
+                        if len(data) != 0 and data[-1] == '\n':
                             data = cobs.encode(data)
+                            data = data + '\0'
                             self.serial.write(self.tx_encoder.encode(data))
+                            self.console.write_bytes(data.encode("hex"))
                             data = b''
-                        else:
-                            data = data + text
+                            self.console.write("[COBS] sent packet")
+                            
         except:
             self.alive = False
             raise
