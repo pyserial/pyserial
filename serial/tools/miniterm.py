@@ -480,6 +480,8 @@ class Miniterm(object):
         locally.
         """
         menu_active = False
+        cobs_enabled = False
+        data = b''
         try:
             while self.alive:
                 try:
@@ -501,12 +503,21 @@ class Miniterm(object):
                     text = c
                     for transformation in self.tx_transformations:
                         text = transformation.tx(text)
-                    self.serial.write(self.tx_encoder.encode(text))
+                    if not cobs_enabled:
+                        self.serial.write(self.tx_encoder.encode(text))
                     if self.echo:
                         echo_text = c
                         for transformation in self.tx_transformations:
                             echo_text = transformation.echo(echo_text)
                         self.console.write(echo_text)
+
+                    if cobs_enabled:
+                        if len(data) and data[-1] == '\n':
+                            data = cobs.encode(data)
+                            self.serial.write(self.tx_encoder.encode(data))
+                            data = b''
+                        else:
+                            data = data + text
         except:
             self.alive = False
             raise
