@@ -518,7 +518,8 @@ class Miniterm(object):
                             data = data + '\0'
                             self.serial.write(self.tx_encoder.encode(data))
                             data = b''
-                    if not self.cobs and data == b'': #if COBS is disbled while data is buffered for encoding, flush and reset the buffer
+                    #if COBS is disbled while data is buffered for encoding, flush and reset the buffer
+                    if not self.cobs and data != b'':
                         self.serial.write(self.tx_encoder.encode(data))
                         data = b''
                             
