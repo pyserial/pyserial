@@ -447,7 +447,7 @@ class Miniterm(object):
             while self.alive and self._reader_alive:
                 if self.cobs:
                     data = b''
-                    while (self.cobs and (data == b'' or data[-1] != '\0')):
+                    while (self.alive and self._reader_alive and self.cobs and (data == b'' or data[-1] != '\0')):
                         data = data + self.serial.read(self.serial.in_waiting or 1)
                     if self.cobs:
                         #only remove the terminating byte and attempt decode if cobs is still enabled
