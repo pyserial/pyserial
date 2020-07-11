@@ -357,7 +357,7 @@ class Miniterm(object):
         self.receiver_thread = None
         self.rx_decoder = None
         self.tx_decoder = None
-        self.cobs_enabled = cobs
+        self.cobs = cobs
 
     def _start_reader(self):
         """Start reader thread"""
@@ -446,12 +446,17 @@ class Miniterm(object):
 
         try:
             while self.alive and self._reader_alive:
-                if self.cobs_enabled:
+                if self.cobs:
                     data = b''
                     while (data == b'' or data[-1] != '\0'):
                         data = data + self.serial.read(self.serial.in_waiting or 1)
                     data = data[:-1]
-                    data = cobs.decode(data)
+                    try:
+                        data = cobs.decode(data)
+                    except cobs.DecodeError:
+                        self.console.write("cobs frame decode failed: ")
+                        self.console.write(data.encode('hex'))
+                        self.console.write("\r\n")
                 else:
                     # read all that is there or wait for one byte
                     data = self.serial.read(self.serial.in_waiting or 1)
@@ -468,9 +473,6 @@ class Miniterm(object):
             self.alive = False
             self.console.cancel()
             raise       # XXX handle instead of re-raise?
-        except cobs.DecodeError:
-            self.console.write("[COBS] frame decode failed!")
-            self.console.write(data)
 
     def writer(self):
         """\
@@ -501,7 +503,7 @@ class Miniterm(object):
                     text = c
                     for transformation in self.tx_transformations:
                         text = transformation.tx(text)
-                    if not self.cobs_enabled:
+                    if not self.cobs:
                         self.serial.write(self.tx_encoder.encode(text))
                     if self.echo:
                         echo_text = c
@@ -509,13 +511,16 @@ class Miniterm(object):
                             echo_text = transformation.echo(echo_text)
                         self.console.write(echo_text)
 
-                    if self.cobs_enabled:
+                    if self.cobs:
                         data = data + text
                         if len(data) != 0 and data[-1] == '\n':
                             data = cobs.encode(data)
                             data = data + '\0'
                             self.serial.write(self.tx_encoder.encode(data))
                             data = b''
+                    if not self.cobs and data == b'': #if COBS is disbled while data is buffered for encoding, flush and reset the buffer
+                        self.serial.write(self.tx_encoder.encode(data))
+                        data = b''
                             
         except:
             self.alive = False
@@ -545,8 +550,8 @@ class Miniterm(object):
             self.echo = not self.echo
             sys.stderr.write('--- local echo {} ---\n'.format('active' if self.echo else 'inactive'))
         elif c == '\x03':                       # CTRL+C -> toggle TX/RX COBS encoding
-            self.cobs_enabled = not self.cobs_enabled
-            sys.stderr.write('--- COBS encoding {} ---\n'.format('active' if self.echo else 'inactive'))
+            self.cobs = not self.cobs
+            sys.stderr.write('--- COBS encoding {} ---\n'.format('active' if self.cobs else 'inactive'))
         elif c == '\x06':                       # CTRL+F -> edit filters
             self.change_filter()
         elif c == '\x0c':                       # CTRL+L -> EOL mode
