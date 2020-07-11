@@ -443,24 +443,24 @@ class Miniterm(object):
 
     def reader(self):
         """loop and copy serial->console"""
-
         try:
             while self.alive and self._reader_alive:
                 if self.cobs:
                     data = b''
-                    while (data == b'' or data[-1] != '\0'):
+                    while (self.cobs and (data == b'' or data[-1] != '\0')):
                         data = data + self.serial.read(self.serial.in_waiting or 1)
-                    data = data[:-1]
-                    try:
-                        data = cobs.decode(data)
-                    except cobs.DecodeError:
-                        self.console.write("cobs frame decode failed: ")
-                        self.console.write(data.encode('hex'))
-                        self.console.write("\r\n")
+                    if self.cobs:
+                        #only remove the terminating byte and attempt decode if cobs is still enabled
+                        data = data[:-1]
+                        try:
+                            data = cobs.decode(data)
+                        except cobs.DecodeError:
+                            self.console.write("cobs frame decode failed: ")
+                            self.console.write(data.encode('hex'))
+                            self.console.write("\r\n")
                 else:
                     # read all that is there or wait for one byte
                     data = self.serial.read(self.serial.in_waiting or 1)
-
                 if data:
                     if self.raw:
                         self.console.write_bytes(data)
@@ -505,24 +505,22 @@ class Miniterm(object):
                         text = transformation.tx(text)
                     if not self.cobs:
                         self.serial.write(self.tx_encoder.encode(text))
+                        #if COBS is disbled while data is buffered for encoding, flush and reset the buffer
+                        if data != b'':
+                            self.serial.write(self.tx_encoder.encode(data))
+                            data = b''
                     if self.echo:
                         echo_text = c
                         for transformation in self.tx_transformations:
                             echo_text = transformation.echo(echo_text)
                         self.console.write(echo_text)
-
                     if self.cobs:
                         data = data + text
                         if len(data) != 0 and data[-1] == '\n':
                             data = cobs.encode(data)
                             data = data + '\0'
                             self.serial.write(self.tx_encoder.encode(data))
-                            data = b''
-                    #if COBS is disbled while data is buffered for encoding, flush and reset the buffer
-                    if not self.cobs and data != b'':
-                        self.serial.write(self.tx_encoder.encode(data))
-                        data = b''
-                            
+                            data = b''                           
         except:
             self.alive = False
             raise
