@@ -28,8 +28,8 @@ import ctypes.util
 
 from serial.tools import list_ports_common
 
-iokit = ctypes.cdll.LoadLibrary(ctypes.util.find_library('IOKit'))
-cf = ctypes.cdll.LoadLibrary(ctypes.util.find_library('CoreFoundation'))
+iokit = ctypes.cdll.LoadLibrary("/System/Library/Frameworks/IOKit.framework/Versions/Current/IOKit")
+cf = ctypes.cdll.LoadLibrary("/System/Library/Frameworks/CoreFoundation.framework/Versions/Current/CoreFoundation")
 
 kIOMasterPortDefault = ctypes.c_void_p.in_dll(iokit, "kIOMasterPortDefault")
 kCFAllocatorDefault = ctypes.c_void_p.in_dll(cf, "kCFAllocatorDefault")
