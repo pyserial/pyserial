@@ -405,8 +405,15 @@ class Serial(SerialBase, PlatformSpecific):
                 ispeed = ospeed = self.BAUDRATE_CONSTANTS[self._baudrate]
             except KeyError:
                 #~ raise ValueError('Invalid baud rate: %r' % self._baudrate)
-                # may need custom baud rate, it isn't in our list.
-                ispeed = ospeed = getattr(termios, 'B38400')
+
+                # See if BOTHER is defined for this platform; if it is, use
+                # this for a speed not defined in the baudrate constants list.
+                try:
+                    ispeed = ospeed = BOTHER
+                except NameError:
+                    # may need custom baud rate, it isn't in our list.
+                    ispeed = ospeed = getattr(termios, 'B38400')
+
                 try:
                     custom_baud = int(self._baudrate)  # store for later
                 except ValueError:
