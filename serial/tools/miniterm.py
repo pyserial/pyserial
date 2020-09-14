@@ -589,7 +589,7 @@ class Miniterm(object):
         #~ elif c == '\x0c':                       # CTRL+L -> cycle linefeed mode
         elif c in 'pP':                         # P -> change port
             self.change_port()
-        elif c in 'sS':                         # S -> suspend / open port temporarily
+        elif c in 'zZ':                         # S -> suspend / open port temporarily
             self.suspend_port()
         elif c in 'bB':                         # B -> change baudrate
             self.change_baudrate()
