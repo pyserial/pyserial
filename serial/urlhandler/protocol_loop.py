@@ -227,6 +227,17 @@ class Serial(SerialBase):
         except queue.Empty:
             pass
 
+    @property
+    def out_waiting(self):
+        """Return how many bytes the in the outgoing buffer"""
+        if not self.is_open:
+            raise PortNotOpenError()
+        if self.logger:
+            # attention the logged value can differ from return value in
+            # threaded environments...
+            self.logger.debug('out_waiting -> {:d}'.format(self.queue.qsize()))
+        return self.queue.qsize()
+
     def _update_break_state(self):
         """\
         Set break: Controls TXD. When active, to transmitting is
