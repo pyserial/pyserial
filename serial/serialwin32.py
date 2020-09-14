@@ -184,23 +184,23 @@ class Serial(SerialBase):
             # XXX verify if platform really does not have a setting for those
             if not self._rs485_mode.rts_level_for_tx:
                 raise ValueError(
-                    'Unsupported value for RS485Settings.rts_level_for_tx: {!r}'.format(
+                    'Unsupported value for RS485Settings.rts_level_for_tx: {!r} (only True is allowed)'.format(
                         self._rs485_mode.rts_level_for_tx,))
             if self._rs485_mode.rts_level_for_rx:
                 raise ValueError(
-                    'Unsupported value for RS485Settings.rts_level_for_rx: {!r}'.format(
+                    'Unsupported value for RS485Settings.rts_level_for_rx: {!r} (only False is allowed)'.format(
                         self._rs485_mode.rts_level_for_rx,))
             if self._rs485_mode.delay_before_tx is not None:
                 raise ValueError(
-                    'Unsupported value for RS485Settings.delay_before_tx: {!r}'.format(
+                    'Unsupported value for RS485Settings.delay_before_tx: {!r} (only None is allowed)'.format(
                         self._rs485_mode.delay_before_tx,))
             if self._rs485_mode.delay_before_rx is not None:
                 raise ValueError(
-                    'Unsupported value for RS485Settings.delay_before_rx: {!r}'.format(
+                    'Unsupported value for RS485Settings.delay_before_rx: {!r} (only None is allowed)'.format(
                         self._rs485_mode.delay_before_rx,))
             if self._rs485_mode.loopback:
                 raise ValueError(
-                    'Unsupported value for RS485Settings.loopback: {!r}'.format(
+                    'Unsupported value for RS485Settings.loopback: {!r} (only False is allowed)'.format(
                         self._rs485_mode.loopback,))
             comDCB.fRtsControl = win32.RTS_CONTROL_TOGGLE
             comDCB.fOutxCtsFlow = 0
