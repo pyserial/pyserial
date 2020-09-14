@@ -97,8 +97,10 @@ class SerialTimeoutException(SerialException):
     """Write timeouts give an exception"""
 
 
-writeTimeoutError = SerialTimeoutException('Write timeout')
-portNotOpenError = SerialException('Attempting to use a port that is not open')
+class PortNotOpenError(SerialException):
+    """Port is not open"""
+    def __init__(self):
+        super(PortNotOpenError, self).__init__('Attempting to use a port that is not open')
 
 
 class Timeout(object):
@@ -574,7 +576,7 @@ class SerialBase(io.RawIOBase):
         duration.
         """
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         self.break_condition = True
         time.sleep(duration)
         self.break_condition = False

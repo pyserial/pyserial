@@ -40,7 +40,7 @@ except ImportError:
 import hid  # hidapi
 
 import serial
-from serial.serialutil import SerialBase, SerialException, portNotOpenError, to_bytes, Timeout
+from serial.serialutil import SerialBase, SerialException, PortNotOpenError, to_bytes, Timeout
 
 
 # Report IDs and related constant
@@ -185,7 +185,7 @@ class Serial(SerialBase):
 
     def reset_input_buffer(self):
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         self._hid_handle.send_feature_report(
             bytes((_REPORT_SET_PURGE_FIFOS, _PURGE_RX_FIFO)))
         # empty read buffer
@@ -194,13 +194,13 @@ class Serial(SerialBase):
 
     def reset_output_buffer(self):
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         self._hid_handle.send_feature_report(
             bytes((_REPORT_SET_PURGE_FIFOS, _PURGE_TX_FIFO)))
 
     def _update_break_state(self):
         if not self._hid_handle:
-            raise portNotOpenError
+            raise PortNotOpenError()
 
         if self._break_state:
             self._hid_handle.send_feature_report(
@@ -214,7 +214,7 @@ class Serial(SerialBase):
 
     def read(self, size=1):
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
 
         data = bytearray()
         try:
@@ -234,7 +234,7 @@ class Serial(SerialBase):
 
     def write(self, data):
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         data = to_bytes(data)
         tx_len = len(data)
         while tx_len > 0:
