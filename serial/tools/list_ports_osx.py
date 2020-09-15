@@ -28,8 +28,23 @@ import ctypes.util
 
 from serial.tools import list_ports_common
 
-iokit = ctypes.cdll.LoadLibrary(ctypes.util.find_library('IOKit'))
-cf = ctypes.cdll.LoadLibrary(ctypes.util.find_library('CoreFoundation'))
+
+def load_library(name):
+    # osx changed some things which triggers a python issue (python/cpython#21241)
+    # try loading with paths first before falling back to find_library
+    for candidate in [
+            '/System/Library/Frameworks/{0}.framework/{0}'.format(name),
+            '/System/Library/Frameworks/{0}.framework/Versions/A/{0}'.format(name),
+    ]:
+        try:
+            return ctypes.cdll.LoadLibrary(candidate)
+        except OSError:
+            pass
+    return ctypes.cdll.LoadLibrary(ctypes.util.find_library(name))
+
+
+iokit = load_library('IOKit')
+cf = load_library('CoreFoundation')
 
 kIOMasterPortDefault = ctypes.c_void_p.in_dll(iokit, "kIOMasterPortDefault")
 kCFAllocatorDefault = ctypes.c_void_p.in_dll(cf, "kCFAllocatorDefault")
