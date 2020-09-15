@@ -834,7 +834,7 @@ class VTIMESerial(Serial):
         fcntl.fcntl(self.fd, fcntl.F_SETFL, 0)  # clear O_NONBLOCK
 
         if self._inter_byte_timeout is not None:
-            vmin = 1
+            vmin = 255
             vtime = int(self._inter_byte_timeout * 10)
         elif self._timeout is None:
             vmin = 1
@@ -867,11 +867,8 @@ class VTIMESerial(Serial):
         if not self.is_open:
             raise PortNotOpenError()
         read = bytearray()
-        while len(read) < size:
-            buf = os.read(self.fd, size - len(read))
-            if not buf:
-                break
-            read.extend(buf)
+        buf = os.read(self.fd, size - len(read))
+        read.extend(buf)
         return bytes(read)
 
     # hack to make hasattr return false
