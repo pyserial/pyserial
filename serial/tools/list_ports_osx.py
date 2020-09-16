@@ -24,12 +24,11 @@
 from __future__ import absolute_import
 
 import ctypes
-import ctypes.util
 
 from serial.tools import list_ports_common
 
-iokit = ctypes.cdll.LoadLibrary("/System/Library/Frameworks/IOKit.framework/Versions/Current/IOKit")
-cf = ctypes.cdll.LoadLibrary("/System/Library/Frameworks/CoreFoundation.framework/Versions/Current/CoreFoundation")
+iokit = ctypes.cdll.LoadLibrary('/System/Library/Frameworks/IOKit.framework/IOKit')
+cf = ctypes.cdll.LoadLibrary('/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation')
 
 kIOMasterPortDefault = ctypes.c_void_p.in_dll(iokit, "kIOMasterPortDefault")
 kCFAllocatorDefault = ctypes.c_void_p.in_dll(cf, "kCFAllocatorDefault")

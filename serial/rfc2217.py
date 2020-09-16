@@ -76,7 +76,7 @@ except ImportError:
 
 import serial
 from serial.serialutil import SerialBase, SerialException, to_bytes, \
-    iterbytes, portNotOpenError, Timeout
+    iterbytes, PortNotOpenError, Timeout
 
 # port string is expected to be something like this:
 # rfc2217://host:port
@@ -598,7 +598,7 @@ class Serial(SerialBase):
     def in_waiting(self):
         """Return the number of bytes currently in the input buffer."""
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         return self._read_buffer.qsize()
 
     def read(self, size=1):
@@ -608,7 +608,7 @@ class Serial(SerialBase):
         until the requested number of bytes is read.
         """
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         data = bytearray()
         try:
             timeout = Timeout(self._timeout)
@@ -632,7 +632,7 @@ class Serial(SerialBase):
         closed.
         """
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         with self._write_lock:
             try:
                 self._socket.sendall(to_bytes(data).replace(IAC, IAC_DOUBLED))
@@ -643,7 +643,7 @@ class Serial(SerialBase):
     def reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         self.rfc2217_send_purge(PURGE_RECEIVE_BUFFER)
         # empty read buffer
         while self._read_buffer.qsize():
@@ -655,7 +655,7 @@ class Serial(SerialBase):
         discarding all that is in the buffer.
         """
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         self.rfc2217_send_purge(PURGE_TRANSMIT_BUFFER)
 
     def _update_break_state(self):
@@ -664,7 +664,7 @@ class Serial(SerialBase):
         possible.
         """
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         if self.logger:
             self.logger.info('set BREAK to {}'.format('active' if self._break_state else 'inactive'))
         if self._break_state:
@@ -675,7 +675,7 @@ class Serial(SerialBase):
     def _update_rts_state(self):
         """Set terminal status line: Request To Send."""
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         if self.logger:
             self.logger.info('set RTS to {}'.format('active' if self._rts_state else 'inactive'))
         if self._rts_state:
@@ -686,7 +686,7 @@ class Serial(SerialBase):
     def _update_dtr_state(self):
         """Set terminal status line: Data Terminal Ready."""
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         if self.logger:
             self.logger.info('set DTR to {}'.format('active' if self._dtr_state else 'inactive'))
         if self._dtr_state:
@@ -698,28 +698,28 @@ class Serial(SerialBase):
     def cts(self):
         """Read terminal status line: Clear To Send."""
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         return bool(self.get_modem_state() & MODEMSTATE_MASK_CTS)
 
     @property
     def dsr(self):
         """Read terminal status line: Data Set Ready."""
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         return bool(self.get_modem_state() & MODEMSTATE_MASK_DSR)
 
     @property
     def ri(self):
         """Read terminal status line: Ring Indicator."""
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         return bool(self.get_modem_state() & MODEMSTATE_MASK_RI)
 
     @property
     def cd(self):
         """Read terminal status line: Carrier Detect."""
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         return bool(self.get_modem_state() & MODEMSTATE_MASK_CD)
 
     # - - - platform specific - - -

@@ -734,3 +734,60 @@ Bugfixes (posix):
 - [#227] posix: ignore more blocking errors and EINTR, timeout only
   applies to blocking I/O
 - [#228] fix: port_publisher typo
+
+
+Version 3.5   2020-xx-xx
+------------------------
+New Features:
+
+- [#354] Make ListPortInfo hashable
+- [#411] Add a backend for Silicon Labs CP2110/4 HID-to-UART bridge. (depends on `hid` module)
+
+Improvements:
+
+- [#315] Use absolute import everywhere
+- [#351] win32: miniterm Working CMD.exe terminal using Windows 10 ANSI support
+- [#372] threaded: "write" returns byte count
+- [#400] Add bytesize and stopbits argument parser to tcp_serial_redirect
+- [#408] loop: add out_waiting
+- [#500] Remove Python 3.2 and 3.3 from test
+- doc updates [#261, #296, #320, #333, #285, #356, #358, #342, #397, #389, #510]
+ 
+Bugfixes:
+
+- [#371] Don't open port if self.port is not set while entering context manager
+- [#437, #502] refactor: raise new instances for PortNotOpenError and SerialTimeoutException
+- [#261, #263] list_ports: set default `name` attribute
+- [#286] fix: compare only of the same type in list_ports_common.ListPortInfo
+- rfc2217/close(): fix race-condition
+- [#305] return b'' when connection closes on rfc2217 connection
+- [#386] rfc2217/close(): fix race condition
+- Fixed flush_input_buffer() for situations where the remote end has closed the socket.
+- [#441] reset_input_buffer() can hang on sockets
+- examples: port_publisher python 3 fixes
+- [#324] miniterm: Fix miniterm constructor exit_character and menu_character
+- [#326] miniterm: use exclusive access for native serial ports by default
+- [#497] miniterm: fix double use of CTRL-T + s use z for suspend instead
+- [#443, #444] examples: refactor wx example, use Bind to avoid deprecated warnings, IsChecked, unichr
+
+Bugfixes (posix):
+
+- [#265] posix: fix PosixPollSerial with timeout=None and add cancel support
+- [#290] option for low latency mode on linux
+- [#335] Add support to xr-usb-serial ports
+- [#494] posix: Don't catch the SerialException we just raised
+- [#519] posix: Fix custom baud rate to not temporarily set 38400 baud rates on linux
+
+Bugfixes (win32):
+
+- [#481] win32: extend RS485 error messages
+- [#303] win32: do not check for links in serial.tools.list_ports
+- [#430] Add WaitCommEvent function to win32
+- [#314, #433] tools/list_ports_windows: Scan both 'Ports' and 'Modem' device classes
+- [#414] Serial number support for composite USB devices
+- Added recursive search for device USB serial number to support composite devices
+
+Bugfixes (MacOS):
+
+- [#364] MacOS: rework list_ports to support unicode product descriptors.
+- [#367] Mac and bsd fix _update_break_state
