@@ -3,7 +3,7 @@
 # Very simple serial terminal
 #
 # This file is part of pySerial. https://github.com/pyserial/pyserial
-# (C)2002-2017 Chris Liechti <cliechti@gmx.net>
+# (C)2002-2020 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
@@ -629,6 +629,8 @@ class Miniterm(object):
         elif c in 'rR':                         # R -> change hardware flow control
             self.serial.rtscts = (c == 'R')
             self.dump_port_settings()
+        elif c in 'qQ':
+            self.stop()                         # Q -> exit app
         else:
             sys.stderr.write('--- unknown menu character {} --\n'.format(key_description(c)))
 
@@ -770,7 +772,7 @@ class Miniterm(object):
         return """
 --- pySerial ({version}) - miniterm - help
 ---
---- {exit:8} Exit program
+--- {exit:8} Exit program (alias {menu} Q)
 --- {menu:8} Menu escape key, followed by:
 --- Menu keys:
 ---    {menu:7} Send the menu character itself to remote
