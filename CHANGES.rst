@@ -740,19 +740,21 @@ Version 3.5   2020-xx-xx
 ------------------------
 New Features:
 
-- [#354] Make ListPortInfo hashable
 - [#411] Add a backend for Silicon Labs CP2110/4 HID-to-UART bridge. (depends on `hid` module)
 
 Improvements:
 
 - [#315] Use absolute import everywhere
 - [#351] win32: miniterm Working CMD.exe terminal using Windows 10 ANSI support
+- [#354] Make ListPortInfo hashable
 - [#372] threaded: "write" returns byte count
 - [#400] Add bytesize and stopbits argument parser to tcp_serial_redirect
 - [#408] loop: add out_waiting
 - [#500] Remove Python 3.2 and 3.3 from test
 - doc updates [#261, #296, #320, #333, #285, #356, #358, #342, #397, #389, #510]
- 
+- miniterm: add :kbd:`CTRL+T Q` as alternative to exit
+- miniterm: suspend function key changed to :kbd:`CTRL-T Z`
+
 Bugfixes:
 
 - [#371] Don't open port if self.port is not set while entering context manager
@@ -777,6 +779,7 @@ Bugfixes (posix):
 - [#335] Add support to xr-usb-serial ports
 - [#494] posix: Don't catch the SerialException we just raised
 - [#519] posix: Fix custom baud rate to not temporarily set 38400 baud rates on linux
+- [#509 #518] list_ports: use hardcoded path to library on osx
 
 Bugfixes (win32):
 

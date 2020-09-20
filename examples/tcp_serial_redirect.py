@@ -2,7 +2,7 @@
 #
 # Redirect data from a TCP/IP connection to a serial port and vice versa.
 #
-# (C) 2002-2016 Chris Liechti <cliechti@gmx.net>
+# (C) 2002-2020 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 

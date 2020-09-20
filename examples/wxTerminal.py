@@ -2,7 +2,7 @@
 #
 # A simple terminal application with wxPython.
 #
-# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2020 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 

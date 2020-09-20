@@ -2,7 +2,7 @@
 #
 # backend for Windows ("win32" incl. 32/64 bit support)
 #
-# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2020 Chris Liechti <cliechti@gmx.net>
 #
 # This file is part of pySerial. https://github.com/pyserial/pyserial
 # SPDX-License-Identifier:    BSD-3-Clause

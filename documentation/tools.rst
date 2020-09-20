@@ -287,4 +287,5 @@ also possible to exit (:kbd:`Ctrl+]`) or change the port (:kbd:`p`).
     Apply encoding on serial port, convert to Unicode for console.
     Added new filters, default to stripping terminal control sequences.
     Added ``--ask`` option.
-
+.. versionchanged:: 3.5
+    Enable escape code handling on Windows 10 console.

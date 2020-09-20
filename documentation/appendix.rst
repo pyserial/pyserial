@@ -109,7 +109,7 @@ com0com - http://com0com.sourceforge.net/
 
 License
 =======
-Copyright (c) 2001-2017 Chris Liechti <cliechti@gmx.net>
+Copyright (c) 2001-2020 Chris Liechti <cliechti@gmx.net>
 All Rights Reserved.
 
 Redistribution and use in source and binary forms, with or without

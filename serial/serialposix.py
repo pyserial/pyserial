@@ -3,7 +3,7 @@
 # backend for serial IO for POSIX compatible systems, like Linux, OSX
 #
 # This file is part of pySerial. https://github.com/pyserial/pyserial
-# (C) 2001-2016 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2020 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 #

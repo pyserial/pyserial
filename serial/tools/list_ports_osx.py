@@ -7,7 +7,7 @@
 # and modifications by cliechti, hoihu, hardkrash
 #
 # This file is part of pySerial. https://github.com/pyserial/pyserial
-# (C) 2013-2015
+# (C) 2013-2020
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
