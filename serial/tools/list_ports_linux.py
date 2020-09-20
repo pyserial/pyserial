@@ -105,5 +105,5 @@ def comports(include_links=False):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
 if __name__ == '__main__':
-    for port, desc, hwid in sorted(comports()):
-        print("{}: {} [{}]".format(port, desc, hwid))
+    for info in sorted(comports()):
+        print("{0}: {0.subsystem}".format(info))
