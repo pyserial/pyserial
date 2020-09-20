@@ -91,6 +91,12 @@ User supplied URL handlers
     so running ``sudo adduser $USER dialout`` (and logging-out and -in) enables
     the user to access the port.
 
+Parity on Raspberry Pi
+    The Raspi has one full UART and a restricted one. On devices with built
+    in wireless (WIFI/BT) use the restricted one on the GPIO header pins.
+    If enhanced features are required, it is possible to swap UARTs, see
+    https://www.raspberrypi.org/documentation/configuration/uart.md
+
 Support for Python 2.6 or earlier
     Support for older Python releases than 2.7 will not return to pySerial 3.x.
     Python 2.7 is now many years old (released 2010). If you insist on using
