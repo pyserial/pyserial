@@ -736,11 +736,12 @@ Bugfixes (posix):
 - [#228] fix: port_publisher typo
 
 
-Version 3.5   2020-xx-xx
+Version 3.5b0 2020-09-21
 ------------------------
 New Features:
 
-- [#411] Add a backend for Silicon Labs CP2110/4 HID-to-UART bridge. (depends on `hid` module)
+- [#411] Add a backend for Silicon Labs CP2110/4 HID-to-UART bridge.
+  (depends on `hid` module)
 
 Improvements:
 
@@ -775,7 +776,8 @@ Bugfixes:
 - [#324] miniterm: Fix miniterm constructor exit_character and menu_character
 - [#326] miniterm: use exclusive access for native serial ports by default
 - [#497] miniterm: fix double use of CTRL-T + s use z for suspend instead
-- [#443, #444] examples: refactor wx example, use Bind to avoid deprecated warnings, IsChecked, unichr
+- [#443, #444] examples: refactor wx example, use Bind to avoid deprecated
+  warnings, IsChecked, unichr
 
 Bugfixes (posix):
 
