@@ -9,3 +9,5 @@ dist
 /MANIFEST
 
 .idea
+venv
+xxx*

@@ -750,10 +750,15 @@ Improvements:
 - [#372] threaded: "write" returns byte count
 - [#400] Add bytesize and stopbits argument parser to tcp_serial_redirect
 - [#408] loop: add out_waiting
+- [#495] list_ports_linux: Correct "interface" property on Linux hosts
 - [#500] Remove Python 3.2 and 3.3 from test
-- doc updates [#261, #296, #320, #333, #285, #356, #358, #342, #397, #389, #510]
+- [#261, #285, #296, #320, #333, #342, #356, #358, #389, #397, #510] doc updates
 - miniterm: add :kbd:`CTRL+T Q` as alternative to exit
 - miniterm: suspend function key changed to :kbd:`CTRL-T Z`
+- add command line tool entries ``pyserial-miniterm`` (replaces ``miniterm.py``)
+  and ``pyserial-ports`` (runs ``serial.tools.list_ports``).
+- ``python -m serial`` opens miniterm (use w/o args and it will print port
+  list too) [experimental]
 
 Bugfixes:
 
