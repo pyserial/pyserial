@@ -149,7 +149,7 @@ KEY_READ = 0x20019
 MAX_USB_DEVICE_TREE_TRAVERSAL_DEPTH = 5
 
 
-def get_parent_serial_number(child_devinst, child_vid, child_pid, depth=0):
+def get_parent_serial_number(child_devinst, child_vid, child_pid, depth=0, last_serial_number=None):
     """ Get the serial number of the parent of a device.
 
     Args:
@@ -161,7 +161,7 @@ def get_parent_serial_number(child_devinst, child_vid, child_pid, depth=0):
 
     # If the traversal depth is beyond the max, abandon attempting to find the serial number.
     if depth > MAX_USB_DEVICE_TREE_TRAVERSAL_DEPTH:
-        return ''
+        return '' if not last_serial_number else last_serial_number
 
     # Get the parent device instance.
     devinst = DWORD()
@@ -173,7 +173,7 @@ def get_parent_serial_number(child_devinst, child_vid, child_pid, depth=0):
         # If there is no parent available, the child was the root device. We cannot traverse
         # further.
         if win_error == ERROR_NOT_FOUND:
-            return ''
+            return '' if not last_serial_number else last_serial_number
 
         raise ctypes.WinError(win_error)
 
@@ -194,13 +194,22 @@ def get_parent_serial_number(child_devinst, child_vid, child_pid, depth=0):
                   parentHardwareID_str,
                   re.I)
 
-    vid = int(m.group(1), 16)
+    # return early if we have no matches (likely malformed serial, traversed too far)
+    if not m:
+        return '' if not last_serial_number else last_serial_number
+
+    vid = None
     pid = None
     serial_number = None
+    if m.group(1):
+        vid = int(m.group(1), 16)
     if m.group(3):
         pid = int(m.group(3), 16)
     if m.group(7):
         serial_number = m.group(7)
+
+    # store what we found as a fallback for malformed serial values up the chain
+    found_serial_number = serial_number
 
     # Check that the USB serial number only contains alpha-numeric characters. It may be a windows
     # device ID (ephemeral ID).
@@ -209,17 +218,17 @@ def get_parent_serial_number(child_devinst, child_vid, child_pid, depth=0):
 
     if not vid or not pid:
         # If pid and vid are not available at this device level, continue to the parent.
-        return get_parent_serial_number(devinst, child_vid, child_pid, depth + 1)
+        return get_parent_serial_number(devinst, child_vid, child_pid, depth + 1, found_serial_number)
 
     if pid != child_pid or vid != child_vid:
         # If the VID or PID has changed, we are no longer looking at the same physical device. The
         # serial number is unknown.
-        return ''
+        return '' if not last_serial_number else last_serial_number
 
     # In this case, the vid and pid of the parent device are identical to the child. However, if
     # there still isn't a serial number available, continue to the next parent.
     if not serial_number:
-        return get_parent_serial_number(devinst, child_vid, child_pid, depth + 1)
+        return get_parent_serial_number(devinst, child_vid, child_pid, depth + 1, found_serial_number)
 
     # Finally, the VID and PID are identical to the child and a serial number is present, so return
     # it.
