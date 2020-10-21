@@ -26,6 +26,7 @@ class Redirector(object):
             self,
             logger=logging.getLogger("rfc2217.server") if debug else None)
         self.log = logging.getLogger("redirector")
+        self.disconnected_serial = False
 
     def statusline_poller(self):
         self.log.debug("status line poll thread started")
@@ -36,6 +37,7 @@ class Redirector(object):
             except:
                 self.log.debug("status line polling failed")
                 # probably got disconnected
+                self.disconnected_serial = True
                 break
         self.alive = False
         self.log.debug("status line poll thread terminated")
@@ -86,6 +88,7 @@ class Redirector(object):
             except socket.error as msg:
                 self.log.debug("{}".format(msg))
                 # probably got disconnected
+                self.disconnected_serial = True
                 break
         self.stop()
 
@@ -141,6 +144,7 @@ it waits for the next connect.
 
     ser = None
     displayNextFailedConnectionAttempt = True
+    settings = None
 
     srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -192,8 +196,15 @@ it waits for the next connect.
                 logging.info("Disconnected")
                 r.stop()
                 client_socket.close()
-                ser.close()
-                ser = None
+                if r.disconnected_serial:
+                    ser.close()
+                    ser = None
+                else:
+                    # The port was just reconfigured via RFC 2217
+                    ser.dtr = False
+                    ser.rts = False
+                    # Restore port settings that were changed by RFC 2217 capable client
+                    ser.apply_settings(settings)
         except KeyboardInterrupt:
             ser.close()
             ser = None
