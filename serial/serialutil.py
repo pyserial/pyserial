@@ -3,7 +3,7 @@
 # Base class and support functions used by various backends.
 #
 # This file is part of pySerial. https://github.com/pyserial/pyserial
-# (C) 2001-2016 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2020 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
@@ -97,8 +97,10 @@ class SerialTimeoutException(SerialException):
     """Write timeouts give an exception"""
 
 
-writeTimeoutError = SerialTimeoutException('Write timeout')
-portNotOpenError = SerialException('Attempting to use a port that is not open')
+class PortNotOpenError(SerialException):
+    """Port is not open"""
+    def __init__(self):
+        super(PortNotOpenError, self).__init__('Attempting to use a port that is not open')
 
 
 class Timeout(object):
@@ -559,7 +561,7 @@ class SerialBase(io.RawIOBase):
     # context manager
 
     def __enter__(self):
-        if not self.is_open:
+        if self._port is not None and not self.is_open:
             self.open()
         return self
 
@@ -574,7 +576,7 @@ class SerialBase(io.RawIOBase):
         duration.
         """
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         self.break_condition = True
         time.sleep(duration)
         self.break_condition = False

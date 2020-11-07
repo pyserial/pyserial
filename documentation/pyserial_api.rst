@@ -36,7 +36,7 @@ Native ports
             :const:`STOPBITS_TWO`
 
         :param float timeout:
-            Set a read timeout value.
+            Set a read timeout value in seconds.
 
         :param bool xonxoff:
             Enable software flow control.
@@ -48,7 +48,7 @@ Native ports
             Enable hardware (DSR/DTR) flow control.
 
         :param float write_timeout:
-            Set a write timeout value.
+            Set a write timeout value in seconds.
 
         :param float inter_byte_timeout:
             Inter-character timeout, :const:`None` to disable (default).
@@ -184,7 +184,7 @@ Native ports
 
         Write the bytes *data* to the port. This should be of type ``bytes``
         (or compatible such as ``bytearray`` or ``memoryview``). Unicode
-        strings must be encoded (e.g. ``'hello'.encode('utf-8'``).
+        strings must be encoded (e.g. ``'hello'.encode('utf-8')``.
 
     .. versionchanged:: 2.5
             Accepts instances of :class:`bytes` and :class:`bytearray` when
@@ -237,7 +237,7 @@ Native ports
 
     .. method:: send_break(duration=0.25)
 
-        :param float duration: Time to activate the BREAK condition.
+        :param float duration: Time in seconds, to activate the BREAK condition.
 
         Send break condition. Timed, returns to idle state after given
         duration.

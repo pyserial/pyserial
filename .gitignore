@@ -7,3 +7,7 @@ dist
 *.egg-info
 
 /MANIFEST
+
+.idea
+venv
+xxx*

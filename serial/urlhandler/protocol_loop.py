@@ -6,7 +6,7 @@
 # and it was so easy to implement ;-)
 #
 # This file is part of pySerial. https://github.com/pyserial/pyserial
-# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2020 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 #
@@ -27,7 +27,7 @@ try:
 except ImportError:
     import Queue as queue
 
-from serial.serialutil import SerialBase, SerialException, to_bytes, iterbytes, writeTimeoutError, portNotOpenError
+from serial.serialutil import SerialBase, SerialException, to_bytes, iterbytes, SerialTimeoutException, PortNotOpenError
 
 # map log level names to constants. used in from_url()
 LOGGER_LEVELS = {
@@ -127,7 +127,7 @@ class Serial(SerialBase):
     def in_waiting(self):
         """Return the number of bytes currently in the input buffer."""
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         if self.logger:
             # attention the logged value can differ from return value in
             # threaded environments...
@@ -141,7 +141,7 @@ class Serial(SerialBase):
         until the requested number of bytes is read.
         """
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         if self._timeout is not None and self._timeout != 0:
             timeout = time.time() + self._timeout
         else:
@@ -181,7 +181,7 @@ class Serial(SerialBase):
         """
         self._cancel_write = False
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         data = to_bytes(data)
         # calculate aprox time that would be used to send the data
         time_used_to_send = 10.0 * len(data) / self._baudrate
@@ -195,7 +195,7 @@ class Serial(SerialBase):
                 time_left -= 0.5
             if self._cancel_write:
                 return 0  # XXX
-            raise writeTimeoutError
+            raise SerialTimeoutException('Write timeout')
         for byte in iterbytes(data):
             self.queue.put(byte, timeout=self._write_timeout)
         return len(data)
@@ -203,7 +203,7 @@ class Serial(SerialBase):
     def reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         if self.logger:
             self.logger.info('reset_input_buffer()')
         try:
@@ -218,7 +218,7 @@ class Serial(SerialBase):
         discarding all that is in the buffer.
         """
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         if self.logger:
             self.logger.info('reset_output_buffer()')
         try:
@@ -226,6 +226,17 @@ class Serial(SerialBase):
                 self.queue.get_nowait()
         except queue.Empty:
             pass
+
+    @property
+    def out_waiting(self):
+        """Return how many bytes the in the outgoing buffer"""
+        if not self.is_open:
+            raise PortNotOpenError()
+        if self.logger:
+            # attention the logged value can differ from return value in
+            # threaded environments...
+            self.logger.debug('out_waiting -> {:d}'.format(self.queue.qsize()))
+        return self.queue.qsize()
 
     def _update_break_state(self):
         """\
@@ -249,7 +260,7 @@ class Serial(SerialBase):
     def cts(self):
         """Read terminal status line: Clear To Send"""
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         if self.logger:
             self.logger.info('CTS -> state of RTS ({!r})'.format(self._rts_state))
         return self._rts_state
@@ -265,7 +276,7 @@ class Serial(SerialBase):
     def ri(self):
         """Read terminal status line: Ring Indicator"""
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         if self.logger:
             self.logger.info('returning dummy for RI')
         return False
@@ -274,7 +285,7 @@ class Serial(SerialBase):
     def cd(self):
         """Read terminal status line: Carrier Detect"""
         if not self.is_open:
-            raise portNotOpenError
+            raise PortNotOpenError()
         if self.logger:
             self.logger.info('returning dummy for CD')
         return True

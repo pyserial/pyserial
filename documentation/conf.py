@@ -38,7 +38,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pySerial'
-copyright = u'2001-2017, Chris Liechti'
+copyright = u'2001-2020, Chris Liechti'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
