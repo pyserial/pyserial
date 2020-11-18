@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/local/python3
 #
 # Very simple serial terminal
 #
