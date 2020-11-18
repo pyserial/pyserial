@@ -16,6 +16,7 @@ The function :func:`serial_for_url` accepts the following types of URLs:
 - ``hwgrep://<regexp>[&skip_busy][&n=N]``
 - ``spy://port[?option[=value][&option[=value]]]``
 - ``alt://port?class=<classname>``
+- ``cp2110://<bus>:<dev>:<if>``
 
 .. versionchanged:: 3.0 Options are specified with ``?`` and ``&`` instead of ``/``
 
@@ -48,7 +49,7 @@ Supported options in the URL are:
 
 - ``timeout=<value>``: Change network timeout (default 3 seconds). This is
   useful when the server takes a little more time to send its answers. The
-  timeout applies to the initial Telnet / :rfc:`2271` negotiation as well
+  timeout applies to the initial Telnet / :rfc:`2217` negotiation as well
   as changing port settings or control line change commands.
 
 - ``logging={debug|info|warning|error}``: Prints diagnostic messages (not
@@ -235,6 +236,21 @@ Examples::
 
 .. versionadded:: 3.0
 
+``cp2110://``
+=============
+
+This backend implements support for HID-to-UART devices manufactured by Silicon
+Labs and marketed as CP2110 and CP2114. The implementation is (mostly)
+OS-independent and in userland. It relies on `cython-hidapi`_.
+
+.. _cython-hidapi: https://github.com/trezor/cython-hidapi
+
+Examples::
+
+    cp2110://0001:004a:00
+    cp2110://0002:0077:00
+
+.. versionadded:: 3.5
 
 Examples
 ========
@@ -247,5 +263,5 @@ Examples
 - ``hwgrep://0451:f432`` (USB VID:PID)
 - ``spy://COM54?file=log.txt``
 - ``alt:///dev/ttyUSB0?class=PosixPollSerial``
-
+- ``cp2110://0001:004a:00``
 

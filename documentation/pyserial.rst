@@ -13,7 +13,7 @@ appropriate backend.
 It is released under a free software license, see LICENSE_ for more
 details.
 
-Copyright (C) 2001-2016 Chris Liechti <cliechti(at)gmx.net>
+Copyright (C) 2001-2020 Chris Liechti <cliechti(at)gmx.net>
 
 Other pages (online)
 

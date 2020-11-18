@@ -59,7 +59,7 @@ class SysFS(list_ports_common.ListPortInfo):
 
             self.manufacturer = self.read_line(self.usb_device_path, 'manufacturer')
             self.product = self.read_line(self.usb_device_path, 'product')
-            self.interface = self.read_line(self.device_path, 'interface')
+            self.interface = self.read_line(self.usb_interface_path, 'interface')
 
         if self.subsystem in ('usb', 'usb-serial'):
             self.apply_usb_info()
@@ -105,5 +105,5 @@ def comports(include_links=False):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
 if __name__ == '__main__':
-    for port, desc, hwid in sorted(comports()):
-        print("{}: {} [{}]".format(port, desc, hwid))
+    for info in sorted(comports()):
+        print("{0}: {0.subsystem}".format(info))

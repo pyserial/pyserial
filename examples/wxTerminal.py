@@ -2,15 +2,22 @@
 #
 # A simple terminal application with wxPython.
 #
-# (C) 2001-2015 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2020 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
 import codecs
+from serial.tools.miniterm import unichr
 import serial
 import threading
 import wx
+import wx.lib.newevent
 import wxSerialConfigDialog
+
+try:
+    unichr
+except NameError:
+    unichr = chr
 
 # ----------------------------------------------------------------------
 # Create an own event type, so that GUI updates can be delegated
@@ -18,20 +25,8 @@ import wxSerialConfigDialog
 # access the GUI without crashing. wxMutexGuiEnter/wxMutexGuiLeave
 # could be used too, but an event is more elegant.
 
+SerialRxEvent, EVT_SERIALRX = wx.lib.newevent.NewEvent()
 SERIALRX = wx.NewEventType()
-# bind to serial data receive events
-EVT_SERIALRX = wx.PyEventBinder(SERIALRX, 0)
-
-
-class SerialRxEvent(wx.PyCommandEvent):
-    eventType = SERIALRX
-
-    def __init__(self, windowID, data):
-        wx.PyCommandEvent.__init__(self, self.eventType, windowID)
-        self.data = data
-
-    def Clone(self):
-        self.__class__(self.GetId(), self.data)
 
 # ----------------------------------------------------------------------
 
@@ -215,6 +210,7 @@ class TerminalFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnPortSettings, id=ID_SETTINGS)
         self.Bind(wx.EVT_MENU, self.OnTermSettings, id=ID_TERM)
         self.text_ctrl_output.Bind(wx.EVT_CHAR, self.OnKey)
+        self.Bind(wx.EVT_CHAR_HOOK, self.OnKey)
         self.Bind(EVT_SERIALRX, self.OnSerialRead)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
@@ -304,8 +300,8 @@ class TerminalFrame(wx.Frame):
         serial port. Newline handling and local echo is also done here.
         """
         code = event.GetUnicodeKey()
-        if code < 256:   # XXX bug in some versions of wx returning only capital letters
-            code = event.GetKeyCode()
+        # if code < 256:   # XXX bug in some versions of wx returning only capital letters
+        #     code = event.GetKeyCode()
         if code == 13:                      # is it a newline? (check for CR which is the RETURN key)
             if self.settings.echo:          # do echo if needed
                 self.text_ctrl_output.AppendText('\n')
@@ -320,6 +316,7 @@ class TerminalFrame(wx.Frame):
             if self.settings.echo:          # do echo if needed
                 self.WriteText(char)
             self.serial.write(char.encode('UTF-8', 'replace'))         # send the character
+        event.StopPropagation()
 
     def WriteText(self, text):
         if self.settings.unprintable:
@@ -345,21 +342,19 @@ class TerminalFrame(wx.Frame):
                     pass
                 elif self.settings.newline == NEWLINE_CRLF:
                     b = b.replace(b'\r\n', b'\n')
-                event = SerialRxEvent(self.GetId(), b)
-                self.GetEventHandler().AddPendingEvent(event)
+                wx.PostEvent(self, SerialRxEvent(data=b))
 
     def OnRTS(self, event):  # wxGlade: TerminalFrame.<event_handler>
         self.serial.rts = event.IsChecked()
 
     def OnDTR(self, event):  # wxGlade: TerminalFrame.<event_handler>
-        self.serial.dtr = event.Checked()
+        self.serial.dtr = event.IsChecked()
 
 # end of class TerminalFrame
 
 
 class MyApp(wx.App):
     def OnInit(self):
-        wx.InitAllImageHandlers()
         frame_terminal = TerminalFrame(None, -1, "")
         self.SetTopWindow(frame_terminal)
         frame_terminal.Show(True)

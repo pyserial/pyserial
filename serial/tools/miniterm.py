@@ -1,9 +1,9 @@
-#!/usr/local/python3
+#!/usr/local/bin/python3
 #
 # Very simple serial terminal
 #
 # This file is part of pySerial. https://github.com/pyserial/pyserial
-# (C)2002-2017 Chris Liechti <cliechti@gmx.net>
+# (C)2002-2020 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
@@ -88,6 +88,7 @@ class ConsoleBase(object):
 if os.name == 'nt':  # noqa
     import msvcrt
     import ctypes
+    import platform
 
     class Out(object):
         """file-like wrapper that uses os.write"""
@@ -102,12 +103,52 @@ if os.name == 'nt':  # noqa
             os.write(self.fd, s)
 
     class Console(ConsoleBase):
+        fncodes = {
+            ';': '\1bOP',  # F1
+            '<': '\1bOQ',  # F2
+            '=': '\1bOR',  # F3
+            '>': '\1bOS',  # F4
+            '?': '\1b[15~',  # F5
+            '@': '\1b[17~',  # F6
+            'A': '\1b[18~',  # F7
+            'B': '\1b[19~',  # F8
+            'C': '\1b[20~',  # F9
+            'D': '\1b[21~',  # F10
+        }
+        navcodes = {
+            'H': '\x1b[A',  # UP
+            'P': '\x1b[B',  # DOWN
+            'K': '\x1b[D',  # LEFT
+            'M': '\x1b[C',  # RIGHT
+            'G': '\x1b[H',  # HOME
+            'O': '\x1b[F',  # END
+            'R': '\x1b[2~',  # INSERT
+            'S': '\x1b[3~',  # DELETE
+            'I': '\x1b[5~',  # PGUP
+            'Q': '\x1b[6~',  # PGDN        
+        }
+        
         def __init__(self):
             super(Console, self).__init__()
             self._saved_ocp = ctypes.windll.kernel32.GetConsoleOutputCP()
             self._saved_icp = ctypes.windll.kernel32.GetConsoleCP()
             ctypes.windll.kernel32.SetConsoleOutputCP(65001)
             ctypes.windll.kernel32.SetConsoleCP(65001)
+            # ANSI handling available through SetConsoleMode since Windows 10 v1511 
+            # https://en.wikipedia.org/wiki/ANSI_escape_code#cite_note-win10th2-1
+            if platform.release() == '10' and int(platform.version().split('.')[2]) > 10586:
+                ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+                import ctypes.wintypes as wintypes
+                if not hasattr(wintypes, 'LPDWORD'): # PY2
+                    wintypes.LPDWORD = ctypes.POINTER(wintypes.DWORD)
+                SetConsoleMode = ctypes.windll.kernel32.SetConsoleMode
+                GetConsoleMode = ctypes.windll.kernel32.GetConsoleMode
+                GetStdHandle = ctypes.windll.kernel32.GetStdHandle
+                mode = wintypes.DWORD()
+                GetConsoleMode(GetStdHandle(-11), ctypes.byref(mode))
+                if (mode.value & ENABLE_VIRTUAL_TERMINAL_PROCESSING) == 0:
+                    SetConsoleMode(GetStdHandle(-11), mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+                    self._saved_cm = mode
             self.output = codecs.getwriter('UTF-8')(Out(sys.stdout.fileno()), 'replace')
             # the change of the code page is not propagated to Python, manually fix it
             sys.stderr = codecs.getwriter('UTF-8')(Out(sys.stderr.fileno()), 'replace')
@@ -117,14 +158,25 @@ if os.name == 'nt':  # noqa
         def __del__(self):
             ctypes.windll.kernel32.SetConsoleOutputCP(self._saved_ocp)
             ctypes.windll.kernel32.SetConsoleCP(self._saved_icp)
+            try:
+                ctypes.windll.kernel32.SetConsoleMode(ctypes.windll.kernel32.GetStdHandle(-11), self._saved_cm)
+            except AttributeError: # in case no _saved_cm
+                pass
 
         def getkey(self):
             while True:
                 z = msvcrt.getwch()
                 if z == unichr(13):
                     return unichr(10)
-                elif z in (unichr(0), unichr(0x0e)):    # functions keys, ignore
-                    msvcrt.getwch()
+                elif z is unichr(0) or z is unichr(0xe0):
+                    try:
+                        code = msvcrt.getwch()
+                        if z is unichr(0):
+                            return self.fncodes[code]
+                        else:
+                            return self.navcodes[code]
+                    except KeyError:
+                        pass
                 else:
                     return z
 
@@ -568,7 +620,7 @@ class Miniterm(object):
         #~ elif c == '\x0c':                       # CTRL+L -> cycle linefeed mode
         elif c in 'pP':                         # P -> change port
             self.change_port()
-        elif c in 'sS':                         # S -> suspend / open port temporarily
+        elif c in 'zZ':                         # S -> suspend / open port temporarily
             self.suspend_port()
         elif c in 'bB':                         # B -> change baudrate
             self.change_baudrate()
@@ -608,6 +660,8 @@ class Miniterm(object):
         elif c in 'rR':                         # R -> change hardware flow control
             self.serial.rtscts = (c == 'R')
             self.dump_port_settings()
+        elif c in 'qQ':
+            self.stop()                         # Q -> exit app
         else:
             sys.stderr.write('--- unknown menu character {} --\n'.format(key_description(c)))
 
@@ -749,7 +803,7 @@ class Miniterm(object):
         return """
 --- pySerial ({version}) - miniterm - help
 ---
---- {exit:8} Exit program
+--- {exit:8} Exit program (alias {menu} Q)
 --- {menu:8} Menu escape key, followed by:
 --- Menu keys:
 ---    {menu:7} Send the menu character itself to remote

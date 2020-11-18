@@ -6,7 +6,7 @@
 # For Python 3.x use the corresponding Python executable,
 # e.g. "python3 setup.py ..."
 #
-# (C) 2001-2017 Chris Liechti <cliechti@gmx.net>
+# (C) 2001-2020 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 import io
@@ -85,16 +85,24 @@ Latest:
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Communications',
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Terminals :: Serial',
     ],
     platforms='any',
-    scripts=['serial/tools/miniterm.py'],
+    entry_points = {
+        'console_scripts': [
+            'pyserial-miniterm=serial.tools.miniterm:main',
+            'pyserial-ports=serial.tools.list_ports:main'
+        ],
+    },
+    extras_require = {
+        'cp2110': ['hidapi'],
+    },
 )
