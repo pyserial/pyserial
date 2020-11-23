@@ -801,3 +801,25 @@ Bugfixes (MacOS):
 
 - [#364] MacOS: rework list_ports to support unicode product descriptors.
 - [#367] Mac and bsd fix _update_break_state
+
+
+Version 3.5 2020-11-23
+----------------------
+See above (3.5b0) for what's all new in this release
+
+Bugfixes:
+
+- spy: ensure bytes in write()
+
+Bugfixes (posix):
+
+- [#540] serialposix: Fix inconsistent state after exception in open()
+
+Bugfixes (win32):
+
+- [#530] win32: Fix exception for composite serial number search on Windows
+
+Bugfixes (MacOS):
+
+- [#542] list_ports_osx: kIOMasterPortDefault no longer exported on Big Sur
+- [#545, #545] list_ports_osx: getting USB info on BigSur/AppleSilicon
