@@ -65,7 +65,7 @@ class PlatformSpecificBase(object):
     
 
 # some systems support an extra flag to enable the two in POSIX unsupported
-# paritiy settings for MARK and SPACE
+# parity settings for MARK and SPACE
 CMSPAR = 0  # default, for unsupported platforms, override below
 
 # try to detect the OS so that a device can be selected...
