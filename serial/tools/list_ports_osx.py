@@ -270,6 +270,8 @@ def comports(include_links=False):
         device = get_string_property(service, "IOCalloutDevice")
         if device:
             info = list_ports_common.ListPortInfo(device)
+            # find the serial interface associated with this device
+            serial_interface = GetParentDeviceByType(service, "IOUSBInterface")
             # If the serial port is implemented by IOUSBDevice
             # NOTE IOUSBDevice was deprecated as of 10.11 and finally on Apple Silicon
             # devices has been completely removed.  Thanks to @oskay for this patch.
@@ -288,7 +290,10 @@ def comports(include_links=False):
                 info.manufacturer = get_string_property(usb_device, kUSBVendorString)
                 locationID = get_int_property(usb_device, "locationID", kCFNumberSInt32Type)
                 info.location = location_to_string(locationID)
-                info.interface = search_for_locationID_in_interfaces(serial_interfaces, locationID)
+                info.interface = get_string_property(serial_interface, "USB Interface Name")
+                # fallback to the serial_interfaces search if necessary
+                if info.interface is None:
+                    info.interface = search_for_locationID_in_interfaces(serial_interfaces, locationID)
                 info.apply_usb_info()
             ports.append(info)
     return ports
