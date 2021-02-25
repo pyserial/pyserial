@@ -26,6 +26,7 @@ import sys
 import time
 
 import serial
+from serial.serialutil import  to_bytes
 
 try:
     import urlparse
@@ -200,6 +201,7 @@ class Serial(serial.Serial):
         return ''.join([parts.netloc, parts.path])
 
     def write(self, tx):
+        tx = to_bytes(tx)
         self.formatter.tx(tx)
         return super(Serial, self).write(tx)
 

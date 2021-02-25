@@ -325,35 +325,53 @@ class Serial(SerialBase, PlatformSpecific):
             raise SerialException(msg.errno, "could not open port {}: {}".format(self._port, msg))
         #~ fcntl.fcntl(self.fd, fcntl.F_SETFL, 0)  # set blocking
 
+        self.pipe_abort_read_r, self.pipe_abort_read_w = None, None
+        self.pipe_abort_write_r, self.pipe_abort_write_w = None, None
+
         try:
             self._reconfigure_port(force_update=True)
-        except:
+
+            try:
+                if not self._dsrdtr:
+                    self._update_dtr_state()
+                if not self._rtscts:
+                    self._update_rts_state()
+            except IOError as e:
+                # ignore Invalid argument and Inappropriate ioctl
+                if e.errno not in (errno.EINVAL, errno.ENOTTY):
+                    raise
+
+            self._reset_input_buffer()
+
+            self.pipe_abort_read_r, self.pipe_abort_read_w = os.pipe()
+            self.pipe_abort_write_r, self.pipe_abort_write_w = os.pipe()
+            fcntl.fcntl(self.pipe_abort_read_r, fcntl.F_SETFL, os.O_NONBLOCK)
+            fcntl.fcntl(self.pipe_abort_write_r, fcntl.F_SETFL, os.O_NONBLOCK)
+        except BaseException:
             try:
                 os.close(self.fd)
-            except:
+            except Exception:
                 # ignore any exception when closing the port
                 # also to keep original exception that happened when setting up
                 pass
             self.fd = None
+
+            if self.pipe_abort_read_w is not None:
+                os.close(self.pipe_abort_read_w)
+                self.pipe_abort_read_w = None
+            if self.pipe_abort_read_r is not None:
+                os.close(self.pipe_abort_read_r)
+                self.pipe_abort_read_r = None
+            if self.pipe_abort_write_w is not None:
+                os.close(self.pipe_abort_write_w)
+                self.pipe_abort_write_w = None
+            if self.pipe_abort_write_r is not None:
+                os.close(self.pipe_abort_write_r)
+                self.pipe_abort_write_r = None
+
             raise
-        else:
-            self.is_open = True
-        try:
-            if not self._dsrdtr:
-                self._update_dtr_state()
-            if not self._rtscts:
-                self._update_rts_state()
-        except IOError as e:
-            if e.errno in (errno.EINVAL, errno.ENOTTY):
-                # ignore Invalid argument and Inappropriate ioctl
-                pass
-            else:
-                raise
-        self.reset_input_buffer()
-        self.pipe_abort_read_r, self.pipe_abort_read_w = os.pipe()
-        self.pipe_abort_write_r, self.pipe_abort_write_w = os.pipe()
-        fcntl.fcntl(self.pipe_abort_read_r, fcntl.F_SETFL, os.O_NONBLOCK)
-        fcntl.fcntl(self.pipe_abort_write_r, fcntl.F_SETFL, os.O_NONBLOCK)
+
+        self.is_open = True
 
     def _reconfigure_port(self, force_update=False):
         """Set communication parameters on opened port."""
@@ -658,11 +676,15 @@ class Serial(SerialBase, PlatformSpecific):
             raise PortNotOpenError()
         termios.tcdrain(self.fd)
 
+    def _reset_input_buffer(self):
+        """Clear input buffer, discarding all that is in the buffer."""
+        termios.tcflush(self.fd, termios.TCIFLUSH)
+
     def reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
         if not self.is_open:
             raise PortNotOpenError()
-        termios.tcflush(self.fd, termios.TCIFLUSH)
+        self._reset_input_buffer()
 
     def reset_output_buffer(self):
         """\

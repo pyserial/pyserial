@@ -30,7 +30,8 @@ from serial.tools import list_ports_common
 iokit = ctypes.cdll.LoadLibrary('/System/Library/Frameworks/IOKit.framework/IOKit')
 cf = ctypes.cdll.LoadLibrary('/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation')
 
-kIOMasterPortDefault = ctypes.c_void_p.in_dll(iokit, "kIOMasterPortDefault")
+# kIOMasterPortDefault is no longer exported in BigSur but no biggie, using NULL works just the same
+kIOMasterPortDefault = 0 # WAS: ctypes.c_void_p.in_dll(iokit, "kIOMasterPortDefault")
 kCFAllocatorDefault = ctypes.c_void_p.in_dll(cf, "kCFAllocatorDefault")
 
 kCFStringEncodingMacRoman = 0
@@ -270,7 +271,11 @@ def comports(include_links=False):
         if device:
             info = list_ports_common.ListPortInfo(device)
             # If the serial port is implemented by IOUSBDevice
-            usb_device = GetParentDeviceByType(service, "IOUSBDevice")
+            # NOTE IOUSBDevice was deprecated as of 10.11 and finally on Apple Silicon
+            # devices has been completely removed.  Thanks to @oskay for this patch.
+            usb_device = GetParentDeviceByType(service, "IOUSBHostDevice")
+            if not usb_device:
+                usb_device = GetParentDeviceByType(service, "IOUSBDevice")
             if usb_device:
                 # fetch some useful informations from properties
                 info.vid = get_int_property(usb_device, "idVendor", kCFNumberSInt16Type)
