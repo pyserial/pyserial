@@ -51,7 +51,7 @@ elif plat[:7] == 'openbsd':    # OpenBSD
 
 elif plat[:3] == 'bsd' or plat[:7] == 'freebsd':
     def comports(include_links=False):
-        devices = glob.glob('/dev/cua*[!.init][!.lock]')
+        devices = glob.glob('/dev/cua*[!.init|.lock]')
         if include_links:
             devices.extend(list_ports_common.list_links(devices))
         return [list_ports_common.ListPortInfo(d) for d in devices]
