@@ -11,16 +11,45 @@
 
 from __future__ import absolute_import
 
-from ctypes import c_ulong, c_void_p, c_int64, c_char, \
-                   WinDLL, sizeof, Structure, Union, POINTER
-from ctypes.wintypes import HANDLE
-from ctypes.wintypes import BOOL
-from ctypes.wintypes import LPCWSTR
-from ctypes.wintypes import DWORD
-from ctypes.wintypes import WORD
-from ctypes.wintypes import BYTE
+from ctypes import c_ulong, c_void_p, c_int64, c_char
+from ctypes import CDLL, sizeof, Structure, Union, POINTER
+from ctypes import c_bool, c_wchar_p, c_int32, c_int16, c_int8
+#from ctypes.wintypes import HANDLE
+#from ctypes.wintypes import BOOL
+#from ctypes.wintypes import LPCWSTR
+#from ctypes.wintypes import DWORD
+#from ctypes.wintypes import WORD
+#from ctypes.wintypes import BYTE
 _stdcall_libraries = {}
-_stdcall_libraries['kernel32'] = WinDLL('kernel32')
+_stdcall_libraries['kernel32'] = CDLL('kernel32.dll')
+
+HANDLE = c_void_p
+BOOL   = c_bool
+LPCWSTR= c_wchar_p
+DWORD  = c_int32
+WORD   = c_int16
+BYTE   = c_int8
+
+
+def WinError(code=None, descr=None):
+    if code is None:
+        code = GetLastError()
+    #if descr is None:
+    #    descr = FormatError(code).strip()
+    return WindowsError(code, descr)
+
+
+class WindowsError(RuntimeError):
+  def __init__( self, code, descr ):
+    self.code = code
+    self.descr= descr
+
+  def __repr__( self ):
+    if self.descr is None:
+      return "%s(%d)" % (self.__class__.__name__, self.code)
+    else:
+      return "%s(%d, %s)" % (self.__class__.__name__, self.code, self.descr)
+
 
 INVALID_HANDLE_VALUE = HANDLE(-1).value
 
@@ -61,12 +90,12 @@ except AttributeError:
 else:
     CreateEventW.restype = HANDLE
     CreateEventW.argtypes = [LPSECURITY_ATTRIBUTES, BOOL, BOOL, LPCWSTR]
-    CreateEvent = CreateEventW  # alias
+    CreateEvent = CreateEventW # alias
 
     CreateFileW = _stdcall_libraries['kernel32'].CreateFileW
     CreateFileW.restype = HANDLE
     CreateFileW.argtypes = [LPCWSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE]
-    CreateFile = CreateFileW  # alias
+    CreateFile = CreateFileW # alias
 
 
 class _OVERLAPPED(Structure):
@@ -189,66 +218,66 @@ CancelIoEx = _stdcall_libraries['kernel32'].CancelIoEx
 CancelIoEx.restype = BOOL
 CancelIoEx.argtypes = [HANDLE, LPOVERLAPPED]
 
-ONESTOPBIT = 0  # Variable c_int
-TWOSTOPBITS = 2  # Variable c_int
+ONESTOPBIT = 0 # Variable c_int
+TWOSTOPBITS = 2 # Variable c_int
 ONE5STOPBITS = 1
 
-NOPARITY = 0  # Variable c_int
-ODDPARITY = 1  # Variable c_int
-EVENPARITY = 2  # Variable c_int
+NOPARITY = 0 # Variable c_int
+ODDPARITY = 1 # Variable c_int
+EVENPARITY = 2 # Variable c_int
 MARKPARITY = 3
 SPACEPARITY = 4
 
-RTS_CONTROL_HANDSHAKE = 2  # Variable c_int
-RTS_CONTROL_DISABLE = 0  # Variable c_int
-RTS_CONTROL_ENABLE = 1  # Variable c_int
-RTS_CONTROL_TOGGLE = 3  # Variable c_int
+RTS_CONTROL_HANDSHAKE = 2 # Variable c_int
+RTS_CONTROL_DISABLE = 0 # Variable c_int
+RTS_CONTROL_ENABLE = 1 # Variable c_int
+RTS_CONTROL_TOGGLE = 3 # Variable c_int
 SETRTS = 3
 CLRRTS = 4
 
-DTR_CONTROL_HANDSHAKE = 2  # Variable c_int
-DTR_CONTROL_DISABLE = 0  # Variable c_int
-DTR_CONTROL_ENABLE = 1  # Variable c_int
+DTR_CONTROL_HANDSHAKE = 2 # Variable c_int
+DTR_CONTROL_DISABLE = 0 # Variable c_int
+DTR_CONTROL_ENABLE = 1 # Variable c_int
 SETDTR = 5
 CLRDTR = 6
 
-MS_DSR_ON = 32  # Variable c_ulong
-EV_RING = 256  # Variable c_int
-EV_PERR = 512  # Variable c_int
-EV_ERR = 128  # Variable c_int
-SETXOFF = 1  # Variable c_int
-EV_RXCHAR = 1  # Variable c_int
-GENERIC_WRITE = 1073741824  # Variable c_long
-PURGE_TXCLEAR = 4  # Variable c_int
-FILE_FLAG_OVERLAPPED = 1073741824  # Variable c_int
-EV_DSR = 16  # Variable c_int
+MS_DSR_ON = 32 # Variable c_ulong
+EV_RING = 256 # Variable c_int
+EV_PERR = 512 # Variable c_int
+EV_ERR = 128 # Variable c_int
+SETXOFF = 1 # Variable c_int
+EV_RXCHAR = 1 # Variable c_int
+GENERIC_WRITE = 1073741824 # Variable c_long
+PURGE_TXCLEAR = 4 # Variable c_int
+FILE_FLAG_OVERLAPPED = 1073741824 # Variable c_int
+EV_DSR = 16 # Variable c_int
 MAXDWORD = 4294967295  # Variable c_uint
-EV_RLSD = 32  # Variable c_int
+EV_RLSD = 32 # Variable c_int
 
 ERROR_SUCCESS = 0
 ERROR_NOT_ENOUGH_MEMORY = 8
 ERROR_OPERATION_ABORTED = 995
 ERROR_IO_INCOMPLETE = 996
-ERROR_IO_PENDING = 997  # Variable c_long
+ERROR_IO_PENDING = 997 # Variable c_long
 ERROR_INVALID_USER_BUFFER = 1784
 
-MS_CTS_ON = 16  # Variable c_ulong
-EV_EVENT1 = 2048  # Variable c_int
-EV_RX80FULL = 1024  # Variable c_int
-PURGE_RXABORT = 2  # Variable c_int
-FILE_ATTRIBUTE_NORMAL = 128  # Variable c_int
-PURGE_TXABORT = 1  # Variable c_int
-SETXON = 2  # Variable c_int
-OPEN_EXISTING = 3  # Variable c_int
-MS_RING_ON = 64  # Variable c_ulong
-EV_TXEMPTY = 4  # Variable c_int
-EV_RXFLAG = 2  # Variable c_int
-MS_RLSD_ON = 128  # Variable c_ulong
-GENERIC_READ = 2147483648  # Variable c_ulong
-EV_EVENT2 = 4096  # Variable c_int
-EV_CTS = 8  # Variable c_int
-EV_BREAK = 64  # Variable c_int
-PURGE_RXCLEAR = 8  # Variable c_int
+MS_CTS_ON = 16 # Variable c_ulong
+EV_EVENT1 = 2048 # Variable c_int
+EV_RX80FULL = 1024 # Variable c_int
+PURGE_RXABORT = 2 # Variable c_int
+FILE_ATTRIBUTE_NORMAL = 128 # Variable c_int
+PURGE_TXABORT = 1 # Variable c_int
+SETXON = 2 # Variable c_int
+OPEN_EXISTING = 3 # Variable c_int
+MS_RING_ON = 64 # Variable c_ulong
+EV_TXEMPTY = 4 # Variable c_int
+EV_RXFLAG = 2 # Variable c_int
+MS_RLSD_ON = 128 # Variable c_ulong
+GENERIC_READ = 2147483648 # Variable c_ulong
+EV_EVENT2 = 4096 # Variable c_int
+EV_CTS = 8 # Variable c_int
+EV_BREAK = 64 # Variable c_int
+PURGE_RXCLEAR = 8 # Variable c_int
 INFINITE = 0xFFFFFFFF
 
 CE_RXOVER = 0x0001

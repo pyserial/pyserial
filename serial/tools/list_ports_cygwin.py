@@ -13,26 +13,35 @@ from __future__ import absolute_import
 # pylint: disable=invalid-name,too-few-public-methods
 import re
 import ctypes
-from ctypes.wintypes import BOOL
-from ctypes.wintypes import HWND
-from ctypes.wintypes import DWORD
-from ctypes.wintypes import WORD
-from ctypes.wintypes import LONG
-from ctypes.wintypes import ULONG
-from ctypes.wintypes import HKEY
-from ctypes.wintypes import BYTE
+#from ctypes.wintypes import BOOL
+#from ctypes.wintypes import HWND
+#from ctypes.wintypes import DWORD
+#from ctypes.wintypes import WORD
+#from ctypes.wintypes import LONG
+#from ctypes.wintypes import ULONG
+#from ctypes.wintypes import HKEY
+#from ctypes.wintypes import BYTE
 import serial
-from serial.win32 import ULONG_PTR
+from serial import cygwin
+from serial.cygwin import ULONG_PTR
 from serial.tools import list_ports_common
 
 
 def ValidHandle(value, func, arguments):
     if value == 0:
-        raise ctypes.WinError()
+        raise cygwin.WinError()
     return value
 
 
 NULL = 0
+BOOL   = ctypes.c_bool
+HWND   = ctypes.c_void_p
+DWORD  = ctypes.c_int32
+WORD   = ctypes.c_int16
+LONG   = ctypes.c_long
+ULONG  = ctypes.c_int
+HKEY   = ctypes.c_void_p
+BYTE   = ctypes.c_byte
 HDEVINFO = ctypes.c_void_p
 LPCTSTR = ctypes.c_wchar_p
 PCTSTR = ctypes.c_wchar_p
@@ -79,7 +88,7 @@ PSP_DEVINFO_DATA = ctypes.POINTER(SP_DEVINFO_DATA)
 
 PSP_DEVICE_INTERFACE_DETAIL_DATA = ctypes.c_void_p
 
-setupapi = ctypes.windll.LoadLibrary("setupapi")
+setupapi = ctypes.windll.LoadLibrary("setupapi.dll")
 SetupDiDestroyDeviceInfoList = setupapi.SetupDiDestroyDeviceInfoList
 SetupDiDestroyDeviceInfoList.argtypes = [HDEVINFO]
 SetupDiDestroyDeviceInfoList.restype = BOOL
@@ -109,7 +118,7 @@ SetupDiOpenDevRegKey = setupapi.SetupDiOpenDevRegKey
 SetupDiOpenDevRegKey.argtypes = [HDEVINFO, PSP_DEVINFO_DATA, DWORD, DWORD, DWORD, REGSAM]
 SetupDiOpenDevRegKey.restype = HKEY
 
-advapi32 = ctypes.windll.LoadLibrary("Advapi32")
+advapi32 = ctypes.windll.LoadLibrary("Advapi32.dll")
 RegCloseKey = advapi32.RegCloseKey
 RegCloseKey.argtypes = [HKEY]
 RegCloseKey.restype = LONG
@@ -118,7 +127,7 @@ RegQueryValueEx = advapi32.RegQueryValueExW
 RegQueryValueEx.argtypes = [HKEY, LPCTSTR, LPDWORD, LPDWORD, LPBYTE, LPDWORD]
 RegQueryValueEx.restype = LONG
 
-cfgmgr32 = ctypes.windll.LoadLibrary("Cfgmgr32")
+cfgmgr32 = ctypes.windll.LoadLibrary("Cfgmgr32.dll")
 CM_Get_Parent = cfgmgr32.CM_Get_Parent
 CM_Get_Parent.argtypes = [PDWORD, DWORD, ULONG]
 CM_Get_Parent.restype = LONG
@@ -175,7 +184,7 @@ def get_parent_serial_number(child_devinst, child_vid, child_pid, depth=0, last_
         if win_error == ERROR_NOT_FOUND:
             return '' if not last_serial_number else last_serial_number
 
-        raise ctypes.WinError(win_error)
+        raise cygwin.WinError(win_error)
 
     # Get the ID of the parent device and parse it for vendor ID, product ID, and serial number.
     parentHardwareID = ctypes.create_unicode_buffer(250)
@@ -187,7 +196,7 @@ def get_parent_serial_number(child_devinst, child_vid, child_pid, depth=0, last_
         0)
 
     if ret:
-        raise ctypes.WinError(CM_MapCrToWin32Err(DWORD(ret), DWORD(0)))
+        raise cygwin.WinError(CM_MapCrToWin32Err(DWORD(ret), DWORD(0)))
 
     parentHardwareID_str = parentHardwareID.value
     m = re.search(r'VID_([0-9a-f]{4})(&PID_([0-9a-f]{4}))?(&MI_(\d{2}))?(\\(.*))?',
@@ -244,7 +253,7 @@ def iterate_comports():
             PortsGUIDs,
             ctypes.sizeof(PortsGUIDs),
             ctypes.byref(ports_guids_size)):
-        raise ctypes.WinError()
+        raise cygwin.WinError()
 
     ModemsGUIDs = (GUID * 8)()  # so far only seen one used, so hope 8 are enough...
     modems_guids_size = DWORD()
@@ -253,7 +262,7 @@ def iterate_comports():
             ModemsGUIDs,
             ctypes.sizeof(ModemsGUIDs),
             ctypes.byref(modems_guids_size)):
-        raise ctypes.WinError()
+        raise cygwin.WinError()
 
     GUIDs = PortsGUIDs[:ports_guids_size.value] + ModemsGUIDs[:modems_guids_size.value]
 
@@ -317,8 +326,8 @@ def iterate_comports():
                         ctypes.sizeof(szHardwareID) - 1,
                         None):
                     # Ignore ERROR_INSUFFICIENT_BUFFER
-                    if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
-                        raise ctypes.WinError()
+                    if cygwin.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
+                        raise cygwin.WinError()
             # stringify
             szHardwareID_str = szHardwareID.value
 
@@ -396,7 +405,7 @@ def iterate_comports():
                 info.description = szFriendlyName.value
             #~ else:
                 # Ignore ERROR_INSUFFICIENT_BUFFER
-                #~ if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
+                #~ if cygwin.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
                     #~ raise IOError("failed to get details for %s (%s)" % (devinfo, szHardwareID.value))
                 # ignore errors and still include the port in the list, friendly name will be same as port name
 

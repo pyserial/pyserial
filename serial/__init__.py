@@ -22,6 +22,8 @@ VERSION = __version__
 # pylint: disable=wrong-import-position
 if sys.platform == 'cli':
     from serial.serialcli import Serial
+elif sys.platform == 'cygwin':
+  from serial.serialcygwin import Serial
 else:
     import os
     # chose an implementation, depending on os

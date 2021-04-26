@@ -14,7 +14,7 @@ from __future__ import absolute_import
 # pylint: disable=invalid-name,too-few-public-methods
 import ctypes
 import time
-from serial import win32
+from serial import cygwin as win32
 
 import serial
 from serial.serialutil import SerialBase, SerialException, to_bytes, PortNotOpenError, SerialTimeoutException
@@ -61,7 +61,7 @@ class Serial(SerialBase):
             0)
         if self._port_handle == win32.INVALID_HANDLE_VALUE:
             self._port_handle = None    # 'cause __del__ is called anyway
-            raise SerialException("could not open port {!r}: {!r}".format(self.portstr, ctypes.WinError()))
+            raise SerialException("could not open port {!r}: {!r}".format(self.portstr, win32.WinError()))
 
         try:
             self._overlapped_read = win32.OVERLAPPED()
@@ -221,7 +221,7 @@ class Serial(SerialBase):
         if not win32.SetCommState(self._port_handle, ctypes.byref(comDCB)):
             raise SerialException(
                 'Cannot configure port, something went wrong. '
-                'Original message: {!r}'.format(ctypes.WinError()))
+                'Original message: {!r}'.format(win32.WinError()))
 
     #~ def __del__(self):
         #~ self.close()
@@ -256,7 +256,7 @@ class Serial(SerialBase):
         flags = win32.DWORD()
         comstat = win32.COMSTAT()
         if not win32.ClearCommError(self._port_handle, ctypes.byref(flags), ctypes.byref(comstat)):
-            raise SerialException("ClearCommError failed ({!r})".format(ctypes.WinError()))
+            raise SerialException("ClearCommError failed ({!r})".format(win32.WinError()))
         return comstat.cbInQue
 
     def read(self, size=1):
@@ -272,7 +272,7 @@ class Serial(SerialBase):
             flags = win32.DWORD()
             comstat = win32.COMSTAT()
             if not win32.ClearCommError(self._port_handle, ctypes.byref(flags), ctypes.byref(comstat)):
-                raise SerialException("ClearCommError failed ({!r})".format(ctypes.WinError()))
+                raise SerialException("ClearCommError failed ({!r})".format(win32.WinError()))
             n = min(comstat.cbInQue, size) if self.timeout == 0 else size
             if n > 0:
                 buf = ctypes.create_string_buffer(n)
@@ -284,7 +284,7 @@ class Serial(SerialBase):
                     ctypes.byref(rc),
                     ctypes.byref(self._overlapped_read))
                 if not read_ok and win32.GetLastError() not in (win32.ERROR_SUCCESS, win32.ERROR_IO_PENDING):
-                    raise SerialException("ReadFile failed ({!r})".format(ctypes.WinError()))
+                    raise SerialException("ReadFile failed ({!r})".format(win32.WinError()))
                 result_ok = win32.GetOverlappedResult(
                     self._port_handle,
                     ctypes.byref(self._overlapped_read),
@@ -292,7 +292,7 @@ class Serial(SerialBase):
                     True)
                 if not result_ok:
                     if win32.GetLastError() != win32.ERROR_OPERATION_ABORTED:
-                        raise SerialException("GetOverlappedResult failed ({!r})".format(ctypes.WinError()))
+                        raise SerialException("GetOverlappedResult failed ({!r})".format(win32.WinError()))
                 read = buf.raw[:rc.value]
             else:
                 read = bytes()
@@ -314,7 +314,7 @@ class Serial(SerialBase):
             success = win32.WriteFile(self._port_handle, data, len(data), ctypes.byref(n), self._overlapped_write)
             if self._write_timeout != 0:  # if blocking (None) or w/ write timeout (>0)
                 if not success and win32.GetLastError() not in (win32.ERROR_SUCCESS, win32.ERROR_IO_PENDING):
-                    raise SerialException("WriteFile failed ({!r})".format(ctypes.WinError()))
+                    raise SerialException("WriteFile failed ({!r})".format(win32.WinError()))
 
                 # Wait for the write to complete.
                 #~ win32.WaitForSingleObject(self._overlapped_write.hEvent, win32.INFINITE)
@@ -333,7 +333,7 @@ class Serial(SerialBase):
                     # no info on true length provided by OS function in async mode
                     return len(data)
                 else:
-                    raise SerialException("WriteFile failed ({!r})".format(ctypes.WinError()))
+                    raise SerialException("WriteFile failed ({!r})".format(win32.WinError()))
         else:
             return 0
 
@@ -444,7 +444,7 @@ class Serial(SerialBase):
         flags = win32.DWORD()
         comstat = win32.COMSTAT()
         if not win32.ClearCommError(self._port_handle, ctypes.byref(flags), ctypes.byref(comstat)):
-            raise SerialException("ClearCommError failed ({!r})".format(ctypes.WinError()))
+            raise SerialException("ClearCommError failed ({!r})".format(win32.WinError()))
         return comstat.cbOutQue
 
     def _cancel_overlapped_io(self, overlapped):
