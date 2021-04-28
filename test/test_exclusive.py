@@ -29,7 +29,7 @@ class Test_exclusive(unittest.TestCase):
         with serial.Serial(PORT, exclusive=None):
             pass  # OK
 
-    @unittest.skipUnless(os.name == 'posix', "exclusive=False not supported on platform")
+    @unittest.skipUnless(os.name == 'posix' and sys.platform != 'cygwin', "exclusive=False not supported on platform")
     def test_exclusive_false(self):
         """test for exclusive=False"""
         with serial.Serial(PORT, exclusive=False):
@@ -42,7 +42,7 @@ class Test_exclusive(unittest.TestCase):
             with self.assertRaises(serial.SerialException):
                 serial.Serial(PORT, exclusive=True)  # fails to open twice
 
-    @unittest.skipUnless(os.name == 'nt', "platform is not restricted to exclusive=True (and None)")
+    @unittest.skipUnless(sys.platform in ('win32', 'cygwin'), "platform is not restricted to exclusive=True (and None)")
     def test_exclusive_only_true(self):
         """test if exclusive=False is not supported"""
         with self.assertRaises(ValueError):

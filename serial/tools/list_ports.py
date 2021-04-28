@@ -25,7 +25,9 @@ import re
 # chose an implementation, depending on os
 #~ if sys.platform == 'cli':
 #~ else:
-if os.name == 'nt':  # sys.platform == 'win32':
+if sys.platform == 'cygwin':
+    from serial.tools.list_ports_cygwin import comports
+elif os.name == 'nt':  # sys.platform == 'win32':
     from serial.tools.list_ports_windows import comports
 elif os.name == 'posix':
     from serial.tools.list_ports_posix import comports
