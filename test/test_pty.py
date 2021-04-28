@@ -20,7 +20,7 @@ import serial
 
 DATA = b'Hello\n'
 
-@unittest.skipIf(pty is None, "pty module not supported on platform")
+@unittest.skipIf(pty is None or sys.platform == 'cygwin', "pty module not supported on platform")
 class Test_Pty_Serial_Open(unittest.TestCase):
     """Test PTY serial open"""
 
