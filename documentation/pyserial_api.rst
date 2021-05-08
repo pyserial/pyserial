@@ -173,6 +173,9 @@ Native ports
             Returns an instance of :class:`bytes` when available (Python 2.6
             and newer) and :class:`str` otherwise.
 
+        .. versionchanged:: 3.5
+            First argument was called ``terminator`` in previous versions.
+
     .. method:: write(data)
 
         :param data: Data to send.
