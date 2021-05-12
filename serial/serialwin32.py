@@ -318,9 +318,14 @@ class Serial(SerialBase):
 
                 # Wait for the write to complete.
                 #~ win32.WaitForSingleObject(self._overlapped_write.hEvent, win32.INFINITE)
-                win32.GetOverlappedResult(self._port_handle, self._overlapped_write, ctypes.byref(n), True)
-                if win32.GetLastError() == win32.ERROR_OPERATION_ABORTED:
-                    return n.value  # canceled IO is no error
+                result_ok = win32.GetOverlappedResult(
+                    self._port_handle,
+                    self._overlapped_write,
+                    ctypes.byref(n),
+                    True)
+                if not result_ok:
+                    if win32.GetLastError() != win32.ERROR_OPERATION_ABORTED:
+                        raise SerialException("GetOverlappedResult failed ({!r})".format(ctypes.WinError()))
                 if n.value != len(data):
                     raise SerialTimeoutException('Write timeout')
                 return n.value
