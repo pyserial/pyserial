@@ -635,7 +635,7 @@ class Miniterm(object):
             sys.stderr.write('--- unknown menu character {} --\n'.format(key_description(c)))
 
     def upload_file(self):
-        """Ask user for filenname and send its contents"""
+        """Ask user for filename and send its contents"""
         sys.stderr.write('\n--- File to upload: ')
         sys.stderr.flush()
         with self.console:
@@ -810,7 +810,7 @@ class Miniterm(object):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # default args can be used to override when calling main() from an other script
 # e.g to create a miniterm-my-device.py
-def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr=None):
+def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr=None, serial_instance=None):
     """Command line tool, entry point"""
 
     import argparse
@@ -959,7 +959,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
     else:
         filters = ['default']
 
-    while True:
+    while serial_instance is None:
         # no port given on command line -> ask user now
         if args.port is None or args.port == '-':
             try:
