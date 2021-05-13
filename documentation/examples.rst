@@ -199,7 +199,7 @@ port_publisher.sh_
     Example init.d script.
 
 .. _port_publisher.py: https://github.com/pyserial/pyserial/blob/master/examples/port_publisher.py
-.. _port_publisher.sh: https://github.com/pyserial/pyserial/blob/master/examples/http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/port_publisher.sh
+.. _port_publisher.sh: https://github.com/pyserial/pyserial/blob/master/examples/port_publisher.sh
 
 
 wxPython examples
