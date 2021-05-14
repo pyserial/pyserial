@@ -1,6 +1,6 @@
 #! python
 #
-# This module implements a RFC2217 compatible client. RF2217 descibes a
+# This module implements a RFC2217 compatible client. RF2217 describes a
 # protocol to access serial ports over TCP/IP and allows setting the baud rate,
 # modem control lines etc.
 #
