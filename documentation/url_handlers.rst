@@ -140,6 +140,13 @@ Supported options in the URL are:
   hex dump). In this mode, no control line and other commands are logged.
 - ``all`` also show ``in_waiting`` and empty ``read()`` calls (hidden by
   default because of high traffic).
+- ``log`` or ``log=LOGGERNAME`` output to stdlib ``logging`` module. Default
+  channel name is ``serial``. This variant outputs hex dump.
+- ``rawlog`` or ``rawlog=LOGGERNAME`` output to stdlib ``logging`` module. Default
+  channel name is ``serial``. This variant outputs text (``repr``).
+
+The ``log`` and ``rawlog`` options require that the logging is set up, in order
+to see the log output.
 
 Example::
 
@@ -208,6 +215,7 @@ not interpreted by the shell::
 The spy output will be live in the second terminal window.
 
 .. versionadded:: 3.0
+.. versionchanged:: 3.6 Added ``log`` and ``rawlog`` options
 
 
 ``alt://``
@@ -236,9 +244,9 @@ Examples::
 
 .. versionadded:: 3.0
 
+
 ``cp2110://``
 =============
-
 This backend implements support for HID-to-UART devices manufactured by Silicon
 Labs and marketed as CP2110 and CP2114. The implementation is (mostly)
 OS-independent and in userland. It relies on `cython-hidapi`_.
@@ -264,4 +272,3 @@ Examples
 - ``spy://COM54?file=log.txt``
 - ``alt:///dev/ttyUSB0?class=PosixPollSerial``
 - ``cp2110://0001:004a:00``
-
