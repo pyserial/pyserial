@@ -372,7 +372,8 @@ def ask_for_port():
         sys.stderr.write('--- {:2}: {:20} {!r}\n'.format(n, port, desc))
         ports.append(port)
     while True:
-        port = raw_input('--- Enter port index or full name: ')
+        sys.stderr.write('--- Enter port index or full name: ')
+        port = raw_input('')
         try:
             index = int(port) - 1
             if not 0 <= index < len(ports):
