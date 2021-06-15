@@ -653,17 +653,19 @@ class SerialBase(io.RawIOBase):
 
     def read_until(self, expected=LF, size=None):
         """\
-        Read until an expected sequence is found (line feed by default), the size
+        Read until an expected sequence is found ('\n' by default), the size
         is exceeded or until timeout occurs.
+        If expected sequency is set to `None`, the read will finish by size
+        or timeout only.
         """
-        lenterm = len(expected)
+        lenterm = (0 if expected is None else len(expected))
         line = bytearray()
         timeout = Timeout(self._timeout)
         while True:
             c = self.read(1)
             if c:
                 line += c
-                if expected is not None and line[-lenterm:] == expected:
+                if lenterm and line[-lenterm:] == expected:
                     break
                 if size is not None and len(line) >= size:
                     break
