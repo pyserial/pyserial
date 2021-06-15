@@ -663,7 +663,7 @@ class SerialBase(io.RawIOBase):
             c = self.read(1)
             if c:
                 line += c
-                if line[-lenterm:] == expected:
+                if expected is not None and line[-lenterm:] == expected:
                     break
                 if size is not None and len(line) >= size:
                     break
