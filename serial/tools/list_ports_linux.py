@@ -97,6 +97,8 @@ def comports(include_links=False):
     devices.update(glob.glob('/dev/ttyAMA*'))   # ARM internal port (raspi)
     devices.update(glob.glob('/dev/rfcomm*'))   # BT serial devices
     devices.update(glob.glob('/dev/ttyAP*'))    # Advantech multi-port serial controllers
+    devices.update(glob.glob('/dev/ttyGS*'))    # https://www.kernel.org/doc/Documentation/usb/gadget_serial.txt
+
     if include_links:
         devices.update(list_ports_common.list_links(devices))
     return [info
