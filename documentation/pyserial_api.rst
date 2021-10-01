@@ -150,7 +150,7 @@ Native ports
         :rtype: bytes
 
         Read *size* bytes from the serial port. If a timeout is set it may
-        return less characters as requested. With no timeout it will block
+        return fewer characters than requested. With no timeout it will block
         until the requested number of bytes is read.
 
         .. versionchanged:: 2.5
@@ -166,7 +166,7 @@ Native ports
 
         Read until an expected sequence is found ('\\n' by default), the size
         is exceeded or until timeout occurs. If a timeout is set it may
-        return less characters as requested. With no timeout it will block
+        return fewer characters than requested. With no timeout it will block
         until the requested number of bytes is read.
 
         .. versionchanged:: 2.5
