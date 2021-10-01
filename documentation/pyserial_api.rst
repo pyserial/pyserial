@@ -486,11 +486,11 @@ Native ports
 
     .. method:: readline(size=-1)
 
-        Provided via :meth:`io.IOBase.readline`
+        Provided via :meth:`io.IOBase.readline` See also ref:`shortintro_readline`.
 
     .. method:: readlines(hint=-1)
 
-        Provided via :meth:`io.IOBase.readlines`
+        Provided via :meth:`io.IOBase.readlines`. See also ref:`shortintro_readline`.
 
     .. method:: writelines(lines)
 
@@ -1188,7 +1188,7 @@ This module provides classes to simplify working with threads and protocols.
 
     .. attribute:: UNICODE_HANDLING = 'replace'
 
-        Unicode error handly policy.
+        Unicode error handling policy.
 
     .. method:: handle_packet(packet)
 
