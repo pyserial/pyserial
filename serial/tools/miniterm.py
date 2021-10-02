@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/local/bin/python3
 #
 # Very simple serial terminal
 #
@@ -392,7 +392,7 @@ class Miniterm(object):
     Handle special keys from the console to show menu etc.
     """
 
-    def __init__(self, serial_instance, echo=False, eol='crlf', filters=()):
+    def __init__(self, serial_instance, echo=False, eol='crlf', write_buffer=False, filters=()):
         self.console = Console()
         self.serial = serial_instance
         self.echo = echo
@@ -409,6 +409,8 @@ class Miniterm(object):
         self.receiver_thread = None
         self.rx_decoder = None
         self.tx_decoder = None
+        self.write_buffer = write_buffer
+        self.tx_buffer = ""
 
     def _start_reader(self):
         """Start reader thread"""
@@ -539,7 +541,33 @@ class Miniterm(object):
                     text = c
                     for transformation in self.tx_transformations:
                         text = transformation.tx(text)
-                    self.serial.write(self.tx_encoder.encode(text))
+                    if self.write_buffer:
+                        # drop last char if backspace
+                        if c == '\b':
+                            self.tx_buffer = self.tx_buffer[:-1]
+                        # check buffer for EOL to resend if CR or clear if new chars
+                        elif self.tx_buffer.endswith(EOL_TRANSFORMATIONS[self.eol].tx(None, '\n')):
+                            # re-send last buffer if repeated CR
+                            if c == '\n':
+                                self.serial.write(self.tx_encoder.encode(self.tx_buffer))
+                            # otherwise clear buffer and append new char
+                            else:
+                                self.tx_buffer = ""
+                                self.tx_buffer += text
+                        # send buffer if CR
+                        elif c == '\n':
+                            self.tx_buffer += text
+                            self.serial.write(self.tx_encoder.encode(self.tx_buffer))
+                        # otherwise just append buffer
+                        else:
+                            if len(self.tx_buffer) < 1023:
+                                self.tx_buffer += text
+                            else:
+                                self.tx_buffer = ""
+                                self.tx_buffer += text
+                                sys.stderr.write('\n--- TX buffer full! Buffer dropped! ---\n')
+                    else:
+                        self.serial.write(self.tx_encoder.encode(text))
                     if self.echo:
                         echo_text = c
                         for transformation in self.tx_transformations:
@@ -572,6 +600,9 @@ class Miniterm(object):
         elif c == '\x05':                       # CTRL+E -> toggle local echo
             self.echo = not self.echo
             sys.stderr.write('--- local echo {} ---\n'.format('active' if self.echo else 'inactive'))
+        elif c == '\x07':                       # CTRL+G -> toggle tx buffer
+            self.write_buffer = not self.write_buffer
+            sys.stderr.write('--- tx buffer {} ---\n'.format('active' if self.write_buffer else 'inactive'))
         elif c == '\x06':                       # CTRL+F -> edit filters
             self.change_filter()
         elif c == '\x0c':                       # CTRL+L -> EOL mode
@@ -784,7 +815,7 @@ class Miniterm(object):
 ---    {filter:7} edit filters
 --- Toggles:
 ---    {rts:7} RTS   {dtr:7} DTR   {brk:7} BREAK
----    {echo:7} echo  {eol:7} EOL
+---    {echo:7} echo  {eol:7} EOL   {txbuffer:7} TXBUFFER
 ---
 --- Port settings ({menu} followed by the following):
 ---    p          change port
@@ -801,6 +832,7 @@ class Miniterm(object):
            dtr=key_description('\x04'),
            brk=key_description('\x02'),
            echo=key_description('\x05'),
+           txbuffer=key_description('\x07'),
            info=key_description('\x09'),
            upload=key_description('\x15'),
            repr=key_description('\x01'),
@@ -884,6 +916,12 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         '-e', '--echo',
         action='store_true',
         help='enable local echo (default off)',
+        default=False)
+
+    group.add_argument(
+        '-t', '--tx-buffer',
+        action='store_true',
+        help='enable buffering of tx data until CR, resending buffer on consecutive CRs (default off)',
         default=False)
 
     group.add_argument(
@@ -1012,6 +1050,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         serial_instance,
         echo=args.echo,
         eol=args.eol.lower(),
+        write_buffer=args.tx_buffer,
         filters=filters)
     miniterm.exit_character = unichr(args.exit_char)
     miniterm.menu_character = unichr(args.menu_char)
