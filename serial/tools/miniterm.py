@@ -13,6 +13,7 @@ import codecs
 import os
 import sys
 import threading
+from cobs import cobs
 
 import serial
 from serial.tools.list_ports import comports
@@ -392,7 +393,7 @@ class Miniterm(object):
     Handle special keys from the console to show menu etc.
     """
 
-    def __init__(self, serial_instance, echo=False, eol='crlf', filters=()):
+    def __init__(self, serial_instance, echo=False, eol='crlf', filters=(),cobs=False):
         self.console = Console()
         self.serial = serial_instance
         self.echo = echo
@@ -409,6 +410,7 @@ class Miniterm(object):
         self.receiver_thread = None
         self.rx_decoder = None
         self.tx_decoder = None
+        self.cobs = cobs
 
     def _start_reader(self):
         """Start reader thread"""
@@ -496,8 +498,22 @@ class Miniterm(object):
         """loop and copy serial->console"""
         try:
             while self.alive and self._reader_alive:
-                # read all that is there or wait for one byte
-                data = self.serial.read(self.serial.in_waiting or 1)
+                if self.cobs:
+                    data = b''
+                    while (self.alive and self.cobs and (len(data)==0 or data[-1] != '\0')):
+                        data = data + self.serial.read(1)
+                    if self.cobs:
+                        #only remove the terminating byte and attempt decode if cobs is still enabled
+                        data = data[:-1]
+                        try:
+                            data = cobs.decode(data)
+                        except cobs.DecodeError:
+                            self.console.write("cobs frame decode failed: ")
+                            self.console.write(data.encode('hex'))
+                            self.console.write("\r\n")
+                else:
+                    # read all that is there or wait for one byte
+                    data = self.serial.read(self.serial.in_waiting or 1)
                 if data:
                     if self.raw:
                         self.console.write_bytes(data)
@@ -518,6 +534,7 @@ class Miniterm(object):
         locally.
         """
         menu_active = False
+        data = b''
         try:
             while self.alive:
                 try:
@@ -539,12 +556,24 @@ class Miniterm(object):
                     text = c
                     for transformation in self.tx_transformations:
                         text = transformation.tx(text)
-                    self.serial.write(self.tx_encoder.encode(text))
+                    if not self.cobs:
+                        self.serial.write(self.tx_encoder.encode(text))
+                        #if COBS is disbled while data is buffered for encoding, flush and reset the buffer
+                        if data != b'':
+                            self.serial.write(self.tx_encoder.encode(data))
+                            data = b''
                     if self.echo:
                         echo_text = c
                         for transformation in self.tx_transformations:
                             echo_text = transformation.echo(echo_text)
                         self.console.write(echo_text)
+                    if self.cobs:
+                        data = data + text
+                        if len(data) != 0 and data[-1] == '\n':
+                            data = cobs.encode(data)
+                            data = data + '\0'
+                            self.serial.write(self.tx_encoder.encode(data))
+                            data = b''
         except:
             self.alive = False
             raise
@@ -572,6 +601,9 @@ class Miniterm(object):
         elif c == '\x05':                       # CTRL+E -> toggle local echo
             self.echo = not self.echo
             sys.stderr.write('--- local echo {} ---\n'.format('active' if self.echo else 'inactive'))
+        elif c == '\x03':                       # CTRL+C -> toggle TX/RX COBS encoding
+            self.cobs = not self.cobs
+            sys.stderr.write('--- COBS encoding {} ---\n'.format('active' if self.cobs else 'inactive'))
         elif c == '\x06':                       # CTRL+F -> edit filters
             self.change_filter()
         elif c == '\x0c':                       # CTRL+L -> EOL mode
@@ -784,7 +816,7 @@ class Miniterm(object):
 ---    {filter:7} edit filters
 --- Toggles:
 ---    {rts:7} RTS   {dtr:7} DTR   {brk:7} BREAK
----    {echo:7} echo  {eol:7} EOL
+---    {echo:7} echo  {eol:7} EOL  {etx:7} COBS encoding
 ---
 --- Port settings ({menu} followed by the following):
 ---    p          change port
@@ -805,7 +837,8 @@ class Miniterm(object):
            upload=key_description('\x15'),
            repr=key_description('\x01'),
            filter=key_description('\x06'),
-           eol=key_description('\x0c'))
+           eol=key_description('\x0c'),
+           etx=key_description('\x03'))
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -884,6 +917,12 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         '-e', '--echo',
         action='store_true',
         help='enable local echo (default off)',
+        default=False)
+
+    group.add_argument(
+        '-c', '--cobs',
+        action='store_true',
+        help='enable cobs cobs decoding for RX and encoding on newline for TX',
         default=False)
 
     group.add_argument(
@@ -1012,7 +1051,8 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         serial_instance,
         echo=args.echo,
         eol=args.eol.lower(),
-        filters=filters)
+        filters=filters,
+        cobs=args.cobs)
     miniterm.exit_character = unichr(args.exit_char)
     miniterm.menu_character = unichr(args.menu_char)
     miniterm.raw = args.raw
