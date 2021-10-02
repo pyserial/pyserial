@@ -108,7 +108,7 @@ class TerminalSettingsDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=self.button_cancel.GetId())
 
     def OnOK(self, events):
-        """Update data wil new values and close dialog."""
+        """Update data with new values and close dialog."""
         self.settings.echo = self.checkbox_echo.GetValue()
         self.settings.unprintable = self.checkbox_unprintable.GetValue()
         self.settings.newline = self.radio_box_newline.GetSelection()
