@@ -825,6 +825,7 @@ class PosixPollSerial(Serial):
         poll.register(self.pipe_abort_read_r, select.POLLIN | select.POLLERR | select.POLLHUP | select.POLLNVAL)
         if size > 0:
             while len(read) < size:
+                fd = None #In case poll.poll() returns nothing
                 # print "\tread(): size",size, "have", len(read)    #debug
                 # wait until device becomes ready to read (or something fails)
                 for fd, event in poll.poll(None if timeout.is_infinite else (timeout.time_left() * 1000)):
