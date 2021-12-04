@@ -57,16 +57,16 @@ Also supported with :ref:`context manager <context-manager>`::
 
 Readline
 ========
-:meth:`readline` reads up to one line, including the `\n` at the end.
+:meth:`readline` reads up to one line, including the ``\n`` at the end.
 Be careful when using :meth:`readline`. Do specify a timeout when opening the
 serial port otherwise it could block forever if no newline character is
-received. If the `\n` is missing in the return value, it returned on timeout.
+received. If the ``\n`` is missing in the return value, it returned on timeout.
 
 :meth:`readlines` tries to read "all" lines which is not well defined for a
 serial port that is still open. Therefore :meth:`readlines` depends on having
 a timeout on the port and interprets that as EOF (end of file). It raises an
 exception if the port is not opened correctly. The returned list of lines do
-not include the `\n`.
+not include the ``\n``.
 
 Both functions call :meth:`read` to get their data and the serial port timeout
 is acting on this function. Therefore the effective timeout, especially for
