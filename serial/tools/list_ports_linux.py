@@ -98,9 +98,10 @@ def comports(include_links=False):
     devices.extend(glob.glob('/dev/ttyAP*'))    # Advantech multi-port serial controllers
     if include_links:
         devices.extend(list_ports_common.list_links(devices))
+
     return [info
             for info in [SysFS(d) for d in devices]
-            if info.subsystem != "platform"]    # hide non-present internal serial ports
+            ]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
