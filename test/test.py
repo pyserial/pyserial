@@ -30,7 +30,7 @@ import serial
 # on which port should the tests be performed:
 PORT = 'loop://'
 
-# indirection via bytearray b/c bytes(range(256)) does something else in Pyhton 2.7
+# indirection via bytearray b/c bytes(range(256)) does something else in Python 2.7
 bytes_0to255 = bytes(bytearray(range(256)))
 
 

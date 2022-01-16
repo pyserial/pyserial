@@ -40,7 +40,7 @@ class TestTimeoutClass(unittest.TestCase):
         #~ self.assertFalse(t.expired())
 
     def test_changing_clock(self):
-        """Test recovery from chaning clock"""
+        """Test recovery from changing clock"""
         class T(serialutil.Timeout):
             def TIME(self):
                 return test_time

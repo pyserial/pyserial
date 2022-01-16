@@ -11,7 +11,7 @@ Part of pySerial (http://pyserial.sf.net)  (C)2001-2011 cliechti@gmx.net
 Intended to be run on different platforms, to ensure portability of
 the code.
 
-Cover some of the aspects of context managment
+Cover some of the aspects of context management
 """
 
 import unittest

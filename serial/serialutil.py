@@ -653,7 +653,7 @@ class SerialBase(io.RawIOBase):
 
     def read_until(self, expected=LF, size=None):
         """\
-        Read until an expected sequence is found ('\n' by default), the size
+        Read until an expected sequence is found (line feed by default), the size
         is exceeded or until timeout occurs.
         """
         lenterm = len(expected)

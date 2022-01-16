@@ -35,7 +35,7 @@ Same as 1.1 but added missing files.
 
 Version 1.12    18 Feb 2002
 ---------------------------
-Removed unneded constants to fix RH7.x problems.
+Removed unneeded constants to fix RH7.x problems.
 
 
 Version 1.13    09 Apr 2002
