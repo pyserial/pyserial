@@ -142,6 +142,15 @@ class Serial(SerialBase):
         lr, lw, lx = select.select([self._socket], [], [], 0)
         return len(lr)
 
+    @property
+    def out_waiting(self):
+        """Return 1 if port is able to send data."""
+        if not self.is_open:
+            raise PortNotOpenError()
+        # Poll the socket to see if it is ready for writing.
+        lr, lw, lx = select.select([], [self._socket], [], 0)
+        return len(lw)
+
     # select based implementation, similar to posix, but only using socket API
     # to be portable, additionally handle socket timeout which is used to
     # emulate write timeouts
