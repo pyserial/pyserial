@@ -486,11 +486,11 @@ Native ports
 
     .. method:: readline(size=-1)
 
-        Provided via :meth:`io.IOBase.readline` See also ref:`shortintro_readline`.
+        Provided via :meth:`io.IOBase.readline` See also :ref:`shortintro_readline`.
 
     .. method:: readlines(hint=-1)
 
-        Provided via :meth:`io.IOBase.readlines`. See also ref:`shortintro_readline`.
+        Provided via :meth:`io.IOBase.readlines`. See also :ref:`shortintro_readline`.
 
     .. method:: writelines(lines)
 
