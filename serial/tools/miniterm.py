@@ -402,7 +402,7 @@ class Miniterm(object):
     """
 
     def __init__(self, serial_instance, echo=False, eol='crlf', filters=(),
-                 raise_exceptions=True):
+                 quiet=False, develop=False):
         self.console = Console(self)
         self.serial = serial_instance
         self.echo = echo
@@ -411,7 +411,8 @@ class Miniterm(object):
         self.output_encoding = 'UTF-8'
         self.eol = eol
         self.filters = filters
-        self.raise_exceptions = raise_exceptions
+        self.quiet = quiet
+        self.develop = develop
         self.update_transformations()
         self.exit_character = unichr(0x1d)  # GS/CTRL+]
         self.menu_character = unichr(0x14)  # Menu: CTRL+T
@@ -523,8 +524,10 @@ class Miniterm(object):
             self.alive = False
             self.error = True
             self.console.cancel()
-            if self.raise_exceptions:
-                raise       # XXX handle instead of re-raise?
+            if not self.quiet:
+                sys.stderr.write('--- receive exception ---\n')
+            if self.develop:
+                raise
 
     def writer(self):
         """\
@@ -563,7 +566,9 @@ class Miniterm(object):
         except:
             self.alive = False
             self.error = True
-            if self.raise_exceptions:
+            if not self.quiet:
+                sys.stderr.write('--- send exception ---\n')
+            if self.develop:
                 raise
 
     def handle_menu_key(self, c):
@@ -1045,16 +1050,13 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
             echo=args.echo,
             eol=args.eol.lower(),
             filters=filters,
-            raise_exceptions=not args.reconnect)
+            quiet=args.quiet or args.reconnect,
+            develop=args.develop)
         miniterm.exit_character = unichr(args.exit_char)
         miniterm.menu_character = unichr(args.menu_char)
         miniterm.raw = args.raw
         miniterm.set_rx_encoding(args.serial_port_encoding)
         miniterm.set_tx_encoding(args.serial_port_encoding)
-
-        if first_connection:
-            args.port = miniterm.serial.name
-            first_connection = False
 
         if not args.quiet and first_connection:
             sys.stderr.write('--- Miniterm on {p.name}  {p.baudrate},{p.bytesize},{p.parity},{p.stopbits} ---\n'.format(
@@ -1064,6 +1066,10 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
                 key_description(miniterm.menu_character),
                 key_description(miniterm.menu_character),
                 key_description('\x08')))
+
+        if first_connection:
+            args.port = miniterm.serial.name
+            first_connection = False
 
         miniterm.start()
         try:
