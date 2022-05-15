@@ -13,6 +13,7 @@ import codecs
 import os
 import sys
 import threading
+import time
 
 import serial
 from serial.tools.list_ports import comports
@@ -400,7 +401,8 @@ class Miniterm(object):
     Handle special keys from the console to show menu etc.
     """
 
-    def __init__(self, serial_instance, echo=False, eol='crlf', filters=()):
+    def __init__(self, serial_instance, echo=False, eol='crlf', filters=(),
+                 raise_exceptions=True):
         self.console = Console(self)
         self.serial = serial_instance
         self.echo = echo
@@ -409,10 +411,12 @@ class Miniterm(object):
         self.output_encoding = 'UTF-8'
         self.eol = eol
         self.filters = filters
+        self.raise_exceptions = raise_exceptions
         self.update_transformations()
         self.exit_character = unichr(0x1d)  # GS/CTRL+]
         self.menu_character = unichr(0x14)  # Menu: CTRL+T
         self.alive = None
+        self.error = False
         self._reader_alive = None
         self.receiver_thread = None
         self.rx_decoder = None
@@ -517,8 +521,10 @@ class Miniterm(object):
                         self.console.write(text)
         except serial.SerialException:
             self.alive = False
+            self.error = True
             self.console.cancel()
-            raise       # XXX handle instead of re-raise?
+            if self.raise_exceptions:
+                raise       # XXX handle instead of re-raise?
 
     def writer(self):
         """\
@@ -556,7 +562,9 @@ class Miniterm(object):
                         self.console.write(echo_text)
         except:
             self.alive = False
-            raise
+            self.error = True
+            if self.raise_exceptions:
+                raise
 
     def handle_menu_key(self, c):
         """Implement a simple menu / settings"""
@@ -947,6 +955,12 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         default=False)
 
     group.add_argument(
+        '--reconnect',
+        action='store_true',
+        help='if established connection fails, silently retry on the same port',
+        default=False)
+
+    group.add_argument(
         '--develop',
         action='store_true',
         help='show Python traceback on error',
@@ -956,6 +970,9 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
 
     if args.menu_char == args.exit_char:
         parser.error('--exit-char can not be the same as --menu-char')
+
+    if serial_instance and args.reconnect:
+        parser.error('--reconnect cannot be used when passing serial_instance')
 
     if args.filter:
         if 'help' in args.filter:
@@ -969,83 +986,102 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
     else:
         filters = ['default']
 
-    while serial_instance is None:
-        # no port given on command line -> ask user now
-        if args.port is None or args.port == '-':
+    first_connection = True
+    while True:
+        if not first_connection:
+            time.sleep(.5)  # retry period
+
+        if not serial_instance or not first_connection:
+            # no port given on command line -> ask user now
+            if args.port is None or args.port == '-':
+                try:
+                    args.port = ask_for_port()
+                except KeyboardInterrupt:
+                    sys.stderr.write('\n')
+                    parser.error('user aborted and port is not given')
+                else:
+                    if not args.port:
+                        parser.error('port is not given')
             try:
-                args.port = ask_for_port()
-            except KeyboardInterrupt:
-                sys.stderr.write('\n')
-                parser.error('user aborted and port is not given')
-            else:
-                if not args.port:
-                    parser.error('port is not given')
+                serial_instance = serial.serial_for_url(
+                    args.port,
+                    args.baudrate,
+                    parity=args.parity,
+                    rtscts=args.rtscts,
+                    xonxoff=args.xonxoff,
+                    do_not_open=True)
+
+                if not hasattr(serial_instance, 'cancel_read'):
+                    # enable timeout for alive flag polling if cancel_read is not available
+                    serial_instance.timeout = 1
+
+                if args.dtr is not None:
+                    if not args.quiet:
+                        sys.stderr.write('--- forcing DTR {}\n'.format('active' if args.dtr else 'inactive'))
+                    serial_instance.dtr = args.dtr
+                if args.rts is not None:
+                    if not args.quiet:
+                        sys.stderr.write('--- forcing RTS {}\n'.format('active' if args.rts else 'inactive'))
+                    serial_instance.rts = args.rts
+
+                if isinstance(serial_instance, serial.Serial):
+                    serial_instance.exclusive = args.exclusive
+
+                serial_instance.open()
+            except serial.SerialException as e:
+                if first_connection:
+                    sys.stderr.write('could not open port {!r}: {}\n'.format(args.port, e))
+                    if args.develop:
+                        raise
+                    if args.ask:
+                        args.port = '-'
+                        continue
+                    sys.exit(1)
+                else:  # reconnect-- try again
+                    continue
+
+        miniterm = Miniterm(
+            serial_instance,
+            echo=args.echo,
+            eol=args.eol.lower(),
+            filters=filters,
+            raise_exceptions=not args.reconnect)
+        miniterm.exit_character = unichr(args.exit_char)
+        miniterm.menu_character = unichr(args.menu_char)
+        miniterm.raw = args.raw
+        miniterm.set_rx_encoding(args.serial_port_encoding)
+        miniterm.set_tx_encoding(args.serial_port_encoding)
+
+        if first_connection:
+            args.port = miniterm.serial.name
+            first_connection = False
+
+        if not args.quiet and first_connection:
+            sys.stderr.write('--- Miniterm on {p.name}  {p.baudrate},{p.bytesize},{p.parity},{p.stopbits} ---\n'.format(
+                p=miniterm.serial))
+            sys.stderr.write('--- Quit: {} | Menu: {} | Help: {} followed by {} ---\n'.format(
+                key_description(miniterm.exit_character),
+                key_description(miniterm.menu_character),
+                key_description(miniterm.menu_character),
+                key_description('\x08')))
+
+        miniterm.start()
         try:
-            serial_instance = serial.serial_for_url(
-                args.port,
-                args.baudrate,
-                parity=args.parity,
-                rtscts=args.rtscts,
-                xonxoff=args.xonxoff,
-                do_not_open=True)
+            miniterm.join(True)
+        except KeyboardInterrupt:
+            pass
+        miniterm.join()
+        miniterm.close()
 
-            if not hasattr(serial_instance, 'cancel_read'):
-                # enable timeout for alive flag polling if cancel_read is not available
-                serial_instance.timeout = 1
-
-            if args.dtr is not None:
-                if not args.quiet:
-                    sys.stderr.write('--- forcing DTR {}\n'.format('active' if args.dtr else 'inactive'))
-                serial_instance.dtr = args.dtr
-            if args.rts is not None:
-                if not args.quiet:
-                    sys.stderr.write('--- forcing RTS {}\n'.format('active' if args.rts else 'inactive'))
-                serial_instance.rts = args.rts
-
-            if isinstance(serial_instance, serial.Serial):
-                serial_instance.exclusive = args.exclusive
-
-            serial_instance.open()
-        except serial.SerialException as e:
-            sys.stderr.write('could not open port {!r}: {}\n'.format(args.port, e))
-            if args.develop:
-                raise
-            if not args.ask:
-                sys.exit(1)
-            else:
-                args.port = '-'
-        else:
+        if not (miniterm.error and args.reconnect):
             break
 
-    miniterm = Miniterm(
-        serial_instance,
-        echo=args.echo,
-        eol=args.eol.lower(),
-        filters=filters)
-    miniterm.exit_character = unichr(args.exit_char)
-    miniterm.menu_character = unichr(args.menu_char)
-    miniterm.raw = args.raw
-    miniterm.set_rx_encoding(args.serial_port_encoding)
-    miniterm.set_tx_encoding(args.serial_port_encoding)
+        if not args.quiet:
+            sys.stderr.write('\n--- disconnected ---\n')
 
-    if not args.quiet:
-        sys.stderr.write('--- Miniterm on {p.name}  {p.baudrate},{p.bytesize},{p.parity},{p.stopbits} ---\n'.format(
-            p=miniterm.serial))
-        sys.stderr.write('--- Quit: {} | Menu: {} | Help: {} followed by {} ---\n'.format(
-            key_description(miniterm.exit_character),
-            key_description(miniterm.menu_character),
-            key_description(miniterm.menu_character),
-            key_description('\x08')))
-
-    miniterm.start()
-    try:
-        miniterm.join(True)
-    except KeyboardInterrupt:
-        pass
     if not args.quiet:
         sys.stderr.write('\n--- exit ---\n')
-    miniterm.join()
-    miniterm.close()
+    sys.exit(1 if miniterm.error else 0)
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
