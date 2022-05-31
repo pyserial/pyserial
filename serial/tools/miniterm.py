@@ -272,6 +272,11 @@ class LF(Transform):
     """ENTER sends LF"""
 
 
+class CRTX(Transform):
+    """ENTER sends CR, but receive CR+LF"""
+    def tx(self, text):
+        return text.replace('\n', '\r')
+
 class NoTerminal(Transform):
     """remove typical terminal control codes from input"""
 
@@ -355,6 +360,7 @@ EOL_TRANSFORMATIONS = {
     'crlf': CRLF,
     'cr': CR,
     'lf': LF,
+    'crtx': CRTX,
 }
 
 TRANSFORMATIONS = {
@@ -925,7 +931,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
 
     group.add_argument(
         '--eol',
-        choices=['CR', 'LF', 'CRLF'],
+        choices=['CR', 'LF', 'CRLF', 'CRTX'],
         type=lambda c: c.upper(),
         help='end of line mode',
         default=default_eol)
