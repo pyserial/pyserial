@@ -5,6 +5,18 @@
 ==========
 
 
+List all available serial ports
+===============================
+
+This can be done by importing ``comports`` from ``serial.tools.list_ports``:
+
+::
+
+    from serial.tools.list_ports import comports
+    for port in comports():
+        print(port)
+
+
 Miniterm
 ========
 Miniterm is now available as module instead of example.
