@@ -108,6 +108,9 @@ Listing ports
 is also possible to add a regexp as first argument and the list will only
 include entries that matched.
 
+Also see `this example <https://pythonhosted.org/pyserial/examples.html#list-all-available-serial-ports>`_
+which shows how to list all ports from python instead of the commandline.
+
 .. note::
 
     The enumeration may not work on all operating systems. It may be
