@@ -820,7 +820,7 @@ class Miniterm(object):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # default args can be used to override when calling main() from an other script
 # e.g to create a miniterm-my-device.py
-def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr=None, serial_instance=None):
+def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr=None, serial_instance=None, default_eol='CRLF'):
     """Command line tool, entry point"""
 
     import argparse
@@ -914,7 +914,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         choices=['CR', 'LF', 'CRLF'],
         type=lambda c: c.upper(),
         help='end of line mode',
-        default='CRLF')
+        default=default_eol)
 
     group.add_argument(
         '--raw',
