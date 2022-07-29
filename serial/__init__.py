@@ -20,7 +20,7 @@ __version__ = '3.5'
 VERSION = __version__
 
 # pylint: disable=wrong-import-position
-if sys.platform == 'cli':
+if sys.platform == 'cli' or sys.implementation.name == "ironpython":
     from serial.serialcli import Serial
 else:
     import os

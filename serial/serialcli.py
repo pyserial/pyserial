@@ -19,7 +19,8 @@ sab = System.Array[System.Byte]
 
 
 def as_byte_array(string):
-    return sab([ord(x) for x in string])  # XXX will require adaption when run with a 3.x compatible IronPython
+    
+    return sab([ord(x) for x in string]) if isinstance(string, str) else sab([x for x in string])
 
 
 class Serial(SerialBase):
