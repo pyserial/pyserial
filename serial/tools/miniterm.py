@@ -303,11 +303,9 @@ class Timestamped(Transform):
 
     def rx(self, text):
         ts = (datetime.now() - self._start).total_seconds()
-        return f'R {ts:9.4f}: {text}'
+        return f'{ts:9.4f}: {text}'
 
-    def tx(self, text):
-        ts = (datetime.now() - self._start).total_seconds()
-        return f'T {ts:9.4f}: {text}'
+    echo = rx
 
 
 class NoControls(NoTerminal):
