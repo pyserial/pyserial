@@ -9,6 +9,7 @@
 
 from __future__ import absolute_import
 
+from datetime import datetime
 import codecs
 import os
 import sys
@@ -293,6 +294,22 @@ class NoTerminal(Transform):
     echo = rx
 
 
+class Timestamped(Transform):
+    """show time in seconds from start for rx and tx"""
+
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        self._start = datetime()
+
+    def rx(self, text):
+        ts = (datetime() - self._start).total_seconds()
+        return f'R {ts:9.4f}: {text}'
+
+    def tx(self, text):
+        ts = (datetime() - self._start).total_seconds()
+        return f'T {ts:9.4f}: {text}'
+
+
 class NoControls(NoTerminal):
     """Remove all control codes, incl. CR+LF"""
 
@@ -370,6 +387,7 @@ TRANSFORMATIONS = {
     'printable': Printable,
     'colorize': Colorize,
     'debug': DebugIO,
+    'timestamped': Timestamped,
 }
 
 
