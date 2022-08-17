@@ -299,14 +299,14 @@ class Timestamped(Transform):
 
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
-        self._start = datetime()
+        self._start = datetime.now()
 
     def rx(self, text):
-        ts = (datetime() - self._start).total_seconds()
+        ts = (datetime.now() - self._start).total_seconds()
         return f'R {ts:9.4f}: {text}'
 
     def tx(self, text):
-        ts = (datetime() - self._start).total_seconds()
+        ts = (datetime.now() - self._start).total_seconds()
         return f'T {ts:9.4f}: {text}'
 
 
