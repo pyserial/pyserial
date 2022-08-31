@@ -107,6 +107,10 @@ ResetEvent = _stdcall_libraries['kernel32'].ResetEvent
 ResetEvent.restype = BOOL
 ResetEvent.argtypes = [HANDLE]
 
+SetEvent = _stdcall_libraries['kernel32'].SetEvent
+SetEvent.restype = BOOL
+SetEvent.argtypes = [HANDLE]
+
 LPCVOID = c_void_p
 
 WriteFile = _stdcall_libraries['kernel32'].WriteFile
@@ -361,6 +365,6 @@ __all__ = ['GetLastError', 'MS_CTS_ON', 'FILE_ATTRIBUTE_NORMAL',
            'LPDCB', 'CreateEventW', 'SetCommMask', 'EV_EVENT1',
            'SetCommState', 'LPVOID', 'CreateFileW', 'LPDWORD',
            'EV_RX80FULL', 'TWOSTOPBITS', 'LPCOMMTIMEOUTS', 'MAXDWORD',
-           'MS_DSR_ON', 'MS_RING_ON',
+           'MS_DSR_ON', 'MS_RING_ON', 'SetEvent',
            'N11_OVERLAPPED4DOLLAR_484DOLLAR_49E', 'EV_ERR',
            'ULONG_PTR', 'CreateFile', 'NOPARITY', 'CloseHandle']
