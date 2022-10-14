@@ -26,6 +26,8 @@ class Serial(SerialBase):
     BAUDRATES = (50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
                  9600, 19200, 38400, 57600, 115200)
 
+    BUF_SIZE = 4096
+
     def __init__(self, *args, **kwargs):
         self._port_handle = None
         self._overlapped_read = None
@@ -71,7 +73,7 @@ class Serial(SerialBase):
             self._overlapped_write.hEvent = win32.CreateEvent(None, 0, 0, None)
 
             # Setup a 4k buffer
-            win32.SetupComm(self._port_handle, 4096, 4096)
+            win32.SetupComm(self._port_handle, self.BUF_SIZE, self.BUF_SIZE)
 
             # Save original timeout values:
             self._orgTimeouts = win32.COMMTIMEOUTS()
@@ -132,6 +134,8 @@ class Serial(SerialBase):
         comDCB = win32.DCB()
         win32.GetCommState(self._port_handle, ctypes.byref(comDCB))
         comDCB.BaudRate = self._baudrate
+        comDCB.XonLim = self.BUF_SIZE // 4
+        comDCB.XoffLim = comDCB.XonLim
 
         if self._bytesize == serial.FIVEBITS:
             comDCB.ByteSize = 5
