@@ -87,14 +87,14 @@ class FormatRaw(object):
         """show received data"""
         if self.color:
             self.output.write(self.rx_color)
-        self.output.write(data.decode())
+        self.output.write(data)
         self.output.flush()
 
     def tx(self, data):
         """show transmitted data"""
         if self.color:
             self.output.write(self.tx_color)
-        self.output.write(data.decode())
+        self.output.write(data)
         self.output.flush()
 
     def control(self, name, value):
@@ -225,7 +225,7 @@ class Serial(serial.Serial):
         try:
             for option, values in urlparse.parse_qs(parts.query, True).items():
                 if option == 'file':
-                    output = open(values[0], 'w')
+                    output = open(values[0], 'wb')
                 elif option == 'color':
                     color = True
                 elif option == 'raw':
