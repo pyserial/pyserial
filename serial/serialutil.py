@@ -557,6 +557,16 @@ class SerialBase(io.RawIOBase):
             b[:n] = array.array('b', data)
         return n
 
+    def close(self):
+        # Do not call RawIOBase.close() as that will try to flush().
+        pass
+
+    @property
+    def closed(self):
+        # Overrides RawIOBase.closed, as RawIOBase can only be closed once,
+        # but a Serial object can be opened/closed multiple times.
+        return not self.is_open
+
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     # context manager
 
