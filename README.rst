@@ -1,5 +1,8 @@
+.. figure:: https://pythonhosted.org/pyserial/_static/pyserial.png 
+   :align: center
+
 =================================
- pySerial  |build-status| |docs|
+ pySerial||build-status|| |docs|
 =================================
 
 Overview
