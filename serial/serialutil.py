@@ -239,9 +239,9 @@ class SerialBase(io.RawIOBase):
             self.inter_byte_timeout = kwargs.pop('interCharTimeout')
         if kwargs:
             raise ValueError('unexpected keyword arguments: {!r}'.format(kwargs))
-
-        if port is not None:
-            self.open()
+        # self.open() shouldn't be here, The open function in rfc2217.py ,so it should be in Serial
+        # if port is not None:
+        #     self.open()
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
