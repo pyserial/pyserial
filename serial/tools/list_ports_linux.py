@@ -88,7 +88,7 @@ class SysFS(list_ports_common.ListPortInfo):
             return None
 
 
-def comports(include_links=False):
+def comports(include_links=False, hide_subsystems=["platform"]):
     devices = set()
     drivers = open('/proc/tty/drivers').readlines()
     for driver in drivers:
@@ -100,7 +100,7 @@ def comports(include_links=False):
         devices.update(list_ports_common.list_links(devices))
     return [info
             for info in [SysFS(d) for d in devices]
-            if info.subsystem != "platform"]    # hide non-present internal serial ports
+            if not info.subsystem in hide_subsystems]    # hide non-present internal serial ports
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
