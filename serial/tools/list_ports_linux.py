@@ -88,22 +88,19 @@ class SysFS(list_ports_common.ListPortInfo):
             return None
 
 
-def comports(include_links=False):
+def comports(include_links=False, hide_subsystems=["platform"]):
     devices = set()
-    devices.update(glob.glob('/dev/ttyS*'))     # built-in serial ports
-    devices.update(glob.glob('/dev/ttyUSB*'))   # usb-serial with own driver
-    devices.update(glob.glob('/dev/ttyXRUSB*')) # xr-usb-serial port exar (DELL Edge 3001)
-    devices.update(glob.glob('/dev/ttyACM*'))   # usb-serial with CDC-ACM profile
-    devices.update(glob.glob('/dev/ttyAMA*'))   # ARM internal port (raspi)
-    devices.update(glob.glob('/dev/rfcomm*'))   # BT serial devices
-    devices.update(glob.glob('/dev/ttyAP*'))    # Advantech multi-port serial controllers
-    devices.update(glob.glob('/dev/ttyGS*'))    # https://www.kernel.org/doc/Documentation/usb/gadget_serial.txt
+    drivers = open('/proc/tty/drivers').readlines()
+    for driver in drivers:
+        items = driver.strip().split()
+        if items[4] == 'serial':
+            devices.update(glob.glob(items[1]+'*'))
 
     if include_links:
         devices.update(list_ports_common.list_links(devices))
     return [info
             for info in [SysFS(d) for d in devices]
-            if info.subsystem != "platform"]    # hide non-present internal serial ports
+            if not info.subsystem in hide_subsystems]    # hide non-present internal serial ports
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
