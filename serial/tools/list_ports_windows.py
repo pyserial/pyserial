@@ -343,7 +343,7 @@ def iterate_comports():
                         info.serial_number = get_parent_serial_number(devinfo.DevInst, info.vid, info.pid)
 
                 # calculate a location string
-                loc_path_str = ctypes.create_unicode_buffer(250)
+                loc_path_str = ctypes.create_unicode_buffer(500)
                 if SetupDiGetDeviceRegistryProperty(
                         g_hdi,
                         ctypes.byref(devinfo),
