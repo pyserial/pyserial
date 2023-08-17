@@ -103,7 +103,7 @@ def comports(include_links=False):
         devices.update(list_ports_common.list_links(devices))
     return [info
             for info in [SysFS(d) for d in devices]
-            if info.subsystem != "platform"]    # hide non-present internal serial ports
+            ]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
