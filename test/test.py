@@ -106,8 +106,8 @@ class SendEvent(threading.Thread):
             self.serial.write(b"E")
             self.serial.flush()
 
-    def isSet(self):
-        return self.x.isSet()
+    def is_set(self):
+        return self.x.is_set()
 
     def stop(self):
         self.stopped = 1
@@ -130,8 +130,8 @@ class Test1_Forever(unittest.TestCase):
         """no timeout: after port open, the input buffer must be empty (read).
         a character is sent after some time to terminate the test (SendEvent)."""
         c = self.s.read(1)
-        if not (self.event.isSet() and c == b'E'):
-            self.fail("expected marker (evt={!r}, c={!r})".format(self.event.isSet(), c))
+        if not (self.event.is_set() and c == b'E'):
+            self.fail("expected marker (evt={!r}, c={!r})".format(self.event.is_set(), c))
 
 
 class Test2_Forever(unittest.TestCase):
