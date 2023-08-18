@@ -18,6 +18,24 @@ try:
 except ImportError:
     from distutils.core import setup
 
+try:
+    import pkg_resources
+    try:
+        pkg_resources.get_distribution('serial')
+        raise RuntimeError(
+            """This package cannot be installed alongside `serial`, due to a module name conflict.
+To install `pyserial`, first uninstall `serial`:
+>>> pip uninstall serial
+>>> pip install pyserial
+...or:
+>>> pip3 uninstall serial
+>>> pip3 install pyserial"""
+        )
+    except pkg_resources.DistributionNotFound:
+        pass
+except ImportError:
+    pass  # pkg_resources is part of setuptools, may not be available
+
 
 def read(*names, **kwargs):
     """Python 2 and Python 3 compatible text file reading.
