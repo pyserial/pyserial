@@ -398,6 +398,8 @@ class Serial(SerialBase):
         self._rfc2217_options = None
         self._read_buffer = None
         super(Serial, self).__init__(*args, **kwargs)  # must be last call in case of auto-open
+        if self.port is not None:         # self.port come from SeriaBase
+            self.open()
 
     def open(self):
         """\
