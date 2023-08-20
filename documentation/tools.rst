@@ -9,7 +9,10 @@ serial.tools.list_ports
 .. module:: serial.tools.list_ports
 
 This module can be executed to get a list of ports (``python -m
-serial.tools.list_ports``). It also contains the following functions.
+serial.tools.list_ports``). Also see `this example <https://pythonhosted.org/pyserial/examples.html#list-all-available-serial-ports>`_
+which shows how to list all ports from python instead of the commandline.
+It also contains the following functions.
+
 
 
 .. function:: comports(include_links=False)
