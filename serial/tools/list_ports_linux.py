@@ -44,22 +44,24 @@ class SysFS(list_ports_common.ListPortInfo):
         if self.usb_interface_path is not None:
             self.usb_device_path = os.path.dirname(self.usb_interface_path)
 
-            try:
-                num_if = int(self.read_line(self.usb_device_path, 'bNumInterfaces'))
-            except ValueError:
-                num_if = 1
+            num_if_text = self.read_line(self.usb_device_path, 'bNumInterfaces')
+            if num_if_text:
+                try:
+                    num_if = int(num_if_text)
+                except ValueError:
+                    num_if = 1
 
-            self.vid = int(self.read_line(self.usb_device_path, 'idVendor'), 16)
-            self.pid = int(self.read_line(self.usb_device_path, 'idProduct'), 16)
-            self.serial_number = self.read_line(self.usb_device_path, 'serial')
-            if num_if > 1:  # multi interface devices like FT4232
-                self.location = os.path.basename(self.usb_interface_path)
-            else:
-                self.location = os.path.basename(self.usb_device_path)
+                self.vid = int(self.read_line(self.usb_device_path, 'idVendor'), 16)
+                self.pid = int(self.read_line(self.usb_device_path, 'idProduct'), 16)
+                self.serial_number = self.read_line(self.usb_device_path, 'serial')
+                if num_if > 1:  # multi interface devices like FT4232
+                    self.location = os.path.basename(self.usb_interface_path)
+                else:
+                    self.location = os.path.basename(self.usb_device_path)
 
-            self.manufacturer = self.read_line(self.usb_device_path, 'manufacturer')
-            self.product = self.read_line(self.usb_device_path, 'product')
-            self.interface = self.read_line(self.usb_interface_path, 'interface')
+                self.manufacturer = self.read_line(self.usb_device_path, 'manufacturer')
+                self.product = self.read_line(self.usb_device_path, 'product')
+                self.interface = self.read_line(self.usb_interface_path, 'interface')
 
         if self.subsystem in ('usb', 'usb-serial'):
             self.apply_usb_info()
