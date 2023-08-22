@@ -96,6 +96,14 @@ elif plat[:3] == 'aix':      # AIX
             devices.update(list_ports_common.list_links(devices))
         return [list_ports_common.ListPortInfo(d) for d in devices]
 
+elif plat[:5] == 'haiku':    # Haiku
+    def comports(include_links=False):
+        """scan for available ports. return a list of device names."""
+        devices = set(glob.glob('/dev/ports/*'))
+        if include_links:
+            devices.update(list_ports_common.list_links(devices))
+        return [list_ports_common.ListPortInfo(d) for d in devices]
+
 else:
     # platform detection has failed...
     import serial
