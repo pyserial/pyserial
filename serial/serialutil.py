@@ -361,11 +361,7 @@ class SerialBase(io.RawIOBase):
     def timeout(self, timeout):
         """Change timeout setting."""
         if timeout is not None:
-            try:
-                timeout + 1     # test if it's a number, will throw a TypeError if not...
-            except TypeError:
-                raise ValueError("Not a valid timeout: {!r}".format(timeout))
-            if timeout < 0:
+            if not isinstance(timeout, (int, float)) or timeout < 0:
                 raise ValueError("Not a valid timeout: {!r}".format(timeout))
         self._timeout = timeout
         if self.is_open:
@@ -380,11 +376,7 @@ class SerialBase(io.RawIOBase):
     def write_timeout(self, timeout):
         """Change timeout setting."""
         if timeout is not None:
-            if timeout < 0:
-                raise ValueError("Not a valid timeout: {!r}".format(timeout))
-            try:
-                timeout + 1     # test if it's a number, will throw a TypeError if not...
-            except TypeError:
+            if not isinstance(timeout, (int, float)) or timeout < 0:
                 raise ValueError("Not a valid timeout: {!r}".format(timeout))
 
         self._write_timeout = timeout
@@ -400,11 +392,7 @@ class SerialBase(io.RawIOBase):
     def inter_byte_timeout(self, ic_timeout):
         """Change inter-byte timeout setting."""
         if ic_timeout is not None:
-            if ic_timeout < 0:
-                raise ValueError("Not a valid timeout: {!r}".format(ic_timeout))
-            try:
-                ic_timeout + 1     # test if it's a number, will throw a TypeError if not...
-            except TypeError:
+            if not isinstance(ic_timeout, (int, float)) or timeout < 0:
                 raise ValueError("Not a valid timeout: {!r}".format(ic_timeout))
 
         self._inter_byte_timeout = ic_timeout
