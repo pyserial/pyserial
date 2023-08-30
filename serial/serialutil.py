@@ -664,19 +664,27 @@ class SerialBase(io.RawIOBase):
     def read_until(self, expected=LF, size=None):
         """\
         Read until an expected sequence is found (line feed by default), the size
-        is exceeded or until timeout occurs.
+        is exceeded or until timeout occurs. An iterable object can also be supplied
+        to the expected arg to allow for multiple checks.
         """
-        lenterm = len(expected)
         line = bytearray()
         timeout = Timeout(self._timeout)
+
+        # Preserve for backwards compatiblity
+        if isinstance(expected, bytes):
+            expected = (expected,)
+
+        delimiters = {i:len(i) for i in expected}
+
         while True:
             c = self.read(1)
             if c:
                 line += c
-                if line[-lenterm:] == expected:
-                    break
-                if size is not None and len(line) >= size:
-                    break
+                for delimeter, lenterm in delimiters.items():
+                    if line[-lenterm:] == delimeter:
+                        return bytes(line)
+                    if size is not None and len(line) >= size:
+                        return bytes(line)
             else:
                 break
             if timeout.expired():
