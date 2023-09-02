@@ -89,15 +89,22 @@ class SysFS(list_ports_common.ListPortInfo):
 
 
 def comports(include_links=False):
+    def _no_link_glob(pattern):
+        # Skip links from the loaded files.
+        # All links should be loaded by `list_ports_common.list_links`.
+        return [i
+                for i in glob.glob(pattern)
+                if not os.path.islink(i)]
+
     devices = set()
-    devices.update(glob.glob('/dev/ttyS*'))     # built-in serial ports
-    devices.update(glob.glob('/dev/ttyUSB*'))   # usb-serial with own driver
-    devices.update(glob.glob('/dev/ttyXRUSB*')) # xr-usb-serial port exar (DELL Edge 3001)
-    devices.update(glob.glob('/dev/ttyACM*'))   # usb-serial with CDC-ACM profile
-    devices.update(glob.glob('/dev/ttyAMA*'))   # ARM internal port (raspi)
-    devices.update(glob.glob('/dev/rfcomm*'))   # BT serial devices
-    devices.update(glob.glob('/dev/ttyAP*'))    # Advantech multi-port serial controllers
-    devices.update(glob.glob('/dev/ttyGS*'))    # https://www.kernel.org/doc/Documentation/usb/gadget_serial.txt
+    devices.update(_no_link_glob('/dev/ttyS*'))     # built-in serial ports
+    devices.update(_no_link_glob('/dev/ttyUSB*'))   # usb-serial with own driver
+    devices.update(_no_link_glob('/dev/ttyXRUSB*')) # xr-usb-serial port exar (DELL Edge 3001)
+    devices.update(_no_link_glob('/dev/ttyACM*'))   # usb-serial with CDC-ACM profile
+    devices.update(_no_link_glob('/dev/ttyAMA*'))   # ARM internal port (raspi)
+    devices.update(_no_link_glob('/dev/rfcomm*'))   # BT serial devices
+    devices.update(_no_link_glob('/dev/ttyAP*'))    # Advantech multi-port serial controllers
+    devices.update(_no_link_glob('/dev/ttyGS*'))    # https://www.kernel.org/doc/Documentation/usb/gadget_serial.txt
 
     if include_links:
         devices.update(list_ports_common.list_links(devices))
