@@ -100,7 +100,7 @@ class FramedPacket(Protocol):
     def data_received(self, data):
         """Find data enclosed in START/STOP, call handle_packet"""
         for byte in serial.iterbytes(data):
-            if byte == self.START:
+            if byte == self.START and not self.in_packet:
                 self.in_packet = True
             elif byte == self.STOP:
                 self.in_packet = False
