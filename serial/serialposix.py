@@ -606,6 +606,10 @@ class Serial(SerialBase, PlatformSpecific):
 
             if timeout.expired():
                 break
+            elif self._inter_byte_timeout is not None and self._inter_byte_timeout > 0:
+                #atleast one char received --> overwrite timeout by setting it to inter_byte_timeout
+                timeout = Timeout(self._inter_byte_timeout)
+
         return bytes(read)
 
     def cancel_read(self):
