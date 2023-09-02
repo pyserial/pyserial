@@ -225,7 +225,7 @@ class Serial(serial.Serial):
         try:
             for option, values in urlparse.parse_qs(parts.query, True).items():
                 if option == 'file':
-                    output = open(values[0], 'w')
+                    output = open(values[0], 'wb')
                 elif option == 'color':
                     color = True
                 elif option == 'raw':

@@ -9,6 +9,7 @@
 
 from __future__ import absolute_import
 
+from datetime import datetime
 import codecs
 import os
 import sys
@@ -272,6 +273,11 @@ class LF(Transform):
     """ENTER sends LF"""
 
 
+class LFTX(Transform):
+    """ENTER sends LF, but receive CR+LF"""
+    def tx(self, text):
+        return text.replace('\n', '\r')
+
 class NoTerminal(Transform):
     """remove typical terminal control codes from input"""
 
@@ -284,6 +290,20 @@ class NoTerminal(Transform):
 
     def rx(self, text):
         return text.translate(self.REPLACEMENT_MAP)
+
+    echo = rx
+
+
+class Timestamped(Transform):
+    """show time in seconds from start for rx and tx"""
+
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        self._start = datetime.now()
+
+    def rx(self, text):
+        ts = (datetime.now() - self._start).total_seconds()
+        return f'{ts:9.4f}: {text}'
 
     echo = rx
 
@@ -355,6 +375,7 @@ EOL_TRANSFORMATIONS = {
     'crlf': CRLF,
     'cr': CR,
     'lf': LF,
+    'lftx': LFTX,
 }
 
 TRANSFORMATIONS = {
@@ -364,6 +385,7 @@ TRANSFORMATIONS = {
     'printable': Printable,
     'colorize': Colorize,
     'debug': DebugIO,
+    'timestamped': Timestamped,
 }
 
 
@@ -925,7 +947,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
 
     group.add_argument(
         '--eol',
-        choices=['CR', 'LF', 'CRLF'],
+        choices=['CR', 'LF', 'CRLF', 'LFTX'],
         type=lambda c: c.upper(),
         help='end of line mode',
         default=default_eol)
