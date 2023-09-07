@@ -298,6 +298,10 @@ class Serial(SerialBase):
                 read = bytes()
         else:
             read = bytes()
+
+        # Give an opportunity to switch a context. It prevents deadlock if 
+        # a greenthread is used (e.g. after eventlet.monkey_patch()).
+        time.sleep(0)
         return bytes(read)
 
     def write(self, data):
