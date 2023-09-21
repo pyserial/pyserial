@@ -14,3 +14,27 @@ python:
 script:
   - python setup.py install
   - python test/run_all_tests.py loop://
+
+jobs:
+  include:
+    - {}
+
+    - os: windows
+      language: bash
+      install:
+        - choco install python3 --params "/InstallDir:C:\python3"
+        - export PATH=/c/python3:$PATH
+
+    - os: windows
+      language: bash
+      env: USE=CYGWIN
+      install:
+        - wget https://cygwin.com/setup-x86_64.exe
+        - chmod +x setup-x86_64.exe
+        - >
+          ./setup-x86_64.exe -q -dnrN -l "C:\cygwin_setup" 
+          -Os "http://cygwin.mirror.constant.com" 
+          -P python38
+        - ln -vf /c/cygwin64/bin/python3.8.exe /usr/bin/python
+        - export PATH=/c/cygwin64/bin:$PATH
+
