@@ -694,6 +694,26 @@ class SerialBase(io.RawIOBase):
                 break
             yield line
 
+    def read_between(self, initiator=LF, terminator=LF, size=None):
+        """\
+        Read between two expected sequences ('\n' by default), the size
+        is exceeded or until timeout occurs. All characters before
+        initiator sequence are ignored and lost.
+        """
+        leninit = len(initiator)
+        line = bytearray()
+
+        if size is None:
+            termination_size = None
+        else:
+            termination_size = size - leninit
+
+        head = self.read_until(expected=initiator, size=None)
+        if head[-leninit:] == initiator:
+            line += initiator
+        line += self.read_until(expected=terminator, size=termination_size)
+
+        return bytes(line)
 
 #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 if __name__ == '__main__':
