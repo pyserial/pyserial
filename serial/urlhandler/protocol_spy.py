@@ -87,14 +87,14 @@ class FormatRaw(object):
         """show received data"""
         if self.color:
             self.output.write(self.rx_color)
-        self.output.write(data)
+        self.output.write(data.decode())
         self.output.flush()
 
     def tx(self, data):
         """show transmitted data"""
         if self.color:
             self.output.write(self.tx_color)
-        self.output.write(data)
+        self.output.write(data.decode())
         self.output.flush()
 
     def control(self, name, value):
