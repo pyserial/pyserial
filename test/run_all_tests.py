@@ -26,6 +26,7 @@ if len(sys.argv) > 1:
 
 # find files and the tests in them
 mainsuite = unittest.TestSuite()
+loader = unittest.TestLoader()
 for modulename in [
         os.path.splitext(x)[0]
         for x in os.listdir(os.path.dirname(__file__) or '.')
@@ -37,7 +38,7 @@ for modulename in [
         print("skipping {}".format(modulename))
     else:
         module.PORT = PORT
-        testsuite = unittest.findTestCases(module)
+        testsuite = loader.loadTestsFromModule(module)
         print("found {} tests in {!r}".format(testsuite.countTestCases(), modulename))
         mainsuite.addTest(testsuite)
 
