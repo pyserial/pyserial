@@ -332,28 +332,22 @@ def request_usb_description(g_hdi, devinfo, info):
         return False
 
     # Get hub instance number
-    child_instance_number = devinfo.DevInst
-    while True:
-        node_status = ULONG()
-        problem_number = ULONG()
-        if CM_Get_DevNode_Status(ctypes.byref(node_status), ctypes.byref(problem_number), child_instance_number, 0) != 0:
-            return False
-        parent_instance_number = DWORD()
-        if CM_Get_Parent(ctypes.byref(parent_instance_number), child_instance_number, 0) != 0:
-            return False
-        parent_instance_id = ctypes.create_unicode_buffer(250)
-        if CM_Get_Device_IDW(
-            parent_instance_number,
-            parent_instance_id,
-            ctypes.sizeof(parent_instance_id) - 1,
-            0
-        ) != 0:
-            return False
-        parent_instance_id = ctypes.wstring_at(parent_instance_id)
-        if parent_instance_id.startswith('USB\\ROOT_HUB'):
-            break
-        else:
-            child_instance_number = parent_instance_number
+    node_status = ULONG()
+    problem_number = ULONG()
+    if CM_Get_DevNode_Status(ctypes.byref(node_status), ctypes.byref(problem_number), devinfo.DevInst, 0) != 0:
+        return False
+    parent_instance_number = DWORD()
+    if CM_Get_Parent(ctypes.byref(parent_instance_number), devinfo.DevInst, 0) != 0:
+        return False
+    parent_instance_id = ctypes.create_unicode_buffer(250)
+    if CM_Get_Device_IDW(
+        parent_instance_number,
+        parent_instance_id,
+        ctypes.sizeof(parent_instance_id) - 1,
+        0
+    ) != 0:
+        return False
+    parent_instance_id = ctypes.wstring_at(parent_instance_id)
 
     # Generate the hub path and open it.
     hub_location = "\\\\?\\" + parent_instance_id.replace("\\", "#") + "#{f18a0e88-c30c-11d0-8815-00a0c906bed8}"
