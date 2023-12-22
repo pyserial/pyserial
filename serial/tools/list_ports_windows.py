@@ -394,13 +394,16 @@ def get_location_string(g_hdi, devinfo, bConfigurationValue='x', bInterfaceNumbe
 
 
 def request_usb_description(g_hdi, devinfo, hardware_id, info):
-    if re.fullmatch(r'USB\\VID_[0-9a-f]{4}&PID_[0-9a-f]{4}&MI_\d{2}(\\.*)?', hardware_id, re.IGNORECASE) is not None:
+    m = re.fullmatch(r'USB\\VID_[0-9a-f]{4}&PID_[0-9a-f]{4}&MI_(\d{2})(\\.*)?', hardware_id, re.IGNORECASE)
+    if m is not None:
         # Composite usb device
+        bInterfaceNumber = int(m.group(1))
         child_instance_number = get_parent_device_instance_number(devinfo.DevInst)
         if child_instance_number is None:
             return False
     else:
         # Non Composition usb device
+        bInterfaceNumber = None
         child_instance_number = devinfo.DevInst
 
     # Get hub instance number
@@ -506,7 +509,7 @@ def request_usb_description(g_hdi, devinfo, hardware_id, info):
     # Generate location string and hwid compatible with linux and macOS.
     info.location = get_location_string(g_hdi, devinfo,
                                         bConfigurationValue=configuration_description.contents.bConfigurationValue,
-                                        bInterfaceNumber=usb_hub_port.value)
+                                        bInterfaceNumber=bInterfaceNumber)
     info.hwid = info.usb_info()
     return True
 
