@@ -22,7 +22,6 @@ from ctypes.wintypes import ULONG
 from ctypes.wintypes import HKEY
 from ctypes.wintypes import BYTE
 from ctypes.wintypes import PULONG
-import serial
 from serial.win32 import ULONG_PTR
 from serial.win32 import CreateFileW, GENERIC_WRITE, OPEN_EXISTING, DeviceIoControl, CloseHandle
 from serial.tools import list_ports_common
@@ -51,7 +50,7 @@ class GUID(ctypes.Structure):
         ('Data1', DWORD),
         ('Data2', WORD),
         ('Data3', WORD),
-        ('Data4', BYTE * 8),
+        ('Data4', ctypes.c_uint8 * 8),
     ]
 
     def __str__(self):
@@ -138,6 +137,50 @@ class USB_STRING_DESCRIPTOR(ctypes.Structure):
     ]
 
 
+class DEVPROPKEY(ctypes.Structure):
+    _fields_ = [
+        ('fmtid', GUID),
+        ('pid', ULONG)
+    ]
+
+
+# DEVPKEY_Device_Address, 0xa45c254e, 0xdf1c, 0x4efd, 0x80, 0x20, 0x67, 0xd1, 0x46, 0xa8, 0x50, 0xe0, 30
+DEVPKEY_Device_Address = DEVPROPKEY()
+DEVPKEY_Device_Address.fmtid.Data1 = 0xa45c254e
+DEVPKEY_Device_Address.fmtid.Data2 = 0xdf1c
+DEVPKEY_Device_Address.fmtid.Data3 = 0x4efd
+DEVPKEY_Device_Address.fmtid.Data4[0] = 0x80
+DEVPKEY_Device_Address.fmtid.Data4[1] = 0x20
+DEVPKEY_Device_Address.fmtid.Data4[2] = 0x67
+DEVPKEY_Device_Address.fmtid.Data4[3] = 0xd1
+DEVPKEY_Device_Address.fmtid.Data4[4] = 0x46
+DEVPKEY_Device_Address.fmtid.Data4[5] = 0xa8
+DEVPKEY_Device_Address.fmtid.Data4[6] = 0x50
+DEVPKEY_Device_Address.fmtid.Data4[7] = 0xe0
+DEVPKEY_Device_Address.pid = 30
+
+# GUID_DEVINTERFACE_USB_HUB, 0xf18a0e88, 0xc30c, 0x11d0, 0x88, 0x15, 0x00, 0xa0, 0xc9, 0x06, 0xbe, 0xd8);
+GUID_DEVINTERFACE_USB_HUB = GUID()
+GUID_DEVINTERFACE_USB_HUB.Data1 = 0xf18a0e88
+GUID_DEVINTERFACE_USB_HUB.Data2 = 0xc30c
+GUID_DEVINTERFACE_USB_HUB.Data3 = 0x11d0
+GUID_DEVINTERFACE_USB_HUB.Data4[0] = 0x88
+GUID_DEVINTERFACE_USB_HUB.Data4[1] = 0x15
+GUID_DEVINTERFACE_USB_HUB.Data4[2] = 0x00
+GUID_DEVINTERFACE_USB_HUB.Data4[3] = 0xa0
+GUID_DEVINTERFACE_USB_HUB.Data4[4] = 0xc9
+GUID_DEVINTERFACE_USB_HUB.Data4[5] = 0x06
+GUID_DEVINTERFACE_USB_HUB.Data4[6] = 0xbe
+GUID_DEVINTERFACE_USB_HUB.Data4[7] = 0xd8
+
+DEVPROP_TYPE_UINT32 = 0x00000007    # 32-bit unsigned int (ULONG)
+DEVPROP_TYPE_STRING = 0x00000012    # null-terminated string
+
+CR_SUCCESS = 0
+CR_BUFFER_SMALL = 26
+
+PDEVPROPKEY = ctypes.POINTER(DEVPROPKEY)
+
 PSP_DEVINFO_DATA = ctypes.POINTER(SP_DEVINFO_DATA)
 
 PSP_DEVICE_INTERFACE_DETAIL_DATA = ctypes.c_void_p
@@ -198,6 +241,9 @@ CM_Get_DevNode_Status = cfgmgr32.CM_Get_DevNode_Status
 CM_Get_DevNode_Status.argtypes = [PULONG, PULONG, DWORD, ULONG]
 CM_Get_DevNode_Status.restype = DWORD
 
+CM_Get_DevNode_PropertyW = cfgmgr32.CM_Get_DevNode_PropertyW
+CM_Get_DevNode_PropertyW.argtypes = [DWORD, PDEVPROPKEY, PULONG, PBYTE, PULONG, ULONG]
+CM_Get_DevNode_PropertyW.restype = DWORD
 
 DIGCF_PRESENT = 2
 DIGCF_DEVICEINTERFACE = 16
@@ -347,7 +393,7 @@ def get_device_instance_identifier(instance_number):
             instance_id,
             ctypes.sizeof(instance_id) - 1,
             0
-    ) != 0:
+    ) != CR_SUCCESS:
         return None
     return ctypes.wstring_at(instance_id)
 
@@ -393,42 +439,87 @@ def get_location_string(g_hdi, devinfo, bConfigurationValue='x', bInterfaceNumbe
     return None
 
 
-def request_usb_description(g_hdi, devinfo, hardware_id, info):
-    m = re.fullmatch(r'USB\\VID_[0-9a-f]{4}&PID_[0-9a-f]{4}&MI_(\d{2})(\\.*)?', hardware_id, re.IGNORECASE)
+def get_device_property(instance_number, property_key):
+    buffer_size = ULONG()
+    property_type = ULONG()
+    ret = CM_Get_DevNode_PropertyW(
+        instance_number,
+        ctypes.byref(property_key),
+        ctypes.byref(property_type),
+        None,
+        ctypes.byref(buffer_size),
+        0
+    )
+    if ret != CR_BUFFER_SMALL and ret != CR_SUCCESS:
+        return None
+    buffer = ctypes.create_unicode_buffer(buffer_size.value)
+    if CM_Get_DevNode_PropertyW(
+            instance_number,
+            ctypes.byref(property_key),
+            ctypes.byref(property_type),
+            buffer,
+            ctypes.byref(buffer_size),
+            0
+    ) != CR_SUCCESS:
+        return None
+    if property_type.value == DEVPROP_TYPE_STRING:
+        return buffer.value
+    elif property_type.value == DEVPROP_TYPE_UINT32:
+        return ctypes.cast(buffer, PULONG).contents.value
+    else:
+        raise NotImplementedError(f'DEVPROPTYPE {property_type.value} is not implemented!')
+
+
+def get_all_hub_instance_number():
+    g_hdi = SetupDiGetClassDevs(
+        ctypes.byref(GUID_DEVINTERFACE_USB_HUB),
+        None,
+        NULL,
+        DIGCF_PRESENT|DIGCF_DEVICEINTERFACE
+    )
+
+    devinfo = SP_DEVINFO_DATA()
+    devinfo.cbSize = ctypes.sizeof(devinfo)
+    index = 0
+    hubs = []
+    while SetupDiEnumDeviceInfo(g_hdi, index, ctypes.byref(devinfo)):
+        hubs.append(devinfo.DevInst)
+        index += 1
+    SetupDiDestroyDeviceInfoList(g_hdi)
+    return hubs
+
+
+def request_usb_description(g_hdi, devinfo, hardware_id, hub_instance_numbers, info):
+    m = re.search(r'&MI_(\d{2})', hardware_id, re.IGNORECASE)
     if m is not None:
         # Composite usb device
         bInterfaceNumber = int(m.group(1))
-        child_instance_number = get_parent_device_instance_number(devinfo.DevInst)
-        if child_instance_number is None:
-            return False
     else:
         # Non Composition usb device
         bInterfaceNumber = None
-        child_instance_number = devinfo.DevInst
 
     # Get hub instance number
-    parent_instance_number = get_parent_device_instance_number(child_instance_number)
-    if parent_instance_number is None:
-        return False
+    child_instance_number = devinfo.DevInst
+    while True:
+        parent_instance_number = get_parent_device_instance_number(child_instance_number)
+        if parent_instance_number is None:
+            return False
+        if parent_instance_number in hub_instance_numbers:
+            break
+        child_instance_number = parent_instance_number
+
+    # Get hub instance identifier
     parent_instance_id = get_device_instance_identifier(parent_instance_number)
     if parent_instance_id is None:
         return False
 
     # Get usb port
-    devinfo.DevInst = child_instance_number
-    usb_hub_port = DWORD()
-    if not SetupDiGetDeviceRegistryProperty(
-            g_hdi,
-            ctypes.byref(devinfo),
-            SPDRP_ADDRESS,
-            None,
-            ctypes.byref(usb_hub_port),
-            ctypes.sizeof(usb_hub_port),
-            None):
-        return False
+    usb_hub_port = get_device_property(child_instance_number, DEVPKEY_Device_Address)
+    if usb_hub_port is None:
+        return None
 
     # Generate the hub path and open it.
-    hub_location = "\\\\?\\" + parent_instance_id.replace("\\", "#") + "#{f18a0e88-c30c-11d0-8815-00a0c906bed8}"
+    hub_location = "\\\\?\\" + parent_instance_id.replace("\\", "#") + f"#{GUID_DEVINTERFACE_USB_HUB}"
     h_hub_device = CreateFileW(
         hub_location,
         GENERIC_WRITE,
@@ -463,6 +554,7 @@ def request_usb_description(g_hdi, devinfo, hardware_id, info):
             None,
             None
     ):
+        CloseHandle(h_hub_device)
         return False
 
     # Get configuration description.
@@ -490,6 +582,7 @@ def request_usb_description(g_hdi, devinfo, hardware_id, info):
         None,
         None
     ):
+        CloseHandle(h_hub_device)
         return False
 
     # Get device description.
@@ -605,10 +698,17 @@ def iterate_comports():
 
             # in case of USB, make a more readable string, similar to that form
             # that we also generate on other platforms
-            if szHardwareID_str.startswith('USB'):
-                # Request pid, vid, product, manufacturer, serial_number using DeviceIoControl.
-                if not request_usb_description(g_hdi, devinfo, szHardwareID_str, info):
-                    # If we cannot request above using DeviceIoControl, doing this compatible with previous versions.
+
+            # Request pid, vid, product, manufacturer, serial_number using DeviceIoControl.
+            if not request_usb_description(
+                    g_hdi,
+                    devinfo,
+                    szHardwareID_str,
+                    get_all_hub_instance_number(),
+                    info
+            ):
+                # If we cannot request above using DeviceIoControl, doing this compatible with previous versions.
+                if szHardwareID_str.startswith('USB'):
                     m = re.search(r'VID_([0-9a-f]{4})(&PID_([0-9a-f]{4}))?(&MI_(\d{2}))?(\\(.*))?', szHardwareID_str, re.I)
                     if m:
                         info.vid = int(m.group(1), 16)
@@ -627,33 +727,19 @@ def iterate_comports():
                     # calculate a location string
                     info.location = get_location_string(g_hdi, devinfo, bInterfaceNumber=bInterfaceNumber)
                     info.hwid = info.usb_info()
-            elif szHardwareID_str.startswith('FTDIBUS'):
-                m = re.search(r'VID_([0-9a-f]{4})\+PID_([0-9a-f]{4})(\+(\w+))?', szHardwareID_str, re.I)
-                if m:
-                    info.vid = int(m.group(1), 16)
-                    info.pid = int(m.group(2), 16)
-                    if m.group(4):
-                        info.serial_number = m.group(4)
-                # USB location is hidden by FDTI driver :(
-                info.hwid = info.usb_info()
-            else:
-                info.hwid = szHardwareID_str
+                elif szHardwareID_str.startswith('FTDIBUS'):
+                    m = re.search(r'VID_([0-9a-f]{4})\+PID_([0-9a-f]{4})(\+(\w+))?', szHardwareID_str, re.I)
+                    if m:
+                        info.vid = int(m.group(1), 16)
+                        info.pid = int(m.group(2), 16)
+                        if m.group(4):
+                            info.serial_number = m.group(4)
+                    # USB location is hidden by FDTI driver :(
+                    info.hwid = info.usb_info()
+                else:
+                    info.hwid = szHardwareID_str
 
-            # friendly name
-            if info.description is None:
-                szFriendlyName = ctypes.create_unicode_buffer(250)
-                if SetupDiGetDeviceRegistryProperty(
-                        g_hdi,
-                        ctypes.byref(devinfo),
-                        SPDRP_FRIENDLYNAME,
-                        None,
-                        ctypes.byref(szFriendlyName),
-                        ctypes.sizeof(szFriendlyName) - 1,
-                        None):
-                    info.description = szFriendlyName.value
-
-            # manufacturer
-            if info.manufacturer is None:
+                # manufacturer
                 szManufacturer = ctypes.create_unicode_buffer(250)
                 if SetupDiGetDeviceRegistryProperty(
                         g_hdi,
@@ -664,6 +750,19 @@ def iterate_comports():
                         ctypes.sizeof(szManufacturer) - 1,
                         None):
                     info.manufacturer = szManufacturer.value
+
+            # description
+            szFriendlyName = ctypes.create_unicode_buffer(250)
+            if SetupDiGetDeviceRegistryProperty(
+                    g_hdi,
+                    ctypes.byref(devinfo),
+                    SPDRP_FRIENDLYNAME,
+                    None,
+                    ctypes.byref(szFriendlyName),
+                    ctypes.sizeof(szFriendlyName) - 1,
+                    None):
+                info.description = szFriendlyName.value
+
             yield info
         SetupDiDestroyDeviceInfoList(g_hdi)
 
@@ -675,5 +774,14 @@ def comports(include_links=False):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
 if __name__ == '__main__':
-    for port, desc, hwid in sorted(comports()):
-        print("{}: {} [{}]".format(port, desc, hwid))
+    for port in comports():
+        for item in ['device', 'name', 'description', 'hwid', 'vid', 'pid', 'serial_number', 'location', 'manufacturer', 'product', 'interface']:
+            value = getattr(port, item)
+            if value is None:
+                print(f'{item}: None')
+            else:
+                if item in ['vid', 'pid']:
+                    print(f'{item}: {value:04x}')
+                else:
+                    print(f'{item}: {value}')
+        print()
