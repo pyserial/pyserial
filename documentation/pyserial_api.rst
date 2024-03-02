@@ -101,7 +101,7 @@ Native ports
 
         Note that enabling both flow control methods (*xonxoff* and *rtscts*)
         together may not be supported. It is common to use one of the methods
-        at once, not both.
+        alone, not both together.
 
         *dsrdtr* is not supported by all platforms (silently ignored). Setting
         it to ``None`` has the effect that its state follows *rtscts*.
