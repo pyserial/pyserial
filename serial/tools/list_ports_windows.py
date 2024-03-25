@@ -834,6 +834,7 @@ class USBHubDeviceIOControl:
             ctypes.sizeof(description_request_buffer) - ctypes.sizeof(USB_DESCRIPTOR_REQUEST)
 
         # Send string description request.
+        returned_size = ctypes.c_uint32()
         if not DeviceIoControl(
                 self.device_handle,
                 IOCTL_USB_GET_DESCRIPTOR_FROM_NODE_CONNECTION,
@@ -841,7 +842,7 @@ class USBHubDeviceIOControl:
                 ctypes.sizeof(description_request_buffer),
                 description_request_buffer,
                 ctypes.sizeof(description_request_buffer),
-                None,
+                ctypes.byref(returned_size),
                 None
         ):
             return None
@@ -851,8 +852,15 @@ class USBHubDeviceIOControl:
             ctypes.byref(description_request_buffer, ctypes.sizeof(USB_DESCRIPTOR_REQUEST)),
             ctypes.POINTER(USB_STRING_DESCRIPTOR)
         )
+
+        # Check size again
+        string_size = returned_size.value - ctypes.sizeof(USB_DESCRIPTOR_REQUEST)
+        if string_size != description.contents.bLength:
+            return None
+
+        # Parse available language id
         languages = []
-        for i in range(2, description.contents.bLength, 2):
+        for i in range(2, string_size, 2):
             languages.append(ctypes.c_uint16.from_buffer(
                 description_request_buffer,
                 ctypes.sizeof(USB_DESCRIPTOR_REQUEST) + i
@@ -861,7 +869,7 @@ class USBHubDeviceIOControl:
 
     def suggest_language_id(self, usb_hub_port):
         available_languages = self.request_supported_languages(usb_hub_port)
-        if available_languages is None:
+        if not available_languages:
             return 0x0409
         default_language = GetUserDefaultLangID()
         if default_language in available_languages:
