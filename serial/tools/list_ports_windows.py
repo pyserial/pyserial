@@ -1,5 +1,19 @@
 #! python
-# Enumerate serial ports on Windows including a human-readable description and hardware information.
+#
+# Enumerate serial ports on Windows including a human-readable description
+# and hardware information.
+#
+# This file is part of pySerial. https://github.com/pyserial/pyserial
+#
+# SPDX-License-Identifier:    BSD-3-Clause
+
+# List all the com port devices in windows.
+# Feature:
+# 1. Using CfgMgr32 only;
+# 2. Query usb information via DeviceIoControl;
+# 3. Object-oriented code.
+
+from __future__ import absolute_import
 
 import ctypes
 import re
@@ -363,7 +377,7 @@ def parse_device_property(buffer, buffer_size, property_type):
         return ctypes.wstring_at(buffer, buffer_size.value // 2).strip('\0').split('\0')
     if property_type.value == DEVPROP_TYPE_BINARY:
         return buffer
-    raise NotImplementedError(f'DEVPROPTYPE {property_type.value} is not implemented!')
+    raise NotImplementedError('DEVPROPTYPE {} is not implemented!'.format(property_type.value))
 
 
 class cached_property:
@@ -524,7 +538,7 @@ class DeviceInterface(DeviceNode):
 
     def __init__(self, interface):
         self.__interface = interface
-        super().__init__(self.instance_handle)
+        super(DeviceInterface, self).__init__(self.instance_handle)
 
     @classmethod
     def enumerate_device(cls):
@@ -608,8 +622,8 @@ class PortDevice(DeviceInterface):
         GUID_DEVINTERFACE_MODEM
     ]
 
-    def __init__(self, interface):
-        super().__init__(interface)
+    # Cached usb info.
+    usb_info_cache = {}
 
     @staticmethod
     def parse_interface_number_from_instance_identifier(instance_identifier):
@@ -636,6 +650,11 @@ class PortDevice(DeviceInterface):
         CloseHandle(port_handle)
 
     def get_usb_info(self, device_registry):
+        # Check for usb_info in cache.
+        cache_key = self.interface.casefold()
+        if cache_key in self.usb_info_cache:
+            return self.usb_info_cache[cache_key]
+
         # Get parent hub device, usb device and interface device recursively.
         # hub_device -> usb_device -> usb_interface_device -> port_device
         usb_device = self
@@ -762,21 +781,19 @@ class PortDevice(DeviceInterface):
             bConfigurationValue,
             bInterfaceNumber
         )
-        return USBInfo(pid, vid, product, manufacturer, serial_number, location, function, interface)
+
+        # Cache usb info.
+        usb_info = USBInfo(pid, vid, product, manufacturer, serial_number, location, function, interface)
+        self.usb_info_cache[cache_key] = usb_info
+        return usb_info
 
 
 class USBHostControllerDevice(DeviceInterface):
     guid_list = [GUID_DEVINTERFACE_USB_HOST_CONTROLLER]
 
-    def __init__(self, interface):
-        super().__init__(interface)
-
 
 class USBHubDevice(DeviceInterface):
     guid_list = [GUID_DEVINTERFACE_USB_HUB]
-
-    def __init__(self, interface):
-        super().__init__(interface)
 
 
 class DeviceRegistry:
@@ -785,10 +802,11 @@ class DeviceRegistry:
         self.all_usb_host_controllers = sorted(set(USBHostControllerDevice.enumerate_device()))
 
     def get_bus_number(self, usb_host_controller):
-        return self.all_usb_host_controllers.index(usb_host_controller) + 1
-
-    def get_usb_host_controller(self, bus_number):
-        return self.all_usb_host_controllers[bus_number - 1]
+        try:
+            bus_number = sorted(self.all_usb_host_controllers).index(usb_host_controller) + 1
+        except ValueError:
+            bus_number = 0
+        return bus_number
 
 
 class USBHubDeviceIOControl:
@@ -854,16 +872,17 @@ class USBHubDeviceIOControl:
         )
 
         # Check size again
-        string_size = returned_size.value - ctypes.sizeof(USB_DESCRIPTOR_REQUEST)
-        if string_size != description.contents.bLength:
+        string_descriptor_size = returned_size.value - ctypes.sizeof(USB_DESCRIPTOR_REQUEST)
+        if string_descriptor_size != description.contents.bLength:
             return None
 
         # Parse available language id
+        available_language_id_count = (string_descriptor_size - 2) // 2
         languages = []
-        for i in range(2, string_size, 2):
+        for i in range(available_language_id_count):
             languages.append(ctypes.c_uint16.from_buffer(
                 description_request_buffer,
-                ctypes.sizeof(USB_DESCRIPTOR_REQUEST) + i
+                ctypes.sizeof(USB_DESCRIPTOR_REQUEST) + i * 2 + 2
             ).value)
         return languages
 
@@ -914,7 +933,10 @@ class USBHubDeviceIOControl:
             ctypes.byref(description_request_buffer, ctypes.sizeof(USB_DESCRIPTOR_REQUEST)),
             ctypes.POINTER(USB_STRING_DESCRIPTOR)
         )
-        return ctypes.wstring_at(description.contents.bString, description.contents.bLength // 2 - 1)
+
+        # Convert wstring to python str.
+        # Very few devices will have an extra null at the end of string, strip it.
+        return ctypes.wstring_at(description.contents.bString, description.contents.bLength // 2 - 1).rstrip('\0')
 
     def request_usb_device_description(self, usb_hub_port):
         # Filling setup package for requesting device description.
@@ -1117,11 +1139,9 @@ class USBInfo:
         self.function = function
         self.interface = interface
 
-    def __str__(self):
-        return f'{self.location} - {self.vid:04X}:{self.pid:04X} - {self.product} - {self.manufacturer} - {self.serial_number} - {self.function} - {self.interface}'
-
 
 def get_location_string(usb_device, bus_number, bConfigurationValue=None, bInterfaceNumber=None):
+    # <bus>-<port[.port[.port]]>:<config>.<interface>
     location_paths = usb_device.location_paths
     if not location_paths:
         return None
@@ -1186,7 +1206,7 @@ def iterate_comports():
 
 
 def comports(include_links=False):
-    # Compatible with serial/tools/list_ports_windows.py in pyserial.
+    # Compatible with pyserial.
     return list(iterate_comports())
 
 
