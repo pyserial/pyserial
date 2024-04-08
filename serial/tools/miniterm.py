@@ -11,12 +11,19 @@ from __future__ import absolute_import
 
 import codecs
 import os
+import pathlib
 import sys
 import threading
 
 import serial
 from serial.tools.list_ports import comports
 from serial.tools import hexlify_codec
+
+try:
+    import xmodem
+    has_xmodem = True
+except ImportError:
+    has_xmodem = False
 
 # pylint: disable=wrong-import-order,wrong-import-position
 
@@ -393,6 +400,59 @@ def ask_for_port():
             port = ports[index]
         return port
 
+def xmodem_progress(total, success, errors):
+    sys.stderr.write(f'\x1b[2K\r{success} blocks transmitted ({errors} errors)')
+
+class XModemWrap:
+    def __init__(self, miniterm):
+        self.miniterm = miniterm
+        self.old_read_timeout = None
+        self.old_write_timeout = None
+        self.modem = None
+
+    def __enter__(self):
+        self.old_read_timeout = self.miniterm.serial.timeout
+        self.old_write_timeout = self.miniterm.serial.write_timeout
+        self.miniterm._stop_reader()
+        self.modem = xmodem.XMODEM(self._getc, self._putc)
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        self.miniterm.serial.timeout = self.old_read_timeout
+        self.miniterm.serial.write_timeout = self.old_write_timeout
+        self.modem = None
+        self.miniterm._start_reader()
+
+    def send(self, stream, remote_filename, callback=None):
+        if callback is None:
+            callback = xmodem_progress
+        self.miniterm.serial.write(self.miniterm.tx_encoder.encode(f"\x15rx '{remote_filename}'\n"))
+        self.miniterm.serial.flush()
+        self.miniterm.serial.timeout = 1
+        self.miniterm.serial.read_until()
+        return self.modem.send(stream, timeout=5, retry=5, callback=callback)
+
+    def recv(self, stream, remote_filename, callback=None):
+        if callback is None:
+            callback = xmodem_progress
+        self.miniterm.serial.write(self.miniterm.tx_encoder.encode(f"\x15sx '{remote_filename}'\n"))
+        self.miniterm.serial.flush()
+        self.miniterm.serial.timeout = 1
+        self.miniterm.serial.read_until()
+        return self.modem.recv(stream, timeout=5, retry=5, callback=callback) is not None
+
+    def _getc(self, size: int, timeout: float=5) -> bytes | None:
+        self.miniterm.serial.timeout = timeout
+        return self.miniterm.serial.read(size) or None
+
+    def _putc(self, data: bytes|bytearray, timeout: float=5) -> bool:
+        self.miniterm.serial.write_timeout = timeout
+        try:
+            bytes_written = self.miniterm.serial.write(data)
+            self.miniterm.serial.flush()
+            return bytes_written == len(data)
+        except serial.SerialTimeoutException:
+            return False
 
 class Miniterm(object):
     """\
@@ -567,6 +627,8 @@ class Miniterm(object):
                 self.console.write(c)
         elif c == '\x15':                       # CTRL+U -> upload file
             self.upload_file()
+        elif c == '\x18':                       # CTRL+X -> xmodem
+            self.xmodem_file()
         elif c in '\x08hH?':                    # CTRL+H, h, H, ? -> Show help
             sys.stderr.write(self.get_help_text())
         elif c == '\x12':                       # CTRL+R -> Toggle RTS
@@ -644,12 +706,15 @@ class Miniterm(object):
         else:
             sys.stderr.write('--- unknown menu character {} --\n'.format(key_description(c)))
 
+    def prompt_user(self, prompt):
+        sys.stderr.write(prompt)
+        sys.stderr.flush()
+        return sys.stdin.readline().rstrip('\r\n')
+
     def upload_file(self):
         """Ask user for filename and send its contents"""
-        sys.stderr.write('\n--- File to upload: ')
-        sys.stderr.flush()
         with self.console:
-            filename = sys.stdin.readline().rstrip('\r\n')
+            filename = self.prompt_user('\n--- File to upload: ')
             if filename:
                 try:
                     with open(filename, 'rb') as f:
@@ -663,8 +728,73 @@ class Miniterm(object):
                             self.serial.flush()
                             sys.stderr.write('.')   # Progress indicator.
                     sys.stderr.write('\n--- File {} sent ---\n'.format(filename))
-                except IOError as e:
+                except OSError as e:
                     sys.stderr.write('--- ERROR opening file {}: {} ---\n'.format(filename, e))
+
+    def xmodem_file(self):
+        """Ask user for filename and send/receive its contents using xmodem"""
+        if not has_xmodem:
+            sys.stderr.write('\n--- xmodem not installed. Install it to use this feature ---\n')
+            return
+        with self.console:
+            try:
+                up_down = self.prompt_user('\n--- Upload/Download? [u/d]: ').lower()
+                if up_down == 'u':
+                    self.xmodem_upload()
+                elif up_down == 'd':
+                    self.xmodem_download()
+            except OSError as e:
+                sys.stderr.write(f'\n--- ERROR {e} ---\n')
+
+    def xmodem_upload(self):
+        local_filename = self.prompt_user('--- File to upload (local path): ')
+        if not local_filename:
+            return
+        local_path = pathlib.Path(local_filename).expanduser()
+        if not local_path.exists():
+            sys.stderr.write(f"--- Path '{local_path}' does not exist ---\n")
+            return
+        elif not local_path.is_file():
+            sys.stderr.write(f"--- Path '{local_path}' is not a regular file ---\n")
+            return
+        default_target = pathlib.Path('.') / local_path.name
+        remote_filename = self.prompt_user(f'--- Target file/directory (remote) [{default_target}]: ')
+        if remote_filename:
+            remote_path = pathlib.Path(remote_filename)
+            if remote_filename[-1] == '/':
+                remote_path /= local_path.name
+        else:
+            remote_path = default_target
+        sys.stderr.write(f"--- Uploading '{local_path}' to '{remote_path}' ---\n")
+        with local_path.open("rb") as stream:
+            with XModemWrap(self) as xmodem:
+                success = xmodem.send(stream, remote_path)
+        if success:
+            sys.stderr.write('\n--- Done ---\n')
+        else:
+            sys.stderr.write('\n--- Failed! ---\n')
+
+    def xmodem_download(self):
+        remote_filename = self.prompt_user('--- File to download (remote path): ')
+        if not remote_filename:
+            return
+        remote_path = pathlib.Path(remote_filename)
+        default_target = pathlib.Path('.') / remote_path.name
+        local_filename = self.prompt_user(f'--- Target file/directory (local) [{default_target}]: ')
+        if local_filename:
+            local_path = pathlib.Path(local_filename)
+            if local_path.is_dir():
+                local_path /= remote_path.name
+        else:
+            local_path = default_target
+        sys.stderr.write(f"--- Downloading '{remote_path}' to '{local_path}' ---\n")
+        with local_path.open("wb") as stream:
+            with XModemWrap(self) as xmodem:
+                success = xmodem.recv(stream, remote_path)
+        if success:
+            sys.stderr.write('\n--- Done ---\n')
+        else:
+            sys.stderr.write('\n--- Failed! ---\n')
 
     def change_filter(self):
         """change the i/o transformations"""
@@ -789,6 +919,7 @@ class Miniterm(object):
 ---    {exit:7} Send the exit character itself to remote
 ---    {info:7} Show info
 ---    {upload:7} Upload file (prompt will be shown)
+---    {modem:7} Upload/Download file using xmodem (prompt will be shown)
 ---    {repr:7} encoding
 ---    {filter:7} edit filters
 --- Toggles:
@@ -812,6 +943,7 @@ class Miniterm(object):
            echo=key_description('\x05'),
            info=key_description('\x09'),
            upload=key_description('\x15'),
+           modem=key_description('\x18'),
            repr=key_description('\x01'),
            filter=key_description('\x06'),
            eol=key_description('\x0c'))

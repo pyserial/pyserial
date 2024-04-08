@@ -104,5 +104,6 @@ Latest:
     },
     extras_require = {
         'cp2110': ['hidapi'],
+        'xmodem': ['xmodem'],
     },
 )
