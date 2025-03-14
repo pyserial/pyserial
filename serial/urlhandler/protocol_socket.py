@@ -184,7 +184,7 @@ class Serial(SerialBase):
                 # there is nothing to read.
                 if not ready:
                     break   # timeout
-                buf = self._socket.recv(size - len(read))
+                buf = self._socket.recv(min(size - len(read), self.in_waiting))
                 # read should always return some data as select reported it was
                 # ready to read when we get to this point, unless it is EOF
                 if not buf:
