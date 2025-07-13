@@ -259,7 +259,6 @@ def iterate_comports():
 
     # repeat for all possible GUIDs
     for index in range(len(GUIDs)):
-        bInterfaceNumber = None
         g_hdi = SetupDiGetClassDevs(
             ctypes.byref(GUIDs[index]),
             None,
@@ -327,6 +326,7 @@ def iterate_comports():
             # in case of USB, make a more readable string, similar to that form
             # that we also generate on other platforms
             if szHardwareID_str.startswith('USB'):
+                bInterfaceNumber = None
                 m = re.search(r'VID_([0-9a-f]{4})(&PID_([0-9a-f]{4}))?(&MI_(\d{2}))?(\\(.*))?', szHardwareID_str, re.I)
                 if m:
                     info.vid = int(m.group(1), 16)
