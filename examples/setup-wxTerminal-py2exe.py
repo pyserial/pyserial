@@ -4,38 +4,38 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
-from distutils.core import setup
 import os
 import sys
+from py2exe import freeze
+
+sys.path.insert(0, '..')
 
 # this script is only useful for py2exe so just run that distutils command.
 # that allows to run it with a simple double click.
-sys.argv.append('py2exe')
 
 # get an icon from somewhere.. the python installation should have one:
-icon = os.path.join(os.path.dirname(sys.executable), 'py.ico')
+# icon = os.path.join(os.path.dirname(sys.executable), 'py.ico')
 
-setup(
+freeze(
     options={
-        'py2exe': {
-            'excludes': ['javax.comm'],
-            'optimize': 2,
-            'dist_dir': 'dist',
-        }
+        'excludes': ['javax.comm'],
+        'optimize': 2,
+        'dist_dir': 'dist',
     },
 
-    name="wxTerminal",
     windows=[
         {
             'script': "wxTerminal.py",
-            'icon_resources': [(0x0004, icon)]
+            # 'icon_resources': [(0x0004, icon)]
         },
     ],
     zipfile="stuff.lib",
 
-    description="Simple serial terminal application",
-    version="0.1",
-    author="Chris Liechti",
-    author_email="cliechti@gmx.net",
-    url="https://github.com/pyserial/pyserial/",
+    version_info=dict(
+        product_name="wxTerminal",
+        description="Simple serial terminal application",
+        version="0.1",
+        copyright="Chris Liechti <cliechti@gmx.net>",
+        comments="https://github.com/pyserial/pyserial/",
+    ),
 )

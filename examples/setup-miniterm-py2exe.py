@@ -4,20 +4,17 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
-from distutils.core import setup
 import sys
+from py2exe import freeze
 
 sys.path.insert(0, '..')
 
 import serial.tools.miniterm
 
 
-sys.argv.extend("py2exe --bundle 1".split())
-
-setup(
-    name='miniterm',
+freeze(
     zipfile=None,
-    options={"py2exe": {
+    options={
         'dll_excludes': [],
         'includes': [
                 'serial.urlhandler.protocol_hwgrep', 'serial.urlhandler.protocol_rfc2217',
@@ -25,7 +22,7 @@ setup(
         'dist_dir': 'bin',
         'excludes': ['serialjava', 'serialposix', 'serialcli'],
         'compressed': 1,
-        }
+        'bundle_files': 1,
     },
     console=[
         serial.tools.miniterm.__file__

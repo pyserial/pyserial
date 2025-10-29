@@ -4,18 +4,14 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
-from distutils.core import setup
 import sys
-import py2exe
+from py2exe import freeze
 
 sys.path.insert(0, '..')
 
-sys.argv.extend("py2exe --bundle 1".split())
-
-setup(
-    name='rfc2217_server',
+freeze(
     zipfile=None,
-    options={"py2exe": {
+    options={
         'dll_excludes': [],
         'includes': [
                 'serial.urlhandler.protocol_hwgrep', 'serial.urlhandler.protocol_rfc2217',
@@ -23,7 +19,7 @@ setup(
         'dist_dir': 'bin',
         'excludes': ['serialjava', 'serialposix', 'serialcli'],
         'compressed': 1,
-        },
+        'bundle_files': 1,
     },
     console=[
         "rfc2217_server.py",
