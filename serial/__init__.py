@@ -28,7 +28,13 @@ else:
     if os.name == 'nt':  # sys.platform == 'win32':
         from serial.serialwin32 import Serial
     elif os.name == 'posix':
-        from serial.serialposix import Serial, PosixPollSerial, VTIMESerial  # noqa
+        try:
+            import chaquopy  # noqa
+            # this is running in the chaquopy android environment
+            from serial.serialandroid import Serial
+        except ImportError:
+            from serial.serialposix import Serial, PosixPollSerial, VTIMESerial  # noqa
+
     elif os.name == 'java':
         from serial.serialjava import Serial
     else:

@@ -28,7 +28,13 @@ import re
 if os.name == 'nt':  # sys.platform == 'win32':
     from serial.tools.list_ports_windows import comports
 elif os.name == 'posix':
-    from serial.tools.list_ports_posix import comports
+    try:
+        import chaquopy  # noqa
+        # this is running in the chaquopy android environment
+        from serial.tools.list_ports_android import comports
+    except ImportError:
+        from serial.tools.list_ports_posix import comports
+
 #~ elif os.name == 'java':
 else:
     raise ImportError("Sorry: no implementation for your platform ('{}') available".format(os.name))
@@ -103,6 +109,7 @@ def main():
             sys.stderr.write("{} ports found\n".format(hits))
         else:
             sys.stderr.write("no ports found\n")
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
