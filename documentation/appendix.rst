@@ -64,8 +64,7 @@ Application works when .py file is run, but fails when packaged (py2exe etc.)
     create two issues with that:
 
     - implementations for other modules are found. On Windows, it's safe to
-      exclude 'serialposix', 'serialjava' and 'serialcli' as these are not
-      used.
+      exclude 'serialposix' as this is not used.
 
     - :func:`serial.serial_for_url` does a dynamic lookup of protocol handlers
       at runtime. If this function is used, the desired handlers have to be

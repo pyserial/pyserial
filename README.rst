@@ -5,8 +5,8 @@
 Overview
 ========
 This module encapsulates the access for the serial port. It provides backends
-for Python_ running on Windows, OSX, Linux, BSD (possibly any POSIX compliant
-system) and IronPython. The module named "serial" automatically selects the
+for Python_ running on Windows, OSX, Linux, and BSD (possibly any POSIX compliant
+system). The module named "serial" automatically selects the
 appropriate backend.
 
 - Project Homepage: https://github.com/pyserial/pyserial

@@ -832,3 +832,8 @@ Python support:
 
 - Support Python 3.10 and higher.
 - Drop support for all EOL Python versions (Python 3.9 and lower).
+
+Removed:
+
+- Remove support for Jython.
+- Remove support for IronPython.

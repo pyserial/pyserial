@@ -1,6 +1,6 @@
 #! python
 #
-# Python Serial Port Extension for Win32, Linux, BSD, Jython
+# Python Serial Port Extension for Win32, Linux, BSD
 # see __init__.py
 #
 # This module implements a URL dummy handler for serial_for_url.

@@ -29,7 +29,6 @@ if os.name == 'nt':  # sys.platform == 'win32':
     from serial.tools.list_ports_windows import comports
 elif os.name == 'posix':
     from serial.tools.list_ports_posix import comports
-#~ elif os.name == 'java':
 else:
     raise ImportError("Sorry: no implementation for your platform ('{}') available".format(os.name))
 

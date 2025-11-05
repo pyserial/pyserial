@@ -6,8 +6,8 @@ Overview
 ========
 
 This module encapsulates the access for the serial port. It provides backends
-for Python_ running on Windows, OSX, Linux, BSD (possibly any POSIX compliant
-system) and IronPython. The module named "serial" automatically selects the
+for Python_ running on Windows, OSX, Linux, and BSD (possibly any POSIX compliant
+system). The module named "serial" automatically selects the
 appropriate backend.
 
 It is released under a free software license, see LICENSE_ for more
@@ -49,9 +49,6 @@ Requirements
 - Python 2.7 or Python 3.4 and newer
 
 - If running on Windows: Windows 7 or newer
-
-- If running on Jython: "Java Communications" (JavaComm) or compatible
-  extension for Java
 
 For older installations (older Python versions or older operating systems), see
 `older versions`_ below.
@@ -120,8 +117,6 @@ these distributions.
 References
 ==========
 * Python: http://www.python.org/
-* Jython: http://www.jython.org/
-* IronPython: http://www.codeplex.com/IronPython
 
 
 Older Versions
@@ -132,7 +127,7 @@ compatible with Python 2.3 and newer and partially with early Python 3.x
 versions.
 
 pySerial `1.21`_ is compatible with Python 2.0 on Windows, Linux and several
-un*x like systems, MacOSX and Jython.
+un*x like systems, and macOS.
 
 On Windows, releases older than 2.5 will depend on pywin32_ (previously known as
 win32all). WinXP is supported up to 3.0.1.
