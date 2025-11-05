@@ -3,7 +3,7 @@
 # Very simple serial terminal
 #
 # This file is part of pySerial. https://github.com/pyserial/pyserial
-# (C)2002-2020 Chris Liechti <cliechti@gmx.net>
+# (C)2002-2025 Chris Liechti <cliechti@gmx.net>
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
@@ -412,6 +412,7 @@ class Miniterm(object):
         self.update_transformations()
         self.exit_character = unichr(0x1d)  # GS/CTRL+]
         self.menu_character = unichr(0x14)  # Menu: CTRL+T
+        self.send_control = False
         self.alive = None
         self._reader_alive = None
         self.receiver_thread = None
@@ -538,6 +539,12 @@ class Miniterm(object):
                 if menu_active:
                     self.handle_menu_key(c)
                     menu_active = False
+                elif self.send_control:
+                    c = chr(ord(c) & 0x1f)
+                    self.serial.write(self.tx_encoder.encode(c))
+                    if self.echo:
+                        self.console.write(c)
+                    self.send_control = False
                 elif c == self.menu_character:
                     menu_active = True      # next char will be for menu
                 elif c == self.exit_character:
@@ -554,7 +561,7 @@ class Miniterm(object):
                         for transformation in self.tx_transformations:
                             echo_text = transformation.echo(echo_text)
                         self.console.write(echo_text)
-        except:
+        except:  # noqa
             self.alive = False
             raise
 
@@ -641,6 +648,8 @@ class Miniterm(object):
             self.dump_port_settings()
         elif c in 'qQ':
             self.stop()                         # Q -> exit app
+        elif c in 'cC':                         # C -> send control character
+            self.send_control = True
         else:
             sys.stderr.write('--- unknown menu character {} --\n'.format(key_description(c)))
 
