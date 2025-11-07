@@ -48,11 +48,11 @@ def hex_decode(data, errors='strict'):
 class Codec(codecs.Codec):
     def encode(self, data, errors='strict'):
         """'40 41 42' -> b'@ab'"""
-        return serial.to_bytes([int(h, 16) for h in data.split()])
+        return serial.to_bytes([int(h, 16) for h in data.split()]), len(data)
 
     def decode(self, data, errors='strict'):
         """b'@ab' -> '40 41 42'"""
-        return unicode(''.join('{:02X} '.format(ord(b)) for b in serial.iterbytes(data)))
+        return unicode(''.join('{:02X} '.format(ord(b)) for b in serial.iterbytes(data))), len(data)
 
 
 class IncrementalEncoder(codecs.IncrementalEncoder):
@@ -77,7 +77,7 @@ class IncrementalEncoder(codecs.IncrementalEncoder):
         of hex digits is found. The space is optional unless the error
         handling is defined to be 'strict'.
         """
-        state = self.state
+        state = self.getstate()
         encoded = []
         for c in data.upper():
             if c in HEXDIGITS:
@@ -94,7 +94,7 @@ class IncrementalEncoder(codecs.IncrementalEncoder):
             else:
                 if self.errors == 'strict':
                     raise UnicodeError('non-hex digit found: {!r}'.format(c))
-        self.state = state
+        self.setstate(state)
         return serial.to_bytes(encoded)
 
 
