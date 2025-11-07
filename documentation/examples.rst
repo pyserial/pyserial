@@ -272,6 +272,7 @@ test_iolib.py_
 test_url.py_
     Tests involving the :ref:`URL <URLs>` feature.
 
+.. _run_all_tests.py:  https://github.com/pyserial/pyserial/blob/master/test/run_all_tests.py
 .. _test.py:           https://github.com/pyserial/pyserial/blob/master/test/test.py
 .. _test_advanced.py:  https://github.com/pyserial/pyserial/blob/master/test/test_advanced.py
 .. _test_high_load.py: https://github.com/pyserial/pyserial/blob/master/test/test_high_load.py

@@ -2,7 +2,7 @@
  Tools
 =======
 
-.. module:: serial
+.. py:currentmodule:: serial
 
 serial.tools.list_ports
 =======================

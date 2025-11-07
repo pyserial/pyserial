@@ -4,7 +4,7 @@
  URL Handlers
 ==============
 
-.. module:: serial
+.. py:currentmodule:: serial
 
 Overview
 ========
