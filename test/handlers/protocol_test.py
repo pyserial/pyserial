@@ -29,7 +29,6 @@ class DummySerial(SerialBase):
     def open(self):
         """Open port with current settings. This may throw a SerialException
            if the port cannot be opened."""
-        self.logger = None
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
         # not that there anything to configure...

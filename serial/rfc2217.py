@@ -389,7 +389,6 @@ class Serial(SerialBase):
         self._modemstate_timeout = Timeout(-1)
         self._remote_suspend_flow = False
         self._write_lock = None
-        self.logger = None
         self._ignore_set_control_answer = False
         self._poll_modem_state = False
         self._network_timeout = 3

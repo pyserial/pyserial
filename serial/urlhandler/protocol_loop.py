@@ -47,7 +47,6 @@ class Serial(SerialBase):
     def __init__(self, *args, **kwargs):
         self.buffer_size = 4096
         self.queue = None
-        self.logger = None
         self._cancel_write = False
         super(Serial, self).__init__(*args, **kwargs)
 
@@ -58,7 +57,6 @@ class Serial(SerialBase):
         """
         if self.is_open:
             raise SerialException("Port is already open.")
-        self.logger = None
         self.queue = queue.Queue(self.buffer_size)
 
         if self._port is None:
