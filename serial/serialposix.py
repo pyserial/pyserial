@@ -289,7 +289,7 @@ TIOCMSET = getattr(termios, 'TIOCMSET', 0x5418)
 # TIOCM_LE = getattr(termios, 'TIOCM_LE', 0x001)
 TIOCM_DTR = getattr(termios, 'TIOCM_DTR', 0x002)
 TIOCM_RTS = getattr(termios, 'TIOCM_RTS', 0x004)
-TIOCM_DTRRTS = getattr(termios, 'TIOCM_DTR', 0x002) | getattr(termios, 'TIOCM_RTS', 0x004)
+TIOCM_DTRRTS = TIOCM_DTR | TIOCM_RTS
 # TIOCM_ST = getattr(termios, 'TIOCM_ST', 0x008)
 # TIOCM_SR = getattr(termios, 'TIOCM_SR', 0x010)
 
