@@ -35,6 +35,12 @@ Contents:
     examples
     appendix
 
+..  toctree::
+    :maxdepth: 1
+
+    Changelog <changelog>
+
+
 Indices and tables
 ==================
 
