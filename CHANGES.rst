@@ -23,7 +23,7 @@ Unreleased
 v3.5 - 2020-11-23
 =================
 
-See above (3.5b0) for what's all new in this release
+See :ref:`3.5b0 <changelog-3.5b0>` for what's all new in this release
 
 **Bugfixes**
 
@@ -51,7 +51,7 @@ v3.5b0 - 2020-09-21
 **New Features**
 
 - [#411] Add a backend for Silicon Labs CP2110/4 HID-to-UART bridge.
-  (depends on `hid` module)
+  (depends on ``hid`` module)
 
 **Improvements**
 
@@ -75,7 +75,7 @@ v3.5b0 - 2020-09-21
 
 - [#371] Don't open port if self.port is not set while entering context manager
 - [#437, #502] refactor: raise new instances for PortNotOpenError and SerialTimeoutException
-- [#261, #263] list_ports: set default `name` attribute
+- [#261, #263] list_ports: set default ``name`` attribute
 - [#286] fix: compare only of the same type in list_ports_common.ListPortInfo
 - rfc2217/close(): fix race-condition
 - [#305] return b'' when connection closes on rfc2217 connection
@@ -85,7 +85,7 @@ v3.5b0 - 2020-09-21
 - examples: port_publisher python 3 fixes
 - [#324] miniterm: Fix miniterm constructor exit_character and menu_character
 - [#326] miniterm: use exclusive access for native serial ports by default
-- [#497] miniterm: fix double use of CTRL-T + s use z for suspend instead
+- [#497] miniterm: fix double use of :kbd:`CTRL-T + s` use :kbd:`z` for suspend instead
 - [#443, #444] examples: refactor wx example, use Bind to avoid deprecated
   warnings, IsChecked, unichr
 
@@ -210,7 +210,7 @@ v3.2.1 - 2016-10-14
 v3.2.0 - 2016-10-14
 ===================
 
-See 3.2.1, this one missed a merge request related to removing aio.
+See :ref:`v3.2.1 <changelog-3.2.1>`, this one missed a merge request related to removing aio.
 
 
 .. _changelog-3.1.1:
@@ -569,7 +569,7 @@ v2.5-rc1 - 2009-07-30
 - Support for Win32 is now written on the top of ctypes (bundled with
   Python 2.5+) instead of pywin32 (patch by Giovanni Bajo).
 - 1.5 stop bits (STOPBITS_ONE_POINT_FIVE, implemented on all platforms)
-- miniterm application extended (CTRL+T -> menu)
+- miniterm application extended (:kbd:`CTRL+T` -> menu)
 - miniterm.py is now installed as "script"
 - add scanlinux.py example
 - add port_publisher example
@@ -838,7 +838,7 @@ v1.18 - 2002-12-06
 
 - remove the mapping of flush to the destructive flushOutput as
   this is not the expected behaviour.
-- readline: EOL character for lines can be chosen idea by 
+- readline: EOL character for lines can be chosen idea by
   John Florian.
 
 **Bugfixes (posix)**
@@ -936,7 +936,7 @@ v1.1 - 2002-02-14
   objects.
 
 - ``readline``, ``readlines``, ``writelines`` and ``flush`` are now supported
-  see README.txt for deatils.
+  see README.txt for details.
 
 
 .. _changelog-1.0:
