@@ -1,142 +1,748 @@
-========================
+########################
  pySerial Release Notes
-========================
-
-Version 1.0     13 Feb 2002
----------------------------
-- First public release.
-- Split from the pybsl application (see http://mspgcc.sourceforge.net)
-
-New Features:
-
-- Added Jython support
+########################
 
 
-Version 1.1     14 Feb 2002
----------------------------
-Bugfixes:
-
-- Win32, when not specifying a timeout
-- Typos in the Docs
-
-New Features:
-
-- added ``serialutil`` which provides a base class for the ``Serial``
-  objects.
-
-- ``readline``, ``readlines``, ``writelines`` and ``flush`` are now supported
-  see README.txt for deatils.
+Unreleased
+==========
 
 
-Version 1.11    14 Feb 2002
----------------------------
-Same as 1.1 but added missing files.
+**Python support**
+
+- Support Python 3.10 and higher.
+- Drop support for all EOL Python versions (Python 3.9 and lower).
+
+**Removed**
+
+- Remove support for Jython.
+- Remove support for IronPython.
 
 
-Version 1.12    18 Feb 2002
----------------------------
-Removed unneeded constants to fix RH7.x problems.
+.. _changelog-3.5:
+
+v3.5 - 2020-11-23
+=================
+
+See above (3.5b0) for what's all new in this release
+
+**Bugfixes**
+
+- spy: ensure bytes in write()
+
+**Bugfixes (posix)**
+
+- [#540] serialposix: Fix inconsistent state after exception in open()
+
+**Bugfixes (win32)**
+
+- [#530] win32: Fix exception for composite serial number search on Windows
+
+**Bugfixes (MacOS)**
+
+- [#542] list_ports_osx: kIOMasterPortDefault no longer exported on Big Sur
+- [#545, #545] list_ports_osx: getting USB info on BigSur/AppleSilicon
 
 
-Version 1.13    09 Apr 2002
----------------------------
-Added alternate way for enabling rtscts (CNEW_RTSCTS is tried too)
-If port opening fails, a ``SerialException`` is raised on all platforms
+.. _changelog-3.5b0:
+
+v3.5b0 - 2020-09-21
+===================
+
+**New Features**
+
+- [#411] Add a backend for Silicon Labs CP2110/4 HID-to-UART bridge.
+  (depends on `hid` module)
+
+**Improvements**
+
+- [#315] Use absolute import everywhere
+- [#351] win32: miniterm Working CMD.exe terminal using Windows 10 ANSI support
+- [#354] Make ListPortInfo hashable
+- [#372] threaded: "write" returns byte count
+- [#400] Add bytesize and stopbits argument parser to tcp_serial_redirect
+- [#408] loop: add out_waiting
+- [#495] list_ports_linux: Correct "interface" property on Linux hosts
+- [#500] Remove Python 3.2 and 3.3 from test
+- [#261, #285, #296, #320, #333, #342, #356, #358, #389, #397, #510] doc updates
+- miniterm: add :kbd:`CTRL+T Q` as alternative to exit
+- miniterm: suspend function key changed to :kbd:`CTRL-T Z`
+- add command line tool entries ``pyserial-miniterm`` (replaces ``miniterm.py``)
+  and ``pyserial-ports`` (runs ``serial.tools.list_ports``).
+- ``python -m serial`` opens miniterm (use w/o args and it will print port
+  list too) [experimental]
+
+**Bugfixes**
+
+- [#371] Don't open port if self.port is not set while entering context manager
+- [#437, #502] refactor: raise new instances for PortNotOpenError and SerialTimeoutException
+- [#261, #263] list_ports: set default `name` attribute
+- [#286] fix: compare only of the same type in list_ports_common.ListPortInfo
+- rfc2217/close(): fix race-condition
+- [#305] return b'' when connection closes on rfc2217 connection
+- [#386] rfc2217/close(): fix race condition
+- Fixed flush_input_buffer() for situations where the remote end has closed the socket.
+- [#441] reset_input_buffer() can hang on sockets
+- examples: port_publisher python 3 fixes
+- [#324] miniterm: Fix miniterm constructor exit_character and menu_character
+- [#326] miniterm: use exclusive access for native serial ports by default
+- [#497] miniterm: fix double use of CTRL-T + s use z for suspend instead
+- [#443, #444] examples: refactor wx example, use Bind to avoid deprecated
+  warnings, IsChecked, unichr
+
+**Bugfixes (posix)**
+
+- [#265] posix: fix PosixPollSerial with timeout=None and add cancel support
+- [#290] option for low latency mode on linux
+- [#335] Add support to xr-usb-serial ports
+- [#494] posix: Don't catch the SerialException we just raised
+- [#519] posix: Fix custom baud rate to not temporarily set 38400 baud rates on linux
+- [#509 #518] list_ports: use hardcoded path to library on osx
+
+**Bugfixes (win32)**
+
+- [#481] win32: extend RS485 error messages
+- [#303] win32: do not check for links in serial.tools.list_ports
+- [#430] Add WaitCommEvent function to win32
+- [#314, #433] tools/list_ports_windows: Scan both 'Ports' and 'Modem' device classes
+- [#414] Serial number support for composite USB devices
+- Added recursive search for device USB serial number to support composite devices
+
+**Bugfixes (MacOS)**
+
+- [#364] MacOS: rework list_ports to support unicode product descriptors.
+- [#367] Mac and bsd fix _update_break_state
 
 
-Version 1.14    29 May 2002
----------------------------
-Added examples to archive
-Added non-blocking mode for ``timeout=0`` (tnx Mat Martineau)
+.. _changelog-3.4:
 
-Bugfixes:
+v3.4 - 2017-07-22
+=================
 
-- win32 does now return the remaining characters on timeout
+**Improvements**
 
+- miniterm: suspend function (temporarily release port, :kbd:`Ctrl-T s`)
+- [#240] context manager automatically opens port on ``__enter__``
+- [#141] list_ports: add interface number to location string
+- [#225] protocol_socket: Retry if ``BlockingIOError`` occurs in
+  ``reset_input_buffer``.
 
-Version 1.15    04 Jun 2002
----------------------------
-Bugfixes (win32):
+**Bugfixes**
 
-- removed debug messages
-- compatibility to win9x improved
+- [#153] list_ports: option to include symlinked devices
+- [#237] list_ports: workaround for special characters in port names
 
+**Bugfixes (posix)**
 
-Version 1.16    02 Jul 2002
----------------------------
-Added implementation of RI and corrected RTS/CTS on Win32
-
-
-Version 1.17    03 Jul 2002
----------------------------
-Silly mix of two versions in win32 code corrected
-
-
-Version 1.18    06 Dec 2002
----------------------------
-Bugfixes (general):
-
-- remove the mapping of flush to the destructive flushOutput as
-  this is not the expected behaviour.
-- readline: EOL character for lines can be chosen idea by 
-  John Florian.
-
-Bugfixes (posix):
-
-- cygwin port numbering fixed
-- test each and every constant for it's existence in termios module,
-  use default if not existent (fix for Bug item #640214)
-- wrong exception on nonexistent ports with /dev file. bug report
-  by Louis Cordier
-
-Bugfixes (win32):
-
-- RTS/CTS handling as suggested in Bug #635072
-- bugfix of timeouts brought up by Markus Hoffrogge
+- allow calling cancel functions w/o error if port is closed
+- [#220] protocol_socket: sync error handling with posix version
+- [#227] posix: ignore more blocking errors and EINTR, timeout only
+  applies to blocking I/O
+- [#228] fix: port_publisher typo
 
 
-Version 1.19    19 Mar 2003
----------------------------
-Bugfixes (posix):
+.. _changelog-3.3:
 
-- removed ``dgux`` entry which actually had a wrong comment and is
-  probably not in use anywhere.
+v3.3 - 2017-03-08
+=================
 
-Bugfixes (win32):
+**Improvements**
 
-- added ``int()`` conversion, [Bug 702120]
-- remove code to set control lines in close method of win32
-  version. [Bug 669625]
+- [#206] Exclusive access on POSIX. ``exclusive`` flag added.
+- [#172] list_ports_windows: list_ports with 'manufacturer' info property
+- [#174] miniterm: change cancel impl. for console
+- [#182] serialutil: add overall timeout for read_until
+- socket: use non-blocking socket and new Timeout class
+- socket: implement a functional a reset_input_buffer
+- rfc2217: improve read timeout implementation
+- win32: include error message from system in ClearCommError exception
+- and a few minor changes, docs
 
+**Bugfixes**
 
-Version 1.20    28 Aug 2003
----------------------------
-- Added ``serial.device()`` for all platforms
+- [#183] rfc2217: Fix broken calls to to_bytes on Python3.
+- [#188] rfc2217: fix auto-open use case when port is given as parameter
 
-Bugfixes (win32):
+**Bugfixes (posix)**
 
-- don't recreate overlapped structures and events on each
-  read/write.
-- don't set unneeded event masks.
-- don't use DOS device names for ports > 9.
-- remove send timeout (it's not used in the linux impl. anyway).
+- [#178] in read, count length of converted data
+- [#189] fix return value of write
 
+**Bugfixes (win32)**
 
-Version 1.21    30 Sep 2003
----------------------------
-Bugfixes (win32):
-
-- name for COM10 was not built correctly, found by Norm Davis.
-
-Bugfixes (examples):
-
-- small change in ``miniterm.py`` that should mage it run on cygwin,
-  [Bug 809904] submitted by Rolf Campbell.
+- [#194] spurious write fails with ERROR_SUCCESS
 
 
-Version 2.0b1    1 Oct 2003
----------------------------
-Transition to the Python 2.0 series:
+.. _changelog-3.2.1:
+
+v3.2.1 - 2016-10-14
+===================
+
+**Improvements**
+
+- remove ``serial.aio`` in favor of separate package, ``pyserial-asyncio``
+- add client mode to example ``tcp_serial_redirect.py``
+- use of monotonic clock for timeouts, when available (Python 3.3 and up)
+- [#169] arbitrary baud rate support for BSD family
+- improve tests, improve ``loop://``
+
+**Bugfixes**
+
+- [#137] Exception while cancel in miniterm (python3)
+- [#143] Class Serial in protocol_loop.py references variable before assigning
+  to it
+- [#149] Python 3 fix for threaded.FramedPacket
+
+**Bugfixes (posix)**
+
+- [#133] _update_dtr_state throws Inappropriate ioctl for virtual serial
+  port created by socat on OS X
+- [#157] Broken handling of CMSPAR in serialposix.py
+
+**Bugfixes (win32)**
+
+- [#144] Use Unicode API for list_ports
+- [#145] list_ports_windows: support devices with only VID
+- [#162] Write in non-blocking mode returns incorrect value on windows
+
+
+.. _changelog-3.2.0:
+
+v3.2.0 - 2016-10-14
+===================
+
+See 3.2.1, this one missed a merge request related to removing aio.
+
+
+.. _changelog-3.1.1:
+
+v3.1.1 - 2016-06-12
+===================
+
+**Improvements**
+
+- deprecate ``nonblocking()`` method on posix, the port is already in this
+  mode.
+- style: use .format() in various places instead of "%" formatting
+
+**Bugfixes**
+
+- [#122] fix bug in FramedPacket
+- [#127] The Serial class in the .NET/Mono (IronPython) backend does not
+  implement the _reconfigure_port method
+- [#123, #128] Avoid Python 3 syntax in aio module
+
+**Bugfixes (posix)**
+
+- [#126] PATCH: Check delay_before_tx/rx for None in serialposix.py
+- posix: retry if interrupted in Serial.read
+
+**Bugfixes (win32)**
+
+- win32: handle errors of GetOverlappedResult in read(), fixes #121
+
+
+.. _changelog-3.1.0:
+
+v3.1.0 - 2016-05-27
+===================
+
+**Improvements**
+
+- improve error handling in ``alt://`` handler
+- ``socket://`` internally used select, improves timeout behavior
+- initial state of RTS/DTR: ignore error when setting on open posix
+  (support connecting to pty's)
+- code style updates
+- posix: remove "number_to_device" which is not called anymore
+- add cancel_read and cancel_write to win32 and posix implementations
+
+**Bugfixes**
+
+- [#68] aio: catch errors and close connection
+- [#87] hexlify: update codec for Python 2
+- [#100] setPort not implemented
+- [#101] bug in serial.threaded.Packetizer with easy fix
+- [#104] rfc2217 and socket: set timeout in create_connection
+- [#107] miniterm.py fails to exit on failed serial port
+
+**Bugfixes (posix)**
+
+- [#59] fixes for RTS/DTR handling on open
+- [#77] list_ports_osx: add missing import
+- [#85] serialposix.py _set_rs485_mode() tries to read non-existing
+  rs485_settings.delay_rts_before_send
+- [#96] patch: native RS485 is never enabled
+
+**Bugfixes (win32)**
+
+- fix bad super call and duplicate old-style __init__ call
+- [#80] list_ports: Compatibility issue between Windows/Linux
+
+
+.. _changelog-3.0.1:
+
+v3.0.1 - 2016-01-11
+===================
+
+- special case for FDTIBUS in list_ports on win32 (#61)
+
+**Bugfixes**
+
+- ``Serial`` keyword arguments, more on backward compatibility, fix #55
+- list_ports: return name if product is None, fix for #54
+- port_publisher: restore some sorting of ports
+
+
+.. _changelog-3.0:
+
+v3.0 - 2015-12-28
+=================
+
+- minor fixes to setup.py (file list), inter_byte_timeout (not stored when
+  passed to __init__), rfc2217 (behavior of close when open failed),
+  list_ports (__str__), loop://, renamed ReaderThread
+- hwgrep:// added options to pick n'th port, skip busy ports
+- miniterm: --ask option added
+
+**Bugfixes (posix)**
+
+- [#26/#30] always call tcsettattr on open
+- [#42] fix disregard read timeout if there is more data
+- [#45] check for write timeout, even if EAGAIN was raised
+
+**Bugfixes (win32)**
+
+- [#27] fix race condition in ``read()``, fix minimal timeout issue
+- race condition in nonblocking case
+- [#49] change exception type in case SetCommState fails
+- [#50] fixed issue with 0 timeout on windows 10
+
+
+.. _changelog-3.0b1:
+
+v3.0b1 - 2015-10-19
+===================
+
+- list_ports: add ``vid``, ``pid``, ``serial_number``, ``product``,
+  ``manufacturer`` and ``location`` attribute for USB devices.
+- list_ports: update OSX implementation.
+- list_ports: Raspberry Pi: internal port is found.
+- serial_for_url: fix import (multiple packages in list)
+- threaded: added new module implementing a reader thread
+- tweak examples/wx*
+- posix: add experimental implementation ``VTIMESerial``
+- new URL handler ``alt://`` to select alternative implementations
+
+
+.. _changelog-3.0a0:
+
+v3.0a0 - 2015-09-22
+===================
+
+- Starting from this release, only Python 2.7 and 3.2 (or newer) are supported.
+  The source code is compatible to the 2.x and 3.x series without any changes.
+  The support for earlier Python versions than 2.7 is removed, please refer to
+  the pyserial-legacy (V2.x) series if older Python versions are a
+  requirement).
+- Development moved to github, update links in docs.
+- API changes: properties for ``rts``, ``dtr``, ``cts``, ``dsr``, ``cd``, ``ri``,
+  ``in_waiting`` (instead of get/set functions)
+- remove file ``FileLike`` class, add ``read_until`` and ``iread_until`` to
+  ``SerialBase``
+- RS485 support changed (``rts_toggle`` removed, added ``serial.rs485`` module
+  and ``rs485_mode`` property)
+- ``socket://`` and ``rfc2217://`` handlers use the IPv6 compatible
+  ``socket.create_connection``
+- New URL handler: ``spy:://``.
+- URL handlers now require the proper format (``?`` and ``&``) for arguments
+  instead of ``/`` (e.g. ``rfc2217://localhost:7000?ign_set_control&timeout=5.5``)
+- Remove obsolete examples.
+- Finish update to BSD license.
+- Use setuptools if available, fall back to distutils if unavailable.
+- miniterm: changed command line options
+- miniterm: support encodings on serial port
+- miniterm: new transformations, by default escape/convert all control characters
+- list_ports: improved, added USB location (Linux, Win32)
+- refactored code
+- [FTR pyserial:37] Support fileno() function in the socket protocol
+- Posix: [Patch pyserial:31] Mark/space parity on Linux
+- Linux: [Patch pyserial:32] Module list_ports for linux should include the
+  product information as description.
+- Java: fix 2 bugs (stop bits if/else and non-integer timeouts) (Torsten
+  Roemer)
+- Update wxSerialConfigDialog.py to use serial.tools.list_ports.
+- [Patch pyserial:34] Improvements to port_publisher.py example
+- [Feature pyserial:39] Support BlueTooth serial port discovery on Linux
+
+**Bugfixes**
+
+- [Bug pyserial:157] Implement inWaiting in protocol_socket
+- [Bug pyserial:166] RFC2217 connections always fail
+- [Bug pyserial:172] applySettingsDict() throws an error if the settings dictionary is not complete
+- [Bug pyserial:185] SocketSerial.read() never returns data when timeout==0
+
+**Bugfixes (posix)**
+
+- [Bug pyserial:156] PosixSerial.open raises OSError rather than
+  SerialException when port open fails
+- [Bug pyserial:163] serial.tools.list_ports.grep() fails if it encounters None type
+- fix setXON
+- [Patch pyserial:36 / 38] Make USB information work in python 3.4 and 2.7
+- clear OCRNL/ONLCR flags (CR/LF translation settings)
+- [Feature pyserial:38] RS485 Support
+- [Bug pyserial:170] list_ports_posix not working properly for Cygwin
+- [Bug pyserial:187] improve support for FreeBSD (list_ports_posix)
+
+**Bugfixes (win32)**
+
+- [Bug pyserial:169] missing "import time" in serialwin32.py
+
+**Bugfixes (cli)**
+
+- [Bug pyserial:159] write() in serialcli.py not working with IronPython 2.7.4
+
+
+.. _changelog-2.7:
+
+v2.7 - 2013-10-17
+=================
+
+- Win32: setRTS and setDTR can be called before the port is opened and it will
+  set the initial state on port open.
+- Posix: add platform specific method: outWaiting (already present for Win32)
+- Posix: rename flowControl to setXON to match name on Win32, add
+  flowControlOut function
+- rfc2217: zero polls value (baudrate, data size, stop bits, parity) (Erik
+  Lundh)
+- Posix: [Patch pyserial:28] Accept any speed on Linux [update]
+- Posix: [Patch pyserial:29] PosixSerial.read() should "ignore" errno.EINTR
+- OSX: [Patch pyserial:27] Scan by VendorID/Product ID for USB Serial devices
+- Ensure working with bytes in write() calls
+
+**Bugfixes**
+
+- [Bug 3540332] SerialException not returned
+- [Bug pyserial:145] Error in socket_connection.py
+- [Bug pyserial:135] reading from socket with timeout=None causes TypeError
+- [Bug pyserial:130] setup.py should not append py3k to package name
+- [Bug pyserial:117] no error on lost conn w/socket://
+
+**Bugfixes (posix)**
+
+- [Patch 3462364] Fix: NameError: global name 'base' is not defined
+- list_ports and device() for BSD updated (Anders Langworthy)
+- [Bug 3518380] python3.2 -m serial.tools.list_ports error
+- [Bug pyserial:137] Patch to add non-standard baudrates to Cygwin
+- [Bug pyserial:141] open: Pass errno from IOError to SerialException
+- [Bug pyserial:125] Undefined 'base' on list_ports_posix.py, function usb_lsusb
+- [Bug pyserial:151] Serial.write() without a timeout uses 100% CPU on POSIX
+- [Patch pyserial:30] [PATCH 1/1] serial.Serial() should not raise IOError.
+
+**Bugfixes (win32)**
+
+- [Bug 3444941] ctypes.WinError() unicode error
+- [Bug 3550043] on Windows in tools global name 'GetLastError' is not defined
+- [Bug pyserial:146] flush() does nothing in windows (despite docs)
+- [Bug pyserial:144] com0com ports ignored due to missing "friendly name"
+- [Bug pyserial:152] Cannot configure port, some setting was wrong. Can leave
+  port handle open but port not accessible
+
+
+.. _changelog-2.6:
+
+v2.6 - 2011-11-02
+=================
+
+**New Features**
+
+- Moved some of the examples to serial.tools so that they can be used
+  with ``python -m``
+- serial port enumeration now included as ``serial.tools.list_ports``
+- URL handlers for ``serial_for_url`` are now imported dynamically. This allows
+  to add protocols w/o editing files. The list
+  ``serial.protocol_handler_packages`` can be used to add or remove user
+  packages with protocol handlers (see docs for details).
+- new URL type: hwgrep://<regexp> uses list_ports module to search for ports
+  by their description
+- several internal changes to improve Python 3.x compatibility (setup.py,
+  use of absolute imports and more)
+
+**Bugfixes**
+
+- [Bug 3093882] calling open() on an already open port now raises an exception
+- [Bug 3245627] connection-lost let rfc2217 hangs in closed loop
+- [Patch 3147043] readlines() to support multi-character eol
+
+**Bugfixes (posix)**
+
+- [Patch 3316943] Avoid unneeded termios.tcsetattr calls in serialposix.py
+- [Patch 2912349] Serial Scan as a Module with Mac Support
+
+**Bugfixes (win32)**
+
+- [Bug 3057499] writeTimeoutError when write Timeout is 0
+- [Bug 3414327] Character out of range in list_ports_windows
+- [Patch 3036175] Windows 98 Support fix
+- [Patch 3054352] RTS automatic toggle, for RS485 functionality.
+- Fix type definitions for 64 bit Windows compatibility
+
+
+.. _changelog-2.5:
+
+v2.5 - 2010-07-22
+=================
+
+**New Features**
+
+- [Bug 2976262] dsrdtr should default to False
+  ``dsrdtr`` parameter default value changed from ``None`` (follow ``rtscts``
+  setting) to ``False``. This means ``rtscts=True`` enables hardware flow
+  control on RTS/CTS but no longer also on DTR/DSR. This change mostly
+  affects Win32 as on other platforms, that setting was ignored anyway.
+- Improved xreadlines, it is now a generator function that yields lines as they
+  are received (previously it called readlines which would only return all
+  lines read after a read-timeout). However xreadlines is deprecated and not
+  available when the io module is used. Use ``for line in Serial(...):``
+  instead.
+
+**Bugfixes**
+
+- [Bug 2925854] test.py produces exception with python 3.1
+- [Bug 3029812] 2.5rc2 readline(s) doesn't work
+
+**Bugfixes (posix)**
+
+- [BUG 3006606] Nonblocking error - Unix platform
+
+**Bugfixes (win32)**
+
+- [Bug 2998169] Memory corruption at faster transmission speeds.
+  (bug introduced in 2.5-rc1)
+
+
+.. _changelog-2.5-rc2:
+
+v2.5-rc2 - 2010-01-02
+=====================
+
+**New Features**
+
+- Documentation update, now written with Sphinx/ReST
+- Updated miniterm.py example
+- experimental RFC-2217 client support (serial.rfc2217.Serial, see docs)
+- add ``loop://`` device for testing.
+- add ``serial.serial_for_url`` factory function (support for native ports and
+  ``rfc2217``, ``socket`` and ``loop`` URLs)
+- add new example: ``rfc2217_server.py``
+- tests live in their own directory now (no longer in examples)
+
+**Bugfixes**
+
+- [Bug 2915810] Fix for suboption parsing in rfc2217
+- Packaging bug (missed some files)
+
+**Bugfixes (posix)**
+
+- improve write timeout behavior
+- [Bug 2836297] move Linux specific constants to not break other platforms
+- ``poll`` based implementation for ``read`` is in a separate class
+  ``PosixPollSerial``, as it is not supported well on all platforms (the
+  default ``Serial`` class uses select).
+- changed error handling in ``read`` so that disconnected devices are
+  detected.
+
+
+**Bugfixes (win32)**
+
+- [Bug 2886763] hComPort doesn't get initialized for Serial(port=None)
+
+
+.. _changelog-2.5-rc1:
+
+v2.5-rc1 - 2009-07-30
+=====================
+
+**New Features**
+
+- Python 3.x support (through 2to3)
+- compatible with Python io library (Python 2.6+)
+- Support for Win32 is now written on the top of ctypes (bundled with
+  Python 2.5+) instead of pywin32 (patch by Giovanni Bajo).
+- 1.5 stop bits (STOPBITS_ONE_POINT_FIVE, implemented on all platforms)
+- miniterm application extended (CTRL+T -> menu)
+- miniterm.py is now installed as "script"
+- add scanlinux.py example
+- add port_publisher example
+- experimental RFC-2217 server support (examples/rfc2217_server.py)
+- add ``getSettingsDict`` and ``applySettingsDict`` serial object methods
+- use a ``poll`` based implementation on Posix, instead of a ``select`` based,
+  provides better error handling [removed again in later releases].
+
+**Bugfixes**
+
+- Improve and fix tcp_serial_redirector example.
+- [Bug 2603052] 5-bit mode (needs 1.5 stop bits in some cases)
+
+**Bugfixes (posix)**
+
+- [Bug 2810169] Propagate exceptions raised in serialposix _reconfigure
+- [Bug 2562610] setting non standard baud rates on Darwin (Emmanuel Blot)
+
+**Bugfixes (win32)**
+
+- [Bug 2469098] parity PARITY_MARK, PARITY_SPACE isn't supported on win32
+- [SF  2446218] outWaiting implemented
+- [Bug 2392892] scanwin32.py better exception handling
+- [Bug 2505422] scanwin32.py Vista 64bit compatibility
+
+
+.. _changelog-2.4:
+
+v2.4 - 2008-07-06
+=================
+
+**New Features**
+
+- [Patch 1616790] pyserial: Add inter-character timeout feature
+- [Patch 1924805] add a setBreak function
+- Add mark/space parity
+- Add .NET/Mono backend (IronPython)
+
+**Bugfixes (posix)**
+
+- [Bug 1783159] Arbitrary baud rates (Linux/Posix)
+
+**Bugfixes (win32)**
+
+- [Patch 1561423] Add mark/space parity, Win32
+- [Bug 2000771] serial port CANNOT be specified by number on windows
+- examples/scanwin32.py does no longer return \\.\ names
+- fix \\.\ handling for some cases
+
+**Bugfixes (jython)**
+
+ - The Jython backend tries javax.comm and gnu.io (Seo Sanghyeon)
+
+
+.. _changelog-2.3:
+
+v2.3 - 2008-06-19
+=================
+
+**New Features**
+
+- iterator interface. ``for line in Serial(...): ...`` is now possible
+  Suggested by Bernhard Bender
+- ``sendBreak()`` accepts a ``duration`` argument. Default duration increased.
+- win32 handles \\.\COMx format automatically for com ports of higher number
+  (COM10 is internally translated to \\.\COM10 etc.)
+- miniterm.py has a new feature to send a file (upload) and configurable
+  special characters for exit and upload. Refactored internals to class based
+  structure (upload and class refactoring by Colin D Bennett)
+
+**Bugfixes**
+
+- [Bug 1451535] TCP/serial redirect example "--help"
+- update VERSION variable
+- update wxSerialConfigDialog.py and wxTerminal.py compatibility with
+  wxPython 2.8 (Peleg)
+- Check for string in write function. Using unicode causes errors, this
+  helps catching errors early (Tom Lynn)
+
+**Bugfixes (posix)**
+
+- [Bug 1554183] setRTS/setDTR reference to non existing local "on"
+- [Bug 1513653] file descriptor not closed when exception is thrown
+- FreeBSD now uses cuadX instead of cuaaX (Patrick Phalen)
+
+**Bugfixes (win32)**
+
+- [Bug 1520357] Handle leak
+- [Bug 1679013] Ignore exception raised by SetCommTimeout() in close().
+- [Bug 1938118] process hang forever under XP
+
+
+.. _changelog-2.2:
+
+v2.2 - 2005-07-31
+=================
+
+**Bugfixes**
+
+- [Bug 1014227]: property <del> broken
+- [Bug 1105687]: ``serial_tcp_example.py``: ``--localport`` option
+- [Bug 1106313]: device (port) strings cannot be unicode
+
+**Bugfixes (posix)**
+
+- [Patch 1043436] Fix for [Bug 1043420] (OSError: EAGAIN)
+- [Patch 1102700] ``fileno()`` added
+- ensure disabled PARMRK
+
+**Bugfixes (win32)**
+
+- [Patch 983106]: keep RTS/CTS state on port setting changes
+
+**New Features**
+
+- ``dsrdtr`` setting to enable/disable DSR/DTR flow control independently
+  from the ``rtscts`` setting. (Currently Win32 only, ignored on other
+  platforms)
+
+
+.. _changelog-2.1:
+
+v2.1 - 2004-07-28
+=================
+
+**Bugfixes**
+
+- Fix XON/XOFF values [Bug 975250]
+
+**Bugfixes (posix)**
+
+- ``fd == 0`` fix from Vsevolod Lobko
+- netbsd fixes from Erik Lindgren
+- Dynamically lookup baudrates and some cleanups
+
+**Bugfixes (examples)**
+
+- CRLF handling of ``miniterm.py`` should be more consistent on Win32
+  and others. Added LF only command line option
+- Multithreading fixes to ``wxTerminal.py`` (helps with wxGTK)
+- Small change for wxPython 2.5 in ``wxSerialConfigDialog.py`` [Bug 994856]
+
+**New Features**
+
+- Implement write timeouts (``writeTimeout`` parameter)
+
+
+.. _changelog-2.0:
+
+v2.0 - 2003-11-06
+=================
+
+- Fixes ``setup.py`` for older distutils
+
+
+.. _changelog-2.0b2:
+
+v2.0b2 - 2003-10-04
+===================
+
+- Added serial port configuration dialog for wxPython to the examples.
+- Added terminal application for wxPython with wxGlade design file
+  to the examples.
+- Jython support is currently broken as Jython does not have a Python 2.2
+  compatible release out yet
+
+
+.. _changelog-2.0b1:
+
+v2.0b1 - 2003-10-01
+===================
+
+**Transition to the Python 2.0 series**
 
 - New implementation only supports Python 2.2+, backwards compatibility
   should be maintained almost everywhere.
@@ -175,665 +781,172 @@ Transition to the Python 2.0 series:
   fails, but by name it should work).
 
 
-Version 2.0b2    4 Oct 2003
----------------------------
-- Added serial port configuration dialog for wxPython to the examples.
-- Added terminal application for wxPython with wxGlade design file
-  to the examples.
-- Jython support is currently broken as Jython does not have a Python 2.2
-  compatible release out yet
+.. _changelog-1.21:
 
+v1.21 - 2003-09-30
+==================
 
-Version 2.0      6 Nov 2003
----------------------------
-- Fixes ``setup.py`` for older distutils
+**Bugfixes (win32)**
 
+- name for COM10 was not built correctly, found by Norm Davis.
 
-Version 2.1     28 Jul 2004
----------------------------
-Bugfixes:
+**Bugfixes (examples)**
 
-- Fix XON/XOFF values [Bug 975250]
+- small change in ``miniterm.py`` that should mage it run on cygwin,
+  [Bug 809904] submitted by Rolf Campbell.
 
-Bugfixes (posix):
 
-- ``fd == 0`` fix from Vsevolod Lobko
-- netbsd fixes from Erik Lindgren
-- Dynamically lookup baudrates and some cleanups
+.. _changelog-1.20:
 
-Bugfixes (examples):
+v1.20 - 2003-08-28
+==================
 
-- CRLF handling of ``miniterm.py`` should be more consistent on Win32
-  and others. Added LF only command line option
-- Multithreading fixes to ``wxTerminal.py`` (helps with wxGTK)
-- Small change for wxPython 2.5 in ``wxSerialConfigDialog.py`` [Bug 994856]
+- Added ``serial.device()`` for all platforms
 
-New Features:
+**Bugfixes (win32)**
 
-- Implement write timeouts (``writeTimeout`` parameter)
+- don't recreate overlapped structures and events on each
+  read/write.
+- don't set unneeded event masks.
+- don't use DOS device names for ports > 9.
+- remove send timeout (it's not used in the linux impl. anyway).
 
 
-Version 2.2     31 Jul 2005
----------------------------
-Bugfixes:
+.. _changelog-1.19:
 
-- [Bug 1014227]: property <del> broken
-- [Bug 1105687]: ``serial_tcp_example.py``: ``--localport`` option
-- [Bug 1106313]: device (port) strings cannot be unicode
+v1.19 - 2003-03-19
+==================
 
-Bugfixes (posix):
+**Bugfixes (posix)**
 
-- [Patch 1043436] Fix for [Bug 1043420] (OSError: EAGAIN)
-- [Patch 1102700] ``fileno()`` added
-- ensure disabled PARMRK
+- removed ``dgux`` entry which actually had a wrong comment and is
+  probably not in use anywhere.
 
-Bugfixes (win32):
+**Bugfixes (win32)**
 
-- [Patch 983106]: keep RTS/CTS state on port setting changes
+- added ``int()`` conversion, [Bug 702120]
+- remove code to set control lines in close method of win32
+  version. [Bug 669625]
 
-New Features:
 
-- ``dsrdtr`` setting to enable/disable DSR/DTR flow control independently
-  from the ``rtscts`` setting. (Currently Win32 only, ignored on other
-  platforms)
+.. _changelog-1.18:
 
+v1.18 - 2002-12-06
+==================
 
-Version 2.3     19 Jun 2008
----------------------------
-New Features:
+**Bugfixes (general)**
 
-- iterator interface. ``for line in Serial(...): ...`` is now possible
-  Suggested by Bernhard Bender
-- ``sendBreak()`` accepts a ``duration`` argument. Default duration increased.
-- win32 handles \\.\COMx format automatically for com ports of higher number
-  (COM10 is internally translated to \\.\COM10 etc.)
-- miniterm.py has a new feature to send a file (upload) and configurable
-  special characters for exit and upload. Refactored internals to class based
-  structure (upload and class refactoring by Colin D Bennett)
+- remove the mapping of flush to the destructive flushOutput as
+  this is not the expected behaviour.
+- readline: EOL character for lines can be chosen idea by 
+  John Florian.
 
-Bugfixes:
+**Bugfixes (posix)**
 
-- [Bug 1451535] TCP/serial redirect example "--help"
-- update VERSION variable
-- update wxSerialConfigDialog.py and wxTerminal.py compatibility with
-  wxPython 2.8 (Peleg)
-- Check for string in write function. Using unicode causes errors, this
-  helps catching errors early (Tom Lynn)
+- cygwin port numbering fixed
+- test each and every constant for it's existence in termios module,
+  use default if not existent (fix for Bug item #640214)
+- wrong exception on nonexistent ports with /dev file. bug report
+  by Louis Cordier
 
-Bugfixes (posix):
+**Bugfixes (win32)**
 
-- [Bug 1554183] setRTS/setDTR reference to non existing local "on"
-- [Bug 1513653] file descriptor not closed when exception is thrown
-- FreeBSD now uses cuadX instead of cuaaX (Patrick Phalen)
+- RTS/CTS handling as suggested in Bug #635072
+- bugfix of timeouts brought up by Markus Hoffrogge
 
-Bugfixes (win32):
 
-- [Bug 1520357] Handle leak
-- [Bug 1679013] Ignore exception raised by SetCommTimeout() in close().
-- [Bug 1938118] process hang forever under XP
+.. _changelog-1.17:
 
+v1.17 - 2002-07-03
+==================
 
-Version 2.4      6 Jul 2008
----------------------------
-New Features:
+Silly mix of two versions in win32 code corrected
 
-- [Patch 1616790] pyserial: Add inter-character timeout feature
-- [Patch 1924805] add a setBreak function
-- Add mark/space parity
-- Add .NET/Mono backend (IronPython)
 
-Bugfixes (posix):
+.. _changelog-1.16:
 
-- [Bug 1783159] Arbitrary baud rates (Linux/Posix)
+v1.16 - 2002-07-02
+==================
 
-Bugfixes (win32):
+Added implementation of RI and corrected RTS/CTS on Win32
 
-- [Patch 1561423] Add mark/space parity, Win32
-- [Bug 2000771] serial port CANNOT be specified by number on windows
-- examples/scanwin32.py does no longer return \\.\ names
-- fix \\.\ handling for some cases
 
-Bugfixes (jython):
+.. _changelog-1.15:
 
- - The Jython backend tries javax.comm and gnu.io (Seo Sanghyeon)
+v1.15 - 2002-06-04
+==================
 
+**Bugfixes (win32)**
 
-Version 2.5-rc1  2009-07-30
----------------------------
-New Features:
+- removed debug messages
+- compatibility to win9x improved
 
-- Python 3.x support (through 2to3)
-- compatible with Python io library (Python 2.6+)
-- Support for Win32 is now written on the top of ctypes (bundled with
-  Python 2.5+) instead of pywin32 (patch by Giovanni Bajo).
-- 1.5 stop bits (STOPBITS_ONE_POINT_FIVE, implemented on all platforms)
-- miniterm application extended (CTRL+T -> menu)
-- miniterm.py is now installed as "script"
-- add scanlinux.py example
-- add port_publisher example
-- experimental RFC-2217 server support (examples/rfc2217_server.py)
-- add ``getSettingsDict`` and ``applySettingsDict`` serial object methods
-- use a ``poll`` based implementation on Posix, instead of a ``select`` based,
-  provides better error handling [removed again in later releases].
 
-Bugfixes:
+.. _changelog-1.14:
 
-- Improve and fix tcp_serial_redirector example.
-- [Bug 2603052] 5-bit mode (needs 1.5 stop bits in some cases)
+v1.14 - 2002-05-29
+==================
 
-Bugfixes (posix):
+Added examples to archive
+Added non-blocking mode for ``timeout=0`` (tnx Mat Martineau)
 
-- [Bug 2810169] Propagate exceptions raised in serialposix _reconfigure
-- [Bug 2562610] setting non standard baud rates on Darwin (Emmanuel Blot)
+**Bugfixes**
 
-Bugfixes (win32):
+- win32 does now return the remaining characters on timeout
 
-- [Bug 2469098] parity PARITY_MARK, PARITY_SPACE isn't supported on win32
-- [SF  2446218] outWaiting implemented
-- [Bug 2392892] scanwin32.py better exception handling
-- [Bug 2505422] scanwin32.py Vista 64bit compatibility
 
+.. _changelog-1.13:
 
-Version 2.5-rc2  2010-01-02
----------------------------
-New Features:
+v1.13 - 2002-04-09
+==================
 
-- Documentation update, now written with Sphinx/ReST
-- Updated miniterm.py example
-- experimental RFC-2217 client support (serial.rfc2217.Serial, see docs)
-- add ``loop://`` device for testing.
-- add ``serial.serial_for_url`` factory function (support for native ports and
-  ``rfc2217``, ``socket`` and ``loop`` URLs)
-- add new example: ``rfc2217_server.py``
-- tests live in their own directory now (no longer in examples)
+Added alternate way for enabling rtscts (CNEW_RTSCTS is tried too)
+If port opening fails, a ``SerialException`` is raised on all platforms
 
-Bugfixes:
 
-- [Bug 2915810] Fix for suboption parsing in rfc2217
-- Packaging bug (missed some files)
+.. _changelog-1.12:
 
-Bugfixes (posix):
+v1.12 - 2002-02-18
+==================
 
-- improve write timeout behavior
-- [Bug 2836297] move Linux specific constants to not break other platforms
-- ``poll`` based implementation for ``read`` is in a separate class
-  ``PosixPollSerial``, as it is not supported well on all platforms (the
-  default ``Serial`` class uses select).
-- changed error handling in ``read`` so that disconnected devices are
-  detected.
+Removed unneeded constants to fix RH7.x problems.
 
 
-Bugfixes (win32):
+.. _changelog-1.11:
 
-- [Bug 2886763] hComPort doesn't get initialized for Serial(port=None)
+v1.11 - 2002-02-14
+==================
 
+Same as 1.1 but added missing files.
 
-Version 2.5      2010-07-22
----------------------------
-New Features:
 
-- [Bug 2976262] dsrdtr should default to False
-  ``dsrdtr`` parameter default value changed from ``None`` (follow ``rtscts``
-  setting) to ``False``. This means ``rtscts=True`` enables hardware flow
-  control on RTS/CTS but no longer also on DTR/DSR. This change mostly
-  affects Win32 as on other platforms, that setting was ignored anyway.
-- Improved xreadlines, it is now a generator function that yields lines as they
-  are received (previously it called readlines which would only return all
-  lines read after a read-timeout). However xreadlines is deprecated and not
-  available when the io module is used. Use ``for line in Serial(...):``
-  instead.
+.. _changelog-1.1:
 
-Bugfixes:
+v1.1 - 2002-02-14
+=================
 
-- [Bug 2925854] test.py produces exception with python 3.1
-- [Bug 3029812] 2.5rc2 readline(s) doesn't work
+**Bugfixes**
 
-Bugfixes (posix):
+- Win32, when not specifying a timeout
+- Typos in the Docs
 
-- [BUG 3006606] Nonblocking error - Unix platform
+**New Features**
 
-Bugfixes (win32):
-
-- [Bug 2998169] Memory corruption at faster transmission speeds.
-  (bug introduced in 2.5-rc1)
-
-
-Version 2.6      2011-11-02
----------------------------
-New Features:
-
-- Moved some of the examples to serial.tools so that they can be used
-  with ``python -m``
-- serial port enumeration now included as ``serial.tools.list_ports``
-- URL handlers for ``serial_for_url`` are now imported dynamically. This allows
-  to add protocols w/o editing files. The list
-  ``serial.protocol_handler_packages`` can be used to add or remove user
-  packages with protocol handlers (see docs for details).
-- new URL type: hwgrep://<regexp> uses list_ports module to search for ports
-  by their description
-- several internal changes to improve Python 3.x compatibility (setup.py,
-  use of absolute imports and more)
-
-Bugfixes:
-
-- [Bug 3093882] calling open() on an already open port now raises an exception
-- [Bug 3245627] connection-lost let rfc2217 hangs in closed loop
-- [Patch 3147043] readlines() to support multi-character eol
-
-Bugfixes (posix):
-
-- [Patch 3316943] Avoid unneeded termios.tcsetattr calls in serialposix.py
-- [Patch 2912349] Serial Scan as a Module with Mac Support
-
-Bugfixes (win32):
-
-- [Bug 3057499] writeTimeoutError when write Timeout is 0
-- [Bug 3414327] Character out of range in list_ports_windows
-- [Patch 3036175] Windows 98 Support fix
-- [Patch 3054352] RTS automatic toggle, for RS485 functionality.
-- Fix type definitions for 64 bit Windows compatibility
-
-
-Version 2.7      2013-10-17
----------------------------
-- Win32: setRTS and setDTR can be called before the port is opened and it will
-  set the initial state on port open.
-- Posix: add platform specific method: outWaiting (already present for Win32)
-- Posix: rename flowControl to setXON to match name on Win32, add
-  flowControlOut function
-- rfc2217: zero polls value (baudrate, data size, stop bits, parity) (Erik
-  Lundh)
-- Posix: [Patch pyserial:28] Accept any speed on Linux [update]
-- Posix: [Patch pyserial:29] PosixSerial.read() should "ignore" errno.EINTR
-- OSX: [Patch pyserial:27] Scan by VendorID/Product ID for USB Serial devices
-- Ensure working with bytes in write() calls
-
-Bugfixes:
-
-- [Bug 3540332] SerialException not returned
-- [Bug pyserial:145] Error in socket_connection.py
-- [Bug pyserial:135] reading from socket with timeout=None causes TypeError
-- [Bug pyserial:130] setup.py should not append py3k to package name
-- [Bug pyserial:117] no error on lost conn w/socket://
-
-Bugfixes (posix):
-
-- [Patch 3462364] Fix: NameError: global name 'base' is not defined
-- list_ports and device() for BSD updated (Anders Langworthy)
-- [Bug 3518380] python3.2 -m serial.tools.list_ports error
-- [Bug pyserial:137] Patch to add non-standard baudrates to Cygwin
-- [Bug pyserial:141] open: Pass errno from IOError to SerialException
-- [Bug pyserial:125] Undefined 'base' on list_ports_posix.py, function usb_lsusb
-- [Bug pyserial:151] Serial.write() without a timeout uses 100% CPU on POSIX
-- [Patch pyserial:30] [PATCH 1/1] serial.Serial() should not raise IOError.
-
-Bugfixes (win32):
-
-- [Bug 3444941] ctypes.WinError() unicode error
-- [Bug 3550043] on Windows in tools global name 'GetLastError' is not defined
-- [Bug pyserial:146] flush() does nothing in windows (despite docs)
-- [Bug pyserial:144] com0com ports ignored due to missing "friendly name"
-- [Bug pyserial:152] Cannot configure port, some setting was wrong. Can leave
-  port handle open but port not accessible
-
-
-Version 3.0a0   2015-09-22
---------------------------
-- Starting from this release, only Python 2.7 and 3.2 (or newer) are supported.
-  The source code is compatible to the 2.x and 3.x series without any changes.
-  The support for earlier Python versions than 2.7 is removed, please refer to
-  the pyserial-legacy (V2.x) series if older Python versions are a
-  requirement).
-- Development moved to github, update links in docs.
-- API changes: properties for ``rts``, ``dtr``, ``cts``, ``dsr``, ``cd``, ``ri``,
-  ``in_waiting`` (instead of get/set functions)
-- remove file ``FileLike`` class, add ``read_until`` and ``iread_until`` to
-  ``SerialBase``
-- RS485 support changed (``rts_toggle`` removed, added ``serial.rs485`` module
-  and ``rs485_mode`` property)
-- ``socket://`` and ``rfc2217://`` handlers use the IPv6 compatible
-  ``socket.create_connection``
-- New URL handler: ``spy:://``.
-- URL handlers now require the proper format (``?`` and ``&``) for arguments
-  instead of ``/`` (e.g. ``rfc2217://localhost:7000?ign_set_control&timeout=5.5``)
-- Remove obsolete examples.
-- Finish update to BSD license.
-- Use setuptools if available, fall back to distutils if unavailable.
-- miniterm: changed command line options
-- miniterm: support encodings on serial port
-- miniterm: new transformations, by default escape/convert all control characters
-- list_ports: improved, added USB location (Linux, Win32)
-- refactored code
-- [FTR pyserial:37] Support fileno() function in the socket protocol
-- Posix: [Patch pyserial:31] Mark/space parity on Linux
-- Linux: [Patch pyserial:32] Module list_ports for linux should include the
-  product information as description.
-- Java: fix 2 bugs (stop bits if/else and non-integer timeouts) (Torsten
-  Roemer)
-- Update wxSerialConfigDialog.py to use serial.tools.list_ports.
-- [Patch pyserial:34] Improvements to port_publisher.py example
-- [Feature pyserial:39] Support BlueTooth serial port discovery on Linux
-
-Bugfixes:
-
-- [Bug pyserial:157] Implement inWaiting in protocol_socket
-- [Bug pyserial:166] RFC2217 connections always fail
-- [Bug pyserial:172] applySettingsDict() throws an error if the settings dictionary is not complete
-- [Bug pyserial:185] SocketSerial.read() never returns data when timeout==0
-
-Bugfixes (posix):
-
-- [Bug pyserial:156] PosixSerial.open raises OSError rather than
-  SerialException when port open fails
-- [Bug pyserial:163] serial.tools.list_ports.grep() fails if it encounters None type
-- fix setXON
-- [Patch pyserial:36 / 38] Make USB information work in python 3.4 and 2.7
-- clear OCRNL/ONLCR flags (CR/LF translation settings)
-- [Feature pyserial:38] RS485 Support
-- [Bug pyserial:170] list_ports_posix not working properly for Cygwin
-- [Bug pyserial:187] improve support for FreeBSD (list_ports_posix)
-
-Bugfixes (win32):
-
-- [Bug pyserial:169] missing "import time" in serialwin32.py
-
-Bugfixes (cli):
-
-- [Bug pyserial:159] write() in serialcli.py not working with IronPython 2.7.4
-
-
-Version 3.0b1   2015-10-19
---------------------------
-- list_ports: add ``vid``, ``pid``, ``serial_number``, ``product``,
-  ``manufacturer`` and ``location`` attribute for USB devices.
-- list_ports: update OSX implementation.
-- list_ports: Raspberry Pi: internal port is found.
-- serial_for_url: fix import (multiple packages in list)
-- threaded: added new module implementing a reader thread
-- tweak examples/wx*
-- posix: add experimental implementation ``VTIMESerial``
-- new URL handler ``alt://`` to select alternative implementations
+- added ``serialutil`` which provides a base class for the ``Serial``
+  objects.
 
+- ``readline``, ``readlines``, ``writelines`` and ``flush`` are now supported
+  see README.txt for deatils.
 
-Version 3.0   2015-12-28
-------------------------
-- minor fixes to setup.py (file list), inter_byte_timeout (not stored when
-  passed to __init__), rfc2217 (behavior of close when open failed),
-  list_ports (__str__), loop://, renamed ReaderThread
-- hwgrep:// added options to pick n'th port, skip busy ports
-- miniterm: --ask option added
 
-Bugfixes (posix):
+.. _changelog-1.0:
 
-- [#26/#30] always call tcsettattr on open
-- [#42] fix disregard read timeout if there is more data
-- [#45] check for write timeout, even if EAGAIN was raised
+v1.0 - 2002-02-13
+=================
 
-Bugfixes (win32):
+- First public release.
+- Split from the pybsl application (see http://mspgcc.sourceforge.net)
 
-- [#27] fix race condition in ``read()``, fix minimal timeout issue
-- race condition in nonblocking case
-- [#49] change exception type in case SetCommState fails
-- [#50] fixed issue with 0 timeout on windows 10
+**New Features**
 
-
-Version 3.0.1   2016-01-11
---------------------------
-- special case for FDTIBUS in list_ports on win32 (#61)
-
-Bugfixes:
-
-- ``Serial`` keyword arguments, more on backward compatibility, fix #55
-- list_ports: return name if product is None, fix for #54
-- port_publisher: restore some sorting of ports
-
-
-Version 3.1.0   2016-05-27
---------------------------
-Improvements:
-
-- improve error handling in ``alt://`` handler
-- ``socket://`` internally used select, improves timeout behavior
-- initial state of RTS/DTR: ignore error when setting on open posix
-  (support connecting to pty's)
-- code style updates
-- posix: remove "number_to_device" which is not called anymore
-- add cancel_read and cancel_write to win32 and posix implementations
-
-Bugfixes:
-
-- [#68] aio: catch errors and close connection
-- [#87] hexlify: update codec for Python 2
-- [#100] setPort not implemented
-- [#101] bug in serial.threaded.Packetizer with easy fix
-- [#104] rfc2217 and socket: set timeout in create_connection
-- [#107] miniterm.py fails to exit on failed serial port
-
-Bugfixes (posix):
-
-- [#59] fixes for RTS/DTR handling on open
-- [#77] list_ports_osx: add missing import
-- [#85] serialposix.py _set_rs485_mode() tries to read non-existing
-  rs485_settings.delay_rts_before_send
-- [#96] patch: native RS485 is never enabled
-
-Bugfixes (win32):
-
-- fix bad super call and duplicate old-style __init__ call
-- [#80] list_ports: Compatibility issue between Windows/Linux
-
-
-Version 3.1.1   2016-06-12
---------------------------
-Improvements:
-
-- deprecate ``nonblocking()`` method on posix, the port is already in this
-  mode.
-- style: use .format() in various places instead of "%" formatting
-
-Bugfixes:
-
-- [#122] fix bug in FramedPacket
-- [#127] The Serial class in the .NET/Mono (IronPython) backend does not
-  implement the _reconfigure_port method
-- [#123, #128] Avoid Python 3 syntax in aio module
-
-Bugfixes (posix):
-
-- [#126] PATCH: Check delay_before_tx/rx for None in serialposix.py
-- posix: retry if interrupted in Serial.read
-
-Bugfixes (win32):
-
-- win32: handle errors of GetOverlappedResult in read(), fixes #121
-
-
-Version 3.2.0   2016-10-14
---------------------------
-See 3.2.1, this one missed a merge request related to removing aio.
-
-
-Version 3.2.1   2016-10-14
---------------------------
-Improvements:
-
-- remove ``serial.aio`` in favor of separate package, ``pyserial-asyncio``
-- add client mode to example ``tcp_serial_redirect.py``
-- use of monotonic clock for timeouts, when available (Python 3.3 and up)
-- [#169] arbitrary baud rate support for BSD family
-- improve tests, improve ``loop://``
-
-Bugfixes:
-
-- [#137] Exception while cancel in miniterm (python3)
-- [#143] Class Serial in protocol_loop.py references variable before assigning
-  to it
-- [#149] Python 3 fix for threaded.FramedPacket
-
-Bugfixes (posix):
-
-- [#133] _update_dtr_state throws Inappropriate ioctl for virtual serial
-  port created by socat on OS X
-- [#157] Broken handling of CMSPAR in serialposix.py
-
-Bugfixes (win32):
-
-- [#144] Use Unicode API for list_ports
-- [#145] list_ports_windows: support devices with only VID
-- [#162] Write in non-blocking mode returns incorrect value on windows
-
-
-Version 3.3   2017-03-08
-------------------------
-Improvements:
-
-- [#206] Exclusive access on POSIX. ``exclusive`` flag added.
-- [#172] list_ports_windows: list_ports with 'manufacturer' info property
-- [#174] miniterm: change cancel impl. for console
-- [#182] serialutil: add overall timeout for read_until
-- socket: use non-blocking socket and new Timeout class
-- socket: implement a functional a reset_input_buffer
-- rfc2217: improve read timeout implementation
-- win32: include error message from system in ClearCommError exception
-- and a few minor changes, docs
-
-Bugfixes:
-
-- [#183] rfc2217: Fix broken calls to to_bytes on Python3.
-- [#188] rfc2217: fix auto-open use case when port is given as parameter
-
-Bugfixes (posix):
-
-- [#178] in read, count length of converted data
-- [#189] fix return value of write
-
-Bugfixes (win32):
-
-- [#194] spurious write fails with ERROR_SUCCESS
-
-
-Version 3.4   2017-07-22
-------------------------
-Improvements:
-
-- miniterm: suspend function (temporarily release port, :kbd:`Ctrl-T s`)
-- [#240] context manager automatically opens port on ``__enter__``
-- [#141] list_ports: add interface number to location string
-- [#225] protocol_socket: Retry if ``BlockingIOError`` occurs in
-  ``reset_input_buffer``.
-
-Bugfixes:
-
-- [#153] list_ports: option to include symlinked devices
-- [#237] list_ports: workaround for special characters in port names
-
-Bugfixes (posix):
-
-- allow calling cancel functions w/o error if port is closed
-- [#220] protocol_socket: sync error handling with posix version
-- [#227] posix: ignore more blocking errors and EINTR, timeout only
-  applies to blocking I/O
-- [#228] fix: port_publisher typo
-
-
-Version 3.5b0 2020-09-21
-------------------------
-New Features:
-
-- [#411] Add a backend for Silicon Labs CP2110/4 HID-to-UART bridge.
-  (depends on `hid` module)
-
-Improvements:
-
-- [#315] Use absolute import everywhere
-- [#351] win32: miniterm Working CMD.exe terminal using Windows 10 ANSI support
-- [#354] Make ListPortInfo hashable
-- [#372] threaded: "write" returns byte count
-- [#400] Add bytesize and stopbits argument parser to tcp_serial_redirect
-- [#408] loop: add out_waiting
-- [#495] list_ports_linux: Correct "interface" property on Linux hosts
-- [#500] Remove Python 3.2 and 3.3 from test
-- [#261, #285, #296, #320, #333, #342, #356, #358, #389, #397, #510] doc updates
-- miniterm: add :kbd:`CTRL+T Q` as alternative to exit
-- miniterm: suspend function key changed to :kbd:`CTRL-T Z`
-- add command line tool entries ``pyserial-miniterm`` (replaces ``miniterm.py``)
-  and ``pyserial-ports`` (runs ``serial.tools.list_ports``).
-- ``python -m serial`` opens miniterm (use w/o args and it will print port
-  list too) [experimental]
-
-Bugfixes:
-
-- [#371] Don't open port if self.port is not set while entering context manager
-- [#437, #502] refactor: raise new instances for PortNotOpenError and SerialTimeoutException
-- [#261, #263] list_ports: set default `name` attribute
-- [#286] fix: compare only of the same type in list_ports_common.ListPortInfo
-- rfc2217/close(): fix race-condition
-- [#305] return b'' when connection closes on rfc2217 connection
-- [#386] rfc2217/close(): fix race condition
-- Fixed flush_input_buffer() for situations where the remote end has closed the socket.
-- [#441] reset_input_buffer() can hang on sockets
-- examples: port_publisher python 3 fixes
-- [#324] miniterm: Fix miniterm constructor exit_character and menu_character
-- [#326] miniterm: use exclusive access for native serial ports by default
-- [#497] miniterm: fix double use of CTRL-T + s use z for suspend instead
-- [#443, #444] examples: refactor wx example, use Bind to avoid deprecated
-  warnings, IsChecked, unichr
-
-Bugfixes (posix):
-
-- [#265] posix: fix PosixPollSerial with timeout=None and add cancel support
-- [#290] option for low latency mode on linux
-- [#335] Add support to xr-usb-serial ports
-- [#494] posix: Don't catch the SerialException we just raised
-- [#519] posix: Fix custom baud rate to not temporarily set 38400 baud rates on linux
-- [#509 #518] list_ports: use hardcoded path to library on osx
-
-Bugfixes (win32):
-
-- [#481] win32: extend RS485 error messages
-- [#303] win32: do not check for links in serial.tools.list_ports
-- [#430] Add WaitCommEvent function to win32
-- [#314, #433] tools/list_ports_windows: Scan both 'Ports' and 'Modem' device classes
-- [#414] Serial number support for composite USB devices
-- Added recursive search for device USB serial number to support composite devices
-
-Bugfixes (MacOS):
-
-- [#364] MacOS: rework list_ports to support unicode product descriptors.
-- [#367] Mac and bsd fix _update_break_state
-
-
-Version 3.5 2020-11-23
-----------------------
-See above (3.5b0) for what's all new in this release
-
-Bugfixes:
-
-- spy: ensure bytes in write()
-
-Bugfixes (posix):
-
-- [#540] serialposix: Fix inconsistent state after exception in open()
-
-Bugfixes (win32):
-
-- [#530] win32: Fix exception for composite serial number search on Windows
-
-Bugfixes (MacOS):
-
-- [#542] list_ports_osx: kIOMasterPortDefault no longer exported on Big Sur
-- [#545, #545] list_ports_osx: getting USB info on BigSur/AppleSilicon
-
-
-Unreleased
-----------
-
-Python support:
-
-- Support Python 3.10 and higher.
-- Drop support for all EOL Python versions (Python 3.9 and lower).
-
-Removed:
-
-- Remove support for Jython.
-- Remove support for IronPython.
+- Added Jython support
