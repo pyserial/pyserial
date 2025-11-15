@@ -241,9 +241,13 @@ def scan_interfaces():
     for service in GetIOServicesByType('IOSerialBSDClient'):
         device = get_string_property(service, "IOCalloutDevice")
         if device:
-            usb_device = GetParentDeviceByType(service, "IOUSBInterface")
+            usb_device = GetParentDeviceByType(service, "IOUSBHostInterface")
+            if not usb_device:
+                # IOUSBInterface is deprecated
+                usb_device = GetParentDeviceByType(service, "IOUSBInterface")
             if usb_device:
-                name = get_string_property(usb_device, "USB Interface Name") or None
+                name = get_string_property(usb_device, "USB Product Name") \
+                    or get_string_property(usb_device, "USB Interface Name") or None
                 locationID = get_int_property(usb_device, "locationID", kCFNumberSInt32Type) or ''
                 i = SuitableSerialInterface()
                 i.id = locationID
@@ -270,11 +274,19 @@ def comports(include_links=False):
         device = get_string_property(service, "IOCalloutDevice")
         if device:
             info = list_ports_common.ListPortInfo(device)
-            # If the serial port is implemented by IOUSBDevice
-            # NOTE IOUSBDevice was deprecated as of 10.11 and finally on Apple Silicon
-            # devices has been completely removed.  Thanks to @oskay for this patch.
+
+            interface = None
+
+            # Try IOUserSerial to get lowest possible and most detailed name
+            # of our serial interface.
+            usb_device = GetParentDeviceByType(service, "IOUserSerial")
+            if usb_device:
+                interface = get_string_property(usb_device, "USB Product Name")
+
+            # Search for device implementing our serial interfaces.
             usb_device = GetParentDeviceByType(service, "IOUSBHostDevice")
             if not usb_device:
+                # IOUSBDevice is deprecated
                 usb_device = GetParentDeviceByType(service, "IOUSBDevice")
             if usb_device:
                 # fetch some useful information from properties
@@ -288,7 +300,7 @@ def comports(include_links=False):
                 info.manufacturer = get_string_property(usb_device, kUSBVendorString)
                 locationID = get_int_property(usb_device, "locationID", kCFNumberSInt32Type)
                 info.location = location_to_string(locationID)
-                info.interface = search_for_locationID_in_interfaces(serial_interfaces, locationID)
+                info.interface = interface or search_for_locationID_in_interfaces(serial_interfaces, locationID)
                 info.apply_usb_info()
             ports.append(info)
     return ports
