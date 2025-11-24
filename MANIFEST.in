@@ -34,5 +34,3 @@ include test/test_url.py
 include documentation/*.rst
 include documentation/pyserial.png
 include documentation/conf.py
-include documentation/Makefile
-
