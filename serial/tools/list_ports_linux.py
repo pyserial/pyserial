@@ -30,6 +30,9 @@ class SysFS(list_ports_common.ListPortInfo):
         if os.path.exists('/sys/class/tty/{}/device'.format(self.name)):
             self.device_path = os.path.realpath('/sys/class/tty/{}/device'.format(self.name))
             self.subsystem = os.path.basename(os.path.realpath(os.path.join(self.device_path, 'subsystem')))
+        elif os.path.exists('/sys/class/wwan/{}/device'.format(self.name)):
+            self.device_path = os.path.realpath('/sys/class/wwan/{}/device'.format(self.name))
+            self.subsystem = os.path.basename(os.path.realpath(os.path.join(self.device_path, 'subsystem')))
         else:
             self.device_path = None
             self.subsystem = None
@@ -38,30 +41,45 @@ class SysFS(list_ports_common.ListPortInfo):
             self.usb_interface_path = os.path.dirname(self.device_path)
         elif self.subsystem == 'usb':
             self.usb_interface_path = self.device_path
+        elif self.subsystem == 'wwan':
+            self.usb_interface_path = os.path.dirname(self.device_path)
         else:
             self.usb_interface_path = None
         # fill-in info for USB devices
         if self.usb_interface_path is not None:
-            self.usb_device_path = os.path.dirname(self.usb_interface_path)
+            if self.subsystem != 'wwan':
+                self.usb_device_path = os.path.dirname(self.usb_interface_path)
+                try:
+                    num_if = int(self.read_line(self.usb_device_path, 'bNumInterfaces'))
+                except ValueError:
+                    num_if = 1
 
-            try:
-                num_if = int(self.read_line(self.usb_device_path, 'bNumInterfaces'))
-            except ValueError:
-                num_if = 1
+                self.vid = int(self.read_line(self.usb_device_path, 'idVendor'), 16)
+                self.pid = int(self.read_line(self.usb_device_path, 'idProduct'), 16)
+                self.serial_number = self.read_line(self.usb_device_path, 'serial')
+                if num_if > 1:  # multi interface devices like FT4232
+                    self.location = os.path.basename(self.usb_interface_path)
+                else:
+                    self.location = os.path.basename(self.usb_device_path)
 
-            self.vid = int(self.read_line(self.usb_device_path, 'idVendor'), 16)
-            self.pid = int(self.read_line(self.usb_device_path, 'idProduct'), 16)
-            self.serial_number = self.read_line(self.usb_device_path, 'serial')
-            if num_if > 1:  # multi interface devices like FT4232
-                self.location = os.path.basename(self.usb_interface_path)
+                self.manufacturer = self.read_line(self.usb_device_path, 'manufacturer')
+                self.product = self.read_line(self.usb_device_path, 'product')
+                self.interface = self.read_line(self.usb_interface_path, 'interface')
             else:
-                self.location = os.path.basename(self.usb_device_path)
+                self.pcie_device_path = os.path.dirname(self.usb_interface_path)
+                self.pcie_interface_path = self.device_path
 
-            self.manufacturer = self.read_line(self.usb_device_path, 'manufacturer')
-            self.product = self.read_line(self.usb_device_path, 'product')
-            self.interface = self.read_line(self.usb_interface_path, 'interface')
+                self.vid = int(self.read_line(self.pcie_device_path, 'vendor'), 16)
+                self.pid = int(self.read_line(self.pcie_device_path, 'device'), 16)
+                if self.vid == 0x8086:
+                    self.product = "Intel DEVICE"
+                if self.vid == 0x14c3:
+                    self.product = "Mtk DEVICE"
+                res = self.read_line(self.pcie_interface_path, 'uevent')
+                if res is not None:
+                    self.interface = res.split("=")[1]
 
-        if self.subsystem in ('usb', 'usb-serial'):
+        if self.subsystem in ('usb', 'usb-serial', 'wwan'):
             self.apply_usb_info()
         #~ elif self.subsystem in ('pnp', 'amba'):  # PCI based devices, raspi
         elif self.subsystem == 'pnp':  # PCI based devices
@@ -98,6 +116,7 @@ def comports(include_links=False):
     devices.update(glob.glob('/dev/rfcomm*'))   # BT serial devices
     devices.update(glob.glob('/dev/ttyAP*'))    # Advantech multi-port serial controllers
     devices.update(glob.glob('/dev/ttyGS*'))    # https://www.kernel.org/doc/Documentation/usb/gadget_serial.txt
+    devices.update(glob.glob("/dev/wwan0*"))    # Intel pcie driver port(modem device)
 
     if include_links:
         devices.update(list_ports_common.list_links(devices))
