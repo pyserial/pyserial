@@ -678,9 +678,42 @@ class Serial(SerialBase, PlatformSpecific):
         """\
         Flush of file like objects. In this case, wait until all data
         is written.
+
+        On macOS where the serial device corresponds to a PTY, the underlying
+        call to termios.tcdrain() can block indefinitely because it waits for
+        data to be read from the other end, which may never happen. So, for
+        PTYs, we skip tcdrain() since data is already in the kernel buffer
+        after write().
         """
         if not self.is_open:
             raise PortNotOpenError()
+
+        # On macOS, tcdrain() can block indefinitely on PTY devices.
+        # See: https://github.com/pyserial/pyserial/issues/625
+        #      https://github.com/python/cpython/issues/97001
+        if sys.platform.startswith('darwin'):
+            try:
+                dev_name = os.ttyname(self.fd)
+                # macOS PTY slave devices are /dev/ttys*
+                # BSD-style PTY devices are /dev/pty[pqrs]*
+                pty_device_names = (
+                    '/dev/ttys',
+                    '/dev/ptyp',
+                    '/dev/ptyq',
+                    '/dev/ptyr',
+                    '/dev/ptys',
+                )
+                if dev_name.startswith(pty_device_names):
+                    # For PTY devices on macOS, tcdrain() blocks indefinitely
+                    # because it waits for data to be read from the other end,
+                    # which may never happen. Since the data is already in the
+                    # kernel buffer after write(), we consider flush() complete.
+                    return
+            except OSError:
+                # If we can't determine the device name, fall back to tcdrain.
+                # This is safe because real serial ports won't fail ttyname().
+                pass
+
         while True:
             try:
                 termios.tcdrain(self.fd)
