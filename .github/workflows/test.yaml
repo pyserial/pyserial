@@ -19,7 +19,7 @@ jobs:
       matrix:
         runner:
           - "ubuntu-24.04"
-          # - "macos-15"  # <-- Currently freezes midway through testing
+          - "macos-15"
           - "windows-2025"
 
     steps:
