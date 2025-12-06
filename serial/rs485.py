@@ -78,6 +78,7 @@ class RS485(serial.Serial):
             self.setRTS(self._alternate_rs485_settings.rts_level_for_rx)
         else:
             super(RS485, self).write(b)
+        return len(b)
 
     # redirect where the property stores the settings so that underlying Serial
     # instance does not see them

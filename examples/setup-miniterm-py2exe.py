@@ -23,7 +23,7 @@ setup(
                 'serial.urlhandler.protocol_hwgrep', 'serial.urlhandler.protocol_rfc2217',
                 'serial.urlhandler.protocol_socket', 'serial.urlhandler.protocol_loop'],
         'dist_dir': 'bin',
-        'excludes': ['serialjava', 'serialposix', 'serialcli'],
+        'excludes': ['serialposix'],
         'compressed': 1,
         }
     },

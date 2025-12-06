@@ -64,15 +64,14 @@ Application works when .py file is run, but fails when packaged (py2exe etc.)
     create two issues with that:
 
     - implementations for other modules are found. On Windows, it's safe to
-      exclude 'serialposix', 'serialjava' and 'serialcli' as these are not
-      used.
+      exclude 'serialposix' as this is not used.
 
     - :func:`serial.serial_for_url` does a dynamic lookup of protocol handlers
       at runtime. If this function is used, the desired handlers have to be
       included manually (e.g. 'serial.urlhandler.protocol_socket',
       'serial.urlhandler.protocol_rfc2217', etc.). This can be done either with
-      the "includes" option in ``setup.py`` or by a dummy import in one of the
-      packaged modules.
+      the "includes" option in the packaging tool configuration or by a dummy
+      import in one of the packaged modules.
 
 User supplied URL handlers
     :func:`serial.serial_for_url` can be used to access "virtual" serial ports
@@ -95,7 +94,7 @@ Parity on Raspberry Pi
     The Raspi has one full UART and a restricted one. On devices with built
     in wireless (WIFI/BT) use the restricted one on the GPIO header pins.
     If enhanced features are required, it is possible to swap UARTs, see
-    https://www.raspberrypi.org/documentation/configuration/uart.md
+    https://www.raspberrypi.com/documentation/computers/configuration.html#configure-uarts
 
 Support for Python 2.6 or earlier
     Support for older Python releases than 2.7 will not return to pySerial 3.x.
@@ -103,13 +102,13 @@ Support for Python 2.6 or earlier
     Python 2.6 or earlier, it is recommend to use pySerial `2.7`_
     (or any 2.x version).
 
-.. _`2.7`: https://pypi.python.org/pypi/pyserial/2.7
+.. _`2.7`: https://pypi.org/project/pyserial/2.7/
 
 
 Related software
 ================
 
-com0com - http://com0com.sourceforge.net/
+com0com - https://com0com.sourceforge.net/
     Provides virtual serial ports for Windows.
 
 

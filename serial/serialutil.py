@@ -200,6 +200,10 @@ class SerialBase(io.RawIOBase):
         self.is_open = False
         self.portstr = None
         self.name = None
+
+        # logging disabled by default but can be set to a Logger instance after __init__
+        self.logger = None
+
         # correct values are assigned below through properties
         self._port = None
         self._baudrate = None

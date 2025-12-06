@@ -6,20 +6,19 @@ Welcome to pySerial's documentation
 
 
 This module encapsulates the access for the serial port. It provides backends
-for Python_ running on Windows, OSX, Linux, BSD (possibly any POSIX compliant
-system) and IronPython. The module named "serial" automatically selects the
+for Python_ running on Windows, macOS, Linux, and BSD (possibly any POSIX compliant
+system). The module named "serial" automatically selects the
 appropriate backend.
 
 Other pages (online)
 
 - `project page on GitHub`_
 - `Download Page`_ with releases
-- This page, when viewed online is at https://pyserial.readthedocs.io/en/latest/ or
-  http://pythonhosted.org/pyserial/ .
+- This page, when viewed online, is at `<https://pyserial.readthedocs.io/en/latest/>`_.
 
-.. _Python: http://python.org/
+.. _Python: https://www.python.org/
 .. _`project page on GitHub`: https://github.com/pyserial/
-.. _`Download Page`: http://pypi.python.org/pypi/pyserial
+.. _`Download Page`: https://pypi.org/project/pyserial/
 
 
 Contents:
@@ -34,6 +33,12 @@ Contents:
     url_handlers
     examples
     appendix
+
+..  toctree::
+    :maxdepth: 1
+
+    Changelog <changelog>
+
 
 Indices and tables
 ==================

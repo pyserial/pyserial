@@ -100,7 +100,7 @@ class Serial(SerialBase):
             self.is_open = True
             self._thread = threading.Thread(target=self._hid_read_loop)
             self._thread.daemon = True
-            self._thread.setName('pySerial CP2110 reader thread for {}'.format(self._port))
+            self._thread.name = 'pySerial CP2110 reader thread for {}'.format(self._port)
             self._thread.start()
 
     def from_url(self, url):

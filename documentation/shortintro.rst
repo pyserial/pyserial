@@ -91,13 +91,13 @@ mode, it is advised to use io.TextIOWrapper_::
         ser = serial.serial_for_url('loop://', timeout=1)
         sio = io.TextIOWrapper(io.BufferedRWPair(ser, ser))
 
-        sio.write(unicode("hello\n"))
+        sio.write("hello\n")
         sio.flush() # it is buffering. required to get the data out *now*
         hello = sio.readline()
-        print(hello == unicode("hello\n"))
+        print(hello == "hello\n")
 
 
-.. _io.TextIOWrapper: http://docs.python.org/library/io.html#io.TextIOWrapper
+.. _io.TextIOWrapper: https://docs.python.org/3/library/io.html#io.TextIOWrapper
 
 
 Testing ports

@@ -16,27 +16,26 @@ Additionally a grep function is supplied that can be used to search for ports
 based on their descriptions or hardware ID.
 """
 
-from __future__ import absolute_import
-
-import sys
+import argparse
 import os
 import re
+import sys
+import typing
 
-# chose an implementation, depending on os
-#~ if sys.platform == 'cli':
-#~ else:
-if os.name == 'nt':  # sys.platform == 'win32':
+from serial.tools.list_ports_common import ListPortInfo
+
+# Choose an implementation, depending on OS.
+if os.name == 'nt':  # sys.platform == 'win32':  # pragma: no cover
     from serial.tools.list_ports_windows import comports
-elif os.name == 'posix':
+elif os.name == 'posix':  # pragma: no cover
     from serial.tools.list_ports_posix import comports
-#~ elif os.name == 'java':
-else:
-    raise ImportError("Sorry: no implementation for your platform ('{}') available".format(os.name))
+else:  # pragma: no cover
+    raise ImportError(f"Sorry: no implementation for your platform ('{os.name}') available")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-def grep(regexp, include_links=False):
+def grep(regexp: str, include_links: bool = False) -> typing.Iterable[ListPortInfo]:
     """\
     Search for ports using a regular expression. Port name, description and
     hardware ID are searched. The function returns an iterable that returns the
@@ -50,9 +49,7 @@ def grep(regexp, include_links=False):
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-def main():
-    import argparse
-
+def main() -> None:
     parser = argparse.ArgumentParser(description='Serial port enumeration')
 
     parser.add_argument(
@@ -71,6 +68,11 @@ def main():
         help='suppress all messages')
 
     parser.add_argument(
+        '-1', '--only-one',
+        action='store_true',
+        help='require exactly one matching entry, otherwise error')
+
+    parser.add_argument(
         '-n',
         type=int,
         help='only output the N-th entry')
@@ -82,29 +84,40 @@ def main():
 
     args = parser.parse_args()
 
-    hits = 0
-    # get iteraror w/ or w/o filter
+    # get list of ports
     if args.regexp:
         if not args.quiet:
-            sys.stderr.write("Filtered list with regexp: {!r}\n".format(args.regexp))
-        iterator = sorted(grep(args.regexp, include_links=args.include_links))
+            sys.stderr.write(f"Filtered list with regexp: {args.regexp!r}\n")
+        found = list(grep(args.regexp, include_links=args.include_links))
     else:
-        iterator = sorted(comports(include_links=args.include_links))
-    # list them
-    for n, (port, desc, hwid) in enumerate(iterator, 1):
-        if args.n is None or args.n == n:
-            sys.stdout.write("{:20}\n".format(port))
-            if args.verbose:
-                sys.stdout.write("    desc: {}\n".format(desc))
-                sys.stdout.write("    hwid: {}\n".format(hwid))
-        hits += 1
+        found = list(comports(include_links=args.include_links))
+    found.sort()
+
+    # filter ports if specified
+    if args.only_one and len(found) != 1:
+        sys.stderr.write("Error: {} serial ports{}{}{}\n".format(
+            len(found) or "no",
+            f" match {args.regexp!r}" if args.regexp else "",
+            f": {found[0][0]}, {found[1][0]}" if found else "",
+            ", ..." if len(found) > 2 else ""
+        ))
+        sys.exit(1)
+    if args.n is not None:
+        found = [found[args.n - 1]] if 1 <= args.n <= len(found) else []
+
+    # list ports
+    for port in found:
+        sys.stdout.write(f"{port.device:20}\n")
+        if args.verbose:
+            sys.stdout.write(f"    desc: {port.description}\n")
+            sys.stdout.write(f"    hwid: {port.hwid}\n")
     if not args.quiet:
-        if hits:
-            sys.stderr.write("{} ports found\n".format(hits))
+        if found:
+            sys.stderr.write(f"{len(found)} ports found\n")
         else:
             sys.stderr.write("no ports found\n")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     main()

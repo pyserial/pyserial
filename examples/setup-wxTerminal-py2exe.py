@@ -18,7 +18,7 @@ icon = os.path.join(os.path.dirname(sys.executable), 'py.ico')
 setup(
     options={
         'py2exe': {
-            'excludes': ['javax.comm'],
+            'excludes': [],
             'optimize': 2,
             'dist_dir': 'dist',
         }

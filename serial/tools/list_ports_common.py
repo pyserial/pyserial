@@ -8,89 +8,86 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 
-from __future__ import absolute_import
+from __future__ import annotations
 
-import re
 import glob
-import os
 import os.path
+import re
+import typing
 
 
-def numsplit(text):
+def numsplit(text: str) -> tuple[tuple[int, ...], ...]:
     """\
     Convert string into a list of texts and numbers in order to support a
     natural sorting.
     """
-    result = []
+    result: list[tuple[int, ...]] = []
     for group in re.split(r'(\d+)', text):
         if group:
             try:
-                group = int(group)
+                result.append((int(group),))
             except ValueError:
-                pass
-            result.append(group)
-    return result
+                result.append(tuple(b for b in group.encode('utf-8')))
+    return tuple(result)
 
 
-class ListPortInfo(object):
+class ListPortInfo:
     """Info collection base class for serial ports"""
 
-    def __init__(self, device, skip_link_detection=False):
+    def __init__(self, device: str, skip_link_detection: bool = False) -> None:
         self.device = device
         self.name = os.path.basename(device)
         self.description = 'n/a'
         self.hwid = 'n/a'
         # USB specific data
-        self.vid = None
-        self.pid = None
-        self.serial_number = None
-        self.location = None
-        self.manufacturer = None
-        self.product = None
-        self.interface = None
+        self.vid: int | None = None
+        self.pid: int | None = None
+        self.serial_number: str | None = None
+        self.location: str | None = None
+        self.manufacturer: str | None = None
+        self.product: str | None = None
+        self.interface: str | None = None
         # special handling for links
-        if not skip_link_detection and device is not None and os.path.islink(device):
-            self.hwid = 'LINK={}'.format(os.path.realpath(device))
+        if not skip_link_detection and os.path.islink(device):
+            self.hwid = f'LINK={os.path.realpath(device)}'
 
-    def usb_description(self):
+    def usb_description(self) -> str:
         """return a short string to name the port based on USB info"""
         if self.interface is not None:
-            return '{} - {}'.format(self.product, self.interface)
+            return f'{self.product} - {self.interface}'
         elif self.product is not None:
             return self.product
         else:
             return self.name
 
-    def usb_info(self):
+    def usb_info(self) -> str:
         """return a string with USB related information about device"""
         return 'USB VID:PID={:04X}:{:04X}{}{}'.format(
             self.vid or 0,
             self.pid or 0,
-            ' SER={}'.format(self.serial_number) if self.serial_number is not None else '',
-            ' LOCATION={}'.format(self.location) if self.location is not None else '')
+            f' SER={self.serial_number}' if self.serial_number is not None else '',
+            f' LOCATION={self.location}' if self.location is not None else '',
+        )
 
-    def apply_usb_info(self):
-        """update description and hwid from USB data"""
-        self.description = self.usb_description()
-        self.hwid = self.usb_info()
-
-    def __eq__(self, other):
+    def __eq__(self, other: ListPortInfo | typing.Any) -> bool:
         return isinstance(other, ListPortInfo) and self.device == other.device
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.device)
 
-    def __lt__(self, other):
-        if not isinstance(other, ListPortInfo):
-            raise TypeError('unorderable types: {}() and {}()'.format(
-                type(self).__name__,
-                type(other).__name__))
-        return numsplit(self.device) < numsplit(other.device)
+    def __lt__(self, other: ListPortInfo | typing.Any) -> bool:
+        if isinstance(other, ListPortInfo):
+            return numsplit(self.device) < numsplit(other.device)
 
-    def __str__(self):
-        return '{} - {}'.format(self.device, self.description)
+        raise TypeError(
+            'unorderable types: '
+            f'{self.__class__.__name__}() and {other.__class__.__name__}()'
+        )
 
-    def __getitem__(self, index):
+    def __str__(self) -> str:
+        return f'{self.device} - {self.description}'
+
+    def __getitem__(self, index: int) -> str:
         """Item access: backwards compatible -> (port, desc, hwid)"""
         if index == 0:
             return self.device
@@ -98,12 +95,11 @@ class ListPortInfo(object):
             return self.description
         elif index == 2:
             return self.hwid
-        else:
-            raise IndexError('{} > 2'.format(index))
+
+        raise IndexError(f'{index} > 2')
 
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-def list_links(devices):
+def list_links(devices: set[str]) -> list[str]:
     """\
     search all /dev devices and look for symlinks to known ports already
     listed in devices.
@@ -113,9 +109,3 @@ def list_links(devices):
         if os.path.islink(device) and os.path.realpath(device) in devices:
             links.append(device)
     return links
-
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# test
-if __name__ == '__main__':
-    print(ListPortInfo('dummy'))

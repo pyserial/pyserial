@@ -1,0 +1,84 @@
+[project]
+name = "pyserial"
+dynamic = ["version"]
+description = "Python Serial Port Extension"
+authors = [
+    { name = "Chris Liechti", email = "cliechti@gmx.net" },
+]
+license = "BSD-3-Clause"
+readme = "README.rst"
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Natural Language :: English",
+    "Operating System :: POSIX",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS :: MacOS X",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Communications",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Terminals :: Serial",
+]
+
+[project.scripts]
+pyserial-miniterm = "serial.tools.miniterm:main"
+pyserial-ports = "serial.tools.list_ports:main"
+
+[project.optional-dependencies]
+cp2110 = [
+    "hidapi",
+]
+
+[project.urls]
+Source = "https://github.com/pyserial/pyserial"
+Documentation = "https://pyserial.readthedocs.io/en/latest/"
+
+[build-system]
+requires = ["setuptools>=77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "serial.__version__"}
+
+
+# coverage
+# --------
+
+[tool.coverage.run]
+relative_files = true
+parallel = true
+branch = true
+source = [
+    "serial",
+    "test",
+]
+
+[tool.coverage.paths]
+source = [
+    "src",
+    "*/site-packages",
+]
+
+[tool.coverage.report]
+skip_covered = true
+fail_under = 20
+
+
+# pytest
+# ------
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+addopts = "--color=yes"
+filterwarnings = [
+    "error",
+]

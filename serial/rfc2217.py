@@ -389,7 +389,6 @@ class Serial(SerialBase):
         self._modemstate_timeout = Timeout(-1)
         self._remote_suspend_flow = False
         self._write_lock = None
-        self.logger = None
         self._ignore_set_control_answer = False
         self._poll_modem_state = False
         self._network_timeout = 3
@@ -404,7 +403,6 @@ class Serial(SerialBase):
         Open port with current settings. This may throw a SerialException
         if the port cannot be opened.
         """
-        self.logger = None
         self._ignore_set_control_answer = False
         self._poll_modem_state = False
         self._network_timeout = 3
@@ -463,7 +461,7 @@ class Serial(SerialBase):
         self.is_open = True
         self._thread = threading.Thread(target=self._telnet_read_loop)
         self._thread.daemon = True
-        self._thread.setName('pySerial RFC 2217 reader thread for {}'.format(self._port))
+        self._thread.name = 'pySerial RFC 2217 reader thread for {}'.format(self._port)
         self._thread.start()
 
         try:    # must clean-up if open fails

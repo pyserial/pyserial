@@ -7,7 +7,7 @@
 """\
 Test the ability to get and set the settings with a dictionary.
 
-Part of pySerial (http://pyserial.sf.net)  (C) 2002-2015 cliechti@gmx.net
+Part of pySerial (https://github.com/pyserial/pyserial)  (C) 2002-2015 cliechti@gmx.net
 
 """
 
