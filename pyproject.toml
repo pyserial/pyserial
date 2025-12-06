@@ -32,6 +32,7 @@ classifiers = [
 [project.scripts]
 pyserial-miniterm = "serial.tools.miniterm:main"
 pyserial-ports = "serial.tools.list_ports:main"
+pyserial-generate-test-asset = "serial.tools.generate_test_asset:main"
 
 [project.optional-dependencies]
 cp2110 = [
@@ -70,7 +71,7 @@ source = [
 
 [tool.coverage.report]
 skip_covered = true
-fail_under = 20
+fail_under = 30
 
 
 # pytest

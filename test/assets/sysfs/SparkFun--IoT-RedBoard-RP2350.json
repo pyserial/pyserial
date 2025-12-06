@@ -1,0 +1,1217 @@
+{
+  "metadata": {
+    "context": {
+      "manufacturer": "SparkFun",
+      "model": "IoT RedBoard RP2350",
+      "chipset": "RP2350B0A2 30 PAVN10.00 24",
+      "serial_number": "0xffaa_e61c_8e6f_dd10 (returned by MicroPython `machine.unique_id()`)"
+    },
+    "generation_timestamp": "2026-02-27",
+    "platform": {
+      "platform": "Linux-6.17.0-14-generic-x86_64-with-glibc2.39",
+      "python_implementation": "CPython",
+      "system": "Linux",
+      "uname": {
+        "system": "Linux",
+        "release": "6.17.0-14-generic",
+        "version": "#14~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Jan 15 15:52:10 UTC 2",
+        "machine": "x86_64",
+        "processor": "x86_64"
+      },
+      "version": "#14~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Jan 15 15:52:10 UTC 2",
+      "win32_ver": {
+        "release": "",
+        "version": "",
+        "csd": "",
+        "ptype": ""
+      },
+      "win32_edition": null,
+      "mac_ver": {
+        "release": "",
+        "versioninfo": {
+          "version": "",
+          "dev_stage": "",
+          "non_release_version": ""
+        },
+        "machine": ""
+      }
+    },
+    "sys": {
+      "platform": "linux",
+      "version": "3.13.12 (main, Feb  5 2026, 07:51:12) [GCC 13.3.0]"
+    }
+  },
+  "filesystem": [
+    {
+      "path": "/dev/ttyACM0",
+      "type": "char_device"
+    },
+    {
+      "path": "/proc/tty/drivers",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "/dev/tty             /dev/tty        5       0 system:/dev/tty",
+        "/dev/console         /dev/console    5       1 system:console",
+        "/dev/ptmx            /dev/ptmx       5       2 system",
+        "/dev/vc/0            /dev/vc/0       4       0 system:vtmaster",
+        "acm                  /dev/ttyACM   166 0-255 serial",
+        "usbserial            /dev/ttyUSB   188 0-511 serial",
+        "rfcomm               /dev/rfcomm   216 0-255 serial",
+        "dbc_serial           /dev/ttyDBC   241 0-63 serial",
+        "ttyprintk            /dev/ttyprintk   5       3 console",
+        "max310x              /dev/ttyMAX   204 209-224 serial",
+        "serial               /dev/ttyS       4 64-111 serial",
+        "pty_slave            /dev/pts      136 0-1048575 pty:slave",
+        "pty_master           /dev/ptm      128 0-1048575 pty:master",
+        "unknown              /dev/tty        4 1-63 console",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/class/tty/ttyACM0",
+      "type": "symlink",
+      "realpath": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/tty/ttyACM0"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-0:1.0",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-11",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-14",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-4",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/authorized",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/bAlternateSetting",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        " 0",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/bInterfaceClass",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "02",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/bInterfaceNumber",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "00",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/bInterfaceProtocol",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "00",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/bInterfaceSubClass",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "02",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/bNumEndpoints",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "01",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/bmCapabilities",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "6"
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/driver",
+      "type": "symlink",
+      "realpath": "/sys/bus/usb/drivers/cdc_acm"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/ep_81",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/firmware_node",
+      "type": "symlink",
+      "realpath": "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:14/device:15/device:1a"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/iad_bFirstInterface",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "00",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/iad_bFunctionClass",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "02",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/iad_bFunctionProtocol",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "00",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/iad_bFunctionSubClass",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "02",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/iad_bInterfaceCount",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "02",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/interface",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "Board CDC",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/modalias",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "usb:v1B4Fp0047d0100dcEFdsc02dp01ic02isc02ip00in00",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/physical_location",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/power",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/subsystem",
+      "type": "symlink",
+      "realpath": "/sys/bus/usb"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/supports_autosuspend",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/tty",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/tty/ttyACM0",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/tty/ttyACM0/dev",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "166:0",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/tty/ttyACM0/device",
+      "type": "symlink",
+      "realpath": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/tty/ttyACM0/power",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/tty/ttyACM0/subsystem",
+      "type": "symlink",
+      "realpath": "/sys/class/tty"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/tty/ttyACM0/uevent",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "MAJOR=166",
+        "MINOR=0",
+        "DEVNAME=ttyACM0",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.0/uevent",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "DEVTYPE=usb_interface",
+        "DRIVER=cdc_acm",
+        "PRODUCT=1b4f/47/100",
+        "TYPE=239/2/1",
+        "INTERFACE=2/2/0",
+        "MODALIAS=usb:v1B4Fp0047d0100dcEFdsc02dp01ic02isc02ip00in00",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/3-5:1.1",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/authorized",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/avoid_reset_quirk",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "0",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/bConfigurationValue",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/bDeviceClass",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "ef",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/bDeviceProtocol",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "01",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/bDeviceSubClass",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "02",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/bMaxPacketSize0",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "64",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/bMaxPower",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "250mA",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/bNumConfigurations",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/bNumInterfaces",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        " 2",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/bcdDevice",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "0100",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/bmAttributes",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "80",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/busnum",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "3",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/configuration",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/descriptors",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "\u0012\u0001\u0000\u0002\u00ef\u0002\u0001@O\u001bG\u0000\u0000\u0001\u0001\u0002\u0003\u0001\t\u0002K\u0000\u0002\u0001\u0000\u0080}\b\u000b\u0000\u0002\u0002\u0002\u0000\u0000\t\u0004\u0000\u0000\u0001\u0002\u0002\u0000\u0004\u0005$\u0000 \u0001\u0005$\u0001\u0000\u0001\u0004$\u0002\u0006\u0005$\u0006\u0000\u0001\u0007\u0005\u0081\u0003\b\u0000\u0010\t\u0004\u0001\u0000\u0002",
+        "\u0000\u0000\u0000\u0007\u0005\u0002\u0002@\u0000\u0000\u0007\u0005\u0082\u0002@\u0000\u0000"
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/dev",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "189:273",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/devnum",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "18",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/devpath",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "5",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/driver",
+      "type": "symlink",
+      "realpath": "/sys/bus/usb/drivers/usb"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/ep_00",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/firmware_node",
+      "type": "symlink",
+      "realpath": "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:14/device:15/device:1a"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/idProduct",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "0047",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/idVendor",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1b4f",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/ltm_capable",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "no",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/manufacturer",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "MicroPython",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/maxchild",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "0",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/physical_location",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/port",
+      "type": "symlink",
+      "realpath": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-0:1.0/usb3-port5"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/power",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/product",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "Board in FS mode",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/quirks",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "0x0",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/removable",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "removable",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/remove",
+      "type": "file",
+      "os_error": [
+        13,
+        "Permission denied"
+      ],
+      "contents": [
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/rx_lanes",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/serial",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "ffaae61c8e6fdd10",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/speed",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "12",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/subsystem",
+      "type": "symlink",
+      "realpath": "/sys/bus/usb"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/tx_lanes",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/uevent",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "MAJOR=189",
+        "MINOR=273",
+        "DEVNAME=bus/usb/003/018",
+        "DEVTYPE=usb_device",
+        "DRIVER=usb",
+        "PRODUCT=1b4f/47/100",
+        "TYPE=239/2/1",
+        "BUSNUM=003",
+        "DEVNUM=018",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/urbnum",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "14",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/3-5/version",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        " 2.00",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/authorized",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/authorized_default",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/avoid_reset_quirk",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "0",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/bConfigurationValue",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/bDeviceClass",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "09",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/bDeviceProtocol",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "01",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/bDeviceSubClass",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "00",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/bMaxPacketSize0",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "64",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/bMaxPower",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "0mA",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/bNumConfigurations",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/bNumInterfaces",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        " 1",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/bcdDevice",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "0617",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/bmAttributes",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "e0",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/busnum",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "3",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/configuration",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/descriptors",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "\u0012\u0001\u0000\u0002\t\u0000\u0001@k\u001d\u0002\u0000\u0017\u0006\u0003\u0002\u0001\u0001\t\u0002\u0019\u0000\u0001\u0001\u0000\u00e0\u0000\t\u0004\u0000\u0000\u0001\t\u0000\u0000\u0000\u0007\u0005\u0081\u0003\u0004\u0000\f"
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/dev",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "189:256",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/devnum",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/devpath",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "0",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/driver",
+      "type": "symlink",
+      "realpath": "/sys/bus/usb/drivers/usb"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/ep_00",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/firmware_node",
+      "type": "symlink",
+      "realpath": "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:14/device:15"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/idProduct",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "0002",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/idVendor",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1d6b",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/interface_authorized_default",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/ltm_capable",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "no",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/manufacturer",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "Linux 6.17.0-14-generic xhci-hcd",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/maxchild",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "16",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/power",
+      "type": "dir"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/product",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "xHCI Host Controller",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/quirks",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "0x0",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/removable",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "unknown",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/remove",
+      "type": "file",
+      "os_error": [
+        13,
+        "Permission denied"
+      ],
+      "contents": [
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/rx_lanes",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/serial",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "0000:00:14.0",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/speed",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "480",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/subsystem",
+      "type": "symlink",
+      "realpath": "/sys/bus/usb"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/tx_lanes",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "1",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/uevent",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "MAJOR=189",
+        "MINOR=256",
+        "DEVNAME=bus/usb/003/001",
+        "DEVTYPE=usb_device",
+        "DRIVER=usb",
+        "PRODUCT=1d6b/2/617",
+        "TYPE=9/0/1",
+        "BUSNUM=003",
+        "DEVNUM=001",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/urbnum",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        "201",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    },
+    {
+      "path": "/sys/devices/pci0000:00/0000:00:14.0/usb3/version",
+      "type": "file",
+      "os_error": null,
+      "contents": [
+        " 2.00",
+        ""
+      ],
+      "is_truncated": false,
+      "encoding": "iso-8859-1"
+    }
+  ]
+}
