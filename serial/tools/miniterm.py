@@ -13,7 +13,7 @@ import codecs
 import os
 import sys
 import threading
-
+import time
 import serial
 from serial.tools.list_ports import comports
 from serial.tools import hexlify_codec
@@ -856,6 +856,12 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         type=int,
         help='set data bits, default: %(default)s',
         default=8)
+    
+    group.add_argument(
+        '--toggle',
+        choices=['rts', 'dtr'],
+        help='set toggle for RTS or DTR before startup',
+        default=None)
 
     group.add_argument(
         '--stop',
@@ -1024,6 +1030,21 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
                 serial_instance.exclusive = args.exclusive
 
             serial_instance.open()
+            
+            if args.toggle:
+                pulse_width = 0.1
+
+                if args.toggle == 'rts':
+                    sys.stderr.write('--- toggling RTS ---\n')
+                    serial_instance.rts = not serial_instance.rts
+                    time.sleep(pulse_width) # Wait 100ms
+                    serial_instance.rts = not serial_instance.rts
+                elif args.toggle == 'dtr':
+                    sys.stderr.write('--- toggling DTR ---\n')
+                    serial_instance.dtr = not serial_instance.dtr
+                    time.sleep(pulse_width)
+                    serial_instance.dtr = not serial_instance.dtr
+
         except serial.SerialException as e:
             sys.stderr.write('could not open port {!r}: {}\n'.format(args.port, e))
             if args.develop:
