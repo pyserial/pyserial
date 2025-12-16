@@ -1,3 +1,6 @@
+# Copyright 2025 Kurt McKee <contactme@kurtmckee.org>
+# SPDX-License-Identifier: BSD-3-Clause
+
 """
 Generate an asset file suitable for inclusion in the test suite.
 

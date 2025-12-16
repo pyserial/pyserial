@@ -1,3 +1,6 @@
+# Copyright 2025 Kurt McKee <contactme@kurtmckee.org>
+# SPDX-License-Identifier: BSD-3-Clause
+
 import json
 import pathlib
 import typing
