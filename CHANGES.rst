@@ -9,13 +9,81 @@ Unreleased
 
 **Python support**
 
-- Support Python 3.10 and higher.
-- Drop support for all EOL Python versions (Python 3.9 and lower).
+- Support Python 3.10 and higher. (:pr:`811`)
+- Drop support for all EOL Python versions (Python 3.9 and lower). (:pr:`811`)
+- Drop support for IronPython and Jython. (:pr:`814`)
 
-**Removed**
 
-- Remove support for Jython.
-- Remove support for IronPython.
+**New features**
+
+- Support writing ``spy://`` output to log files.
+  (:commit:`9e3b4f364aa50bd62d3044ed0d5221bd42a1c1f4`)
+- Support finding gadget serial ports, like ``/dev/ttyGS0``.
+  (:commit:`d5bfd55418a27fe384912663ddfb930c4d00c014`)
+- Begin adding type annotations to the codebase.
+
+
+**Bugfixes**
+
+- Fix comports being returned twice when ``include_links`` is true. (:pr:`606`)
+- Fix ``.close()`` method call behavior inherited from ``RawIOBase``. (:pr:`693`)
+- Fix MIPS platform detection. (:pr:`723`)
+- Fix setting custom baudrates on MIPS platforms. (:pr:`496`)
+- Allow longer location strings on Windows platforms. (:pr:`663`)
+- Fix ``DeprecationWarning``\s related to ``threading`` module usage. (:pr:`643, 734`)
+- Fix an unlikely ``TypeError`` that could occur when listing ports. (:pr:`832`)
+- Fix a ``termios.error`` error that can occur under Cygwin. (:pr:`834`)
+- Retry ``termios.tcdrain()`` on ``EINTR``. (:pr:`279, 830`)
+- Don't reset the input buffer when calling the ``.open()`` method. (:pr:`250, 829`)
+- Store ``errno`` values in ``SerialException``, if available. (:pr:`786, 823`)
+- Prevent macOS pseudoterminals from hanging. (:pr:`822`)
+- Fix ``UnboundLocalError`` on POSIX platforms. (:pr:`618, 820`)
+- Stop overwriting loggers when calling the ``.open()`` method. (:pr:`764, 818`)
+- Fix Linux custom baud rates after libc changes. (:pr:`808`)
+- Fix Windows interface number gathering. (:pr:`803`)
+- Return the length of transferred data from ``RS485.write()``. (:pr:`782`)
+- Allow Windows port serial numbers to contain hyphens. (:pr:`773`)
+
+
+**Documentation**
+
+- Fix typos, names, phrasing, code examples, and backslash escapes.
+  (:pr:`552, 576, 584, 602, 627, 742, 747, 793, 831`)
+- Fix and update internal references and external links.
+  (:pr:`580, 646, 819`)
+- Remove an incorrect string escape in a docstring.
+  (:commit:`05e437e1643a50870ed1ab3c283844d98521791b`)
+- Clarify a parameter name change. (:pr:`581`)
+- Elaborate on the ``.readline()`` and ``.readlines()`` methods.
+  (:commit:`aa68609f40d16a61f0ba65f4485419c0b04efcc0`)
+- Fix Read the Docs builds. (:pr:`812`)
+- Include the changelog in the documentation. (:pr:`825`)
+- Resolve various build warnings. (:pr:`816`)
+
+
+**Miniterm**
+
+- Fix function key escape codes.
+  (:commit:`8813fb57ac2b51808b424323344305fdca286b23`)
+- Allow an existing serial instance to be passed to miniterm.
+  (:commit:`bce419352b22b2605df6c2158f3e20a15b8061cb`)
+- Write the port prompt to STDERR, not STDOUT. (:pr:`587`)
+- Catch SIGINT on POSIX systems.
+  (:commit:`f7e39f06bd8365db331288928ccd9c47e7dd6a60`)
+- Allow customization of the default EOL to use. (:pr:`659`)
+- Add ``--data`` and ``--stop`` options. (:pr:`649`)
+
+**List Ports**
+
+- Add an ``--only-one`` option. (:pr:`791`)
+
+**Project management**
+
+- Add CI to run the project on Linux, macOS, Windows, and Cygwin.
+  (:pr:`813, 822, 834`)
+- Migrate to PEP 621 metadata in ``pyproject.toml``
+  and fix build warnings. (:pr:`811`)
+- Fix deprecated ``unittest`` API usage. (:pr:`757`)
 
 
 .. _changelog-3.5:
