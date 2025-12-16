@@ -38,6 +38,7 @@ Contents:
     :maxdepth: 1
 
     Changelog <changelog>
+    Contributing <contributing>
 
 
 Indices and tables
