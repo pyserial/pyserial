@@ -347,13 +347,7 @@ class Serial(SerialBase, PlatformSpecific):
             self._reconfigure_port(force_update=True)
 
             try:
-                if (not self._rtscts) and (not self._dsrdtr):
-                    self._update_rts_and_dtr_state()
-                else:
-                    if not self._rtscts:
-                        self._update_rts_state()
-                    if not self._dsrdtr:
-                        self._update_dtr_state()
+                self._update_rts_and_dtr_state()
             except IOError as e:
                 # ignore Invalid argument and Inappropriate ioctl
                 if e.errno not in (errno.EINVAL, errno.ENOTTY):
