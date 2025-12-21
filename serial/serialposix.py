@@ -751,7 +751,7 @@ class Serial(SerialBase, PlatformSpecific):
         """Set terminal status line: Request To Send and Data Terminal Ready"""
         if self._dtr_state:
             if self._rts_state:
-                fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_DTRRTS_str )
+                fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_DTRRTS_str)
             else:
                 fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_DTR_str)
                 fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_RTS_str)
