@@ -760,7 +760,7 @@ class Serial(SerialBase, PlatformSpecific):
                 fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_DTR_str)
                 fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_RTS_str)
             else:
-                fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_DTRRTS_str )
+                fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_DTRRTS_str)
 
     def _update_rts_state(self):
         """Set terminal status line: Request To Send"""
