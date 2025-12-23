@@ -476,6 +476,10 @@ class SerialBase(io.RawIOBase):
         if self.is_open:
             self._update_dtr_state()
 
+    def _update_rts_and_dtr_state(self):
+        self._update_rts_state()
+        self._update_dtr_state()
+
     @property
     def rtsdtr(self):
         return (self._rts_state,self._dtr_state)
@@ -484,6 +488,8 @@ class SerialBase(io.RawIOBase):
     def rtsdtr(self, value):
         self._rts_state,self._dtr_state = value
         self._update_rts_and_dtr_state()
+
+
 
     @property
     def break_condition(self):
