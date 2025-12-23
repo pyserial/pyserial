@@ -308,6 +308,7 @@ else:
 TIOCOUTQ = getattr(termios, 'TIOCOUTQ', 0x5411)
 
 TIOCM_zero_str = struct.pack('I', 0)
+TIOCM_all_str = struct.pack('I',   0xFFFFFFFF )
 TIOCM_RTS_str = struct.pack('I', TIOCM_RTS)
 TIOCM_DTR_str = struct.pack('I', TIOCM_DTR)
 TIOCM_DTRRTS_str = struct.pack('I', TIOCM_DTRRTS)
@@ -753,12 +754,18 @@ class Serial(SerialBase, PlatformSpecific):
             if self._rts_state:
                 fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_DTRRTS_str)
             else:
-                fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_DTR_str)
-                fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_RTS_str)
+                s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_all_str)
+                v = struct.unpack('I', s)[0]
+                v |= TIOCM_DTR
+                v &= ~TIOCM_RTS
+                fcntl.ioctl(self.fd, TIOCMSET, struct.pack('I', v))
         else:
             if self._rts_state:
-                fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_DTR_str)
-                fcntl.ioctl(self.fd, TIOCMBIS, TIOCM_RTS_str)
+                s = fcntl.ioctl(self.fd, TIOCMGET, TIOCM_all_str)
+                v = struct.unpack('I', s)[0]
+                v &= ~TIOCM_DTR
+                v |= TIOCM_RTS
+                fcntl.ioctl(self.fd, TIOCMSET, struct.pack('I', v))
             else:
                 fcntl.ioctl(self.fd, TIOCMBIC, TIOCM_DTRRTS_str)
 
