@@ -372,19 +372,6 @@ class Serial(SerialBase):
         else:
             win32.ClearCommBreak(self._port_handle)
 
-    def _update_rts_and_dtr_state(self):
-        """Set terminal status line: Request To Send and Data Terminal Ready"""
-        comDCB = win32.DCB()
-        win32.GetCommState(self._port_handle, ctypes.byref(comDCB))
-
-        comDCB.fDtrControl = win32.DTR_CONTROL_ENABLE if self._dtr_state else win32.DTR_CONTROL_DISABLE
-        comDCB.fRtsControl = win32.RTS_CONTROL_ENABLE if self._rts_state else win32.RTS_CONTROL_DISABLE
-
-        if not win32.SetCommState(self._port_handle, ctypes.byref(comDCB)):
-            raise SerialException(
-                'Cannot update RTS and DTR for port, something went wrong. '
-                'Original message: {!r}'.format(ctypes.WinError()))
-
     def _update_rts_state(self):
         """Set terminal status line: Request To Send"""
         if self._rts_state:
