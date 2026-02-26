@@ -57,7 +57,7 @@ class ATProtocol(serial.threaded.LineReader):
         while self.alive:
             try:
                 self.handle_event(self.events.get())
-            except:
+            except Exception:
                 logging.exception('_run_event')
 
     def handle_line(self, line):

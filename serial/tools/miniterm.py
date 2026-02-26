@@ -554,7 +554,7 @@ class Miniterm(object):
                         for transformation in self.tx_transformations:
                             echo_text = transformation.echo(echo_text)
                         self.console.write(echo_text)
-        except:
+        except Exception:
             self.alive = False
             raise
 

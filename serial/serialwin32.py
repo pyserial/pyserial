@@ -85,10 +85,10 @@ class Serial(SerialBase):
                 self._port_handle,
                 win32.PURGE_TXCLEAR | win32.PURGE_TXABORT |
                 win32.PURGE_RXCLEAR | win32.PURGE_RXABORT)
-        except:
+        except Exception:
             try:
                 self._close()
-            except:
+            except Exception:
                 # ignore any exception when closing the port
                 # also to keep original exception that happened when setting up
                 pass

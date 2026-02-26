@@ -490,7 +490,7 @@ class Serial(SerialBase):
                 self._update_rts_state()
             self.reset_input_buffer()
             self.reset_output_buffer()
-        except:
+        except Exception:
             self.close()
             raise
 
@@ -545,7 +545,7 @@ class Serial(SerialBase):
             try:
                 self._socket.shutdown(socket.SHUT_RDWR)
                 self._socket.close()
-            except:
+            except Exception:
                 # ignore errors.
                 pass
         if self._thread:

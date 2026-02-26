@@ -117,7 +117,7 @@ class Forwarder(ZeroconfService):
         try:
             if self.alive:
                 self.close()
-        except:
+        except Exception:
             pass  # XXX errors on shutdown
 
     def open(self):
@@ -573,6 +573,6 @@ terminated, it waits for the next connect.
             sys.stdout.write('\n')
         except SystemExit:
             raise
-        except:
+        except Exception:
             #~ raise
             traceback.print_exc()
