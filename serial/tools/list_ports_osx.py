@@ -232,30 +232,13 @@ class SuitableSerialInterface(object):
     pass
 
 
-def scan_interfaces():
-    """
-    helper function to scan USB interfaces
-    returns a list of SuitableSerialInterface objects with name and id attributes
-    """
-    interfaces = []
-    for service in GetIOServicesByType('IOSerialBSDClient'):
-        device = get_string_property(service, "IOCalloutDevice")
-        if device:
-            usb_device = GetParentDeviceByType(service, "IOUSBInterface")
-            if usb_device:
-                name = get_string_property(usb_device, "USB Interface Name") or None
-                locationID = get_int_property(usb_device, "locationID", kCFNumberSInt32Type) or ''
-                i = SuitableSerialInterface()
-                i.id = locationID
-                i.name = name
-                interfaces.append(i)
-    return interfaces
-
-
-def search_for_locationID_in_interfaces(serial_interfaces, locationID):
-    for interface in serial_interfaces:
-        if (interface.id == locationID):
-            return interface.name
+def get_interface_name_from_service(service):
+    # Try both IOUSBHostInterface (modern) and IOUSBInterface (legacy)
+    usb_interface = GetParentDeviceByType(service, "IOUSBHostInterface")
+    if not usb_interface:
+        usb_interface = GetParentDeviceByType(service, "IOUSBInterface")
+    if usb_interface:
+        return get_string_property(usb_interface, "kUSBString")
     return None
 
 
@@ -264,7 +247,6 @@ def comports(include_links=False):
     # Scan for all iokit serial ports
     services = GetIOServicesByType('IOSerialBSDClient')
     ports = []
-    serial_interfaces = scan_interfaces()
     for service in services:
         # First, add the callout device file.
         device = get_string_property(service, "IOCalloutDevice")
@@ -288,7 +270,7 @@ def comports(include_links=False):
                 info.manufacturer = get_string_property(usb_device, kUSBVendorString)
                 locationID = get_int_property(usb_device, "locationID", kCFNumberSInt32Type)
                 info.location = location_to_string(locationID)
-                info.interface = search_for_locationID_in_interfaces(serial_interfaces, locationID)
+                info.interface = get_interface_name_from_service(service)
                 info.description = info.usb_description()
                 info.hwid = info.usb_info()
             ports.append(info)
