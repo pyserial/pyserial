@@ -18,6 +18,7 @@
 
 from __future__ import absolute_import
 
+import ctypes
 import errno
 import logging
 import select
@@ -136,10 +137,29 @@ class Serial(SerialBase):
         """Return the number of bytes currently in the input buffer."""
         if not self.is_open:
             raise PortNotOpenError()
-        # Poll the socket to see if it is ready for reading.
-        # If ready, at least one byte will be to read.
-        lr, lw, lx = select.select([self._socket], [], [], 0)
-        return len(lr)
+
+        if sys.platform in ('linux', 'darwin'):
+            # Linux, Mac OS X
+            pending = ctypes.c_int()
+            libc = ctypes.CDLL(None)
+            libc.ioctl(
+                self._socket.fileno(),
+                0x541B,
+                ctypes.byref(pending)
+            )
+            return pending.value
+        elif sys.platform == 'win32':
+            # Windows
+            pending = ctypes.c_ulong()
+            ctypes.windll.ws2_32.ioctlsocket(
+                sock.fileno(),
+                0x4004667F,  # FIONREAD
+                ctypes.byref(pending)
+            )
+            return pending.value
+        else:
+            # Other platforms are not supported
+            raise NotImplementedError('platform not supported')
 
     # select based implementation, similar to posix, but only using socket API
     # to be portable, additionally handle socket timeout which is used to
@@ -163,7 +183,7 @@ class Serial(SerialBase):
                 # there is nothing to read.
                 if not ready:
                     break   # timeout
-                buf = self._socket.recv(size - len(read))
+                buf = self._socket.recv(min(size - len(read), self.in_waiting))
                 # read should always return some data as select reported it was
                 # ready to read when we get to this point, unless it is EOF
                 if not buf:
