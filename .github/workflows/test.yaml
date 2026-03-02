@@ -25,8 +25,6 @@ jobs:
 
     steps:
       - uses: "actions/checkout@v5"
-        with:
-          fetch-depth: 0
       - uses: "actions/setup-python@v6"
         env:
           PIP_DISABLE_PIP_VERSION_CHECK: "1"
@@ -44,6 +42,8 @@ jobs:
       - name: "Run test suite"
         env:
           TOX_SKIP_ENV: "coverage-html"
+          # Shallow clones may not have tags; exact version not needed for tests.
+          SETUPTOOLS_SCM_PRETEND_VERSION: "0.0.0"
         run: |
           tox
 
@@ -75,5 +75,7 @@ jobs:
         shell: "bash -o igncr {0}"
         env:
           TOX_SKIP_ENV: "coverage-html"
+          # Shallow clones may not have tags; exact version not needed for tests.
+          SETUPTOOLS_SCM_PRETEND_VERSION: "0.0.0"
         run: |
           python3.12 -m tox
