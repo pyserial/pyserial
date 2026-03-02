@@ -1,0 +1,71 @@
+name: "Release"
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+
+jobs:
+  test:
+    uses: "./.github/workflows/test.yaml"
+
+  build:
+    name: "Build"
+    needs: test
+    runs-on: "ubuntu-24.04"
+
+    steps:
+      - uses: "actions/checkout@v5"
+        with:
+          fetch-depth: 0
+
+      - uses: "astral-sh/setup-uv@v6"
+
+      - name: "Build sdist and wheel"
+        run: |
+          uv build --out-dir dist/
+
+      - uses: "actions/upload-artifact@v4"
+        with:
+          name: dist
+          path: "dist/"
+          if-no-files-found: error
+
+  github-release:
+    name: "GitHub Release"
+    needs: build
+    runs-on: "ubuntu-24.04"
+    permissions:
+      contents: write
+
+    steps:
+      - uses: "actions/download-artifact@v4"
+        with:
+          name: dist
+          path: "dist/"
+
+      - uses: "softprops/action-gh-release@v2.5.0"
+        with:
+          files: "dist/*"
+          prerelease: "${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'a') || contains(github.ref_name, 'b') || contains(github.ref_name, 'dev') }}"
+          generate_release_notes: true
+
+  pypi-publish:
+    name: "Publish to PyPI"
+    needs: build
+    runs-on: "ubuntu-24.04"
+    environment: pypi
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: "actions/download-artifact@v4"
+        with:
+          name: dist
+          path: "dist/"
+
+      - uses: "astral-sh/setup-uv@v6"
+
+      - name: "Publish to PyPI"
+        run: |
+          uv publish --trusted-publishing always dist/*

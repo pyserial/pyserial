@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "master"
+  workflow_call: null
 
 jobs:
   test:
@@ -24,6 +25,8 @@ jobs:
 
     steps:
       - uses: "actions/checkout@v5"
+        with:
+          fetch-depth: 0
       - uses: "actions/setup-python@v6"
         env:
           PIP_DISABLE_PIP_VERSION_CHECK: "1"
