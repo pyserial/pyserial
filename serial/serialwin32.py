@@ -77,7 +77,7 @@ class Serial(SerialBase):
             self._orgTimeouts = win32.COMMTIMEOUTS()
             win32.GetCommTimeouts(self._port_handle, ctypes.byref(self._orgTimeouts))
 
-            self._reconfigure_port()
+            self._reconfigure_port(force_update=True)
 
             # Clear buffers:
             # Remove anything that was there
@@ -97,7 +97,7 @@ class Serial(SerialBase):
         else:
             self.is_open = True
 
-    def _reconfigure_port(self):
+    def _reconfigure_port(self, force_update=False):
         """Set communication parameters on opened port."""
         if not self._port_handle:
             raise SerialException("Can only operate on a valid port handle")
@@ -131,6 +131,7 @@ class Serial(SerialBase):
         # Get state and modify it:
         comDCB = win32.DCB()
         win32.GetCommState(self._port_handle, ctypes.byref(comDCB))
+        orig_comDCB = comDCB
         comDCB.BaudRate = self._baudrate
 
         if self._bytesize == serial.FIVEBITS:
@@ -218,10 +219,11 @@ class Serial(SerialBase):
         comDCB.XonChar = serial.XON
         comDCB.XoffChar = serial.XOFF
 
-        if not win32.SetCommState(self._port_handle, ctypes.byref(comDCB)):
-            raise SerialException(
-                'Cannot configure port, something went wrong. '
-                'Original message: {!r}'.format(ctypes.WinError()))
+        if force_update or comDCB != orig_comDCB:
+            if not win32.SetCommState(self._port_handle, ctypes.byref(comDCB)):
+                raise SerialException(
+                    'Cannot configure port, something went wrong. '
+                    'Original message: {!r}'.format(ctypes.WinError()))
 
     #~ def __del__(self):
         #~ self.close()
