@@ -318,7 +318,17 @@ class Serial(SerialBase):
 
                 # Wait for the write to complete.
                 #~ win32.WaitForSingleObject(self._overlapped_write.hEvent, win32.INFINITE)
-                win32.GetOverlappedResult(self._port_handle, self._overlapped_write, ctypes.byref(n), True)
+                WAIT_TIMEOUT = 0x00000102
+                if self._write_timeout is None:
+                    timeout_ms = win32.INFINITE
+                else:
+                    timeout_ms = int(self._write_timeout * 1000)
+                rc = win32.WaitForSingleObject(self._overlapped_write.hEvent, timeout_ms)
+                if rc == WAIT_TIMEOUT:
+                    self.cancel_write()
+                    raise SerialTimeoutException('Write timeout due to device blocking.')
+
+                win32.GetOverlappedResult(self._port_handle, self._overlapped_write, ctypes.byref(n), False)
                 if win32.GetLastError() == win32.ERROR_OPERATION_ABORTED:
                     return n.value  # canceled IO is no error
                 if n.value != len(data):
