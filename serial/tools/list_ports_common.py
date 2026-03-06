@@ -105,7 +105,7 @@ def list_links(devices: set[str]) -> list[str]:
     listed in devices.
     """
     links = []
-    for device in glob.glob('/dev/*'):
+    for device in glob.glob('/dev/*') + glob.glob('/dev/serial/by-id/*'):
         if os.path.islink(device) and os.path.realpath(device) in devices:
             links.append(device)
     return links
