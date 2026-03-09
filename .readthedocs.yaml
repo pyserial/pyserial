@@ -1,3 +1,5 @@
+# RTD dashboard should be configured to only activate tagged versions
+# to avoid dev version strings (e.g. 3.6.dev81+g...) in published docs.
 version: 2
 
 build:
@@ -15,3 +17,5 @@ sphinx:
 python:
   install:
     - requirements: "requirements/docs/requirements.txt"
+    - method: pip
+      path: .
