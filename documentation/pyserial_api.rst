@@ -283,6 +283,14 @@ Native ports
         value before opening the serial port, then the value is applied upon
         :meth:`open` (with restrictions, see :meth:`open`).
 
+    .. attribute:: rtsdtr
+
+        :setter: Set the state of the RTS and the DTR line
+        :getter: Return the state of the RTS and DTR line
+        :type: pair of bool
+
+        Set RTS and DTR line to specified logic level.
+
     Read-only attributes:
 
     .. attribute:: name
