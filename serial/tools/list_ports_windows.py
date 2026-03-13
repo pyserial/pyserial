@@ -364,6 +364,7 @@ def iterate_comports():
                                 location.append('-')
                             location.append(g.group(2))
                     if bInterfaceNumber is not None:
+                        info.interface = bInterfaceNumber
                         location.append(':{}.{}'.format(
                             'x',  # XXX how to determine correct bConfigurationValue?
                             bInterfaceNumber))
