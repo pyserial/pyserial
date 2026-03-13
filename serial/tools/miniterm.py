@@ -400,7 +400,7 @@ class Miniterm(object):
     Handle special keys from the console to show menu etc.
     """
 
-    def __init__(self, serial_instance, echo=False, eol='crlf', filters=()):
+    def __init__(self, serial_instance, echo=False, eol='crlf', filters=(), output_log=[]):
         self.console = Console(self)
         self.serial = serial_instance
         self.echo = echo
@@ -418,7 +418,15 @@ class Miniterm(object):
         self.rx_decoder = None
         self.tx_decoder = None
         self.tx_encoder = None
+        self.output_log = output_log
+        self.init_logs()
 
+    def init_logs(self):
+        logfiles = []
+        for n in self.output_log:
+            logfiles.append(open(n,'wb'))
+        self.logfiles = tuple(logfiles)
+        
     def _start_reader(self):
         """Start reader thread"""
         self._reader_alive = True
@@ -508,6 +516,9 @@ class Miniterm(object):
                 # read all that is there or wait for one byte
                 data = self.serial.read(self.serial.in_waiting or 1)
                 if data:
+                    for f in self.logfiles:
+                        f.write(data)
+                        f.flush()
                     if self.raw:
                         self.console.write_bytes(data)
                     else:
@@ -961,6 +972,13 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         default=False)
 
     group.add_argument(
+        '-w', '--output-log',
+        action='append',
+        metavar='NAME',
+        help='log serial data to file',
+        default=[])
+
+    group.add_argument(
         '--develop',
         action='store_true',
         help='show Python traceback on error',
@@ -1039,7 +1057,8 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         serial_instance,
         echo=args.echo,
         eol=args.eol.lower(),
-        filters=filters)
+        filters=filters,
+        output_log=args.output_log)
     miniterm.exit_character = unichr(args.exit_char)
     miniterm.menu_character = unichr(args.menu_char)
     miniterm.raw = args.raw
