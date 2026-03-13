@@ -27,7 +27,7 @@ import sys
 import time
 
 import serial
-from serial.serialutil import  to_bytes
+from serial.serialutil import to_bytes
 
 try:
     import urlparse
@@ -74,14 +74,24 @@ def hexdump(data):
             ascii.append(a)
 
 
-class FormatRaw(object):
-    """Forward only RX and TX data to output."""
+class FormatBase(object):
+    rx_color = '\x1b[32m'
+    tx_color = '\x1b[31m'
+    control_color = '\x1b[37m'
 
     def __init__(self, output, color):
         self.output = output
         self.color = color
-        self.rx_color = '\x1b[32m'
-        self.tx_color = '\x1b[31m'
+
+    def open(self):
+        pass
+
+    def close(self):
+        pass
+
+
+class FormatRaw(FormatBase):
+    """Forward only RX and TX data to output."""
 
     def rx(self, data):
         """show received data"""
@@ -102,7 +112,7 @@ class FormatRaw(object):
         pass
 
 
-class FormatHexdump(object):
+class FormatHexdump(FormatBase):
     """\
     Create a hex dump of RX ad TX data, show when control lines are read or
     written.
@@ -117,13 +127,9 @@ class FormatHexdump(object):
 
     """
 
-    def __init__(self, output, color):
+    def __init__(self, *args, **kwargs):
         self.start_time = time.time()
-        self.output = output
-        self.color = color
-        self.rx_color = '\x1b[32m'
-        self.tx_color = '\x1b[31m'
-        self.control_color = '\x1b[37m'
+        super(FormatHexdump, self).__init__(*args, **kwargs)
 
     def write_line(self, timestamp, label, value, value2=''):
         self.output.write('{:010.3f} {:4} {}{}\n'.format(timestamp, label, value, value2))
@@ -153,7 +159,33 @@ class FormatHexdump(object):
         self.write_line(time.time() - self.start_time, name, value)
 
 
-class FormatLog(object):
+class FormatFileRaw(FormatRaw):
+
+    def __init__(self, *args, **kwargs):
+        super(FormatFileRaw, self).__init__(*args, **kwargs)
+        self._output = self.output
+
+    def open(self):
+        self.output = open(self._output, 'wb')
+
+    def close(self):
+        self.output.close()
+
+
+class FormatFileHexdump(FormatHexdump):
+
+    def __init__(self, *args, **kwargs):
+        super(FormatFileHexdump, self).__init__(*args, **kwargs)
+        self._output = self.output
+
+    def open(self):
+        self.output = open(self._output, 'w')
+
+    def close(self):
+        self.output.close()
+
+
+class FormatLog(FormatBase):
     """\
     Write data to logging module.
     """
@@ -223,13 +255,19 @@ class Serial(serial.Serial):
         color = False
         output = sys.stderr
         try:
-            for option, values in urlparse.parse_qs(parts.query, True).items():
+            spy_options = urlparse.parse_qs(parts.query, True)
+            for option, values in spy_options.items():
                 if option == 'file':
-                    output = open(values[0], 'w')
+                    output = values[0]
+                    if 'raw' in spy_options:
+                        formatter = FormatFileRaw
+                    else:
+                        formatter = FormatFileHexdump
                 elif option == 'color':
                     color = True
                 elif option == 'raw':
-                    formatter = FormatRaw
+                    if 'file' not in spy_options:
+                        formatter = FormatRaw
                 elif option == 'rawlog':
                     formatter = FormatLog
                     output = values[0] if values[0] else 'serial'
@@ -246,6 +284,14 @@ class Serial(serial.Serial):
                 '"spy://port[?option[=value][&option[=value]]]": {}'.format(e))
         self.formatter = formatter(output, color)
         return ''.join([parts.netloc, parts.path])
+
+    def open(self):
+        self.formatter.open()
+        super(Serial, self).open()
+
+    def close(self):
+        super(Serial, self).close()
+        self.formatter.close()
 
     def write(self, tx):
         tx = to_bytes(tx)
