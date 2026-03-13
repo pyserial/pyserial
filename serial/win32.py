@@ -103,6 +103,10 @@ GetOverlappedResult = _stdcall_libraries['kernel32'].GetOverlappedResult
 GetOverlappedResult.restype = BOOL
 GetOverlappedResult.argtypes = [HANDLE, LPOVERLAPPED, LPDWORD, BOOL]
 
+GetOverlappedResultEx = _stdcall_libraries['kernel32'].GetOverlappedResultEx
+GetOverlappedResultEx.restype = BOOL
+GetOverlappedResultEx.argtypes = [HANDLE, LPOVERLAPPED, LPDWORD, DWORD, BOOL]
+
 ResetEvent = _stdcall_libraries['kernel32'].ResetEvent
 ResetEvent.restype = BOOL
 ResetEvent.argtypes = [HANDLE]
@@ -231,6 +235,7 @@ ERROR_OPERATION_ABORTED = 995
 ERROR_IO_INCOMPLETE = 996
 ERROR_IO_PENDING = 997  # Variable c_long
 ERROR_INVALID_USER_BUFFER = 1784
+WAIT_TIMEOUT = 258
 
 MS_CTS_ON = 16  # Variable c_ulong
 EV_EVENT1 = 2048  # Variable c_int
