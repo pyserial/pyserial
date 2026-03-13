@@ -44,7 +44,6 @@ LPBYTE = PBYTE = ctypes.c_void_p        # XXX avoids error about types
 ACCESS_MASK = DWORD
 REGSAM = ACCESS_MASK
 
-
 class GUID(ctypes.Structure):
     _fields_ = [
         ('Data1', DWORD),
@@ -62,6 +61,19 @@ class GUID(ctypes.Structure):
             ''.join(["{:02x}".format(d) for d in self.Data4[2:]]),
         )
 
+
+DEVPROPID = ULONG
+DEVPROPGUID = GUID
+DEVPROPTYPE = ULONG
+PDEVPROPTYPE = ctypes.POINTER(DEVPROPTYPE)
+
+class DEVPROPKEY(ctypes.Structure):
+    _fields_ = [
+        ('fmtid', DEVPROPGUID),
+        ('pid', DEVPROPID),
+    ]
+
+PDEVPROPKEY = ctypes.POINTER(DEVPROPKEY)
 
 class SP_DEVINFO_DATA(ctypes.Structure):
     _fields_ = [
@@ -96,6 +108,10 @@ SetupDiGetClassDevs = setupapi.SetupDiGetClassDevsW
 SetupDiGetClassDevs.argtypes = [ctypes.POINTER(GUID), PCTSTR, HWND, DWORD]
 SetupDiGetClassDevs.restype = HDEVINFO
 SetupDiGetClassDevs.errcheck = ValidHandle
+
+SetupDiGetDeviceProperty = setupapi.SetupDiGetDevicePropertyW
+SetupDiGetDeviceProperty.argtypes = [HDEVINFO, PSP_DEVINFO_DATA, PDEVPROPKEY, PDEVPROPTYPE, PBYTE, DWORD, PDWORD, DWORD]
+SetupDiGetDeviceProperty.restype = BOOL
 
 SetupDiGetDeviceRegistryProperty = setupapi.SetupDiGetDeviceRegistryPropertyW
 SetupDiGetDeviceRegistryProperty.argtypes = [HDEVINFO, PSP_DEVINFO_DATA, DWORD, PDWORD, PBYTE, DWORD, PDWORD]
@@ -412,7 +428,27 @@ def iterate_comports():
                     ctypes.sizeof(szManufacturer) - 1,
                     None):
                 info.manufacturer = szManufacturer.value
+            # interface
+            devproptype = DEVPROPTYPE()
+            szInterface = ctypes.create_unicode_buffer(250)
+            if SetupDiGetDeviceProperty(
+                    g_hdi,
+                    ctypes.byref(devinfo),
+                    ctypes.byref(DEVPROPKEY(
+                        DEVPROPGUID(0x540B947E, 0x8B40, 0x45BC, (0xA8, 0xA2, 0x6A, 0x0B, 0x89, 0x4C, 0xBD, 0xA2)),
+                        4)
+                    ),
+                    ctypes.byref(devproptype),
+                    ctypes.byref(szInterface),
+                    ctypes.sizeof(szInterface) - 1,
+                    None,
+                    0):
+                info.interface = szInterface.value
+            else:
+                info.interface = None
+
             yield info
+
         SetupDiDestroyDeviceInfoList(g_hdi)
 
 
