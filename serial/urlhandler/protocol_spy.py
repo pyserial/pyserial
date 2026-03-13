@@ -330,6 +330,11 @@ class Serial(serial.Serial):
         self.formatter.control('CD', 'active' if level else 'inactive')
         return level
 
+    def close(self):
+        if self.formatter.output.name != 'stderr':
+            self.formatter.output.close()
+        super(Serial, self).close()
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __name__ == '__main__':
     ser = Serial(None)
