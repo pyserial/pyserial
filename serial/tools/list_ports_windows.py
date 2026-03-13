@@ -333,7 +333,7 @@ def iterate_comports():
                     if m.group(3):
                         info.pid = int(m.group(3), 16)
                     if m.group(5):
-                        bInterfaceNumber = int(m.group(5))
+                        info.interface = int(m.group(5))
 
                     # Check that the USB serial number only contains alphanumeric characters. It
                     # may be a windows device ID (ephemeral ID) for composite devices.
@@ -363,10 +363,10 @@ def iterate_comports():
                             else:
                                 location.append('-')
                             location.append(g.group(2))
-                    if bInterfaceNumber is not None:
+                    if info.interface is not None:
                         location.append(':{}.{}'.format(
                             'x',  # XXX how to determine correct bConfigurationValue?
-                            bInterfaceNumber))
+                            info.interface))
                     if location:
                         info.location = ''.join(location)
                 info.hwid = info.usb_info()
@@ -397,7 +397,7 @@ def iterate_comports():
             #~ else:
                 # Ignore ERROR_INSUFFICIENT_BUFFER
                 #~ if ctypes.GetLastError() != ERROR_INSUFFICIENT_BUFFER:
-                    #~ raise IOError("failed to get details for %s (%s)" % (devinfo, szHardwareID.value))
+                #~ raise IOError("failed to get details for %s (%s)" % (devinfo, szHardwareID.value))
                 # ignore errors and still include the port in the list, friendly name will be same as port name
 
             # manufacturer
@@ -419,6 +419,7 @@ def iterate_comports():
 def comports(include_links=False):
     """Return a list of info objects about serial ports"""
     return list(iterate_comports())
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test
