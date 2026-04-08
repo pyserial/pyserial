@@ -37,6 +37,7 @@ import select
 import struct
 import sys
 import termios
+import weakref
 
 import serial
 from serial.serialutil import SerialBase, SerialException, to_bytes, \
@@ -279,6 +280,11 @@ else:
         pass
 
 
+def _close_fds(*fds):
+    for fd in fds:
+        os.close(fd)
+
+
 # load some constants for later use.
 # try to use values from termios, use defaults from linux otherwise
 TIOCMGET = getattr(termios, 'TIOCMGET', 0x5415)
@@ -330,6 +336,7 @@ class Serial(SerialBase, PlatformSpecific):
         if self.is_open:
             raise SerialException("Port is already open.")
         self.fd = None
+        self._finalizer = None
         # open
         try:
             self.fd = os.open(self.name, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
@@ -381,6 +388,16 @@ class Serial(SerialBase, PlatformSpecific):
                 self.pipe_abort_write_r = None
 
             raise
+
+        self._finalizer = weakref.finalize(
+            self,
+            _close_fds,
+            self.fd,
+            self.pipe_abort_read_r,
+            self.pipe_abort_read_w,
+            self.pipe_abort_write_r,
+            self.pipe_abort_write_w,
+        )
 
         self.is_open = True
 
@@ -534,12 +551,10 @@ class Serial(SerialBase, PlatformSpecific):
         """Close port"""
         if self.is_open:
             if self.fd is not None:
-                os.close(self.fd)
+                if self._finalizer is not None:
+                    self._finalizer()
+                    self._finalizer = None
                 self.fd = None
-                os.close(self.pipe_abort_read_w)
-                os.close(self.pipe_abort_read_r)
-                os.close(self.pipe_abort_write_w)
-                os.close(self.pipe_abort_write_r)
                 self.pipe_abort_read_r, self.pipe_abort_read_w = None, None
                 self.pipe_abort_write_r, self.pipe_abort_write_w = None, None
             self.is_open = False
