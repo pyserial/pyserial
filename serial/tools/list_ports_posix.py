@@ -50,11 +50,7 @@ elif plat[:7] == 'openbsd':    # OpenBSD
         return [list_ports_common.ListPortInfo(d) for d in devices]
 
 elif plat[:3] == 'bsd' or plat[:7] == 'freebsd':
-    def comports(include_links=False):
-        devices = set(glob.glob('/dev/cua*[!.init][!.lock]'))
-        if include_links:
-            devices.update(list_ports_common.list_links(devices))
-        return [list_ports_common.ListPortInfo(d) for d in devices]
+    from serial.tools.list_ports_freebsd import comports
 
 elif plat[:6] == 'netbsd':   # NetBSD
     def comports(include_links=False):
