@@ -2,32 +2,37 @@ name: build and publish
 
 on: workflow_call
 
+permissions:
+  contents: read
+
 jobs:
   release:
-    runs-on: ubuntu-22.04
+    runs-on: [self-hosted, software]
     continue-on-error: false
+    permissions:
+      contents: read
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         fetch-depth: 0
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
       with:
         python-version: "3.11"
     - name: Install python dependencies
       run: |
-        python -m pip install --upgrade pip build
+        python -m pip install --require-hashes --no-deps -r requirements-dev.txt
     - name: Build sdist
       run: |
         python -m build
     - name: Publish distribution 📦 to Test PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
+      uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc # v1.12.4
       if: startsWith(github.ref, 'refs/tags') != true
       with:
         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
         repository-url: https://test.pypi.org/legacy/
     - name: Publish distribution 📦 to PyPI
       if: startsWith(github.ref, 'refs/tags')
-      uses: pypa/gh-action-pypi-publish@release/v1
+      uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc # v1.12.4
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}

@@ -2,6 +2,9 @@ name: unit tests
 
 on: [push, pull_request, workflow_dispatch]
 
+permissions:
+  contents: read
+
 jobs:
   push-pr-unit-tests:
     name: unit tests

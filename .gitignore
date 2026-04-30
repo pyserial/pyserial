@@ -11,3 +11,4 @@ dist
 .idea
 venv
 xxx*
+.DS_Store
