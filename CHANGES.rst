@@ -6,6 +6,12 @@
 Unreleased
 ==========
 
+**New Features**
+
+- [#756] miniterm: Add ``--toggle`` and ``--toggle-duration`` to pulse RTS or
+  DTR once after opening the port, useful to reset a device that watches
+  this line.
+
 
 **Python support**
 
