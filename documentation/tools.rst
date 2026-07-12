@@ -216,9 +216,10 @@ Command line options ``python -m serial.tools.miniterm -h``::
       --xonxoff             enable software flow control (default off)
       --rts RTS             set initial RTS line state (possible values: 0, 1)
       --dtr DTR             set initial DTR line state (possible values: 0, 1)
-      --toggle {rts,dtr}    pulse RTS or DTR once after opening the port, useful
-                            to reset a device that watches this line, see
-                            --toggle-duration
+      --toggle {rts,dtr}    pulse RTS or DTR once after opening the port
+                            (low/high/low or high/low/high, whichever the line
+                            is currently not at), useful to reset a device
+                            that watches this line, see --toggle-duration
       --toggle-duration SECONDS
                             duration of the pulse set with --toggle, default: 0.1
       --ask                 ask again for port when open fails

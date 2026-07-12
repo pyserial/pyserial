@@ -988,6 +988,9 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
     if args.menu_char == args.exit_char:
         parser.error('--exit-char can not be the same as --menu-char')
 
+    if args.toggle_duration < 0:
+        parser.error('--toggle-duration can not be negative')
+
     if args.filter:
         if 'help' in args.filter:
             sys.stderr.write('Available filters:\n')
@@ -1044,7 +1047,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
 
             if args.toggle is not None:
                 if not args.quiet:
-                    sys.stderr.write('--- toggling {} ---\n'.format(args.toggle.upper()))
+                    sys.stderr.write('--- toggling {}\n'.format(args.toggle.upper()))
                 if args.toggle == 'rts':
                     serial_instance.rts = not serial_instance.rts
                     time.sleep(args.toggle_duration)
