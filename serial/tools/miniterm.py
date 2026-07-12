@@ -13,6 +13,7 @@ import codecs
 import os
 import sys
 import threading
+import time
 
 import serial
 from serial.tools.list_ports import comports
@@ -889,6 +890,22 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         default=default_dtr)
 
     group.add_argument(
+        '--toggle',
+        choices=['rts', 'dtr'],
+        help='pulse RTS or DTR once after opening the port (low/high/low or '
+             'high/low/high, whichever the line is currently not at), '
+             'useful to reset a device that watches this line, '
+             'see --toggle-duration',
+        default=None)
+
+    group.add_argument(
+        '--toggle-duration',
+        type=float,
+        metavar='SECONDS',
+        help='duration of the pulse set with --toggle, default: %(default)s',
+        default=0.1)
+
+    group.add_argument(
         '--non-exclusive',
         dest='exclusive',
         action='store_false',
@@ -1024,6 +1041,18 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
                 serial_instance.exclusive = args.exclusive
 
             serial_instance.open()
+
+            if args.toggle is not None:
+                if not args.quiet:
+                    sys.stderr.write('--- toggling {} ---\n'.format(args.toggle.upper()))
+                if args.toggle == 'rts':
+                    serial_instance.rts = not serial_instance.rts
+                    time.sleep(args.toggle_duration)
+                    serial_instance.rts = not serial_instance.rts
+                elif args.toggle == 'dtr':
+                    serial_instance.dtr = not serial_instance.dtr
+                    time.sleep(args.toggle_duration)
+                    serial_instance.dtr = not serial_instance.dtr
         except serial.SerialException as e:
             sys.stderr.write('could not open port {!r}: {}\n'.format(args.port, e))
             if args.develop:
