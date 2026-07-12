@@ -94,7 +94,7 @@ class Serial(SerialBase):
                 try:
                     self._socket.shutdown(socket.SHUT_RDWR)
                     self._socket.close()
-                except:
+                except OSError:
                     # ignore errors.
                     pass
                 self._socket = None
