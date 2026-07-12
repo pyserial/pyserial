@@ -89,10 +89,10 @@ class Serial(SerialBase):
 
         try:
             self._reconfigure_port()
-        except:
+        except Exception:
             try:
                 self._hid_handle.close()
-            except:
+            except Exception:
                 pass
             self._hid_handle = None
             raise
