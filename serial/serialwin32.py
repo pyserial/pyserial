@@ -13,11 +13,29 @@ from __future__ import absolute_import
 
 # pylint: disable=invalid-name,too-few-public-methods
 import ctypes
+import re
 import time
 from serial import win32
 
 import serial
 from serial.serialutil import SerialBase, SerialException, to_bytes, PortNotOpenError, SerialTimeoutException
+
+
+LEGACY_DOS_DEVICE_NAMES = frozenset('COM{}'.format(number) for number in range(1, 10))
+COM_PORT_NAME = re.compile('COM[0-9]+', re.IGNORECASE)
+
+
+def device_path(port):
+    r"""Return the name that Windows resolves to the given serial port.
+
+    Windows resolves only the bare names COM1 through COM9 as MS-DOS device
+    aliases. No other serial port has an alias, so COM0 as well as COM10 and
+    above must be named in the "\\.\COMx" device namespace format; a bare name
+    would be resolved as an ordinary relative file system path instead.
+    """
+    if COM_PORT_NAME.fullmatch(port) and port.upper() not in LEGACY_DOS_DEVICE_NAMES:
+        return '\\\\.\\' + port
+    return port
 
 
 class Serial(SerialBase):
@@ -41,18 +59,8 @@ class Serial(SerialBase):
             raise SerialException("Port must be configured before it can be used.")
         if self.is_open:
             raise SerialException("Port is already open.")
-        # the "\\.\COMx" format is required for devices other than COM1-COM8
-        # not all versions of windows seem to support this properly
-        # so that the first few ports are used with the DOS device name
-        port = self.name
-        try:
-            if port.upper().startswith('COM') and int(port[3:]) > 8:
-                port = '\\\\.\\' + port
-        except ValueError:
-            # for like COMnotanumber
-            pass
         self._port_handle = win32.CreateFile(
-            port,
+            device_path(self.name),
             win32.GENERIC_READ | win32.GENERIC_WRITE,
             0,  # exclusive access
             None,  # no security
