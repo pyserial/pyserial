@@ -33,10 +33,19 @@ class DevInfo(list_ports_common.ListPortInfo):
         if "vendor" in self.props:
             self.vid = int(self.props["vendor"], 16)
             self.manufacturer = self.vid
+        else:
+            self.vid = 0
+            self.manufacturer = "<generic>"
         if "product" in self.props:
             self.pid = int(self.props["product"], 16)
+            self.product = int(self.props["product"], 16)
+        else:
+            self.pid = 0
+            self.product = 0
         if "sernum" in self.props:
             self.serial_number = self.props["sernum"]
+        else:
+            self.serial_number = "none"
         if "ugen" in self.props:
             self.location = self.props["ugen"]
             self.subsystem = "usb"
