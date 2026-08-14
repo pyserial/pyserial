@@ -1,0 +1,76 @@
+name: "🧪 Test"
+on:
+  pull_request: null
+  push:
+    branches:
+      - "master"
+
+jobs:
+  test:
+    runs-on: "${{ matrix.runner }}"
+    name:
+      "${{
+        (startswith(matrix.runner, 'ubuntu') && 'Linux')
+        || (startswith(matrix.runner, 'macos') && 'macOS')
+        || (startswith(matrix.runner, 'windows') && 'Windows')
+      }}"
+
+    strategy:
+      matrix:
+        runner:
+          - "ubuntu-24.04"
+          - "macos-15"
+          - "windows-2025"
+
+    steps:
+      - uses: "actions/checkout@v5"
+      - uses: "actions/setup-python@v6"
+        env:
+          PIP_DISABLE_PIP_VERSION_CHECK: "1"
+        with:
+          allow-prereleases: 'true'
+          python-version: |
+            3.10
+            3.11
+            3.12
+            3.13
+            3.14
+      - name: "Install tox"
+        run: |
+          pip install tox tox-uv
+      - name: "Run test suite"
+        env:
+          TOX_SKIP_ENV: "coverage-html"
+        run: |
+          tox
+
+
+  test-cygwin:
+    runs-on: "windows-2025"
+    name: "Cygwin"
+
+    steps:
+      - name: "Install cygwin"
+        uses: "cygwin/cygwin-install-action@v6"
+        with:
+          # Cygwin currently only offers Python 3.12.
+          packages: >-
+            python312
+            python312-pip
+
+      - uses: "actions/checkout@v5"
+
+      - name: "Install tox"
+        shell: "bash -o igncr {0}"
+        env:
+          PIP_DISABLE_PIP_VERSION_CHECK: "1"
+        run: |
+          python3.12 -VV
+          python3.12 -m pip install tox
+
+      - name: "Run test suite"
+        shell: "bash -o igncr {0}"
+        env:
+          TOX_SKIP_ENV: "coverage-html"
+        run: |
+          python3.12 -m tox

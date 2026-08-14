@@ -6,7 +6,7 @@
 # SPDX-License-Identifier:    BSD-3-Clause
 """\
 Some tests for the serial module.
-Part of pySerial (http://pyserial.sf.net)  (C)2001-2011 cliechti@gmx.net
+Part of pySerial (https://github.com/pyserial/pyserial)  (C)2001-2011 cliechti@gmx.net
 
 Intended to be run on different platforms, to ensure portability of
 the code.

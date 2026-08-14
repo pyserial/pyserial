@@ -53,17 +53,16 @@ class Serial(SerialBase):
         Open port with current settings. This may throw a SerialException
         if the port cannot be opened.
         """
-        self.logger = None
         if self._port is None:
             raise SerialException("Port must be configured before it can be used.")
         if self.is_open:
             raise SerialException("Port is already open.")
         try:
             # timeout is used for write timeout support :/ and to get an initial connection timeout
-            self._socket = socket.create_connection(self.from_url(self.portstr), timeout=POLL_TIMEOUT)
+            self._socket = socket.create_connection(self.from_url(self.name), timeout=POLL_TIMEOUT)
         except Exception as msg:
             self._socket = None
-            raise SerialException("Could not open port {}: {}".format(self.portstr, msg))
+            raise SerialException("Could not open port {}: {}".format(self.name, msg))
         # after connecting, switch to non-blocking, we're using select
         self._socket.setblocking(False)
 
@@ -173,13 +172,13 @@ class Serial(SerialBase):
             except OSError as e:
                 # this is for Python 3.x where select.error is a subclass of
                 # OSError ignore BlockingIOErrors and EINTR. other errors are shown
-                # https://www.python.org/dev/peps/pep-0475.
+                # https://peps.python.org/pep-0475/.
                 if e.errno not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS, errno.EINTR):
-                    raise SerialException('read failed: {}'.format(e))
+                    raise SerialException(e.errno, f'read failed: {e}')
             except (select.error, socket.error) as e:
                 # this is for Python 2.x
                 # ignore BlockingIOErrors and EINTR. all errors are shown
-                # see also http://www.python.org/dev/peps/pep-3151/#select
+                # see also https://peps.python.org/pep-3151/#select
                 if e[0] not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS, errno.EINTR):
                     raise SerialException('read failed: {}'.format(e))
             if timeout.expired():
@@ -226,13 +225,13 @@ class Serial(SerialBase):
             except OSError as e:
                 # this is for Python 3.x where select.error is a subclass of
                 # OSError ignore BlockingIOErrors and EINTR. other errors are shown
-                # https://www.python.org/dev/peps/pep-0475.
+                # https://peps.python.org/pep-0475/.
                 if e.errno not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS, errno.EINTR):
-                    raise SerialException('write failed: {}'.format(e))
+                    raise SerialException(e.errno, f'write failed: {e}')
             except select.error as e:
                 # this is for Python 2.x
                 # ignore BlockingIOErrors and EINTR. all errors are shown
-                # see also http://www.python.org/dev/peps/pep-3151/#select
+                # see also https://peps.python.org/pep-3151/#select
                 if e[0] not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS, errno.EINTR):
                     raise SerialException('write failed: {}'.format(e))
             if not timeout.is_non_blocking and timeout.expired():
@@ -254,13 +253,13 @@ class Serial(SerialBase):
             except OSError as e:
                 # this is for Python 3.x where select.error is a subclass of
                 # OSError ignore BlockingIOErrors and EINTR. other errors are shown
-                # https://www.python.org/dev/peps/pep-0475.
+                # https://peps.python.org/pep-0475/.
                 if e.errno not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS, errno.EINTR):
-                    raise SerialException('read failed: {}'.format(e))
+                    raise SerialException(e.errno, f'read failed: {e}')
             except (select.error, socket.error) as e:
                 # this is for Python 2.x
                 # ignore BlockingIOErrors and EINTR. all errors are shown
-                # see also http://www.python.org/dev/peps/pep-3151/#select
+                # see also https://peps.python.org/pep-3151/#select
                 if e[0] not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS, errno.EINTR):
                     raise SerialException('read failed: {}'.format(e))
 

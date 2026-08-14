@@ -63,10 +63,10 @@ class PlatformSpecificBase(object):
             fcntl.ioctl(self.fd, TIOCSBRK)
         else:
             fcntl.ioctl(self.fd, TIOCCBRK)
-    
+
 
 # some systems support an extra flag to enable the two in POSIX unsupported
-# paritiy settings for MARK and SPACE
+# parity settings for MARK and SPACE
 CMSPAR = 0  # default, for unsupported platforms, override below
 
 # try to detect the OS so that a device can be selected...
@@ -81,15 +81,21 @@ if plat[:5] == 'linux':    # Linux (confirmed)  # noqa
     CMSPAR = 0o10000000000  # Use "stick" (mark/space) parity
 
     # baudrate ioctls
-    if platform.machine().lower() == "mips":
+    if platform.machine().startswith('mips'):
         TCGETS2 = 0x4030542A
         TCSETS2 = 0x8030542B
         BAUDRATE_OFFSET = 10
+        BOTHER = 0o010000
+    elif platform.machine().lower().startswith("ppc"):
+        TCGETS2 = 0x403c7413
+        TCSETS2 = 0x803c7414
+        BAUDRATE_OFFSET = 13
+        BOTHER = 0x0000001f
     else:
         TCGETS2 = 0x802C542A
         TCSETS2 = 0x402C542B
         BAUDRATE_OFFSET = 9
-    BOTHER = 0o010000
+        BOTHER = 0o010000
 
     # RS485 ioctls
     TIOCGRS485 = 0x542E
@@ -258,7 +264,7 @@ elif plat[:3] == 'bsd' or \
         TIOCSBRK = 0x2000747B # _IO('t', 123)
         TIOCCBRK = 0x2000747A # _IO('t', 122)
 
-        
+
         def _update_break_state(self):
             """\
             Set break: Controls TXD. When active, no transmitting is possible.
@@ -326,7 +332,7 @@ class Serial(SerialBase, PlatformSpecific):
         self.fd = None
         # open
         try:
-            self.fd = os.open(self.portstr, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
+            self.fd = os.open(self.name, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
         except OSError as msg:
             self.fd = None
             raise SerialException(msg.errno, "could not open port {}: {}".format(self._port, msg))
@@ -347,8 +353,6 @@ class Serial(SerialBase, PlatformSpecific):
                 # ignore Invalid argument and Inappropriate ioctl
                 if e.errno not in (errno.EINVAL, errno.ENOTTY):
                     raise
-
-            self._reset_input_buffer()
 
             self.pipe_abort_read_r, self.pipe_abort_read_w = os.pipe()
             self.pipe_abort_write_r, self.pipe_abort_write_w = os.pipe()
@@ -405,7 +409,7 @@ class Serial(SerialBase, PlatformSpecific):
             orig_attr = termios.tcgetattr(self.fd)
             iflag, oflag, cflag, lflag, ispeed, ospeed, cc = orig_attr
         except termios.error as msg:      # if a port is nonexistent but has a /dev file, it'll fail here
-            raise SerialException("Could not configure port: {}".format(msg))
+            raise SerialException(msg.args[0], "Could not configure port: {}".format(msg))
         # set up raw mode / no echo / binary
         cflag |= (termios.CLOCAL | termios.CREAD)
         lflag &= ~(termios.ICANON | termios.ECHO | termios.ECHOE |
@@ -430,15 +434,8 @@ class Serial(SerialBase, PlatformSpecific):
                 ispeed = ospeed = self.BAUDRATE_CONSTANTS[self._baudrate]
             except KeyError:
                 #~ raise ValueError('Invalid baud rate: %r' % self._baudrate)
-
-                # See if BOTHER is defined for this platform; if it is, use
-                # this for a speed not defined in the baudrate constants list.
-                try:
-                    ispeed = ospeed = BOTHER
-                except NameError:
-                    # may need custom baud rate, it isn't in our list.
-                    ispeed = ospeed = getattr(termios, 'B38400')
-
+                # Use safe placeholder for tcsetattr(), try to set special baudrate later
+                ispeed = ospeed = termios.B38400
                 try:
                     custom_baud = int(self._baudrate)  # store for later
                 except ValueError:
@@ -583,13 +580,13 @@ class Serial(SerialBase, PlatformSpecific):
             except OSError as e:
                 # this is for Python 3.x where select.error is a subclass of
                 # OSError ignore BlockingIOErrors and EINTR. other errors are shown
-                # https://www.python.org/dev/peps/pep-0475.
+                # https://peps.python.org/pep-0475/.
                 if e.errno not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS, errno.EINTR):
-                    raise SerialException('read failed: {}'.format(e))
+                    raise SerialException(e.errno, f'read failed: {e}')
             except select.error as e:
                 # this is for Python 2.x
                 # ignore BlockingIOErrors and EINTR. all errors are shown
-                # see also http://www.python.org/dev/peps/pep-3151/#select
+                # see also https://peps.python.org/pep-3151/#select
                 if e[0] not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS, errno.EINTR):
                     raise SerialException('read failed: {}'.format(e))
             else:
@@ -657,13 +654,13 @@ class Serial(SerialBase, PlatformSpecific):
             except OSError as e:
                 # this is for Python 3.x where select.error is a subclass of
                 # OSError ignore BlockingIOErrors and EINTR. other errors are shown
-                # https://www.python.org/dev/peps/pep-0475.
+                # https://peps.python.org/pep-0475/.
                 if e.errno not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS, errno.EINTR):
-                    raise SerialException('write failed: {}'.format(e))
+                    raise SerialException(e.errno, f'write failed: {e}')
             except select.error as e:
                 # this is for Python 2.x
                 # ignore BlockingIOErrors and EINTR. all errors are shown
-                # see also http://www.python.org/dev/peps/pep-3151/#select
+                # see also https://peps.python.org/pep-3151/#select
                 if e[0] not in (errno.EAGAIN, errno.EALREADY, errno.EWOULDBLOCK, errno.EINPROGRESS, errno.EINTR):
                     raise SerialException('write failed: {}'.format(e))
             if not timeout.is_non_blocking and timeout.expired():
@@ -674,10 +671,54 @@ class Serial(SerialBase, PlatformSpecific):
         """\
         Flush of file like objects. In this case, wait until all data
         is written.
+
+        On macOS where the serial device corresponds to a PTY, the underlying
+        call to termios.tcdrain() can block indefinitely because it waits for
+        data to be read from the other end, which may never happen. So, for
+        PTYs, we skip tcdrain() since data is already in the kernel buffer
+        after write().
         """
         if not self.is_open:
             raise PortNotOpenError()
-        termios.tcdrain(self.fd)
+
+        # On macOS, tcdrain() can block indefinitely on PTY devices.
+        # See: https://github.com/pyserial/pyserial/issues/625
+        #      https://github.com/python/cpython/issues/97001
+        if sys.platform.startswith('darwin'):
+            try:
+                dev_name = os.ttyname(self.fd)
+                # macOS PTY slave devices are /dev/ttys*
+                # BSD-style PTY devices are /dev/pty[pqrs]*
+                pty_device_names = (
+                    '/dev/ttys',
+                    '/dev/ptyp',
+                    '/dev/ptyq',
+                    '/dev/ptyr',
+                    '/dev/ptys',
+                )
+                if dev_name.startswith(pty_device_names):
+                    # For PTY devices on macOS, tcdrain() blocks indefinitely
+                    # because it waits for data to be read from the other end,
+                    # which may never happen. Since the data is already in the
+                    # kernel buffer after write(), we consider flush() complete.
+                    return
+            except OSError:
+                # If we can't determine the device name, fall back to tcdrain.
+                # This is safe because real serial ports won't fail ttyname().
+                pass
+
+        while True:
+            try:
+                termios.tcdrain(self.fd)
+                break
+            except termios.error as e:
+                if e.args[0] == errno.EINTR:
+                    continue
+                if e.args[0] == errno.ENOTTY:
+                    # The device is not a TTY.
+                    # This can happen on Cygwin pseudo TTYs, for example.
+                    break
+                raise
 
     def _reset_input_buffer(self):
         """Clear input buffer, discarding all that is in the buffer."""
@@ -825,20 +866,19 @@ class PosixPollSerial(Serial):
         poll.register(self.pipe_abort_read_r, select.POLLIN | select.POLLERR | select.POLLHUP | select.POLLNVAL)
         if size > 0:
             while len(read) < size:
-                # print "\tread(): size",size, "have", len(read)    #debug
                 # wait until device becomes ready to read (or something fails)
+                abort = False
                 for fd, event in poll.poll(None if timeout.is_infinite else (timeout.time_left() * 1000)):
                     if fd == self.pipe_abort_read_r:
+                        os.read(fd, 1000)
+                        abort = True
                         break
                     if event & (select.POLLERR | select.POLLHUP | select.POLLNVAL):
                         raise SerialException('device reports error (poll)')
-                    #  we don't care if it is select.POLLIN or timeout, that's
-                    #  handled below
-                if fd == self.pipe_abort_read_r:
-                    os.read(self.pipe_abort_read_r, 1000)
+                    buf = os.read(fd, size - len(read))
+                    read.extend(buf)
+                if abort:
                     break
-                buf = os.read(self.fd, size - len(read))
-                read.extend(buf)
                 if timeout.expired() \
                         or (self._inter_byte_timeout is not None and self._inter_byte_timeout > 0) and not buf:
                     break   # early abort on timeout
@@ -875,7 +915,7 @@ class VTIMESerial(Serial):
             orig_attr = termios.tcgetattr(self.fd)
             iflag, oflag, cflag, lflag, ispeed, ospeed, cc = orig_attr
         except termios.error as msg:      # if a port is nonexistent but has a /dev file, it'll fail here
-            raise serial.SerialException("Could not configure port: {}".format(msg))
+            raise serial.SerialException(msg.args[0], "Could not configure port: {}".format(msg))
 
         if vtime < 0 or vtime > 255:
             raise ValueError('Invalid vtime: {!r}'.format(vtime))

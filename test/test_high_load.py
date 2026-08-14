@@ -5,7 +5,7 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 """Some tests for the serial module.
-Part of pyserial (http://pyserial.sf.net)  (C)2002-2003 cliechti@gmx.net
+Part of pyserial (https://github.com/pyserial/pyserial)  (C)2002-2003 cliechti@gmx.net
 
 Intended to be run on different platforms, to ensure portability of
 the code.
@@ -53,7 +53,7 @@ class TestHighLoad(unittest.TestCase):
             q = bytes_0to255
             self.s.write(q)
             self.assertEqual(self.s.read(len(q)), q)  # expected same which was written before
-        self.assertEqual(self.s.inWaiting(), 0)  # expected empty buffer after all sent chars are read
+        self.assertEqual(self.s.in_waiting, 0)  # expected empty buffer after all sent chars are read
 
     def test1_WriteWriteReadLoopback(self):
         """Send big strings, multiple write one read."""
@@ -62,7 +62,7 @@ class TestHighLoad(unittest.TestCase):
             self.s.write(q)
         read = self.s.read(len(q) * self.N)
         self.assertEqual(read, q * self.N, "expected what was written before. got {} bytes, expected {}".format(len(read), self.N * len(q)))
-        self.assertEqual(self.s.inWaiting(), 0)  # "expected empty buffer after all sent chars are read")
+        self.assertEqual(self.s.in_waiting, 0)  # "expected empty buffer after all sent chars are read")
 
 
 if __name__ == '__main__':

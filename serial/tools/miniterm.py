@@ -726,11 +726,11 @@ class Miniterm(object):
             # reader thread needs to be shut down
             self._stop_reader()
             # save settings
-            settings = self.serial.getSettingsDict()
+            settings = self.serial.get_settings()
             try:
                 new_serial = serial.serial_for_url(port, do_not_open=True)
                 # restore settings and open
-                new_serial.applySettingsDict(settings)
+                new_serial.apply_settings(settings)
                 new_serial.rts = self.serial.rts
                 new_serial.dtr = self.serial.dtr
                 new_serial.open()

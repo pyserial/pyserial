@@ -46,7 +46,7 @@ class TestCancelRead(unittest.TestCase):
         t2 = time.time()
         self.assertEqual(self.cancel_called, 1)
         self.assertTrue(0.5 < (t2 - t1) < 2.5, 'Function did not return in time: {}'.format(t2 - t1))
-        #~ self.assertTrue(not self.s.isOpen())
+        #~ self.assertTrue(not self.s.is_open)
         #~ self.assertRaises(serial.SerialException, self.s.open)
 
     #~ def test_cancel_before_read(self):
@@ -90,7 +90,7 @@ class TestCancelWrite(unittest.TestCase):
         t2 = time.time()
         self.assertEqual(self.cancel_called, 1)
         self.assertTrue(0.5 < (t2 - t1) < 2.5, 'Function did not return in time: {}'.format(t2 - t1))
-        #~ self.assertTrue(not self.s.isOpen())
+        #~ self.assertTrue(not self.s.is_open)
         #~ self.assertRaises(serial.SerialException, self.s.open)
 
     #~ def test_cancel_before_write(self):

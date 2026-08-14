@@ -101,7 +101,7 @@ Native ports
 
         Note that enabling both flow control methods (*xonxoff* and *rtscts*)
         together may not be supported. It is common to use one of the methods
-        at once, not both.
+        alone, not both together.
 
         *dsrdtr* is not supported by all platforms (silently ignored). Setting
         it to ``None`` has the effect that its state follows *rtscts*.
@@ -157,6 +157,10 @@ Native ports
             Returns an instance of :class:`bytes` when available (Python 2.6
             and newer) and :class:`str` otherwise.
 
+    .. method:: read_all()
+
+        Read all bytes in the receive buffer.
+
     .. method:: read_until(expected=LF, size=None)
 
         :param expected: The byte string to search for.
@@ -164,10 +168,14 @@ Native ports
         :return: Bytes read from the port.
         :rtype: bytes
 
-        Read until an expected sequence is found ('\\n' by default), the size
-        is exceeded or until timeout occurs. If a timeout is set it may
-        return fewer characters than requested. With no timeout it will block
-        until the requested number of bytes is read.
+        Read until the *expected* sequence is found (``b'\n'`` by default),
+        or *size* bytes have been received, or the read timeout has elapsed.
+        If a timeout is set, it may return fewer characters than requested.
+        With no timeout it will block until the *expected* sequence has been read
+        or *size* bytes have been read.
+
+        If termination is due to reading the *expected* sequence,
+        that sequence is included at the end of the returned bytes.
 
         .. versionchanged:: 2.5
             Returns an instance of :class:`bytes` when available (Python 2.6
@@ -1302,8 +1310,8 @@ is provided via a separate distribution `pyserial-asyncio`_.
 
 It is currently under development, see:
 
-- http://pyserial-asyncio.readthedocs.io/
+- https://pyserial-asyncio.readthedocs.io/en/latest/
 - https://github.com/pyserial/pyserial-asyncio
 
-.. _`pyserial-asyncio`: https://pypi.python.org/pypi/pyserial-asyncio
+.. _`pyserial-asyncio`: https://pypi.org/project/pyserial-asyncio/
 

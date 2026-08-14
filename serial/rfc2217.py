@@ -35,7 +35,7 @@
 # - does not negotiate BINARY or COM_PORT_OPTION for his side but at least
 #   acknowledges that the client activates these options
 # - The configuration may be that the server prints a banner. As this client
-#   implementation does a flushInput on connect, this banner is hidden from
+#   implementation does a reset_input_buffer on connect, this banner is hidden from
 #   the user application.
 # - NOTIFY_MODEMSTATE: the poll interval of the server seems to be one
 #   second.
@@ -389,7 +389,6 @@ class Serial(SerialBase):
         self._modemstate_timeout = Timeout(-1)
         self._remote_suspend_flow = False
         self._write_lock = None
-        self.logger = None
         self._ignore_set_control_answer = False
         self._poll_modem_state = False
         self._network_timeout = 3
@@ -404,7 +403,6 @@ class Serial(SerialBase):
         Open port with current settings. This may throw a SerialException
         if the port cannot be opened.
         """
-        self.logger = None
         self._ignore_set_control_answer = False
         self._poll_modem_state = False
         self._network_timeout = 3
@@ -413,11 +411,11 @@ class Serial(SerialBase):
         if self.is_open:
             raise SerialException("Port is already open.")
         try:
-            self._socket = socket.create_connection(self.from_url(self.portstr), timeout=5)  # XXX good value?
+            self._socket = socket.create_connection(self.from_url(self.name), timeout=5)  # XXX good value?
             self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         except Exception as msg:
             self._socket = None
-            raise SerialException("Could not open port {}: {}".format(self.portstr, msg))
+            raise SerialException("Could not open port {}: {}".format(self.name, msg))
 
         # use a thread save queue as buffer. it also simplifies implementing
         # the read timeout
@@ -463,7 +461,7 @@ class Serial(SerialBase):
         self.is_open = True
         self._thread = threading.Thread(target=self._telnet_read_loop)
         self._thread.daemon = True
-        self._thread.setName('pySerial RFC 2217 reader thread for {}'.format(self._port))
+        self._thread.name = 'pySerial RFC 2217 reader thread for {}'.format(self._port)
         self._thread.start()
 
         try:    # must clean-up if open fails
@@ -500,9 +498,6 @@ class Serial(SerialBase):
         """Set communication parameters on opened port."""
         if self._socket is None:
             raise SerialException("Can only operate on open ports")
-
-        # if self._timeout != 0 and self._interCharTimeout is not None:
-            # XXX
 
         if self._write_timeout is not None:
             raise NotImplementedError('write_timeout is currently not supported')
@@ -721,6 +716,23 @@ class Serial(SerialBase):
         if not self.is_open:
             raise PortNotOpenError()
         return bool(self.get_modem_state() & MODEMSTATE_MASK_CD)
+
+    @property
+    def timeout(self):
+        """Get the current timeout setting."""
+        return self._timeout
+
+    @timeout.setter
+    def timeout(self, timeout):
+        """Change timeout setting."""
+        if timeout is not None:
+            try:
+                timeout + 1     # test if it's a number, will throw a TypeError if not...
+            except TypeError:
+                raise ValueError("Not a valid timeout: {!r}".format(timeout))
+            if timeout < 0:
+                raise ValueError("Not a valid timeout: {!r}".format(timeout))
+        self._timeout = timeout
 
     # - - - platform specific - - -
     # None so far

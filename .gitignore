@@ -1,12 +1,12 @@
 **/__pycache__
 *.pyc
 *.pyo
+poetry.lock
+.coverage*
 documentation/_build
 build
 dist
 *.egg-info
-
-/MANIFEST
 
 .idea
 venv

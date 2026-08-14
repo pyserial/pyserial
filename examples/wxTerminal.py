@@ -271,7 +271,7 @@ class TerminalFrame(wx.Frame):
                 else:
                     self.StartThread()
                     self.SetTitle("Serial Terminal on {} [{},{},{},{}{}{}]".format(
-                        self.serial.portstr,
+                        self.serial.name,
                         self.serial.baudrate,
                         self.serial.bytesize,
                         self.serial.parity,

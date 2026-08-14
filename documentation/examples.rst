@@ -237,8 +237,15 @@ The project uses a number of unit test to verify the functionality. They all
 need a loop back connector. The scripts itself contain more information. All
 test scripts are contained in the directory ``test``.
 
+The tests can be run using tox:
+
+..  code-block::
+
+    python -m pip install tox
+    tox
+
 The unit tests are performed on port ``loop://`` unless a different device
-name or URL is given on the command line (``sys.argv[1]``). e.g. to run the
+name or URL is given on the command line to ``run_all_tests.py`` (``sys.argv[1]``). e.g. to run the
 test on an attached USB-serial converter ``hwgrep://USB`` could be used or
 the actual name such as ``/dev/ttyUSB0`` or ``COM1`` (depending on platform).
 

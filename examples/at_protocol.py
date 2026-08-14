@@ -3,8 +3,8 @@
 """
 Example of a AT command protocol.
 
-https://en.wikipedia.org/wiki/Hayes_command_set
-http://www.itu.int/rec/T-REC-V.250-200307-I/en
+https://en.wikipedia.org/wiki/Hayes_AT_command_set
+https://www.itu.int/rec/T-REC-V.250-200307-I/en
 """
 from __future__ import print_function
 

@@ -6,7 +6,7 @@
 # SPDX-License-Identifier:    BSD-3-Clause
 """\
 Some tests for the serial module.
-Part of pyserial (http://pyserial.sf.net)  (C)2002 cliechti@gmx.net
+Part of pyserial (https://github.com/pyserial/pyserial)  (C)2002 cliechti@gmx.net
 
 Intended to be run on different platforms, to ensure portability of
 the code.
@@ -38,12 +38,12 @@ class Test_ChangeAttributes(unittest.TestCase):
 
     def test_PortSetting(self):
         self.s.port = PORT
-        self.assertEqual(self.s.portstr.lower(), PORT.lower())
+        self.assertEqual(self.s.name.lower(), PORT.lower())
         # test internals
         self.assertEqual(self.s._port, PORT)
         # test on the fly change
         self.s.open()
-        self.assertTrue(self.s.isOpen())
+        self.assertTrue(self.s.is_open)
 
     def test_DoubleOpen(self):
         self.s.open()
@@ -143,11 +143,11 @@ class Test_ChangeAttributes(unittest.TestCase):
     def test_PortOpenClose(self):
         for i in range(3):
             # open the port and check flag
-            self.assertTrue(not self.s.isOpen())
+            self.assertTrue(not self.s.is_open)
             self.s.open()
-            self.assertTrue(self.s.isOpen())
+            self.assertTrue(self.s.is_open)
             self.s.close()
-            self.assertTrue(not self.s.isOpen())
+            self.assertTrue(not self.s.is_open)
 
 
 if __name__ == '__main__':

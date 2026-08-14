@@ -103,63 +103,53 @@ class PortNotOpenError(SerialException):
         super(PortNotOpenError, self).__init__('Attempting to use a port that is not open')
 
 
-class Timeout(object):
+class Timeout:
     """\
-    Abstraction for timeout operations. Using time.monotonic() if available
-    or time.time() in all other cases.
+    Abstraction for timeout operations.
 
     The class can also be initialized with 0 or None, in order to support
     non-blocking and fully blocking I/O operations. The attributes
     is_non_blocking and is_infinite are set accordingly.
     """
-    if hasattr(time, 'monotonic'):
-        # Timeout implementation with time.monotonic(). This function is only
-        # supported by Python 3.3 and above. It returns a time in seconds
-        # (float) just as time.time(), but is not affected by system clock
-        # adjustments.
-        TIME = time.monotonic
-    else:
-        # Timeout implementation with time.time(). This is compatible with all
-        # Python versions but has issues if the clock is adjusted while the
-        # timeout is running.
-        TIME = time.time
 
-    def __init__(self, duration):
-        """Initialize a timeout with given duration"""
-        self.is_infinite = (duration is None)
-        self.is_non_blocking = (duration == 0)
-        self.duration = duration
+    def __init__(self, duration: int | float | None) -> None:
+        """Initialize a timeout with given duration."""
+
+        self.is_infinite = duration is None
+        self.is_non_blocking = duration == 0
+        self._duration = duration
+        self._target_time: float | None = None
         if duration is not None:
-            self.target_time = self.TIME() + duration
-        else:
-            self.target_time = None
+            self._target_time = time.monotonic() + duration
 
-    def expired(self):
-        """Return a boolean, telling if the timeout has expired"""
-        return self.target_time is not None and self.time_left() <= 0
+    def expired(self) -> bool:
+        """Return a boolean, telling if the timeout has expired."""
 
-    def time_left(self):
-        """Return how many seconds are left until the timeout expires"""
-        if self.is_non_blocking:
-            return 0
-        elif self.is_infinite:
-            return None
-        else:
-            delta = self.target_time - self.TIME()
-            if delta > self.duration:
-                # clock jumped, recalculate
-                self.target_time = self.TIME() + self.duration
-                return self.duration
-            else:
-                return max(0, delta)
+        time_left = self.time_left()
+        return time_left is not None and time_left <= 0.0
 
-    def restart(self, duration):
-        """\
-        Restart a timeout, only supported if a timeout was already set up
-        before.
+    def time_left(self) -> float | None:
+        """Calculate how many seconds are left until the timeout expires.
+
+        If the timeout is non-blocking or has expired, the return value will be ``0.0``.
+        If there is no timeout, the return value will be ``None``.
         """
-        self.duration = duration
-        self.target_time = self.TIME() + duration
+
+        if self._duration == 0:
+            return 0.0
+        if self._target_time is None:
+            return None
+        delta = self._target_time - time.monotonic()
+        return max(0.0, delta)
+
+    def restart(self, duration: int | float) -> None:
+        """Restart a timeout.
+
+        Only supported if a timeout was previously set (not ``0`` or ``None``).
+        """
+
+        self._duration = duration
+        self._target_time = time.monotonic() + duration
 
 
 class SerialBase(io.RawIOBase):
@@ -200,6 +190,10 @@ class SerialBase(io.RawIOBase):
         self.is_open = False
         self.portstr = None
         self.name = None
+
+        # logging disabled by default but can be set to a Logger instance after __init__
+        self.logger = None
+
         # correct values are assigned below through properties
         self._port = None
         self._baudrate = None
@@ -526,7 +520,7 @@ class SerialBase(io.RawIOBase):
 
     def __repr__(self):
         """String representation of the current port settings and its state."""
-        return '{name}<id=0x{id:x}, open={p.is_open}>(port={p.portstr!r}, ' \
+        return '{name}<id=0x{id:x}, open={p.is_open}>(name={p.name!r}, ' \
                'baudrate={p.baudrate!r}, bytesize={p.bytesize!r}, parity={p.parity!r}, ' \
                'stopbits={p.stopbits!r}, timeout={p.timeout!r}, xonxoff={p.xonxoff!r}, ' \
                'rtscts={p.rtscts!r}, dsrdtr={p.dsrdtr!r})'.format(

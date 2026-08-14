@@ -62,7 +62,9 @@ class SysFS(list_ports_common.ListPortInfo):
             self.interface = self.read_line(self.usb_interface_path, 'interface')
 
         if self.subsystem in ('usb', 'usb-serial'):
-            self.apply_usb_info()
+            self.description = self.usb_description()
+            self.hwid = self.usb_info()
+
         #~ elif self.subsystem in ('pnp', 'amba'):  # PCI based devices, raspi
         elif self.subsystem == 'pnp':  # PCI based devices
             self.description = self.name
@@ -88,22 +90,19 @@ class SysFS(list_ports_common.ListPortInfo):
             return None
 
 
-def comports(include_links=False):
+def comports(include_links=False, hide_subsystems=[]):
     devices = set()
-    devices.update(glob.glob('/dev/ttyS*'))     # built-in serial ports
-    devices.update(glob.glob('/dev/ttyUSB*'))   # usb-serial with own driver
-    devices.update(glob.glob('/dev/ttyXRUSB*')) # xr-usb-serial port exar (DELL Edge 3001)
-    devices.update(glob.glob('/dev/ttyACM*'))   # usb-serial with CDC-ACM profile
-    devices.update(glob.glob('/dev/ttyAMA*'))   # ARM internal port (raspi)
-    devices.update(glob.glob('/dev/rfcomm*'))   # BT serial devices
-    devices.update(glob.glob('/dev/ttyAP*'))    # Advantech multi-port serial controllers
-    devices.update(glob.glob('/dev/ttyGS*'))    # https://www.kernel.org/doc/Documentation/usb/gadget_serial.txt
+    with open('/proc/tty/drivers') as drivers:
+        for driver in drivers.readlines():
+            items = driver.strip().split()
+            if items[4] == 'serial':
+                devices.update(glob.glob(items[1]+'*'))
 
     if include_links:
         devices.update(list_ports_common.list_links(devices))
     return [info
             for info in [SysFS(d) for d in devices]
-            if info.subsystem != "platform"]    # hide non-present internal serial ports
+            if info.subsystem not in hide_subsystems]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test

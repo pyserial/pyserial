@@ -66,7 +66,7 @@ class RS485(serial.Serial):
         """Write to port, controlling RTS before and after transmitting."""
         if self._alternate_rs485_settings is not None:
             # apply level for TX and optional delay
-            self.setRTS(self._alternate_rs485_settings.rts_level_for_tx)
+            self.rts = self._alternate_rs485_settings.rts_level_for_tx
             if self._alternate_rs485_settings.delay_before_tx is not None:
                 time.sleep(self._alternate_rs485_settings.delay_before_tx)
             # write and wait for data to be written
@@ -75,9 +75,10 @@ class RS485(serial.Serial):
             # optional delay and apply level for RX
             if self._alternate_rs485_settings.delay_before_rx is not None:
                 time.sleep(self._alternate_rs485_settings.delay_before_rx)
-            self.setRTS(self._alternate_rs485_settings.rts_level_for_rx)
+            self.rts = self._alternate_rs485_settings.rts_level_for_rx
         else:
             super(RS485, self).write(b)
+        return len(b)
 
     # redirect where the property stores the settings so that underlying Serial
     # instance does not see them

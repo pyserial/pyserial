@@ -61,7 +61,7 @@ class Serial(SerialBase):
             0)
         if self._port_handle == win32.INVALID_HANDLE_VALUE:
             self._port_handle = None    # 'cause __del__ is called anyway
-            raise SerialException("could not open port {!r}: {!r}".format(self.portstr, ctypes.WinError()))
+            raise SerialException("could not open port {!r}: {!r}".format(self.name, ctypes.WinError()))
 
         try:
             self._overlapped_read = win32.OVERLAPPED()

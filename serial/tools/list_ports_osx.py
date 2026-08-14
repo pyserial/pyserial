@@ -15,7 +15,7 @@
 # List all of the callout devices in OS/X by querying IOKit.
 
 # See the following for a reference of how to do this:
-# http://developer.apple.com/library/mac/#documentation/DeviceDrivers/Conceptual/WorkingWSerial/WWSerial_SerialDevs/SerialDevices.html#//apple_ref/doc/uid/TP30000384-CIHGEAFD
+# https://developer.apple.com/library/archive/documentation/DeviceDrivers/Conceptual/WorkingWSerial/WWSerial_SerialDevs/SerialDevices.html#//apple_ref/doc/uid/TP30000384-CIHGEAFD
 
 # More help from darwin_hid.py
 
@@ -289,7 +289,8 @@ def comports(include_links=False):
                 locationID = get_int_property(usb_device, "locationID", kCFNumberSInt32Type)
                 info.location = location_to_string(locationID)
                 info.interface = search_for_locationID_in_interfaces(serial_interfaces, locationID)
-                info.apply_usb_info()
+                info.description = info.usb_description()
+                info.hwid = info.usb_info()
             ports.append(info)
     return ports
 

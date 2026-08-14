@@ -2,7 +2,7 @@
  Tools
 =======
 
-.. module:: serial
+.. py:currentmodule:: serial
 
 serial.tools.list_ports
 =======================
@@ -125,20 +125,20 @@ serial.tools.list_ports``). It also contains the following functions.
 
 Help for ``python -m serial.tools.list_ports``::
 
-    usage: list_ports.py [-h] [-v] [-q] [-n N] [-s] [regexp]
+    usage: list_ports.py [-h] [-v] [-q] [-1] [-n N] [-s] [regexp]
 
     Serial port enumeration
 
     positional arguments:
       regexp               only show ports that match this regex
 
-    optional arguments:
+    options:
       -h, --help           show this help message and exit
       -v, --verbose        show more messages
       -q, --quiet          suppress all messages
+      -1, --only-one       require exactly one matching entry, otherwise error
       -n N                 only output the N-th entry
       -s, --include-links  include entries that are symlinks to real devices
-
 
 Examples:
 
