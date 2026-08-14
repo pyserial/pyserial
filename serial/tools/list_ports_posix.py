@@ -104,6 +104,20 @@ elif plat[:5] == 'haiku':    # Haiku
             devices.update(list_ports_common.list_links(devices))
         return [list_ports_common.ListPortInfo(d) for d in devices]
 
+elif plat[:7] == 'android':   # Android / Termux
+    def comports(include_links=False):
+        """scan for serial ports exposed as device nodes.
+
+        Most unrooted Android/Termux environments do not expose USB serial
+        adapters as /dev/ttyACM* or /dev/ttyUSB*. Returning an empty list keeps
+        serial.tools.list_ports importable; applications that know a concrete
+        device path can still try to open it explicitly.
+        """
+        devices = set(glob.glob('/dev/ttyACM*') + glob.glob('/dev/ttyUSB*'))
+        if include_links:
+            devices.update(list_ports_common.list_links(devices))
+        return [list_ports_common.ListPortInfo(d) for d in devices]
+
 else:
     # platform detection has failed...
     import serial
