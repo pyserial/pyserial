@@ -1236,7 +1236,9 @@ This module provides classes to simplify working with threads and protocols.
 
         Initialize thread.
 
-        Note that the ``serial_instance`` 's timeout is set to one second!
+        For serial instances without ``cancel_read``, a positive timeout of at
+        most one second is preserved. Other timeouts are set to one second
+        to avoid busy polling and keep :meth:`stop` responsive.
         Other settings are not changed.
 
     .. method:: stop()

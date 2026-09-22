@@ -163,7 +163,7 @@ class ReaderThread(threading.Thread):
         """\
         Initialize thread.
 
-        Note that the serial_instance' timeout is set to one second!
+        Without cancel_read, timeouts outside (0, 1] are set to one second.
         Other settings are not changed.
         """
         super(ReaderThread, self).__init__()
@@ -185,7 +185,9 @@ class ReaderThread(threading.Thread):
     def run(self):
         """Reader loop"""
         if not hasattr(self.serial, 'cancel_read'):
-            self.serial.timeout = 1
+            timeout = self.serial.timeout
+            if timeout is None or not 0 < timeout <= 1:
+                self.serial.timeout = 1
         self.protocol = self.protocol_factory()
         try:
             self.protocol.connection_made(self)
