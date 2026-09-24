@@ -188,6 +188,10 @@ Miniterm::
 Command line options can be given so that binary data including escapes for
 terminals are escaped or output as hex.
 
+Use ``--eol RAW`` to send carriage return and line feed as separate characters
+from the terminal (for example, Return/Ctrl+M and Ctrl+J). The other EOL modes
+continue to translate Return according to the selected line-ending mode.
+
 Miniterm supports :rfc:`2217` remote serial ports and raw sockets using :ref:`URLs`
 such as ``rfc2217://<host>:<port>`` respectively ``socket://<host>:<port>`` as
 *port* argument when invoking.
@@ -196,7 +200,7 @@ Command line options ``python -m serial.tools.miniterm -h``::
 
     usage: miniterm.py [-h] [--parity {N,E,O,S,M}] [--rtscts] [--xonxoff]
                        [--rts RTS] [--dtr DTR] [-e] [--encoding CODEC] [-f NAME]
-                       [--eol {CR,LF,CRLF}] [--raw] [--exit-char NUM]
+                       [--eol {CR,LF,CRLF,RAW}] [--raw] [--exit-char NUM]
                        [--menu-char NUM] [-q] [--develop]
                        [port] [baudrate]
 
@@ -223,7 +227,8 @@ Command line options ``python -m serial.tools.miniterm -h``::
                             Latin1, UTF-8), default: UTF-8
       -f NAME, --filter NAME
                             add text transformation
-      --eol {CR,LF,CRLF}    end of line mode
+      --eol {CR,LF,CRLF,RAW}
+                            end of line mode (RAW preserves CR and LF separately)
       --raw                 Do no apply any encodings/transformations
 
     hotkeys:

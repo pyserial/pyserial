@@ -168,7 +168,7 @@ if os.name == 'nt':  # noqa
             while True:
                 z = msvcrt.getwch()
                 if z == unichr(13):
-                    return unichr(10)
+                    return z if self.miniterm.eol == 'raw' else unichr(10)
                 elif z is unichr(0) or z is unichr(0xe0):
                     try:
                         code = msvcrt.getwch()
@@ -207,6 +207,10 @@ elif os.name == 'posix':
 
         def setup(self):
             new = termios.tcgetattr(self.fd)
+            if self.miniterm.eol == 'raw':
+                new[0] &= ~termios.ICRNL
+            else:
+                new[0] = (new[0] & ~termios.ICRNL) | (self.old[0] & termios.ICRNL)
             new[3] = new[3] & ~termios.ICANON & ~termios.ECHO & ~termios.ISIG
             new[6][termios.VMIN] = 1
             new[6][termios.VTIME] = 0
@@ -355,6 +359,7 @@ EOL_TRANSFORMATIONS = {
     'crlf': CRLF,
     'cr': CR,
     'lf': LF,
+    'raw': Transform,
 }
 
 TRANSFORMATIONS = {
@@ -591,6 +596,7 @@ class Miniterm(object):
             self.eol = modes[eol]
             sys.stderr.write('--- EOL: {} ---\n'.format(self.eol.upper()))
             self.update_transformations()
+            self.console.setup()
         elif c == '\x01':                       # CTRL+A -> set encoding
             self.change_encoding()
         elif c == '\x09':                       # CTRL+I -> info
@@ -925,9 +931,9 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
 
     group.add_argument(
         '--eol',
-        choices=['CR', 'LF', 'CRLF'],
+        choices=['CR', 'LF', 'CRLF', 'RAW'],
         type=lambda c: c.upper(),
-        help='end of line mode',
+        help='end of line mode (RAW preserves CR and LF separately)',
         default=default_eol)
 
     group.add_argument(
