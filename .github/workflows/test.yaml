@@ -70,7 +70,5 @@ jobs:
 
       - name: "Run test suite"
         shell: "bash -o igncr {0}"
-        env:
-          TOX_SKIP_ENV: "coverage-html"
         run: |
-          python3.12 -m tox
+          python3.12 -m tox -e py3.12
