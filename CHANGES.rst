@@ -7,6 +7,11 @@ Unreleased
 ==========
 
 
+**Build**
+
+- Version is now derived from git tags via ``setuptools-scm`` rather than
+  a hardcoded string in ``serial/__init__.py``.
+
 **Python support**
 
 - Support Python 3.10 and higher.

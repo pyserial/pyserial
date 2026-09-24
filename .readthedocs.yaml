@@ -6,6 +6,12 @@ build:
     # The Python version here must match the version set in `tox.ini`
     # to help ensure documentation builds are tested in a reproducible way.
     python: '3.13'
+  jobs:
+    post_checkout:
+      # RTD clones shallow without tags; setuptools-scm needs both to
+      # derive the version shown in the docs.
+      - git fetch --unshallow || true
+      - git fetch --tags || true
 
 sphinx:
   configuration: 'documentation/conf.py'
@@ -15,3 +21,5 @@ sphinx:
 python:
   install:
     - requirements: "requirements/docs/requirements.txt"
+    - method: pip
+      path: .

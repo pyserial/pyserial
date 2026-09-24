@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "master"
+  workflow_call: null
 
 jobs:
   test:
@@ -41,6 +42,8 @@ jobs:
       - name: "Run test suite"
         env:
           TOX_SKIP_ENV: "coverage-html"
+          # Shallow clones may not have tags; exact version not needed for tests.
+          SETUPTOOLS_SCM_PRETEND_VERSION: "0.0.0"
         run: |
           tox
 
@@ -72,5 +75,7 @@ jobs:
         shell: "bash -o igncr {0}"
         env:
           TOX_SKIP_ENV: "coverage-html"
+          # Shallow clones may not have tags; exact version not needed for tests.
+          SETUPTOOLS_SCM_PRETEND_VERSION: "0.0.0"
         run: |
           python3.12 -m tox

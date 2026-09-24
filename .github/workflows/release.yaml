@@ -1,0 +1,90 @@
+name: "Release"
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    uses: "./.github/workflows/test.yaml"
+
+  build:
+    name: "Build"
+    needs: test
+    runs-on: "ubuntu-24.04"
+    outputs:
+      prerelease: "${{ steps.version.outputs.prerelease }}"
+
+    steps:
+      - uses: "actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09" # v5.1.0
+        with:
+          fetch-depth: 0
+
+      - name: "Check tag is on master"
+        run: |
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+            echo "::error::Tag ${GITHUB_REF_NAME} (${GITHUB_SHA}) is not on master"
+            exit 1
+          fi
+
+      - uses: "astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e" # v6.8.0
+
+      - name: "Detect pre-release"
+        id: version
+        run: |
+          uv run --no-project --with packaging python - <<'EOF' >> "$GITHUB_OUTPUT"
+          import os
+          from packaging.version import Version
+          v = Version(os.environ["GITHUB_REF_NAME"])
+          print(f"prerelease={str(v.is_prerelease).lower()}")
+          EOF
+
+      - name: "Build sdist and wheel"
+        run: |
+          uv build --out-dir dist/
+
+      - uses: "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02" # v4.6.2
+        with:
+          name: dist
+          path: "dist/"
+          if-no-files-found: error
+
+  github-release:
+    name: "GitHub Release"
+    needs: build
+    runs-on: "ubuntu-24.04"
+    permissions:
+      contents: write
+
+    steps:
+      - uses: "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093" # v4.3.0
+        with:
+          name: dist
+          path: "dist/"
+
+      - uses: "softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b" # v2.5.0
+        with:
+          files: "dist/*"
+          prerelease: "${{ needs.build.outputs.prerelease }}"
+          generate_release_notes: true
+
+  pypi-publish:
+    name: "Publish to PyPI"
+    needs: build
+    runs-on: "ubuntu-24.04"
+    environment: pypi
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093" # v4.3.0
+        with:
+          name: dist
+          path: "dist/"
+
+      # Uses trusted publishing and generates PEP 740 attestations.
+      - uses: "pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33" # v1.14.2

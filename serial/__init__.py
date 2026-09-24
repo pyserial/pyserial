@@ -15,7 +15,14 @@ import importlib
 from serial.serialutil import *
 #~ SerialBase, SerialException, to_bytes, iterbytes
 
-__version__ = '3.5'
+try:
+    from serial._version import __version__
+except ImportError:
+    from importlib.metadata import version, PackageNotFoundError
+    try:
+        __version__ = version("pyserial")
+    except PackageNotFoundError:
+        __version__ = "0.0.0+unknown"
 
 VERSION = __version__
 

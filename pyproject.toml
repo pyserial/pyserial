@@ -43,11 +43,11 @@ Source = "https://github.com/pyserial/pyserial"
 Documentation = "https://pyserial.readthedocs.io/en/latest/"
 
 [build-system]
-requires = ["setuptools>=77.0.3"]
+requires = ["setuptools>=77.0.3", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.dynamic]
-version = {attr = "serial.__version__"}
+[tool.setuptools_scm]
+version_file = "serial/_version.py"
 
 
 # coverage
