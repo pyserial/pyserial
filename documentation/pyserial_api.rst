@@ -163,7 +163,7 @@ Native ports
 
     .. method:: read_until(expected=LF, size=None)
 
-        :param expected: The byte string to search for.
+        :param expected: A non-empty bytes-like sequence to search for.
         :param size: Number of bytes to read.
         :return: Bytes read from the port.
         :rtype: bytes
@@ -176,6 +176,8 @@ Native ports
 
         If termination is due to reading the *expected* sequence,
         that sequence is included at the end of the returned bytes.
+        A text string raises :exc:`TypeError`; an empty sequence raises
+        :exc:`ValueError` before reading from the port.
 
         .. versionchanged:: 2.5
             Returns an instance of :class:`bytes` when available (Python 2.6

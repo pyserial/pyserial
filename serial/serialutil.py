@@ -660,6 +660,10 @@ class SerialBase(io.RawIOBase):
         Read until an expected sequence is found (line feed by default), the size
         is exceeded or until timeout occurs.
         """
+        if not isinstance(expected, (bytes, bytearray, memoryview)):
+            raise TypeError('expected must be a bytes-like sequence')
+        if not expected:
+            raise ValueError('expected must not be empty')
         lenterm = len(expected)
         line = bytearray()
         timeout = Timeout(self._timeout)
