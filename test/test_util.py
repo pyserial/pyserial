@@ -9,6 +9,7 @@ Tests for utility functions of serualutil.
 """
 
 import os
+import pickle
 import unittest
 import serial
 
@@ -26,6 +27,18 @@ class Test_util(unittest.TestCase):
 
     def test_iterbytes(self):
         self.assertEqual(list(serial.iterbytes(b'\x01\x02\x03')), [b'\x01', b'\x02', b'\x03'])
+
+    def test_port_not_open_error_pickle(self):
+        error = serial.PortNotOpenError()
+        self.assertEqual(str(error), 'Attempting to use a port that is not open')
+        error.operation = 'read'
+        for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
+            with self.subTest(protocol=protocol):
+                restored = pickle.loads(pickle.dumps(error, protocol=protocol))
+                self.assertIs(type(restored), serial.PortNotOpenError)
+                self.assertEqual(restored.args, error.args)
+                self.assertEqual(str(restored), str(error))
+                self.assertEqual(restored.operation, error.operation)
 
 
 if __name__ == '__main__':
