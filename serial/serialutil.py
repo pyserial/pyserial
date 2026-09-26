@@ -99,8 +99,8 @@ class SerialTimeoutException(SerialException):
 
 class PortNotOpenError(SerialException):
     """Port is not open"""
-    def __init__(self):
-        super(PortNotOpenError, self).__init__('Attempting to use a port that is not open')
+    def __init__(self, msg='Attempting to use a port that is not open', *args, **kwargs):
+        super(PortNotOpenError, self).__init__(msg, *args, **kwargs)
 
 
 class Timeout:
