@@ -177,7 +177,14 @@ if plat[:5] == 'linux':    # Linux (confirmed)  # noqa
         def _set_rs485_mode(self, rs485_settings):
             buf = array.array('i', [0] * 8)  # flags, delaytx, delayrx, padding
             try:
-                fcntl.ioctl(self.fd, TIOCGRS485, buf)
+                try:
+                    fcntl.ioctl(self.fd, TIOCGRS485, buf)
+                except OSError as e:
+                    # Clearing the default on a regular serial port remains
+                    # harmless when its driver has no RS485 ioctl support.
+                    if rs485_settings is None and e.errno in (errno.ENOTTY, errno.EINVAL):
+                        return
+                    raise
                 buf[0] |= SER_RS485_ENABLED
                 if rs485_settings is not None:
                     if rs485_settings.loopback:
@@ -320,6 +327,15 @@ class Serial(SerialBase, PlatformSpecific):
     done with termios and fcntl. Runs on Linux and many other Un*x like
     systems.
     """
+
+    @SerialBase.rs485_mode.setter
+    def rs485_mode(self, rs485_settings):
+        SerialBase.rs485_mode.fset(self, rs485_settings)
+        # An explicit reset must reach the Linux driver even when the port
+        # opened with RS485 already enabled. Ordinary reconfiguration cannot
+        # do this: most serial devices do not support the RS485 ioctls.
+        if self.is_open and rs485_settings is None and plat[:5] == 'linux':
+            self._set_rs485_mode(None)
 
     def open(self):
         """\
