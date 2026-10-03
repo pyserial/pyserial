@@ -45,6 +45,10 @@ class ConsoleBase(object):
 
     def __init__(self, miniterm):
         self.miniterm = miniterm
+        self._saved_stdout = sys.stdout
+        self._saved_stderr = sys.stderr
+        self._patched_stdout = None
+        self._patched_stderr = None
         if sys.version_info >= (3, 0):
             self.byte_output = sys.stdout.buffer
         else:
@@ -56,6 +60,13 @@ class ConsoleBase(object):
 
     def cleanup(self):
         """Restore default console settings"""
+
+    def restore(self):
+        """Restore process streams changed by this console, if still installed."""
+        if self._patched_stdout is not None and sys.stdout is self._patched_stdout:
+            sys.stdout = self._saved_stdout
+        if self._patched_stderr is not None and sys.stderr is self._patched_stderr:
+            sys.stderr = self._saved_stderr
 
     def getkey(self):
         """Read a single key from the console"""
@@ -154,9 +165,12 @@ if os.name == 'nt':  # noqa
             # the change of the code page is not propagated to Python, manually fix it
             sys.stderr = codecs.getwriter('UTF-8')(Out(sys.stderr.fileno()), 'replace')
             sys.stdout = self.output
+            self._patched_stdout = sys.stdout
+            self._patched_stderr = sys.stderr
             self.output.encoding = 'UTF-8'  # needed for input
 
         def __del__(self):
+            self.restore()
             ctypes.windll.kernel32.SetConsoleOutputCP(self._saved_ocp)
             ctypes.windll.kernel32.SetConsoleCP(self._saved_icp)
             try:
@@ -1040,30 +1054,33 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         echo=args.echo,
         eol=args.eol.lower(),
         filters=filters)
-    miniterm.exit_character = unichr(args.exit_char)
-    miniterm.menu_character = unichr(args.menu_char)
-    miniterm.raw = args.raw
-    miniterm.set_rx_encoding(args.serial_port_encoding)
-    miniterm.set_tx_encoding(args.serial_port_encoding)
-
-    if not args.quiet:
-        sys.stderr.write('--- Miniterm on {p.name}  {p.baudrate},{p.bytesize},{p.parity},{p.stopbits} ---\n'.format(
-            p=miniterm.serial))
-        sys.stderr.write('--- Quit: {} | Menu: {} | Help: {} followed by {} ---\n'.format(
-            key_description(miniterm.exit_character),
-            key_description(miniterm.menu_character),
-            key_description(miniterm.menu_character),
-            key_description('\x08')))
-
-    miniterm.start()
     try:
-        miniterm.join(True)
-    except KeyboardInterrupt:
-        pass
-    if not args.quiet:
-        sys.stderr.write('\n--- exit ---\n')
-    miniterm.join()
-    miniterm.close()
+        miniterm.exit_character = unichr(args.exit_char)
+        miniterm.menu_character = unichr(args.menu_char)
+        miniterm.raw = args.raw
+        miniterm.set_rx_encoding(args.serial_port_encoding)
+        miniterm.set_tx_encoding(args.serial_port_encoding)
+
+        if not args.quiet:
+            sys.stderr.write('--- Miniterm on {p.name}  {p.baudrate},{p.bytesize},{p.parity},{p.stopbits} ---\n'.format(
+                p=miniterm.serial))
+            sys.stderr.write('--- Quit: {} | Menu: {} | Help: {} followed by {} ---\n'.format(
+                key_description(miniterm.exit_character),
+                key_description(miniterm.menu_character),
+                key_description(miniterm.menu_character),
+                key_description('\x08')))
+
+        miniterm.start()
+        try:
+            miniterm.join(True)
+        except KeyboardInterrupt:
+            pass
+        if not args.quiet:
+            sys.stderr.write('\n--- exit ---\n')
+        miniterm.join()
+        miniterm.close()
+    finally:
+        miniterm.console.restore()
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
