@@ -35,6 +35,11 @@ possible for the user to add protocol handlers using
 Used to connect to :rfc:`2217` compatible servers. All serial port
 functions are supported. Implemented by :class:`rfc2217.Serial`.
 
+The client disables Nagle's algorithm by setting ``TCP_NODELAY`` on its TCP
+socket. This prevents Nagle's algorithm from buffering small writes while waiting
+for acknowledgements of previously sent data. It does not change the server's TCP
+settings.
+
 Supported options in the URL are:
 
 - ``ign_set_control`` does not wait for acknowledges to SET_CONTROL. This
@@ -69,6 +74,13 @@ connect to TCP/IP to serial port converters that do not support :rfc:`2217`.
 
 Uses a TCP/IP socket. All serial port settings, control and status lines
 are ignored. Only data is transmitted and received.
+
+Unlike ``rfc2217://``, this handler does not set ``TCP_NODELAY``; it leaves
+Nagle's algorithm at the operating system default (normally enabled). Small
+writes may therefore be buffered while earlier data is awaiting acknowledgement.
+Combined with delayed acknowledgements from the peer, this can add latency to
+request/response communication (see :rfc:`9293`, section 3.7.4). There is no URL
+option to change this setting.
 
 Supported options in the URL are:
 
