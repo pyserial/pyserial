@@ -42,6 +42,44 @@ class Test_URL(unittest.TestCase):
         # so it should not work anymore
         self.assertRaises(ValueError, serial.serial_for_url, "test://")
 
+    def test_socket_in_waiting(self):
+        """socket protocol in_waiting property"""
+        import socket
+        import threading
+        import time
+
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.bind(('127.0.0.1', 0))
+        server.listen(1)
+        port = server.getsockname()[1]
+
+        conn_holder = []
+
+        def accept():
+            conn, _ = server.accept()
+            conn_holder.append(conn)
+
+        t = threading.Thread(target=accept)
+        t.daemon = True
+        t.start()
+
+        s = serial.serial_for_url('socket://127.0.0.1:{}'.format(port))
+        t.join(timeout=2.0)
+        self.assertTrue(len(conn_holder) > 0)
+        conn = conn_holder[0]
+
+        try:
+            self.assertEqual(s.in_waiting, 0)
+            conn.sendall(b'12345')
+            time.sleep(0.05)
+            self.assertEqual(s.in_waiting, 5)
+            self.assertEqual(s.read(5), b'12345')
+            self.assertEqual(s.in_waiting, 0)
+        finally:
+            s.close()
+            conn.close()
+            server.close()
+
 
 if __name__ == '__main__':
     import sys

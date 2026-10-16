@@ -22,11 +22,32 @@ import errno
 import logging
 import select
 import socket
+import sys
 import time
 try:
     import urlparse
 except ImportError:
     import urllib.parse as urlparse
+
+if sys.platform == 'win32':
+    import ctypes
+    _SOCKET = ctypes.c_uint64 if ctypes.sizeof(ctypes.c_void_p) == 8 else ctypes.c_uint32
+    _ioctlsocket = ctypes.windll.ws2_32.ioctlsocket
+    _ioctlsocket.argtypes = [_SOCKET, ctypes.c_long, ctypes.POINTER(ctypes.c_ulong)]
+    _ioctlsocket.restype = ctypes.c_int
+else:
+    try:
+        import fcntl
+        import struct
+        import termios
+
+        if hasattr(termios, 'TIOCINQ'):
+            TIOCINQ = termios.TIOCINQ
+        else:
+            TIOCINQ = getattr(termios, 'FIONREAD', 0x541B)
+        TIOCM_zero_str = struct.pack('I', 0)
+    except ImportError:
+        fcntl = None
 
 from serial.serialutil import SerialBase, SerialException, to_bytes, \
     PortNotOpenError, SerialTimeoutException, Timeout
@@ -136,10 +157,23 @@ class Serial(SerialBase):
         """Return the number of bytes currently in the input buffer."""
         if not self.is_open:
             raise PortNotOpenError()
-        # Poll the socket to see if it is ready for reading.
-        # If ready, at least one byte will be to read.
-        lr, lw, lx = select.select([self._socket], [], [], 0)
-        return len(lr)
+
+        if sys.platform == 'win32':
+            # Windows
+            pending = ctypes.c_ulong()
+            if _ioctlsocket(
+                self._socket.fileno(),
+                0x4004667F,  # FIONREAD
+                ctypes.byref(pending)
+            ) != 0:
+                raise OSError(ctypes.WinError())
+            return pending.value
+        elif fcntl is not None:
+            s = fcntl.ioctl(self._socket.fileno(), TIOCINQ, TIOCM_zero_str)
+            return struct.unpack('I', s)[0]
+        else:
+            # Other platforms are not supported
+            raise NotImplementedError('platform not supported')
 
     # select based implementation, similar to posix, but only using socket API
     # to be portable, additionally handle socket timeout which is used to
