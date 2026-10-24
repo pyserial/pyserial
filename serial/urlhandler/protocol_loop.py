@@ -27,7 +27,7 @@ try:
 except ImportError:
     import Queue as queue
 
-from serial.serialutil import SerialBase, SerialException, to_bytes, iterbytes, SerialTimeoutException, PortNotOpenError
+from serial.serialutil import SerialBase, SerialException, to_bytes, iterbytes, SerialTimeoutException, PortNotOpenError, Timeout
 
 # map log level names to constants. used in from_url()
 LOGGER_LEVELS = {
@@ -140,14 +140,11 @@ class Serial(SerialBase):
         """
         if not self.is_open:
             raise PortNotOpenError()
-        if self._timeout is not None and self._timeout != 0:
-            timeout = time.time() + self._timeout
-        else:
-            timeout = None
+        timeout = Timeout(self._timeout)
         data = bytearray()
         while size > 0 and self.is_open:
             try:
-                b = self.queue.get(timeout=self._timeout)  # XXX inter char timeout
+                b = self.queue.get(timeout=timeout.time_left())  # XXX inter char timeout
             except queue.Empty:
                 if self._timeout == 0:
                     break
@@ -159,7 +156,7 @@ class Serial(SerialBase):
                     break
             # check for timeout now, after data has been read.
             # useful for timeout = 0 (non blocking) read
-            if timeout and time.time() > timeout:
+            if not timeout.is_non_blocking and timeout.expired():
                 if self.logger:
                     self.logger.info('read timeout')
                 break
