@@ -20,6 +20,7 @@ from __future__ import absolute_import
 
 import errno
 import logging
+import math
 import select
 import socket
 import time
@@ -59,7 +60,8 @@ class Serial(SerialBase):
             raise SerialException("Port is already open.")
         try:
             # timeout is used for write timeout support :/ and to get an initial connection timeout
-            self._socket = socket.create_connection(self.from_url(self.name), timeout=POLL_TIMEOUT)
+            address = self.from_url(self.name)
+            self._socket = socket.create_connection(address, timeout=self._connect_timeout)
         except Exception as msg:
             self._socket = None
             raise SerialException("Could not open port {}: {}".format(self.name, msg))
@@ -104,16 +106,22 @@ class Serial(SerialBase):
 
     def from_url(self, url):
         """extract host and port from an URL string"""
+        self._connect_timeout = POLL_TIMEOUT
         parts = urlparse.urlsplit(url)
         if parts.scheme != "socket":
             raise SerialException(
                 'expected a string in the form '
-                '"socket://<host>:<port>[?logging={debug|info|warning|error}]": '
+                '"socket://<host>:<port>[?logging={debug|info|warning|error}&connect_timeout=<seconds>]": '
                 'not starting with socket:// ({!r})'.format(parts.scheme))
         try:
             # process options now, directly altering self
             for option, values in urlparse.parse_qs(parts.query, True).items():
-                if option == 'logging':
+                if option == 'connect_timeout':
+                    timeout = float(values[0])
+                    if timeout <= 0 or math.isnan(timeout) or math.isinf(timeout):
+                        raise ValueError('connect_timeout must be finite and greater than 0')
+                    self._connect_timeout = timeout
+                elif option == 'logging':
                     logging.basicConfig()   # XXX is that good to call it here?
                     self.logger = logging.getLogger('pySerial.socket')
                     self.logger.setLevel(LOGGER_LEVELS[values[0]])
@@ -125,7 +133,7 @@ class Serial(SerialBase):
         except ValueError as e:
             raise SerialException(
                 'expected a string in the form '
-                '"socket://<host>:<port>[?logging={debug|info|warning|error}]": {}'.format(e))
+                '"socket://<host>:<port>[?logging={debug|info|warning|error}&connect_timeout=<seconds>]": {}'.format(e))
 
         return (parts.hostname, parts.port)
 

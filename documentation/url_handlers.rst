@@ -11,7 +11,7 @@ Overview
 The function :func:`serial_for_url` accepts the following types of URLs:
 
 - ``rfc2217://<host>:<port>[?<option>[&<option>...]]``
-- ``socket://<host>:<port>[?logging={debug|info|warning|error}]``
+- ``socket://<host>:<port>[?logging={debug|info|warning|error}&connect_timeout=<seconds>]``
 - ``loop://[?logging={debug|info|warning|error}]``
 - ``hwgrep://<regexp>[&skip_busy][&n=N]``
 - ``spy://port[?option[=value][&option[=value]]]``
@@ -77,6 +77,11 @@ Supported options in the URL are:
   ``pySerial.socket`` so that the application can setup up logging handlers
   etc. It will call :meth:`logging.basicConfig` which initializes for
   output on ``sys.stderr`` (if no logging was set up already).
+
+- ``connect_timeout=<seconds>``: Set the timeout in seconds for the initial
+  TCP connection (default: 5 seconds). The value must be positive and finite.
+  This does not change the serial read or write timeout settings. For example,
+  ``socket://localhost:7000?connect_timeout=1.5``.
 
 .. warning:: The connection is not encrypted and no authentication is
              supported! Only use it in trusted environments.
