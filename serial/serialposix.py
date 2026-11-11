@@ -627,6 +627,9 @@ class Serial(SerialBase, PlatformSpecific):
                     # Zero timeout indicates non-blocking - simply return the
                     # number of bytes of data actually written
                     return n
+                elif n == len(d):
+                    # All data was accepted, so no further readiness wait is needed.
+                    return length
                 elif not timeout.is_infinite:
                     # when timeout is set, use select to wait for being ready
                     # with the time left as timeout
