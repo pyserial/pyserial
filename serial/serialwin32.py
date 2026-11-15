@@ -77,7 +77,7 @@ class Serial(SerialBase):
             self._orgTimeouts = win32.COMMTIMEOUTS()
             win32.GetCommTimeouts(self._port_handle, ctypes.byref(self._orgTimeouts))
 
-            self._reconfigure_port()
+            self._reconfigure_port(force_update=True)
 
             # Clear buffers:
             # Remove anything that was there
@@ -97,7 +97,7 @@ class Serial(SerialBase):
         else:
             self.is_open = True
 
-    def _reconfigure_port(self):
+    def _reconfigure_port(self, force_update=False):
         """Set communication parameters on opened port."""
         if not self._port_handle:
             raise SerialException("Can only operate on a valid port handle")
@@ -125,12 +125,14 @@ class Serial(SerialBase):
             timeouts.WriteTotalTimeoutConstant = max(int(self._write_timeout * 1000), 1)
         win32.SetCommTimeouts(self._port_handle, ctypes.byref(timeouts))
 
-        win32.SetCommMask(self._port_handle, win32.EV_ERR)
+        if force_update:
+            win32.SetCommMask(self._port_handle, win32.EV_ERR)
 
         # Setup the connection info.
         # Get state and modify it:
         comDCB = win32.DCB()
         win32.GetCommState(self._port_handle, ctypes.byref(comDCB))
+        orig_dcb = bytes(comDCB)
         comDCB.BaudRate = self._baudrate
 
         if self._bytesize == serial.FIVEBITS:
@@ -218,7 +220,9 @@ class Serial(SerialBase):
         comDCB.XonChar = serial.XON
         comDCB.XoffChar = serial.XOFF
 
-        if not win32.SetCommState(self._port_handle, ctypes.byref(comDCB)):
+        # the driver reprograms the UART on every SetCommState(), even without changes
+        if (force_update or bytes(comDCB) != orig_dcb) and \
+                not win32.SetCommState(self._port_handle, ctypes.byref(comDCB)):
             raise SerialException(
                 'Cannot configure port, something went wrong. '
                 'Original message: {!r}'.format(ctypes.WinError()))

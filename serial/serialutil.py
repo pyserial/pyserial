@@ -167,6 +167,9 @@ class SerialBase(io.RawIOBase):
     PARITIES = (PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE)
     STOPBITS = (STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO)
 
+    # False where timeouts are not part of the port configuration
+    _timeout_reconfigures_port = True
+
     def __init__(self,
                  port=None,
                  baudrate=9600,
@@ -362,7 +365,7 @@ class SerialBase(io.RawIOBase):
             if timeout < 0:
                 raise ValueError("Not a valid timeout: {!r}".format(timeout))
         self._timeout = timeout
-        if self.is_open:
+        if self.is_open and self._timeout_reconfigures_port:
             self._reconfigure_port()
 
     @property
@@ -382,7 +385,7 @@ class SerialBase(io.RawIOBase):
                 raise ValueError("Not a valid timeout: {!r}".format(timeout))
 
         self._write_timeout = timeout
-        if self.is_open:
+        if self.is_open and self._timeout_reconfigures_port:
             self._reconfigure_port()
 
     @property

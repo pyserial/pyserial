@@ -68,6 +68,7 @@ class PlatformSpecificBase(object):
 # some systems support an extra flag to enable the two in POSIX unsupported
 # parity settings for MARK and SPACE
 CMSPAR = 0  # default, for unsupported platforms, override below
+TCSETATTR_ANY_RATE = False  # override below
 
 # try to detect the OS so that a device can be selected...
 # this code block should supply a device() and set_special_baudrate() function
@@ -79,6 +80,9 @@ if plat[:5] == 'linux':    # Linux (confirmed)  # noqa
 
     # extra termios flags
     CMSPAR = 0o10000000000  # Use "stick" (mark/space) parity
+
+    # glibc >= 2.42: tcsetattr() takes any rate as a number
+    TCSETATTR_ANY_RATE = termios.B9600 == 9600
 
     # baudrate ioctls
     if platform.machine().startswith('mips'):
@@ -96,6 +100,10 @@ if plat[:5] == 'linux':    # Linux (confirmed)  # noqa
         TCSETS2 = 0x402C542B
         BAUDRATE_OFFSET = 9
         BOTHER = 0o010000
+
+    # struct termios2: 4 flags, c_line, c_cc[19], speeds (not alpha, sparc, mips, ppc)
+    GENERIC_TERMIOS2 = platform.machine().lower().startswith(
+        ('x86', 'i386', 'i486', 'i586', 'i686', 'amd64', 'aarch64', 'arm', 'riscv'))
 
     # RS485 ioctls
     TIOCGRS485 = 0x542E
@@ -157,6 +165,34 @@ if plat[:5] == 'linux':    # Linux (confirmed)  # noqa
                 fcntl.ioctl(self.fd, termios.TIOCSSERIAL, buf)
             except IOError as e:
                 raise ValueError('Failed to update ASYNC_LOW_LATENCY flag to {}: {}'.format(low_latency_settings, e))
+
+        if GENERIC_TERMIOS2:
+            def _set_attrs_custom_baudrate(self, iflag, oflag, cflag, lflag, cc, baudrate):
+                """Set all attributes and a custom rate with one TCSETS2 (no placeholder rate)."""
+                buf = array.array('i', [0] * 64)
+                try:
+                    fcntl.ioctl(self.fd, TCGETS2, buf)
+                    cflag &= ~(termios.CBAUD | termios.CIBAUD)
+                    buf[0:4] = array.array('i', [iflag, oflag, cflag | BOTHER, lflag])
+                    raw = bytearray(buf.tobytes())
+                    for i in range(19):  # kernel NCCS; indices match the libc ones
+                        raw[17 + i] = cc[i][0] if isinstance(cc[i], bytes) else cc[i]
+                    buf = array.array('i', bytes(raw))
+                    buf[BAUDRATE_OFFSET] = buf[BAUDRATE_OFFSET + 1] = baudrate
+                    fcntl.ioctl(self.fd, TCSETS2, buf)
+                except IOError as e:
+                    raise ValueError('Failed to set custom baud rate ({}): {}'.format(baudrate, e))
+
+            def _get_special_baudrate(self):
+                """Current custom rate, or None if the port is not at a custom rate."""
+                buf = array.array('i', [0] * 64)
+                try:
+                    fcntl.ioctl(self.fd, TCGETS2, buf)
+                except IOError:
+                    return None
+                if buf[2] & termios.CBAUD != BOTHER or buf[BAUDRATE_OFFSET] != buf[BAUDRATE_OFFSET + 1]:
+                    return None
+                return buf[BAUDRATE_OFFSET]
 
         def _set_special_baudrate(self, baudrate):
             # right size is 44 on x86_64, allow for some growth
@@ -321,6 +357,9 @@ class Serial(SerialBase, PlatformSpecific):
     systems.
     """
 
+    # read() and write() time out with select(); timeouts are not termios settings
+    _timeout_reconfigures_port = False
+
     def open(self):
         """\
         Open port with current settings. This may throw a SerialException
@@ -384,6 +423,12 @@ class Serial(SerialBase, PlatformSpecific):
 
         self.is_open = True
 
+    def _vmin_vtime(self):
+        """VMIN and VTIME for the current timeouts."""
+        if self._inter_byte_timeout is not None:
+            return 1, int(self._inter_byte_timeout * 10)
+        return 0, 0  # timeout is done via select
+
     def _reconfigure_port(self, force_update=False):
         """Set communication parameters on opened port."""
         if self.fd is None:
@@ -399,17 +444,15 @@ class Serial(SerialBase, PlatformSpecific):
             else:
                 fcntl.flock(self.fd, fcntl.LOCK_UN)
 
-        custom_baud = None
+        custom_baud = any_rate = None
 
-        vmin = vtime = 0                # timeout is done via select
-        if self._inter_byte_timeout is not None:
-            vmin = 1
-            vtime = int(self._inter_byte_timeout * 10)
+        vmin, vtime = self._vmin_vtime()
         try:
             orig_attr = termios.tcgetattr(self.fd)
             iflag, oflag, cflag, lflag, ispeed, ospeed, cc = orig_attr
         except termios.error as msg:      # if a port is nonexistent but has a /dev file, it'll fail here
             raise SerialException(msg.args[0], "Could not configure port: {}".format(msg))
+        cc = list(cc)  # don't modify orig_attr
         # set up raw mode / no echo / binary
         cflag |= (termios.CLOCAL | termios.CREAD)
         lflag &= ~(termios.ICANON | termios.ECHO | termios.ECHOE |
@@ -431,18 +474,23 @@ class Serial(SerialBase, PlatformSpecific):
             ispeed = ospeed = getattr(termios, 'B{}'.format(self._baudrate))
         except AttributeError:
             try:
+                if TCSETATTR_ANY_RATE:
+                    raise KeyError(self._baudrate)  # the table holds kernel codes, not rates
                 ispeed = ospeed = self.BAUDRATE_CONSTANTS[self._baudrate]
             except KeyError:
                 #~ raise ValueError('Invalid baud rate: %r' % self._baudrate)
-                # Use safe placeholder for tcsetattr(), try to set special baudrate later
-                ispeed = ospeed = termios.B38400
                 try:
-                    custom_baud = int(self._baudrate)  # store for later
+                    rate = int(self._baudrate)
                 except ValueError:
                     raise ValueError('Invalid baud rate: {!r}'.format(self._baudrate))
+                if rate < 0:
+                    raise ValueError('Invalid baud rate: {!r}'.format(self._baudrate))
+                if TCSETATTR_ANY_RATE:
+                    ispeed = ospeed = any_rate = rate
                 else:
-                    if custom_baud < 0:
-                        raise ValueError('Invalid baud rate: {!r}'.format(self._baudrate))
+                    # Use safe placeholder for tcsetattr(), try to set special baudrate later
+                    ispeed = ospeed = termios.B38400
+                    custom_baud = rate  # store for later
 
         # setup char len
         cflag &= ~termios.CSIZE
@@ -516,12 +564,35 @@ class Serial(SerialBase, PlatformSpecific):
         if vtime < 0 or vtime > 255:
             raise ValueError('Invalid vtime: {!r}'.format(vtime))
         cc[termios.VTIME] = vtime
-        # activate settings
-        if force_update or [iflag, oflag, cflag, lflag, ispeed, ospeed, cc] != orig_attr:
-            termios.tcsetattr(
-                self.fd,
-                termios.TCSANOW,
-                [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
+        if custom_baud is not None and hasattr(self, '_set_attrs_custom_baudrate'):
+            # Linux: one TCSETS2 instead of the B38400 placeholder
+            no_cbaud = ~termios.CBAUD
+            if (force_update or self._get_special_baudrate() != custom_baud
+                    or [iflag, oflag, cflag & no_cbaud, lflag, cc]
+                    != [orig_attr[0], orig_attr[1], orig_attr[2] & no_cbaud, orig_attr[3], orig_attr[6]]):
+                self._set_attrs_custom_baudrate(iflag, oflag, cflag, lflag, cc, custom_baud)
+            custom_baud = None
+        else:
+            # macOS reports a custom rate as the number itself
+            at_custom_rate = (custom_baud is not None and plat[:6] == 'darwin'
+                              and orig_attr[4] == orig_attr[5] == custom_baud)
+            if at_custom_rate:
+                ispeed = ospeed = custom_baud
+            # activate settings
+            if force_update or [iflag, oflag, cflag, lflag, ispeed, ospeed, cc] != orig_attr:
+                if at_custom_rate:
+                    ispeed = ospeed = termios.B38400  # tcsetattr() rejects custom rates
+                try:
+                    termios.tcsetattr(
+                        self.fd,
+                        termios.TCSANOW,
+                        [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
+                except termios.error as e:
+                    if any_rate is None:
+                        raise
+                    raise ValueError('Failed to set custom baud rate ({}): {}'.format(any_rate, e))
+            elif at_custom_rate:
+                custom_baud = None  # already at this rate
 
         # apply custom baud rate, if any
         if custom_baud is not None:
@@ -897,35 +968,20 @@ class VTIMESerial(Serial):
     just ignore that.
     """
 
-    def _reconfigure_port(self, force_update=True):
-        """Set communication parameters on opened port."""
-        super(VTIMESerial, self)._reconfigure_port()
-        fcntl.fcntl(self.fd, fcntl.F_SETFL, 0)  # clear O_NONBLOCK
+    _timeout_reconfigures_port = True  # the timeout is termios VTIME here
 
+    def _vmin_vtime(self):
+        """VMIN and VTIME implementing the timeouts."""
         if self._inter_byte_timeout is not None:
-            vmin = 1
-            vtime = int(self._inter_byte_timeout * 10)
-        elif self._timeout is None:
-            vmin = 1
-            vtime = 0
-        else:
-            vmin = 0
-            vtime = int(self._timeout * 10)
-        try:
-            orig_attr = termios.tcgetattr(self.fd)
-            iflag, oflag, cflag, lflag, ispeed, ospeed, cc = orig_attr
-        except termios.error as msg:      # if a port is nonexistent but has a /dev file, it'll fail here
-            raise serial.SerialException(msg.args[0], "Could not configure port: {}".format(msg))
+            return 1, int(self._inter_byte_timeout * 10)
+        if self._timeout is None:
+            return 1, 0
+        return 0, int(self._timeout * 10)
 
-        if vtime < 0 or vtime > 255:
-            raise ValueError('Invalid vtime: {!r}'.format(vtime))
-        cc[termios.VTIME] = vtime
-        cc[termios.VMIN] = vmin
-
-        termios.tcsetattr(
-                self.fd,
-                termios.TCSANOW,
-                [iflag, oflag, cflag, lflag, ispeed, ospeed, cc])
+    def _reconfigure_port(self, force_update=False):
+        """Set communication parameters on opened port."""
+        super(VTIMESerial, self)._reconfigure_port(force_update)
+        fcntl.fcntl(self.fd, fcntl.F_SETFL, 0)  # clear O_NONBLOCK
 
     def read(self, size=1):
         """\
