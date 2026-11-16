@@ -17,6 +17,11 @@ Unreleased
 - Remove support for Jython.
 - Remove support for IronPython.
 
+**Bugfixes**
+
+- [#705] Allow ``PortNotOpenError`` to be pickled and unpickled while preserving
+  its default message.
+
 
 .. _changelog-3.5:
 
