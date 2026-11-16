@@ -9,6 +9,7 @@ Tests for utility functions of serualutil.
 """
 
 import os
+import pickle
 import unittest
 import serial
 
@@ -26,6 +27,41 @@ class Test_util(unittest.TestCase):
 
     def test_iterbytes(self):
         self.assertEqual(list(serial.iterbytes(b'\x01\x02\x03')), [b'\x01', b'\x02', b'\x03'])
+
+
+class TestSerialExceptions(unittest.TestCase):
+    def test_port_not_open_error_default_message(self):
+        error = serial.PortNotOpenError()
+        self.assertEqual(str(error), 'Attempting to use a port that is not open')
+
+    def test_closed_port_error_pickle(self):
+        port = serial.serial_for_url('loop://', do_not_open=True)
+        with self.assertRaises(serial.PortNotOpenError) as caught:
+            port.read(1)
+        error = caught.exception
+        error.operation = 'read'
+        for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
+            with self.subTest(protocol=protocol):
+                restored = pickle.loads(pickle.dumps(error, protocol))
+                self.assertIs(type(restored), serial.PortNotOpenError)
+                self.assertEqual(restored.args, error.args)
+                self.assertEqual(str(restored), str(error))
+                self.assertEqual(restored.operation, 'read')
+
+    def test_serial_exception_arguments_pickle(self):
+        for exception in (serial.SerialException, serial.SerialTimeoutException,
+                          serial.PortNotOpenError):
+            for args in [('custom message',), (5, 'I/O error', 'port')]:
+                for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
+                    with self.subTest(exception=exception, args=args, protocol=protocol):
+                        error = exception(*args)
+                        restored = pickle.loads(pickle.dumps(error, protocol))
+                        self.assertIs(type(restored), exception)
+                        self.assertEqual(restored.args, error.args)
+                        self.assertEqual(str(restored), str(error))
+                        self.assertEqual(restored.errno, error.errno)
+                        self.assertEqual(restored.strerror, error.strerror)
+                        self.assertEqual(restored.filename, error.filename)
 
 
 if __name__ == '__main__':
