@@ -102,7 +102,7 @@ class Serial(SerialBase):
         if parts.scheme != "loop":
             raise SerialException(
                 'expected a string in the form '
-                '"loop://[?logging={debug|info|warning|error}]": not starting '
+                '"loop://[?logging={{debug|info|warning|error}}]": not starting '
                 'with loop:// ({!r})'.format(parts.scheme))
         try:
             # process options now, directly altering self
@@ -117,7 +117,7 @@ class Serial(SerialBase):
         except ValueError as e:
             raise SerialException(
                 'expected a string in the form '
-                '"loop://[?logging={debug|info|warning|error}]": {}'.format(e))
+                '"loop://[?logging={{debug|info|warning|error}}]": {}'.format(e))
 
     #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
