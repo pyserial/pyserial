@@ -108,7 +108,7 @@ class Serial(SerialBase):
         if parts.scheme != "socket":
             raise SerialException(
                 'expected a string in the form '
-                '"socket://<host>:<port>[?logging={debug|info|warning|error}]": '
+                '"socket://<host>:<port>[?logging={{debug|info|warning|error}}]": '
                 'not starting with socket:// ({!r})'.format(parts.scheme))
         try:
             # process options now, directly altering self
@@ -125,7 +125,7 @@ class Serial(SerialBase):
         except ValueError as e:
             raise SerialException(
                 'expected a string in the form '
-                '"socket://<host>:<port>[?logging={debug|info|warning|error}]": {}'.format(e))
+                '"socket://<host>:<port>[?logging={{debug|info|warning|error}}]": {}'.format(e))
 
         return (parts.hostname, parts.port)
 
