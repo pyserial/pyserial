@@ -19,7 +19,7 @@ class SysFS(list_ports_common.ListPortInfo):
     """Wrapper for easy sysfs access and device info"""
 
     def __init__(self, device):
-        super(SysFS, self).__init__(device)
+        super(SysFS, self).__init__(device, skip_link_detection=True)
         # special handling for links
         if device is not None and os.path.islink(device):
             device = os.path.realpath(device)
@@ -27,8 +27,9 @@ class SysFS(list_ports_common.ListPortInfo):
         else:
             is_link = False
         self.usb_device_path = None
-        if os.path.exists('/sys/class/tty/{}/device'.format(self.name)):
-            self.device_path = os.path.realpath('/sys/class/tty/{}/device'.format(self.name))
+        name = os.path.basename(device)
+        if os.path.exists('/sys/class/tty/{}/device'.format(name)):
+            self.device_path = os.path.realpath('/sys/class/tty/{}/device'.format(name))
             self.subsystem = os.path.basename(os.path.realpath(os.path.join(self.device_path, 'subsystem')))
         else:
             self.device_path = None
